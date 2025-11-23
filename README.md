@@ -19,9 +19,9 @@ Use it as inspiration, as a base to hack on, or just to see how ii can be pushed
 
 All screenshots are taken from my actual Niri session with this config:
 
-![Overview / workspaces on Niri](./preview1.png)
-![Sidebars and AltSwitcher](./preview2.png)
-![Settings, global search and theming](./preview3.png)
+![Overview / workspaces on Niri](https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/preview1.png)
+![Sidebars and AltSwitcher](https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/preview2.png)
+![Settings, global search and theming](https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/preview3.png)
 
 ---
 
