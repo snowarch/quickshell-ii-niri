@@ -25,7 +25,9 @@ Item {
         scale = 1
     }
     Behavior on scale {
-        animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
+        animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this, {
+            "duration": Config.options.overlay.animationDurationMs ?? Appearance.animation.elementMoveEnter.duration
+        })
     }
 
     Rectangle {
@@ -37,7 +39,9 @@ Item {
                  ? (Config.options.overlay.scrimDim / 100)
                  : 0
         Behavior on opacity {
-            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this, {
+                "duration": Config.options.overlay.scrimAnimationDurationMs ?? Appearance.animation.elementMoveFast.duration
+            })
         }
     }
 

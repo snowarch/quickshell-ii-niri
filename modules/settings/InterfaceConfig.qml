@@ -89,6 +89,43 @@ ContentPage {
                 }
             }
         }
+
+        ContentSubsection {
+            title: Translation.tr("Animations")
+
+            ConfigSwitch {
+                buttonIcon: "movie"
+                text: Translation.tr("Enable opening zoom animation")
+                checked: Config.options.overlay.openingZoomAnimation
+                onCheckedChanged: {
+                    Config.options.overlay.openingZoomAnimation = checked;
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "speed"
+                text: Translation.tr("Overlay animation duration (ms)")
+                value: Config.options.overlay.animationDurationMs ?? 180
+                from: 0
+                to: 1000
+                stepSize: 20
+                onValueChanged: {
+                    Config.options.overlay.animationDurationMs = value;
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "speed"
+                text: Translation.tr("Background dim animation (ms)")
+                value: Config.options.overlay.scrimAnimationDurationMs ?? 140
+                from: 0
+                to: 1000
+                stepSize: 20
+                onValueChanged: {
+                    Config.options.overlay.scrimAnimationDurationMs = value;
+                }
+            }
+        }
     }
 
     ContentSection {

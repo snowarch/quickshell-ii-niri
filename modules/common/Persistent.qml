@@ -147,6 +147,14 @@ Singleton {
                     property real width: 320
                     property real height: 160
                 }
+                property JsonObject notifications: JsonObject {
+                    property bool pinned: false
+                    property bool clickthrough: false
+                    property real x: 1200
+                    property real y: 80
+                    property real width: 420
+                    property real height: 500
+                }
             }
 
             property JsonObject timer: JsonObject {

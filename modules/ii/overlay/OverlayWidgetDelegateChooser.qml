@@ -14,6 +14,7 @@ import qs.modules.ii.overlay.recorder
 import qs.modules.ii.overlay.resources
 import qs.modules.ii.overlay.notes
 import qs.modules.ii.overlay.discord
+import qs.modules.ii.overlay.notifications
 
 DelegateChooser {
     id: root
@@ -27,4 +28,5 @@ DelegateChooser {
     DelegateChoice { roleValue: "notes"; Notes {} }
     DelegateChoice { roleValue: "discord"; Discord {} }
     DelegateChoice { roleValue: "volumeMixer"; VolumeMixer {} }
+    DelegateChoice { roleValue: "notifications"; Notifications {} }
 }

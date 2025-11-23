@@ -20,6 +20,7 @@ Singleton {
         "wps": "wps-office2019-kprometheus",
         "wpsoffice": "wps-office2019-kprometheus",
         "footclient": "foot",
+        "spotify": "spotify",
     })
     property var regexSubstitutions: [
         {

@@ -16,25 +16,6 @@ Item {
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
 
-    // Datos de carátula (cover art) inspirados en PlayerControl, pero simplificados para la barra
-    property var artUrl: activePlayer?.trackArtUrl
-    property string artDownloadLocation: Directories.coverArt
-    property string artFileName: artUrl ? Qt.md5(artUrl) : ""
-    property string artFilePath: artUrl && artUrl.length > 0 ? (artDownloadLocation + "/" + artFileName) : ""
-    property bool downloaded: false
-    property string displayedArtFilePath: downloaded && artFilePath.length > 0 ? Qt.resolvedUrl(artFilePath) : ""
-
-    onArtFilePathChanged: {
-        if (!artUrl || artUrl.length === 0) {
-            downloaded = false;
-            return;
-        }
-        coverArtDownloader.targetFile = artUrl;
-        coverArtDownloader.artFilePath = artFilePath;
-        downloaded = false;
-        coverArtDownloader.running = true;
-    }
-
     Layout.fillHeight: true
     implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 2
     implicitHeight: Appearance.sizes.barHeight
@@ -44,20 +25,6 @@ Item {
         interval: Config.options.resources.updateInterval
         repeat: true
         onTriggered: activePlayer.positionChanged()
-    }
-
-    Process { // Descarga ligera de carátula a caché
-        id: coverArtDownloader
-        property string targetFile: artUrl
-        property string artFilePath: root.artFilePath
-        command: [
-            "bash",
-            "-c",
-            "[ -f '" + artFilePath + "' ] || curl -sSL '" + targetFile + "' -o '" + artFilePath + "'"
-        ]
-        onExited: (exitCode, exitStatus) => {
-            downloaded = (exitCode === 0) && artFilePath.length > 0;
-        }
     }
 
     MouseArea {
@@ -96,19 +63,8 @@ Item {
                 width: mediaCircProg.implicitSize
                 height: mediaCircProg.implicitSize
 
-                StyledImage { // Carátula actual en miniatura
-                    id: coverImage
-                    anchors.fill: parent
-                    visible: root.displayedArtFilePath !== ""
-                    source: root.displayedArtFilePath
-                    fillMode: Image.PreserveAspectCrop
-                    cache: false
-                    antialiasing: true
-                }
-
-                MaterialSymbol { // Fallback cuando no hay carátula
+                MaterialSymbol {
                     anchors.centerIn: parent
-                    visible: root.displayedArtFilePath === ""
                     fill: 1
                     text: activePlayer?.isPlaying ? "pause" : "music_note"
                     iconSize: Appearance.font.pixelSize.normal

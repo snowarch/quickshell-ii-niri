@@ -61,6 +61,10 @@ DockButton {
         if (id === "com.github.th_ch.youtube_music") {
             id = "pear-desktop";
         }
+        // Caso especial: Spotify launcher
+        if (id === "spotify" || id === "spotify-launcher") {
+            id = "spotify-launcher";
+        }
         if (id && id !== "" && id !== "SEPARATOR") {
             const cmd = "gtk-launch \"" + id + "\" || \"" + id + "\" &";
             Quickshell.execDetached(["bash", "-lc", cmd]);
@@ -110,7 +114,16 @@ DockButton {
                 sourceComponent: IconImage {
                     // Use desktop entry icon if available, fallback to guessed icon
                     source: {
-                        const iconName = root.desktopEntry?.icon || AppSearch.guessIcon(appToplevel.originalAppId ?? appToplevel.appId);
+                        const appId = appToplevel.originalAppId ?? appToplevel.appId;
+                        let iconName;
+
+                        // Caso especial: Spotify → usar icono de tema "spotify"
+                        if (appId === "Spotify" || appId === "spotify" || appId === "spotify-launcher") {
+                            iconName = "spotify";
+                        } else {
+                            iconName = root.desktopEntry?.icon || AppSearch.guessIcon(appId);
+                        }
+
                         return Quickshell.iconPath(iconName, "image-missing");
                     }
                     implicitSize: root.iconSize

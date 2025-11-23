@@ -11,6 +11,11 @@ MouseArea {
     id: root
     required property SystemTrayItem item
     property bool targetMenuOpen: false
+    property bool isSpotifyItem: {
+        const id = (item.id || "").toLowerCase();
+        const title = (item.title || "").toLowerCase();
+        return id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
+    }
 
     signal menuOpened(qsWindow: var)
     signal menuClosed()
@@ -21,9 +26,18 @@ MouseArea {
     implicitHeight: 20
     onPressed: (event) => {
         switch (event.button) {
-        case Qt.LeftButton:
-            item.activate();
+        case Qt.LeftButton: {
+            const id = (item.id || "").toLowerCase();
+            const title = (item.title || "").toLowerCase();
+
+            // Caso especial: Spotify → lanzar/mostrar usando el launcher
+            if (id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1) {
+                Quickshell.execDetached(["bash", "-lc", "gtk-launch \"spotify-launcher\" || spotify-launcher &"]);
+            } else {
+                item.activate();
+            }
             break;
+        }
         case Qt.RightButton:
             if (item.hasMenu) menu.open();
             break;
@@ -66,14 +80,24 @@ MouseArea {
     IconImage {
         id: trayIcon
         visible: !Config.options.bar.tray.monochromeIcons
-        source: root.item.icon
+        source: {
+            const id = (root.item.id || "").toLowerCase();
+            const title = (root.item.title || "").toLowerCase();
+
+            // Caso especial: Spotify → resolver explícitamente vía Quickshell.iconPath
+            if (id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1) {
+                return Quickshell.iconPath("spotify", "image-missing");
+            }
+
+            return root.item.icon;
+        }
         anchors.centerIn: parent
         width: parent.width
         height: parent.height
     }
 
     Loader {
-        active: Config.options.bar.tray.monochromeIcons
+        active: true
         anchors.fill: trayIcon
         sourceComponent: Item {
             Desaturate {

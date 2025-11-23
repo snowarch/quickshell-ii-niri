@@ -423,6 +423,9 @@ Singleton {
                 property real clickthroughOpacity: 0.8
                 property real backgroundOpacity: 0.9 // 0-1, opacidad de los paneles de overlay
                 property int scrimDim: 35 // 0-100, intensidad del oscurecido de pantalla
+                // Duraciones de animación del overlay (ms)
+                property int animationDurationMs: 180
+                property int scrimAnimationDurationMs: 140
                 property JsonObject floatingImage: JsonObject {
                     property string imageSource: "https://media.tenor.com/H5U5bJzj3oAAAAAi/kukuru.gif"
                     property real scale: 0.5

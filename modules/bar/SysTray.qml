@@ -18,8 +18,20 @@ Item {
     property var activeMenu: null
 
     property bool smartTray: Config.options.bar.tray.filterPassive
-    property list<var> itemsInUserList: SystemTray.items.values.filter(i => (Config.options.bar.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
-    property list<var> itemsNotInUserList: SystemTray.items.values.filter(i => (!Config.options.bar.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
+    property list<var> itemsInUserList: SystemTray.items.values.filter(i => {
+        const id = (i.id || "").toLowerCase();
+        const title = (i.title || "").toLowerCase();
+        const isSpotify = id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
+        return Config.options.bar.tray.pinnedItems.includes(i.id)
+                && (!smartTray || i.status !== Status.Passive || isSpotify);
+    })
+    property list<var> itemsNotInUserList: SystemTray.items.values.filter(i => {
+        const id = (i.id || "").toLowerCase();
+        const title = (i.title || "").toLowerCase();
+        const isSpotify = id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
+        return !Config.options.bar.tray.pinnedItems.includes(i.id)
+                && (!smartTray || i.status !== Status.Passive || isSpotify);
+    })
 
     property bool invertPins: Config.options.bar.tray.invertPinnedItems
     property list<var> pinnedItems: invertPins ? itemsNotInUserList : itemsInUserList

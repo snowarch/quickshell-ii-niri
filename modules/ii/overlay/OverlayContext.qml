@@ -14,6 +14,7 @@ Singleton {
         { identifier: "notes", materialSymbol: "note_stack" },
         { identifier: "discord", materialSymbol: "forum" },
         { identifier: "volumeMixer", materialSymbol: "volume_up" },
+        { identifier: "notifications", materialSymbol: "notifications" },
     ]
     
     readonly property bool hasPinnedWidgets: root.pinnedWidgetIdentifiers.length > 0
