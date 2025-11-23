@@ -189,6 +189,8 @@ Singleton {
                 property JsonObject effects: JsonObject {
                     property bool enableBlur: false
                     property int blurRadius: 32
+                    property int blurStatic: 0 // 0-100, blur mínimo incluso sin ventanas
+                    property int videoBlurStrength: 50
                     property int dim: 0 // 0-100 percentage (base overlay)
                     property int dynamicDim: 0 // Extra dim when there are windows on the current workspace (0-100)
                 }

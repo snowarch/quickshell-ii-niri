@@ -113,10 +113,23 @@ Variants {
             }
         }
 
-        // Progreso de blur: solo cuando blur está activado; reutiliza focusPresenceProgress
-        property real blurProgress: (Config.options.background.effects.enableBlur && Config.options.background.effects.blurRadius > 0)
-                                    ? focusPresenceProgress
-                                    : 0
+        // Progreso de blur: combina un blur estático base (blurStatic) con el componente dinámico
+        // ligado a ventanas en el workspace actual.
+        property real blurProgress: {
+            if (!(Config.options.background.effects.enableBlur && Config.options.background.effects.blurRadius > 0))
+                return 0;
+
+            const rawBase = Number(Config.options.background.effects.blurStatic);
+            const base = Number.isFinite(rawBase)
+                    ? Math.max(0, Math.min(100, rawBase))
+                    : 0;
+
+            // Cuando no hay ventanas: blur = base%.
+            // Cuando hay ventanas: interpolar de base% a 100% usando focusPresenceProgress.
+            const dyn = focusPresenceProgress; // 0..1
+            const total = (base + (100 - base) * dyn) / 100;
+            return Math.max(0, Math.min(1, total));
+        }
 
         // Layer props
         screen: modelData
@@ -244,7 +257,9 @@ Variants {
                 anchors.fill: wallpaper
                 sourceComponent: Item {
                     anchors.fill: parent
-                    opacity: bgRoot.blurProgress
+                    opacity: bgRoot.wallpaperIsVideo
+                              ? bgRoot.blurProgress * Math.max(0, Math.min(1, Config.options.background.effects.videoBlurStrength / 100))
+                              : bgRoot.blurProgress
 
                     GaussianBlur {
                         anchors.fill: parent

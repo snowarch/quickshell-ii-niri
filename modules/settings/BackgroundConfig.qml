@@ -81,6 +81,32 @@ ContentPage {
         }
 
         ConfigSpinBox {
+            visible: Config.options.background.effects.enableBlur
+            icon: "blur_linear"
+            text: Translation.tr("Static blur when no windows (%)")
+            value: Config.options.background.effects.blurStatic
+            from: 0
+            to: 100
+            stepSize: 5
+            onValueChanged: {
+                Config.options.background.effects.blurStatic = value;
+            }
+        }
+
+        ConfigSpinBox {
+            visible: Config.options.background.effects.enableBlur
+            icon: "blur_circular"
+            text: Translation.tr("Video blur strength (%)")
+            value: Config.options.background.effects.videoBlurStrength
+            from: 0
+            to: 100
+            stepSize: 5
+            onValueChanged: {
+                Config.options.background.effects.videoBlurStrength = value;
+            }
+        }
+
+        ConfigSpinBox {
             icon: "brightness_6"
             text: Translation.tr("Dim overlay (%)")
             value: Config.options.background.effects.dim

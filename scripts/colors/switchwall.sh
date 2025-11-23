@@ -115,6 +115,31 @@ kill_existing_mpvpaper() {
     pkill -f -9 mpvpaper || true
 }
 
+start_mpvpaper_for_all_outputs() {
+    local video_path="$1"
+    local outputs=""
+
+    # Niri: obtener conectores (HDMI-A-2, eDP-1, etc.) desde `niri msg outputs`
+    if command -v niri >/dev/null 2>&1 && niri msg outputs >/dev/null 2>&1; then
+        outputs=$(niri msg outputs | awk -F'[()]' '/^Output / {gsub(/^ +| +$/, "", $2); print $2}')
+    fi
+
+    # Hyprland (comportamiento original): nombres desde `hyprctl monitors -j`
+    if [[ -z "$outputs" ]] && command -v hyprctl >/dev/null 2>&1; then
+        outputs=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | .name')
+    fi
+
+    if [[ -z "$outputs" ]]; then
+        echo "[switchwall.sh] Warning: could not detect outputs for mpvpaper" >&2
+        return 1
+    fi
+
+    for output in $outputs; do
+        mpvpaper -o "$VIDEO_OPTS" "$output" "$video_path" &
+        sleep 0.1
+    done
+}
+
 create_restore_script() {
     local video_path=$1
     cat > "$RESTORE_SCRIPT.tmp" << EOF
@@ -218,13 +243,9 @@ switch() {
             # Set wallpaper path
             set_wallpaper_path "$imgpath"
 
-            # Set video wallpaper
+            # Set video wallpaper (Niri o Hyprland)
             local video_path="$imgpath"
-            monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
-            for monitor in $monitors; do
-                mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" &
-                sleep 0.1
-            done
+            start_mpvpaper_for_all_outputs "$video_path" || echo "[switchwall.sh] Failed to start mpvpaper for video wallpaper" >&2
 
             # Extract first frame for color generation
             thumbnail="$THUMBNAIL_DIR/$(basename "$imgpath").jpg"
