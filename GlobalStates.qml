@@ -20,6 +20,7 @@ Singleton {
     property bool overlayOpen: false
     property bool overviewOpen: false
     property bool altSwitcherOpen: false
+    property bool clipboardOpen: false
     property bool regionSelectorOpen: false
     property bool screenLocked: false
     property bool screenLockContainsCharacters: false

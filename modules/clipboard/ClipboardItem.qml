@@ -33,13 +33,16 @@ RippleButton {
     property int buttonHorizontalPadding: 10
     property int buttonVerticalPadding: 6
     property bool keyboardDown: false
+    property bool isSelected: false
+    property bool copiedFromPanel: false
 
     implicitHeight: rowLayout.implicitHeight + root.buttonVerticalPadding * 2
     implicitWidth: rowLayout.implicitWidth + root.buttonHorizontalPadding * 2
     buttonRadius: Appearance.rounding.normal
+    // Darker highlight for hover/selection, stronger only while actively pressed
     colBackground: (root.down || root.keyboardDown) ? Appearance.colors.colPrimaryContainerActive : 
-        ((root.hovered || root.focus) ? Appearance.colors.colPrimaryContainer : 
-        ColorUtils.transparentize(Appearance.colors.colPrimaryContainer, 1))
+        ((root.hovered || root.focus || root.isSelected) ? Appearance.colors.colLayer0 : 
+        ColorUtils.transparentize(Appearance.colors.colLayer0, 1))
     colBackgroundHover: Appearance.colors.colPrimaryContainer
     colRipple: Appearance.colors.colPrimaryContainerActive
 
@@ -93,7 +96,7 @@ RippleButton {
     }
 
     onClicked: {
-        GlobalStates.overviewOpen = false
+        GlobalStates.clipboardOpen = false
         root.itemExecute()
     }
     Keys.onPressed: (event) => {
@@ -168,14 +171,14 @@ RippleButton {
             spacing: 0
             StyledText {
                 font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.colors.colSubtext
+                color: (root.isSelected || root.hovered || root.focus) ? Appearance.m3colors.m3onPrimaryContainer : Appearance.colors.colSubtext
                 visible: root.itemType && root.itemType != Translation.tr("App")
                 text: root.itemType
             }
             RowLayout {
-                Loader { // Checkmark for copied clipboard entry
-                    visible: itemName == Quickshell.clipboardText && root.cliphistRawString
-                    active: itemName == Quickshell.clipboardText && root.cliphistRawString
+                Loader { // Checkmark for entries copied from this panel
+                    visible: root.copiedFromPanel && root.cliphistRawString
+                    active: root.copiedFromPanel && root.cliphistRawString
                     sourceComponent: Rectangle {
                         implicitWidth: activeText.implicitHeight
                         implicitHeight: activeText.implicitHeight
@@ -204,7 +207,7 @@ RippleButton {
                     textFormat: Text.StyledText // RichText also works, but StyledText ensures elide work
                     font.pixelSize: Appearance.font.pixelSize.small
                     font.family: Appearance.font.family[root.fontType]
-                    color: Appearance.m3colors.m3onSurface
+                    color: (root.isSelected || root.hovered || root.focus) ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
                     horizontalAlignment: Text.AlignLeft
                     elide: Text.ElideRight
                     text: `${root.displayContent}`

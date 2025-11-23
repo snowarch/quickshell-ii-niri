@@ -52,6 +52,7 @@ Singleton {
     }
 
     function copy(entry) {
+        console.log("[Cliphist] copy()", String(entry).slice(0, 120))
         if (root.cliphistBinary.includes("cliphist")) // Classic cliphist
             Quickshell.execDetached(["bash", "-c", `printf '${StringUtils.shellSingleQuoteEscape(entry)}' | ${root.cliphistBinary} decode | wl-copy`]);
         else { // Stash

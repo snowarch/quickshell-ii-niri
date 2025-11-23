@@ -29,6 +29,7 @@ import qs.modules.verticalBar
 import qs.modules.wallpaperSelector
 import qs.modules.altSwitcher
 import qs.modules.ii.overlay
+import "modules/clipboard" as ClipboardModule
 
 import QtQuick
 import QtQuick.Window
@@ -92,5 +93,5 @@ ShellRoot {
     LazyLoader { active: enableVerticalBar && Config.ready && Config.options.bar.vertical; component: VerticalBar {} }
     LazyLoader { active: enableWallpaperSelector; component: WallpaperSelector {} }
     LazyLoader { active: true; component: AltSwitcher {} }
+    LazyLoader { active: true; component: ClipboardModule.ClipboardPanel {} }
 }
-

@@ -43,6 +43,9 @@ All screenshots are taken from my actual Niri session with this config:
 - **Wallpaper + theming pipeline**  
   Matugen‑driven Material You colors, dynamic blur/dim of the wallpaper based on windows on the current workspace, and colors shared with ii, DMS and apps.
 
+- **Clipboard history panel**  
+  Built‑in cliphist‑based history popup with search, previews and copy/paste/delete actions, which you can bind to something like Super+V if you want it fully integrated into Niri.
+
 - **Quality‑of‑life bits**  
   Global Settings search with indexed options, unified search bar style (Overview + Settings), integrated notepad in the right sidebar, and a Super‑tap daemon (tap Super → toggle ii overview on Niri).
 
@@ -53,6 +56,7 @@ All screenshots are taken from my actual Niri session with this config:
 - **Compositor:** Niri 25.08+
 - **Shell:** Quickshell ≥ 0.2.0
 - **Theming:** Matugen for color generation
+- **Clipboard tools:** `cliphist` (or compatible) + `wl-copy` / `wl-paste` (wl-clipboard), optionally `ydotool` if you want superpaste-style key injection.
 - **Optional:** DankMaterialShell (DMS), Python + `python-evdev` for the Super‑tap daemon.
 
 ---
@@ -63,6 +67,7 @@ All screenshots are taken from my actual Niri session with this config:
 - Treat it as:
   - a reference if you’re building your own ii‑on‑Niri setup, or
   - a starting point to fork and adapt to your system.
+- To use the clipboard history panel like a Super+V menu, point a Niri keybind at the ii IPC target `clipboard.toggle` (same pattern you would use for `overview.toggle`).
 
 ---
 
