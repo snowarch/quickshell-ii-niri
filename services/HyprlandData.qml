@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.services
 
 /**
  * Provides access to some Hyprland data not available in Quickshell.Hyprland.
@@ -22,23 +23,33 @@ Singleton {
     property var layers: ({})
 
     function updateWindowList() {
+        if (!CompositorService.isHyprland)
+            return;
         getClients.running = true;
     }
 
     function updateLayers() {
+        if (!CompositorService.isHyprland)
+            return;
         getLayers.running = true;
     }
 
     function updateMonitors() {
+        if (!CompositorService.isHyprland)
+            return;
         getMonitors.running = true;
     }
 
     function updateWorkspaces() {
+        if (!CompositorService.isHyprland)
+            return;
         getWorkspaces.running = true;
         getActiveWorkspace.running = true;
     }
 
     function updateAll() {
+        if (!CompositorService.isHyprland)
+            return;
         updateWindowList();
         updateMonitors();
         updateLayers();
@@ -55,6 +66,8 @@ Singleton {
     }
 
     Component.onCompleted: {
+        if (!CompositorService.isHyprland)
+            return;
         updateAll();
     }
 
@@ -62,6 +75,8 @@ Singleton {
         target: Hyprland
 
         function onRawEvent(event) {
+            if (!CompositorService.isHyprland)
+                return;
             // console.log("Hyprland raw event:", event.name);
             updateAll()
         }

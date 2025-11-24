@@ -125,6 +125,10 @@ Singleton {
                 }
             }
 
+            property JsonObject performance: JsonObject {
+                property bool lowPower: false
+            }
+
             property JsonObject audio: JsonObject {
                 // Values in %
                 property JsonObject protection: JsonObject {
@@ -193,6 +197,18 @@ Singleton {
                     property int videoBlurStrength: 50
                     property int dim: 0 // 0-100 percentage (base overlay)
                     property int dynamicDim: 0 // Extra dim when there are windows on the current workspace (0-100)
+                }
+                property JsonObject backdrop: JsonObject {
+                    property bool enable: false
+                    property bool useMainWallpaper: true
+                    property string wallpaperPath: ""
+                    property int blurRadius: 32
+                    property int dim: 35 // 0-100
+                    property real saturation: 1.0
+                    property real contrast: 1.0
+                    property bool vignetteEnabled: false
+                    property real vignetteIntensity: 0.5
+                    property real vignetteRadius: 0.7
                 }
                 property JsonObject parallax: JsonObject {
                     property bool vertical: false
@@ -603,6 +619,7 @@ Singleton {
             
             property JsonObject wallpaperSelector: JsonObject {
                 property bool useSystemFileDialog: false
+                property string selectionTarget: "main"
             }
             
             property JsonObject windows: JsonObject {

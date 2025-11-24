@@ -25,7 +25,7 @@ Item {
             visible: Config.options.bar.utilButtons.showScreenSnip
             sourceComponent: CircleUtilButton {
                 Layout.alignment: Qt.AlignVCenter
-                onClicked: Hyprland.dispatch("global quickshell:regionScreenshot")
+                onClicked: Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "region", "screenshot"])
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 1
@@ -41,7 +41,7 @@ Item {
             visible: Config.options.bar.utilButtons.showScreenRecord
             sourceComponent: CircleUtilButton {
                 Layout.alignment: Qt.AlignVCenter
-                onClicked: Quickshell.execDetached([Directories.recordScriptPath])
+                onClicked: Quickshell.execDetached([Directories.recordScriptPath, "--fullscreen", "--sound"])
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 1

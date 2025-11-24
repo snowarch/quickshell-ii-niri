@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -138,6 +139,146 @@ ContentPage {
                 text: Translation.tr("Additional dim applied when there are windows on the current workspace.")
                 extraVisibleCondition: false
                 alternativeVisibleCondition: parent && parent.hovered !== undefined ? parent.hovered : false
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Backdrop (overview)")
+
+            ConfigSwitch {
+                buttonIcon: "texture"
+                text: Translation.tr("Enable backdrop layer for overview")
+                checked: Config.options.background.backdrop.enable
+                onCheckedChanged: {
+                    Config.options.background.backdrop.enable = checked;
+                }
+            }
+
+            ConfigSwitch {
+                buttonIcon: "link"
+                text: Translation.tr("Use main wallpaper")
+                checked: Config.options.background.backdrop.useMainWallpaper
+                onCheckedChanged: {
+                    Config.options.background.backdrop.useMainWallpaper = checked;
+                    if (checked) {
+                        Config.options.background.backdrop.wallpaperPath = "";
+                    }
+                }
+            }
+
+            MaterialTextArea {
+                visible: Config.options.background.backdrop.enable
+                         && !Config.options.background.backdrop.useMainWallpaper
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Backdrop wallpaper path (empty = use main wallpaper)")
+                text: Config.options.background.backdrop.wallpaperPath
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: {
+                    Config.options.background.backdrop.wallpaperPath = text;
+                }
+            }
+
+            ConfigRow {
+                uniform: true
+                RippleButtonWithIcon {
+                    buttonRadius: Appearance.rounding.full
+                    materialIcon: "apps"
+                    mainText: Translation.tr("Pick backdrop wallpaper")
+                    onClicked: {
+                        Config.options.wallpaperSelector.selectionTarget = "backdrop";
+                        Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+                    }
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable
+                icon: "blur_on"
+                text: Translation.tr("Backdrop blur radius")
+                value: Config.options.background.backdrop.blurRadius
+                from: 0
+                to: 100
+                stepSize: 2
+                onValueChanged: {
+                    Config.options.background.backdrop.blurRadius = value;
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable
+                icon: "brightness_5"
+                text: Translation.tr("Backdrop dim (%)")
+                value: Config.options.background.backdrop.dim
+                from: 0
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.backdrop.dim = value;
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable
+                icon: "palette"
+                text: Translation.tr("Backdrop saturation")
+                value: Math.round(Config.options.background.backdrop.saturation * 100)
+                from: 0
+                to: 200
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.backdrop.saturation = value / 100.0;
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable
+                icon: "contrast"
+                text: Translation.tr("Backdrop contrast")
+                value: Math.round(Config.options.background.backdrop.contrast * 100)
+                from: 0
+                to: 200
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.backdrop.contrast = value / 100.0;
+                }
+            }
+
+            ConfigRow {
+                uniform: true
+                ConfigSwitch {
+                    buttonIcon: "gradient"
+                    text: Translation.tr("Enable vignette")
+                    checked: Config.options.background.backdrop.vignetteEnabled
+                    onCheckedChanged: {
+                        Config.options.background.backdrop.vignetteEnabled = checked;
+                    }
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable && Config.options.background.backdrop.vignetteEnabled
+                icon: "blur_circular"
+                text: Translation.tr("Vignette intensity")
+                value: Math.round(Config.options.background.backdrop.vignetteIntensity * 100)
+                from: 0
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.backdrop.vignetteIntensity = value / 100.0;
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.backdrop.enable && Config.options.background.backdrop.vignetteEnabled
+                icon: "trip_origin"
+                text: Translation.tr("Vignette radius")
+                value: Math.round(Config.options.background.backdrop.vignetteRadius * 100)
+                from: 10
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.backdrop.vignetteRadius = value / 100.0;
+                }
             }
         }
     }

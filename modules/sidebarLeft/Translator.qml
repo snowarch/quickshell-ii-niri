@@ -23,7 +23,7 @@ Item {
     // Widget variables
     property bool translationFor: false // Indicates if the translation is for an autocorrected text
     property string translatedText: ""
-    property list<string> languages: []
+    property var languages: ["auto"]
 
     // Options
     property string targetLanguage: Config.options.language.translator.targetLanguage
@@ -52,9 +52,7 @@ Item {
         repeat: false
         onTriggered: () => {
             if (root.inputField.text.trim().length > 0) {
-                // console.log("Translating with command:", translateProc.command);
                 translateProc.running = false;
-                translateProc.buffer = ""; // Clear the buffer
                 translateProc.running = true; // Restart the process
             } else {
                 root.translatedText = "";
@@ -68,42 +66,49 @@ Item {
             + ` -source '${StringUtils.shellSingleQuoteEscape(root.sourceLanguage)}'`
             + ` -target '${StringUtils.shellSingleQuoteEscape(root.targetLanguage)}'`
             + ` -no-ansi '${StringUtils.shellSingleQuoteEscape(root.inputField.text.trim())}'`]
-        property string buffer: ""
-        stdout: SplitParser {
-            onRead: function(data) {
-                translateProc.buffer += data + "\n";
+        stdout: StdioCollector {
+            id: translateCollector
+            onStreamFinished: {
+                // Split into sections by double newlines
+                const buffer = translateCollector.text || "";
+                const sections = buffer.trim().split(/\n\s*\n/);
+                // Extract translated text from second section
+                root.translatedText = sections.length > 1 ? sections[1].trim() : "";
             }
-        }
-        onExited: (exitCode, exitStatus) => {
-            // 1. Split into sections by double newlines
-            const sections = translateProc.buffer.trim().split(/\n\s*\n/);
-            // console.log("BUFFER:", translateProc.buffer);
-            // console.log("SECTIONS:", sections);
-
-            // 2. Extract relevant data
-            root.translatedText = sections.length > 1 ? sections[1].trim() : "";
         }
     }
 
     Process {
         id: getLanguagesProc
         command: ["trans", "-list-languages", "-no-bidi"]
-        property list<string> bufferList: ["auto"]
-        running: true
-        stdout: SplitParser {
-            onRead: function(data) {
-                getLanguagesProc.bufferList.push(data.trim());
+        stdout: StdioCollector {
+            id: langsCollector
+            onStreamFinished: {
+                // Parse collected text into language list, ensure "auto" is first
+                const text = String(langsCollector.text || "");
+                if (!text.trim()) {
+                    root.languages = ["auto"];
+                    return;
+                }
+                // Simple split + trim; JS array, no fancy constructs to keep QML happy.
+                var parsed = text.split("\n");
+                var result = ["auto"];
+                for (var i = 0; i < parsed.length; ++i) {
+                    var lang = String(parsed[i]).trim();
+                    if (!lang || lang === "auto")
+                        continue;
+                    if (result.indexOf(lang) === -1)
+                        result.push(lang);
+                }
+                try {
+                    root.languages = result;
+                } catch (e) {
+                    console.warn("[Translator] Failed to set languages list, falling back to ['auto']:", e);
+                    root.languages = ["auto"];            
+                }
             }
         }
-        onExited: (exitCode, exitStatus) => {
-            // Ensure "auto" is always the first language
-            let langs = getLanguagesProc.bufferList
-                .filter(lang => lang.trim().length > 0 && lang !== "auto")
-                .sort((a, b) => a.localeCompare(b));
-            langs.unshift("auto");
-            root.languages = langs;
-            getLanguagesProc.bufferList = []; // Clear the buffer
-        }
+        Component.onCompleted: running = true
     }
 
     ColumnLayout {

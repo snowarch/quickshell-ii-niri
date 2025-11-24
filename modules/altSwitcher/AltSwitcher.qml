@@ -256,7 +256,7 @@ Scope {
                 z: 0.5
                 anchors.fill: panelBackground
                 source: panelBackground
-                visible: Config.options.altSwitcher && Config.options.altSwitcher.enableBlurGlass && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
+                visible: Config.options.altSwitcher && Config.options.altSwitcher.enableBlurGlass && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
                 blurEnabled: true
                 blur: Config.options.altSwitcher && Config.options.altSwitcher.blurAmount !== undefined ? Config.options.altSwitcher.blurAmount : 0.4
                 blurMax: 64

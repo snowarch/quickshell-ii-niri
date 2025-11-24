@@ -42,17 +42,37 @@ MouseArea {
 
     function selectWallpaperPath(filePath) {
         if (filePath && filePath.length > 0) {
-            Wallpapers.select(filePath, root.useDarkMode);
-            filterField.text = "";
+            if (Config.options.wallpaperSelector.selectionTarget === "backdrop") {
+                Config.options.background.backdrop.wallpaperPath = filePath;
+                filterField.text = "";
+                GlobalStates.wallpaperSelectorOpen = false;
+            } else {
+                Wallpapers.select(filePath, root.useDarkMode);
+                filterField.text = "";
+            }
         }
     }
 
-    acceptedButtons: Qt.BackButton | Qt.ForwardButton
+    acceptedButtons: Qt.LeftButton | Qt.BackButton | Qt.ForwardButton
+
+    onClicked: mouse => {
+        const localPos = mapToItem(wallpaperGridBackground, mouse.x, mouse.y);
+        const outside = (localPos.x < 0 || localPos.x > wallpaperGridBackground.width
+                || localPos.y < 0 || localPos.y > wallpaperGridBackground.height);
+        if (outside) {
+            GlobalStates.wallpaperSelectorOpen = false;
+        } else {
+            mouse.accepted = false;
+        }
+    }
+
     onPressed: event => {
         if (event.button === Qt.BackButton) {
             Wallpapers.navigateBack();
         } else if (event.button === Qt.ForwardButton) {
             Wallpapers.navigateForward();
+        } else {
+            event.accepted = false;
         }
     }
 
@@ -121,6 +141,7 @@ MouseArea {
             margins: Appearance.sizes.elevationMargin
         }
         focus: true
+        Keys.forwardTo: [root]
         border.width: 1
         border.color: Appearance.colors.colLayer0Border
         color: Appearance.colors.colLayer0

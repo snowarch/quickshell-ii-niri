@@ -13,7 +13,8 @@ Rectangle {
     id: root
 
     property var screen: root.QsWindow.window?.screen
-    property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
+    // Brightness monitor may be undefined (e.g. Niri without matching monitor); guard it.
+    property var brightnessMonitor: screen ? Brightness.getMonitorForScreen(screen) : null
 
     implicitWidth: contentItem.implicitWidth + root.horizontalPadding * 2
     implicitHeight: contentItem.implicitHeight + root.verticalPadding * 2
@@ -38,12 +39,13 @@ Rectangle {
                 right: parent.right
             }
             visible: active
-            active: Config.options.sidebar.quickSliders.showBrightness
+            active: Config.options.sidebar.quickSliders.showBrightness && !!root.brightnessMonitor
             sourceComponent: QuickSlider {
                 materialSymbol: "brightness_6"
-                value: root.brightnessMonitor.brightness
+                value: root.brightnessMonitor ? root.brightnessMonitor.brightness : 0
                 onMoved: {
-                    root.brightnessMonitor.setBrightness(value)
+                    if (root.brightnessMonitor)
+                        root.brightnessMonitor.setBrightness(value)
                 }
             }
         }

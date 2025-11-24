@@ -270,7 +270,8 @@ ContentPage {
                         materialIcon: "apps"
                         mainText: Translation.tr("Open selector")
                         onClicked: {
-                            GlobalStates.wallpaperSelectorOpen = true;
+                            Config.options.wallpaperSelector.selectionTarget = "main";
+                            Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
                         }
                     }
                 }
@@ -321,7 +322,20 @@ ContentPage {
                             visible: !fileIsDir
                             source: fileUrl
                             fillMode: Image.PreserveAspectCrop
-                            cache: false
+                            asynchronous: true
+                            cache: true
+                            sourceSize.width: width
+                            sourceSize.height: height
+                        }
+
+                        MaterialSymbol {
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.margins: 4
+                            visible: !fileIsDir && filePath === Config.options.background.wallpaperPath
+                            text: "check_circle"
+                            iconSize: Appearance.font.pixelSize.normal
+                            color: Appearance.colors.colPrimary
                         }
 
                         Column {

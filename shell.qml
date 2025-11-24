@@ -72,6 +72,7 @@ ShellRoot {
     }
 
     LazyLoader { active: enableBar && Config.ready && !Config.options.bar.vertical; component: Bar {} }
+    LazyLoader { active: Config.ready && Config.options.background.backdrop.enable; component: Backdrop {} }
     LazyLoader { active: enableBackground; component: Background {} }
     LazyLoader { active: enableCheatsheet; component: Cheatsheet {} }
     LazyLoader { active: enableCrosshair; component: Crosshair {} }

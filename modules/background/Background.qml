@@ -253,7 +253,10 @@ Variants {
                 id: blurAlwaysLoader
                 z: 1
                 // Disable when lock blur is active so lock state owns the effect
-                active: Config.options.background.effects.enableBlur && Config.options.background.effects.blurRadius > 0 && !blurLoader.active
+                active: Config.options.background.effects.enableBlur
+                        && !Config.options.performance.lowPower
+                        && Config.options.background.effects.blurRadius > 0
+                        && !blurLoader.active
                 anchors.fill: wallpaper
                 sourceComponent: Item {
                     anchors.fill: parent

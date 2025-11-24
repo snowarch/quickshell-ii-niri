@@ -317,7 +317,7 @@ Item {
                                 source: workspaceWallpaperSource
                                 radius: {
                                     const ov = Config.options.overview
-                                    if (!ov || ov.backgroundBlurEnable === false)
+                                    if (!ov || ov.backgroundBlurEnable === false || Config.options.performance.lowPower)
                                         return 0
                                     const r = (ov.backgroundBlurRadius !== undefined) ? ov.backgroundBlurRadius : 22
                                     return r * root.scale

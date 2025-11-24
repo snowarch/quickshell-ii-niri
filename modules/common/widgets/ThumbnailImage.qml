@@ -33,6 +33,12 @@ StyledImage {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
 
+    onStatusChanged: {
+        if (status === Image.Error) {
+            root.source = Qt.resolvedUrl(root.sourcePath);
+        }
+    }
+
     onSourceSizeChanged: {
         if (!root.generateThumbnail) return;
         thumbnailGeneration.running = false;
