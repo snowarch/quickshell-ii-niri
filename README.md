@@ -57,7 +57,30 @@ All screenshots are taken from my actual Niri session with this config:
 - **Shell:** Quickshell ≥ 0.2.0
 - **Theming:** Matugen for color generation
 - **Clipboard tools:** `cliphist` (or compatible) + `wl-copy` / `wl-paste` (wl-clipboard), optionally `ydotool` if you want superpaste-style key injection.
-- **Optional:** DankMaterialShell (DMS), Python + `python-evdev` for the Super‑tap daemon.
+- **Optional:** DankMaterialShell (DMS), Python + `python-evdev` for the Super-tap daemon.
+
+---
+
+## Installation
+
+The short version:
+
+1. Clone this repo as your ii config:
+
+   ```bash
+   git clone https://github.com/snowarch/quickshell-ii-niri.git \
+     ~/.config/quickshell/ii
+   ```
+
+2. In `~/.config/niri/config.kdl`, make sure Niri starts ii:
+
+   ```kdl
+   spawn-at-startup "qs" "-c" "ii"
+   ```
+
+3. Restart Niri.
+
+For a full breakdown of external tools (recording, OCR, EasyEffects, WARP, AI, etc.) and an Arch example of required packages, see **`docs/INSTALL.md`** in this repo.
 
 ---
 
