@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# ============================================================================
+# ii-niri setup script
+# illogical-impulse on Niri - Installation and management
+# ============================================================================
+
+cd "$(dirname "$0")"
+REPO_ROOT="$(pwd)"
+
+source ./sdata/lib/environment-variables.sh
+source ./sdata/lib/functions.sh
+source ./sdata/lib/package-installers.sh
+source ./sdata/lib/dist-determine.sh
+
+prevent_sudo_or_root
+set -e
+
+#####################################################################################
+# Help
+#####################################################################################
+showhelp_global(){
+printf "${STY_CYAN}illogical-impulse on Niri${STY_RST}
+
+Syntax:
+  $0 <subcommand> [OPTIONS]...
+
+Subcommands:
+  install        Install ii-niri (dependencies + configs)
+  install-deps   Install only dependencies
+  install-setups Run only system setup (groups, services)
+  install-files  Copy only config files
+
+  help           Show this help message
+
+For each subcommand, use -h for details:
+  $0 <subcommand> -h
+
+${STY_BOLD}${STY_CYAN}Repository: https://github.com/snowarch/quickshell-ii-niri${STY_RST}
+"
+}
+
+#####################################################################################
+# Parse subcommand
+#####################################################################################
+case $1 in
+  ""|help|--help|-h)
+    showhelp_global
+    exit 0
+    ;;
+  install|install-deps|install-setups|install-files)
+    SUBCMD_NAME=$1
+    SUBCMD_DIR=./sdata/subcmd-install
+    shift
+    ;;
+  *)
+    printf "${STY_RED}Unknown subcommand \"$1\".${STY_RST}\n"
+    showhelp_global
+    exit 1
+    ;;
+esac
+
+#####################################################################################
+# Load options
+#####################################################################################
+if [[ -f "${SUBCMD_DIR}/options.sh" ]]; then
+  source "${SUBCMD_DIR}/options.sh"
+fi
+
+#####################################################################################
+# Run subcommand
+#####################################################################################
+case ${SUBCMD_NAME} in
+  install)
+    # Detect distro
+    detect_distro
+    pause
+    
+    # Greeting
+    source ${SUBCMD_DIR}/0.greeting.sh
+    
+    # 1. Dependencies
+    if [[ "${SKIP_ALLDEPS}" != true ]]; then
+      source ${SUBCMD_DIR}/1.deps-router.sh
+    fi
+    
+    # 2. System setup
+    if [[ "${SKIP_ALLSETUPS}" != true ]]; then
+      source ${SUBCMD_DIR}/2.setups.sh
+    fi
+    
+    # 3. Config files
+    if [[ "${SKIP_ALLFILES}" != true ]]; then
+      source ${SUBCMD_DIR}/3.files.sh
+    fi
+    ;;
+    
+  install-deps)
+    detect_distro
+    pause
+    if [[ "${SKIP_ALLDEPS}" != true ]]; then
+      source ${SUBCMD_DIR}/1.deps-router.sh
+    fi
+    ;;
+    
+  install-setups)
+    detect_distro
+    pause
+    if [[ "${SKIP_ALLSETUPS}" != true ]]; then
+      source ${SUBCMD_DIR}/2.setups.sh
+    fi
+    ;;
+    
+  install-files)
+    detect_distro
+    pause
+    if [[ "${SKIP_ALLFILES}" != true ]]; then
+      source ${SUBCMD_DIR}/3.files.sh
+    fi
+    ;;
+esac

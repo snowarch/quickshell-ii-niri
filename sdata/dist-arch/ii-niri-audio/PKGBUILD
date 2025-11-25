@@ -1,0 +1,19 @@
+pkgname=ii-niri-audio
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Audio Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  pipewire
+  pipewire-pulse
+  pipewire-alsa
+  pipewire-jack
+  wireplumber
+  playerctl
+  libdbusmenu-gtk3
+  pavucontrol
+)
+
+# Optional AUR
+# cava

@@ -1,0 +1,34 @@
+pkgname=ii-niri-fonts
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Fonts and Theming Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  fontconfig
+  ttf-dejavu
+  ttf-liberation
+  
+  # Launcher
+  fuzzel
+  glib2
+  
+  # Color picker and utilities
+  translate-shell
+  
+  # Qt theming
+  kvantum
+)
+
+# AUR dependencies (installed separately)
+# matugen-bin
+# otf-space-grotesk
+# ttf-jetbrains-mono-nerd
+# ttf-material-symbols-variable-git
+# ttf-readex-pro
+# ttf-rubik-vf
+# ttf-twemoji
+# adw-gtk-theme-git
+# capitaine-cursors
+# hyprpicker
+# songrec

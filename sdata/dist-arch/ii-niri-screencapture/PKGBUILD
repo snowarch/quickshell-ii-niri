@@ -1,0 +1,16 @@
+pkgname=ii-niri-screencapture
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Screenshot and Recording Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  grim
+  slurp
+  swappy
+  tesseract
+  tesseract-data-eng
+  wf-recorder
+  imagemagick
+  ffmpeg
+)

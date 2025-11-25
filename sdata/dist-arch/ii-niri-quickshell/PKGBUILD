@@ -1,0 +1,50 @@
+# Quickshell and Qt6 dependencies for ii on Niri
+# Based on illogical-impulse-quickshell-git from end-4
+
+pkgname=ii-niri-quickshell
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Quickshell and Qt6 Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  # Core Qt6
+  qt6-declarative
+  qt6-base
+  qt6-svg
+  qt6-wayland
+  
+  # Qt6 extras for ii
+  qt6-5compat
+  qt6-imageformats
+  qt6-multimedia
+  qt6-positioning
+  qt6-quicktimeline
+  qt6-sensors
+  qt6-tools
+  qt6-translations
+  qt6-virtualkeyboard
+  
+  # System libs for Quickshell
+  jemalloc
+  libpipewire
+  libxcb
+  wayland
+  libdrm
+  mesa
+  
+  # KDE integration
+  kirigami
+  kdialog
+  syntax-highlighting
+  
+  # Qt theming
+  qt6ct
+  kde-gtk-config
+  breeze
+)
+
+# AUR dependencies (installed separately)
+# quickshell-git
+# google-breakpad
+# qt6-avif-image-plugin

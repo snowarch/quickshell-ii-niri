@@ -47,6 +47,5 @@
   "tertiary": "{{colors.tertiary.default.hex}}",
   "tertiary_container": "{{colors.tertiary_container.default.hex}}",
   "tertiary_fixed": "{{colors.tertiary_fixed.default.hex}}",
-  "tertiary_fixed_dim": "{{colors.tertiary_fixed_dim.default.hex}}",
-  "darkmode": {{options.mode == "dark"}}
+  "tertiary_fixed_dim": "{{colors.tertiary_fixed_dim.default.hex}}"
 }

@@ -1,0 +1,18 @@
+pkgname=ii-niri-toolkit
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Input Toolkit Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  upower
+  wtype
+  ydotool
+  python-evdev
+  python-pillow
+  
+  # Backlight control
+  brightnessctl
+  ddcutil
+  geoclue
+)

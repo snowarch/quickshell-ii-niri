@@ -63,60 +63,77 @@ All screenshots are taken from my actual Niri session with this config:
 
 ## Installation
 
- If you're on an Arch-based system (for example Arch Linux, EndeavourOS, CachyOS) and just want ii running on Niri with sane defaults, run:
+### Quick Install (Arch-based systems)
 
- ```bash
- curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
- ```
+Clone and run the setup script:
 
- Right now the installer knows about pacman-based distros only. On anything else, use the manual steps below.
+```bash
+git clone https://github.com/snowarch/quickshell-ii-niri.git
+cd quickshell-ii-niri
+./setup install
+```
 
- The script will:
+Or for non-interactive installation:
 
-**Core (always installed):**
-- **Niri** compositor
-- **Quickshell** from AUR (`quickshell-git`) with all Qt6 dependencies
-- Basic utilities: `cliphist`, `wl-clipboard`, `libnotify`, `jq`, `ripgrep`, etc.
-- XDG portals for Niri
-- Audio stack: PipeWire, WirePlumber, playerctl
+```bash
+./setup install -y
+```
 
-**Optional (you choose):**
-- **Toolkit**: `ydotool`, `wtype`, `python-evdev` for input simulation
-- **Screenshots/Recording**: `grim`, `slurp`, `wf-recorder`, `tesseract` (OCR)
-- **Widgets**: `fuzzel`, `hyprpicker`, `songrec`
-- **Fonts/Theming**: Matugen, JetBrains Mono, Material Symbols, etc.
-- **Icon themes**: WhiteSur, Capitaine cursors
-- **Super-tap daemon**: tap Super key to toggle overview
+The installer will:
+1. **Install dependencies** via local PKGBUILDs (similar to end-4's approach)
+2. **Setup system** (user groups, services like ydotool)
+3. **Copy config files** to your `~/.config/`
 
-**Configuration:**
-- Clone this repo into `~/.config/quickshell/ii`
-- Add `spawn-at-startup "qs" "-c" "ii"` to your Niri config
+### What gets installed
 
-> **Important:** This installer uses `quickshell-git` from AUR, not the official `quickshell` package. The official package may not include all the Wayland modules ii needs.
+**Core:**
+- Niri compositor
+- Quickshell (`quickshell-git` from AUR) + Qt6 dependencies
+- XDG portals for Niri (`xdg-desktop-portal-gnome`)
+- Basic utilities: `cliphist`, `wl-clipboard`, `libnotify`, `jq`, `ripgrep`
+- Audio: PipeWire, WirePlumber, playerctl
+- Polkit: `mate-polkit`
 
- When it finishes, restart Niri.
+**Toolkit:**
+- `ydotool`, `wtype`, `python-evdev` for input simulation
+- `brightnessctl`, `ddcutil` for backlight control
 
- ### Manual install
+**Screenshots/Recording:**
+- `grim`, `slurp`, `swappy`, `wf-recorder`
+- `tesseract` for OCR
 
- If you prefer to handle things yourself:
+**Fonts/Theming:**
+- Matugen for Material You colors
+- JetBrains Mono, Material Symbols, Rubik, Readex Pro
+- `adw-gtk-theme`, Capitaine cursors
 
- 1. Install Niri and **`quickshell-git` from AUR** (not the official `quickshell` package). You'll also need all the Qt6 dependencies - see `docs/INSTALL.md` for the full list.
- 2. Clone this repo as your ii config:
+### Manual Install
 
-    ```bash
-    git clone https://github.com/snowarch/quickshell-ii-niri.git \
-      ~/.config/quickshell/ii
-    ```
+If you prefer to handle dependencies yourself:
 
- 3. In `~/.config/niri/config.kdl`, make sure Niri starts ii:
+1. Install dependencies manually (see `sdata/dist-arch/` for package lists)
+2. Clone this repo:
+   ```bash
+   git clone https://github.com/snowarch/quickshell-ii-niri.git ~/.config/quickshell/ii
+   ```
+3. Copy configs from `dots/.config/` to your `~/.config/`
+4. Add to `~/.config/niri/config.kdl`:
+   ```kdl
+   spawn-at-startup "qs" "-c" "ii"
+   ```
+5. Log out and select Niri at your display manager
 
-    ```kdl
-    spawn-at-startup "qs" "-c" "ii"
-    ```
+### Partial Installation
 
- 4. Restart Niri.
+You can run individual steps:
 
- For a full breakdown of external tools and an Arch package list that matches what the installer uses, see **`docs/INSTALL.md`** in this repo.
+```bash
+./setup install-deps    # Only install packages
+./setup install-setups  # Only configure services/groups
+./setup install-files   # Only copy config files
+```
+
+Use `./setup help` for all options.
 
 ---
 

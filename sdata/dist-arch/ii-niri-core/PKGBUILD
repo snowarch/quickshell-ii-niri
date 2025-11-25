@@ -1,0 +1,40 @@
+pkgname=ii-niri-core
+pkgver=1.0
+pkgrel=1
+pkgdesc='illogical-impulse on Niri - Core Dependencies'
+arch=(any)
+license=(MIT)
+depends=(
+  # Niri compositor
+  niri
+  
+  # Basic utilities
+  bc
+  coreutils
+  cliphist
+  curl
+  wget
+  ripgrep
+  jq
+  xdg-user-dirs
+  rsync
+  git
+  wl-clipboard
+  libnotify
+  
+  # XDG Portals for Niri
+  xdg-desktop-portal
+  xdg-desktop-portal-gtk
+  xdg-desktop-portal-gnome
+  
+  # Polkit (mate-polkit works well with Niri)
+  polkit
+  mate-polkit
+  
+  # Network
+  networkmanager
+  gnome-keyring
+  
+  # File manager
+  dolphin
+)
