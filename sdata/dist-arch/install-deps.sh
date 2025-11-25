@@ -101,12 +101,6 @@ AUR_PACKAGES=(
   # System & Tools
   mission-center
   illogical-impulse-python
-  mission-center
-  illogical-impulse-python
-  
-  # System & Tools
-  mission-center
-  illogical-impulse-python
 )
 
 # Add optional AUR packages
