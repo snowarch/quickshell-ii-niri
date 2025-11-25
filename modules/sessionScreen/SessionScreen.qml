@@ -108,13 +108,22 @@ Scope {
             WlrLayershell.namespace: "quickshell:session"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.3)
+            color: "transparent"
 
             anchors {
                 top: true
                 bottom: true
                 left: true
                 right: true
+            }
+
+            // Background blur for Niri
+            Rectangle {
+                anchors.fill: parent
+                color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.5)
+                // If Quickshell supports recursive blur or if we can use a shader, put it here.
+                // For now, relying on compositor blur if rule exists, or just semi-transparent dark background.
+                // Niri specific: layer-rule { blur; } for this namespace "quickshell:session" is needed in config.kdl
             }
 
             implicitWidth: root.focusedScreen?.width ?? 0

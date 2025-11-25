@@ -30,6 +30,7 @@ Scope {
 
     property var windowData: []
     function saveWindowPositionAndTile() {
+        if (!CompositorService.isHyprland) return;
         Quickshell.execDetached(["hyprctl", "keyword", "dwindle:pseudotile", "true"])
         root.windowData = HyprlandData.windowList.filter(w => (w.floating && w.workspace.id === HyprlandData.activeWorkspace.id))
         root.windowData.forEach(w => {
@@ -39,6 +40,7 @@ Scope {
         })
     }
     function restoreWindowPositionAndTile() {
+        if (!CompositorService.isHyprland) return;
         root.windowData.forEach(w => {
             Hyprland.dispatch(`setfloating address:${w.address}`)
             Hyprland.dispatch(`movewindowpixel exact ${w.at[0]} ${w.at[1]}, address:${w.address}`)
@@ -107,12 +109,12 @@ Scope {
         }
     }
 
-    // Blur layer hack
+    // Blur layer hack (Hyprland only)
     Variants {
         model: Quickshell.screens
         delegate: Scope {
             required property ShellScreen modelData
-            property bool shouldPush: GlobalStates.screenLocked
+            property bool shouldPush: GlobalStates.screenLocked && CompositorService.isHyprland
             property string targetMonitorName: modelData.name
             property int verticalMovementDistance: modelData.height
             property int horizontalSqueeze: modelData.width * 0.2

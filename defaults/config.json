@@ -43,7 +43,7 @@
         "discord": "discord",
         "network": "nm-connection-editor",
         "networkEthernet": "nm-connection-editor",
-        "taskManager": "gnome-system-monitor",
+        "taskManager": "missioncenter",
         "terminal": "foot",
         "volumeMixer": "pavucontrol"
     },
@@ -65,7 +65,7 @@
             "vignetteEnabled": false,
             "vignetteIntensity": 1,
             "vignetteRadius": 0.7,
-            "wallpaperPath": ""
+            "wallpaperPath": "~/.config/quickshell/ii/assets/wallpapers/qs-niri.jpg"
         },
         "effects": {
             "blurRadius": 22,

@@ -17,15 +17,15 @@ Singleton {
     }
 
     function lock() {
-        Quickshell.execDetached(["loginctl", "lock-session"]);
+        Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "lock", "activate"]);
     }
 
     function suspend() {
-        Quickshell.execDetached(["bash", "-c", "systemctl suspend || loginctl suspend"]);
+        lock();
+        Quickshell.execDetached(["bash", "-c", "sleep 1; systemctl suspend"]);
     }
 
     function logout() {
-        // En Niri salimos limpiamente vía NiriService, en Hyprland matamos la sesión
         if (CompositorService.isNiri) {
             NiriService.quit();
             return;

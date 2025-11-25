@@ -11,8 +11,79 @@ import qs.modules.bar as Bar
 import Quickshell
 import Quickshell.Services.SystemTray
 
-MouseArea {
-    id: root
+    // Background
+    Image {
+        id: backgroundWallpaper
+        anchors.fill: parent
+        source: Config.options.background.wallpaperPath
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        
+        // Blur effect
+        layer.enabled: Config.options.lock.blur.enable
+        layer.effect: FastBlur {
+            radius: Config.options.lock.blur.radius
+        }
+        
+        // Extra zoom
+        transform: Scale {
+            origin.x: backgroundWallpaper.width / 2
+            origin.y: backgroundWallpaper.height / 2
+            xScale: Config.options.lock.blur.enable ? Config.options.lock.blur.extraZoom : 1
+            yScale: Config.options.lock.blur.enable ? Config.options.lock.blur.extraZoom : 1
+        }
+    }
+
+    // Clock
+    Loader {
+        active: Config.options.lock.centerClock
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: -100
+        sourceComponent: ColumnLayout {
+            spacing: 0
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Qt.formatTime(new Date(), "hh:mm")
+                font.pixelSize: 120
+                font.weight: Font.Bold
+                color: Appearance.colors.colOnSurface
+                style: Text.Outline
+                styleColor: Appearance.colors.colSurface
+            }
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Qt.formatDate(new Date(), "dddd, d MMMM")
+                font.pixelSize: 32
+                color: Appearance.colors.colOnSurface
+                style: Text.Outline
+                styleColor: Appearance.colors.colSurface
+            }
+        }
+    }
+    
+    // Locked text
+    Loader {
+        active: Config.options.lock.showLockedText
+        anchors.top: parent.top
+        anchors.topMargin: 50
+        anchors.horizontalCenter: parent.horizontalCenter
+        sourceComponent: RowLayout {
+            spacing: 10
+            MaterialSymbol {
+                text: "lock"
+                iconSize: 24
+                color: Appearance.colors.colOnSurface
+            }
+            StyledText {
+                text: Translation.tr("Locked")
+                font.pixelSize: 24
+                color: Appearance.colors.colOnSurface
+            }
+        }
+    }
+
+    MouseArea {
+        id: root
     required property LockContext context
     property bool active: false
     property bool showInputField: active || context.currentText.length > 0
