@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# If this script is run via a pipe (e.g. curl ... | bash), stdin is not a TTY.
+# Redirect stdin from the controlling terminal so interactive prompts still work
+# and do not interfere with the script source being read.
+if [ ! -t 0 ] && [ -r /dev/tty ]; then
+  exec < /dev/tty
+fi
+
 bold="" reset="" green="" yellow="" red=""
 if command -v tput >/dev/null 2>&1; then
   bold="$(tput bold || true)"
