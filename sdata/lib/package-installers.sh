@@ -5,10 +5,27 @@
 
 install-yay(){
   echo -e "${STY_CYAN}Installing yay (AUR helper)...${STY_RST}"
-  x sudo pacman -S --needed --noconfirm base-devel git
-  x git clone https://aur.archlinux.org/yay-bin.git /tmp/buildyay
+  
+  # Clean up previous attempts
+  rm -rf /tmp/buildyay
+  
+  # Sync databases and install base-devel
+  if ! x sudo pacman -Sy --needed --noconfirm base-devel git; then
+      log_error "Failed to install base-devel/git. Check your pacman mirrors."
+      return 1
+  fi
+  
+  # Clone yay-bin (faster than compiling yay)
+  x git clone https://aur.archlinux.org/yay-bin.git /tmp/buildyay || return 1
+  
+  # Build and install
   x cd /tmp/buildyay
-  x makepkg -si --noconfirm
+  if ! x makepkg -si --noconfirm; then
+      log_error "Failed to build/install yay."
+      x cd "${REPO_ROOT}"
+      return 1
+  fi
+  
   x cd "${REPO_ROOT}"
   rm -rf /tmp/buildyay
 }

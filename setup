@@ -15,6 +15,13 @@ source ./sdata/lib/dist-determine.sh
 prevent_sudo_or_root
 set -e
 
+# Cleanup trap
+cleanup() {
+  if [[ -d "/tmp/buildyay" ]]; then rm -rf /tmp/buildyay; fi
+  if [[ -d "/tmp/buildparu" ]]; then rm -rf /tmp/buildparu; fi
+}
+trap cleanup EXIT INT TERM
+
 #####################################################################################
 # Help
 #####################################################################################

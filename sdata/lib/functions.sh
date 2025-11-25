@@ -13,13 +13,23 @@ function v(){
   if $ask;then
     while true;do
       echo -e "${STY_BLUE}Execute? ${STY_RST}"
-      echo "  y = Yes"
+      echo "  y = Yes (default)"
       echo "  e = Exit now"
       echo "  s = Skip this command"
       echo "  yesforall = Yes and don't ask again"
-      local p; read -p "====> " p
+      
+      # Read with timeout (60s), default to Yes if timeout
+      local p
+      if read -t 60 -p "====> " p; then
+        :
+      else
+        echo ""
+        echo -e "${STY_YELLOW}Timeout reached, assuming Yes...${STY_RST}"
+        p="y"
+      fi
+      
       case $p in
-        [yY]) echo -e "${STY_BLUE}OK, executing...${STY_RST}" ;break ;;
+        [yY] | "") echo -e "${STY_BLUE}OK, executing...${STY_RST}" ;break ;;
         [eE]) echo -e "${STY_BLUE}Exiting...${STY_RST}" ;exit ;break ;;
         [sS]) echo -e "${STY_BLUE}Alright, skipping...${STY_RST}" ;execute=false ;break ;;
         "yesforall") echo -e "${STY_BLUE}Alright, won't ask again.${STY_RST}"; ask=false ;break ;;
@@ -34,16 +44,35 @@ function v(){
 
 function x(){
   if "$@";then local cmdstatus=0;else local cmdstatus=1;fi
+  
+  # In non-interactive mode, fail immediately on error
+  if ! $ask && [ $cmdstatus == 1 ]; then
+     echo -e "${STY_RED}[$0]: Command \"${STY_GREEN}$*${STY_RED}\" failed in non-interactive mode. Exiting...${STY_RST}"
+     exit 1
+  fi
+
   while [ $cmdstatus == 1 ] ;do
     echo -e "${STY_RED}[$0]: Command \"${STY_GREEN}$*${STY_RED}\" has failed."
     echo -e "You may need to resolve the problem manually.${STY_RST}"
     echo "  r = Repeat this command (DEFAULT)"
     echo "  e = Exit now"
     echo "  i = Ignore this error and continue"
-    local p; read -p " [R/e/i]: " p
+    
+    local p
+    if read -t 60 -p " [R/e/i]: " p; then
+        :
+    else
+        echo ""
+        echo -e "${STY_YELLOW}Timeout reached, exiting to be safe...${STY_RST}"
+        p="e"
+    fi
+
     case $p in
       [iI]) echo -e "${STY_BLUE}Alright, ignoring...${STY_RST}";cmdstatus=2;;
       [eE]) echo -e "${STY_BLUE}Exiting...${STY_RST}";break;;
+      [rR] | "") echo -e "${STY_BLUE}Repeating...${STY_RST}"
+         if "$@";then cmdstatus=0;else cmdstatus=1;fi
+         ;;
       *) echo -e "${STY_BLUE}Repeating...${STY_RST}"
          if "$@";then cmdstatus=0;else cmdstatus=1;fi
          ;;
