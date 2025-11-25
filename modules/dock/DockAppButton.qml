@@ -12,11 +12,16 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: 35
+    property real iconSize: Config.options.dock.iconSize ?? 35
     property real countDotWidth: 10
     property real countDotHeight: 4
     property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
+    property bool hasWindows: appToplevel.toplevels.length > 0
     property bool buttonHovered: false
+    
+    // Subtle highlight for active app
+    scale: appIsActive ? 1.05 : 1.0
+    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
     property bool isSeparator: appToplevel.appId === "SEPARATOR"
     // Use originalAppId (preserves case) for desktop entry lookup, fallback to appId for backwards compat
@@ -113,7 +118,7 @@ DockButton {
                     right: parent.right
                     verticalCenter: parent.verticalCenter
                 }
-                active: !root.isSeparator && (!Config.options.dock.minimizeUnfocused || root.appIsActive || root.buttonHovered)
+                active: !root.isSeparator
                 sourceComponent: IconImage {
                     // Use desktop entry icon if available, fallback to guessed icon
                     source: {
@@ -152,36 +157,34 @@ DockButton {
                 }
             }
 
-            RowLayout {
-                visible: !Config.options.dock.minimizeUnfocused || root.appIsActive || root.buttonHovered
-                spacing: 3
+            // Indicator: line for active, dot for inactive with windows
+            Loader {
+                active: root.hasWindows && !root.isSeparator
                 anchors {
                     top: iconImageLoader.bottom
                     topMargin: 2
                     horizontalCenter: parent.horizontalCenter
                 }
-                Repeater {
-                    model: Math.min(appToplevel.toplevels.length, 3)
-                    delegate: Rectangle {
-                        required property int index
-                        radius: Appearance.rounding.full
-                        implicitWidth: (appToplevel.toplevels.length <= 3) ? 
-                            root.countDotWidth : root.countDotHeight // Circles when too many
-                        implicitHeight: root.countDotHeight
-                        color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
+                sourceComponent: Row {
+                    spacing: 3
+                    // Active app: show line indicators for each window
+                    Repeater {
+                        model: root.appIsActive ? Math.min(appToplevel.toplevels.length, 3) : 0
+                        delegate: Rectangle {
+                            radius: Appearance.rounding.full
+                            implicitWidth: (appToplevel.toplevels.length <= 3) ? root.countDotWidth : root.countDotHeight
+                            implicitHeight: root.countDotHeight
+                            color: Appearance.colors.colPrimary
+                        }
                     }
-                }
-            }
-            // Dot for minimized/unfocused state
-            Loader {
-                active: Config.options.dock.minimizeUnfocused && !root.appIsActive && !root.buttonHovered && !root.isSeparator
-                anchors.centerIn: parent
-                sourceComponent: Rectangle {
-                    width: 6
-                    height: 6
-                    radius: 3
-                    color: Appearance.colors.colOnLayer0
-                    opacity: 0.6
+                    // Inactive app with windows: show single dot
+                    Rectangle {
+                        visible: !root.appIsActive && root.hasWindows
+                        width: 5
+                        height: 5
+                        radius: 2.5
+                        color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.5)
+                    }
                 }
             }
         }

@@ -61,6 +61,11 @@ ApplicationWindow {
             component: "modules/settings/AdvancedConfig.qml"
         },
         {
+            name: Translation.tr("Shortcuts"),
+            icon: "keyboard",
+            component: "modules/settings/CheatsheetConfig.qml"
+        },
+        {
             name: Translation.tr("About"),
             icon: "info",
             component: "modules/settings/About.qml"
@@ -342,6 +347,16 @@ ApplicationWindow {
             label: Translation.tr("Color generation"),
             description: Translation.tr("Wallpaper-based color theming"),
             keywords: ["color", "generation", "theming", "wallpaper"]
+        },
+
+        // Shortcuts
+        {
+            pageIndex: 7,
+            pageName: pages[7].name,
+            section: Translation.tr("Keyboard Shortcuts"),
+            label: Translation.tr("Keyboard Shortcuts"),
+            description: Translation.tr("Niri and ii keybindings reference"),
+            keywords: ["shortcuts", "keybindings", "hotkeys", "keyboard", "cheatsheet"]
         }
     ]
 

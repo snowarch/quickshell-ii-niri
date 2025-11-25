@@ -73,7 +73,7 @@ Scope {
 
     Process {
         id: detectDownloadProc
-        command: ["bash", "-c", "pidof curl wget aria2c yt-dlp || ls ~/Downloads | grep -E '\.crdownload$|\.part$'"]
+        command: ["bash", "-c", "pidof curl wget aria2c yt-dlp 2>/dev/null"]
         onExited: (exitCode, exitStatus) => {
             root.downloadRunning = (exitCode === 0);
         }

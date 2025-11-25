@@ -21,10 +21,10 @@ Singleton {
     }
 
     function suspend() {
+        // Lock screen first, wait for it to engage, then suspend
         lock();
-        // Niri requires explicit monitor power off command or idle daemon.
-        // Assuming systemd-suspend handles hardware state, but we trigger lock first.
-        Quickshell.execDetached(["bash", "-c", "sleep 1; systemctl suspend"]);
+        // Use systemd-logind for proper session-aware suspend
+        Quickshell.execDetached(["bash", "-c", "sleep 0.5 && systemctl suspend -i"]);
     }
 
     function logout() {
