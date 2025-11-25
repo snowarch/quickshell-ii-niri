@@ -1,22 +1,34 @@
 #!/usr/bin/env bash
+# =============================================================================
+# illogical-impulse (ii) on Niri - Installer
+# =============================================================================
+# This script installs ii and all its dependencies on Arch-based systems.
+# Based on the dependency structure from end-4/dots-hyprland, adapted for Niri.
+#
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
+# =============================================================================
+
 set -euo pipefail
 
-bold="" reset="" green="" yellow="" red=""
+bold="" reset="" green="" yellow="" red="" cyan=""
 if command -v tput >/dev/null 2>&1; then
   bold="$(tput bold || true)"
   reset="$(tput sgr0 || true)"
   green="$(tput setaf 2 || true)"
   yellow="$(tput setaf 3 || true)"
   red="$(tput setaf 1 || true)"
+  cyan="$(tput setaf 6 || true)"
 fi
 
 log() {
   local level="$1"; shift
   case "$level" in
-    INFO) printf '%s[%s]%s %s\n'  "$bold" "INFO" "$reset" "$*" ;;
-    WARN) printf '%s[%s]%s %s%s%s\n' "$bold" "WARN" "$reset" "$yellow" "$*" "$reset" ;;
-    ERR)  printf '%s[%s]%s %s%s%s\n' "$bold" "ERR"  "$reset" "$red" "$*" "$reset" ;;
-    *)    printf '[%s] %s\n' "$level" "$*" ;;
+    INFO)  printf '%s[INFO]%s %s\n'  "$bold$green" "$reset" "$*" ;;
+    WARN)  printf '%s[WARN]%s %s%s%s\n' "$bold$yellow" "$reset" "$yellow" "$*" "$reset" ;;
+    ERR)   printf '%s[ERR]%s %s%s%s\n'  "$bold$red" "$reset" "$red" "$*" "$reset" ;;
+    STEP)  printf '\n%s==> %s%s\n' "$bold$cyan" "$*" "$reset" ;;
+    *)     printf '[%s] %s\n' "$level" "$*" ;;
   esac
 }
 
@@ -27,6 +39,15 @@ ask_yes_no() {
     y|Y) suffix="[Y/n]" ;;
     n|N) suffix="[y/N]" ;;
   esac
+  # Non-interactive / test mode: auto-pick the default answer.
+  if [ "${II_INSTALLER_ASSUME_DEFAULTS:-}" = "1" ]; then
+    printf '%s %s (auto-choosing %s)\n' "$prompt" "$suffix" "$default"
+    case "$default" in
+      y|Y) return 0 ;;
+      n|N) return 1 ;;
+    esac
+  fi
+
   while true; do
     printf '%s %s ' "$prompt" "$suffix"
     if [ -t 0 ]; then
@@ -54,6 +75,10 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+pacman_has_pkg() {
+  pacman -Si "$1" >/dev/null 2>&1
+}
+
 ensure_yay() {
   if command -v yay >/dev/null 2>&1; then
     return 0
@@ -73,24 +98,18 @@ ensure_yay() {
   rm -rf "$tmpdir"
 }
 
-install_repo_pkgs() {
-  local pkgs=("$@")
-  if [ ${#pkgs[@]} -eq 0 ]; then
-    return 0
-  fi
-  sudo pacman -S --needed "${pkgs[@]}"
-}
-
 install_aur_pkgs() {
   local pkgs=("$@")
-  if [ ${#pkgs[@]} -eq 0 ]; then
-    return 0
-  fi
+  [ ${#pkgs[@]} -eq 0 ] && return 0
+
   ensure_yay
-  yay -S --needed "${pkgs[@]}"
+  if ! yay -S --needed --noconfirm "${pkgs[@]}"; then
+    log WARN "Some AUR packages failed to install."
+  fi
 }
 
-log INFO "Installing illogical-impulse (ii) on Niri (Arch-based systems)."
+log STEP "illogical-impulse (ii) on Niri - Installer"
+log INFO "Based on end-4/dots-hyprland dependency structure"
 
 if ! require_cmd pacman; then
   log ERR "This installer currently supports only Arch-based distros (pacman)."
@@ -102,102 +121,254 @@ if ! require_cmd sudo; then
   exit 1
 fi
 
-CORE_PKGS=(
+# =============================================================================
+# PACKAGE DEFINITIONS
+# =============================================================================
+# Based on illogical-impulse meta-packages from end-4/dots-hyprland
+# Adapted for Niri (removed Hyprland-specific packages)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# CORE: Niri compositor
+# -----------------------------------------------------------------------------
+NIRI_PKGS=(
   niri
-  quickshell
-  wl-clipboard
+)
+
+# -----------------------------------------------------------------------------
+# CORE: Quickshell dependencies (from illogical-impulse-quickshell-git PKGBUILD)
+# These are the Qt6 and system libs that Quickshell needs
+# -----------------------------------------------------------------------------
+QUICKSHELL_DEPS=(
+  qt6-declarative
+  qt6-base
+  jemalloc
+  qt6-svg
+  libpipewire
+  libxcb
+  wayland
+  libdrm
+  mesa
+  # Qt6 extras needed by ii
+  qt6-5compat
+  qt6-imageformats
+  qt6-multimedia
+  qt6-positioning
+  qt6-quicktimeline
+  qt6-sensors
+  qt6-tools
+  qt6-translations
+  qt6-virtualkeyboard
+  qt6-wayland
+  # KDE/Qt integration
+  kirigami
+  kdialog
+  syntax-highlighting
+  # Build deps that become runtime deps
+  polkit
+)
+
+# AUR packages for Quickshell (CRITICAL: quickshell-git, NOT quickshell)
+QUICKSHELL_AUR=(
+  google-breakpad
+  qt6-avif-image-plugin
+  quickshell-git
+)
+
+# -----------------------------------------------------------------------------
+# CORE: Basic utilities (from illogical-impulse-basic)
+# -----------------------------------------------------------------------------
+BASIC_PKGS=(
+  bc
+  coreutils
   cliphist
+  curl
+  wget
+  ripgrep
+  jq
+  xdg-user-dirs
+  rsync
+  git
+  wl-clipboard
   libnotify
+)
+
+# -----------------------------------------------------------------------------
+# CORE: XDG portals for Niri
+# -----------------------------------------------------------------------------
+PORTAL_PKGS=(
+  xdg-desktop-portal
+  xdg-desktop-portal-gtk
+  xdg-desktop-portal-gnome
+)
+
+# -----------------------------------------------------------------------------
+# CORE: Audio dependencies (from illogical-impulse-audio)
+# -----------------------------------------------------------------------------
+AUDIO_PKGS=(
   pipewire
   pipewire-pulse
   pipewire-alsa
   pipewire-jack
-  git
+  wireplumber
+  playerctl
+  libdbusmenu-gtk3
 )
 
-RECOMMENDED_PKGS=(
-  grim
-  slurp
-  wf-recorder
-  imagemagick
-  swappy
-  tesseract
-  jq
-  curl
-  xdg-utils
-  matugen
-  mpvpaper
-  ffmpeg
-  hyprpicker
-  networkmanager
-  nm-connection-editor
-  easyeffects
-  warp-cli
-  songrec
+# -----------------------------------------------------------------------------
+# OPTIONAL: Toolkit for input simulation (from illogical-impulse-toolkit)
+# -----------------------------------------------------------------------------
+TOOLKIT_PKGS=(
   upower
-)
-
-TOOLKIT_REPO_PKGS=(
-  ydotool
   wtype
+  ydotool
   python-evdev
 )
 
-TOOLKIT_AUR_PKGS=(
-  illogical-impulse-python
+# -----------------------------------------------------------------------------
+# OPTIONAL: Screenshot and recording (from illogical-impulse-screencapture)
+# -----------------------------------------------------------------------------
+SCREENCAPTURE_PKGS=(
+  grim
+  slurp
+  swappy
+  tesseract
+  tesseract-data-eng
+  wf-recorder
+  imagemagick
 )
 
-AI_REPO_PKGS=(
-  libsecret
-  gnome-keyring
+# -----------------------------------------------------------------------------
+# OPTIONAL: Widget dependencies
+# -----------------------------------------------------------------------------
+WIDGET_PKGS=(
+  fuzzel
+  glib2
+  hyprpicker
+  songrec
+  translate-shell
 )
 
-AI_AUR_PKGS=(
-  ollama
+# -----------------------------------------------------------------------------
+# OPTIONAL: Fonts and theming (from illogical-impulse-fonts-themes)
+# -----------------------------------------------------------------------------
+FONTS_PKGS=(
+  fontconfig
 )
 
-THEME_REPO_PKGS=(
+FONTS_AUR=(
+  matugen-bin
+  otf-space-grotesk
+  ttf-jetbrains-mono-nerd
+  ttf-material-symbols-variable-git
+  ttf-readex-pro
+  ttf-rubik-vf
+  ttf-gabarito
+)
+
+# -----------------------------------------------------------------------------
+# OPTIONAL: Python dependencies
+# -----------------------------------------------------------------------------
+PYTHON_PKGS=(
+  python-pillow
+  python-opencv
+)
+
+# -----------------------------------------------------------------------------
+# OPTIONAL: Icon themes
+# -----------------------------------------------------------------------------
+ICON_THEMES_AUR=(
+  whitesur-icon-theme-git
   capitaine-cursors
 )
 
-THEME_AUR_PKGS=(
-  whitesur-icon-theme-git
-  whitesur-gtk-theme-git
-)
+# =============================================================================
+# INSTALLATION HELPERS
+# =============================================================================
 
-log INFO "Installing core packages with pacman (requires sudo)."
-sudo pacman -S --needed "${CORE_PKGS[@]}"
+install_pacman_pkgs() {
+  local pkgs=("$@")
+  [ ${#pkgs[@]} -eq 0 ] && return 0
 
-if ask_yes_no "Install recommended extras (screenshots, recording, theming helpers, WARP, etc.)?" "y"; then
-  log INFO "Installing recommended extras."
-  sudo pacman -S --needed "${RECOMMENDED_PKGS[@]}"
-else
-  log INFO "Skipping recommended extras."
+  local available=() missing=() pkg
+  for pkg in "${pkgs[@]}"; do
+    if pacman_has_pkg "$pkg"; then
+      available+=("$pkg")
+    else
+      missing+=("$pkg")
+    fi
+  done
+
+  if [ ${#available[@]} -gt 0 ]; then
+    if ! sudo pacman -S --needed --noconfirm "${available[@]}"; then
+      log WARN "Some packages failed to install."
+    fi
+  fi
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    log WARN "Packages not found in repos (skipped): ${missing[*]}"
+  fi
+}
+
+# =============================================================================
+# MAIN INSTALLATION LOGIC
+# =============================================================================
+
+log STEP "Installing core dependencies..."
+
+log INFO "Installing Niri compositor..."
+install_pacman_pkgs "${NIRI_PKGS[@]}"
+
+log INFO "Installing Quickshell dependencies (Qt6, Wayland, etc.)..."
+install_pacman_pkgs "${QUICKSHELL_DEPS[@]}"
+
+log INFO "Installing basic utilities..."
+install_pacman_pkgs "${BASIC_PKGS[@]}"
+
+log INFO "Installing XDG portals..."
+install_pacman_pkgs "${PORTAL_PKGS[@]}"
+
+log INFO "Installing audio stack..."
+install_pacman_pkgs "${AUDIO_PKGS[@]}"
+
+log INFO "Installing Quickshell from AUR (this may take a while)..."
+log INFO "NOTE: quickshell-git is required, NOT the official quickshell package."
+install_aur_pkgs "${QUICKSHELL_AUR[@]}"
+
+log STEP "Optional components..."
+
+if ask_yes_no "Install toolkit (ydotool, wtype, evdev for input simulation)?" "y"; then
+  log INFO "Installing toolkit..."
+  install_pacman_pkgs "${TOOLKIT_PKGS[@]}"
 fi
 
-if ask_yes_no "Install input toolkit and Super key dependencies (ydotool, wtype, python-evdev, illogical-impulse-python)?" "y"; then
-  log INFO "Installing toolkit packages."
-  install_repo_pkgs "${TOOLKIT_REPO_PKGS[@]}"
-  install_aur_pkgs "${TOOLKIT_AUR_PKGS[@]}"
-else
-  log INFO "Skipping toolkit packages. Some OSK / superpaste features may be limited."
+if ask_yes_no "Install screenshot/recording tools (grim, slurp, wf-recorder, OCR)?" "y"; then
+  log INFO "Installing screenshot/recording tools..."
+  install_pacman_pkgs "${SCREENCAPTURE_PKGS[@]}"
 fi
 
-if ask_yes_no "Install AI and keyring helpers (libsecret, gnome-keyring, optional Ollama)?" "n"; then
-  log INFO "Installing AI/keyring helpers."
-  install_repo_pkgs "${AI_REPO_PKGS[@]}"
-  install_aur_pkgs "${AI_AUR_PKGS[@]}"
-else
-  log INFO "Skipping AI/keyring helpers. Gemini/Ollama helpers will remain idle unless you configure them manually."
+if ask_yes_no "Install widget dependencies (fuzzel, hyprpicker, songrec)?" "y"; then
+  log INFO "Installing widget dependencies..."
+  install_pacman_pkgs "${WIDGET_PKGS[@]}"
 fi
 
-if ask_yes_no "Install icon/cursor themes (WhiteSur GTK/icons via AUR + Capitaine cursors)?" "n"; then
-  log INFO "Installing icon and cursor themes."
-  install_repo_pkgs "${THEME_REPO_PKGS[@]}"
-  install_aur_pkgs "${THEME_AUR_PKGS[@]}"
-else
-  log INFO "Skipping icon/cursor themes. Your existing GTK/icon setup will be used."
+if ask_yes_no "Install fonts and theming (Matugen, JetBrains Mono, Material Symbols)?" "y"; then
+  log INFO "Installing fonts and theming..."
+  install_pacman_pkgs "${FONTS_PKGS[@]}"
+  install_aur_pkgs "${FONTS_AUR[@]}"
 fi
+
+if ask_yes_no "Install Python dependencies (for evdev daemon)?" "y"; then
+  log INFO "Installing Python dependencies..."
+  install_pacman_pkgs "${PYTHON_PKGS[@]}"
+fi
+
+if ask_yes_no "Install icon themes (WhiteSur, Capitaine cursors)?" "n"; then
+  log INFO "Installing icon themes..."
+  install_aur_pkgs "${ICON_THEMES_AUR[@]}"
+fi
+
+log STEP "Setting up ii configuration..."
 
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
 QS_DIR="$CONFIG_ROOT/quickshell"
@@ -233,6 +404,8 @@ if ask_yes_no "Also keep a workspace clone at $WORKSPACE_DIR?" "n"; then
   fi
 fi
 
+log STEP "Configuring Niri..."
+
 NIRI_CONFIG="$CONFIG_ROOT/niri/config.kdl"
 if [ -f "$NIRI_CONFIG" ]; then
   if grep -q 'spawn-at-startup "qs" "-c" "ii"' "$NIRI_CONFIG"; then
@@ -254,7 +427,9 @@ else
   echo '  spawn-at-startup "qs" "-c" "ii"'
 fi
 
-if ask_yes_no "Install and enable the Super-tap daemon for ii overview on Niri?" "y"; then
+log STEP "Super-tap daemon..."
+
+if ask_yes_no "Install Super-tap daemon (tap Super key to toggle overview)?" "y"; then
   log INFO "Installing Super-tap daemon files."
   CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
   SYSTEMD_USER_DIR="$CONFIG_ROOT/systemd/user"
@@ -286,6 +461,18 @@ else
   log INFO "Skipping Super-tap daemon installation. You can still add it later from scripts/daemon and scripts/systemd."
 fi
 
-log INFO "Done. You can now restart Niri or reload its config:"
+log STEP "Installation complete!"
+
+echo
+log INFO "Next steps:"
+echo "  1. Log out of your current session"
+echo "  2. Select 'Niri' at the login screen"
+echo "  3. ii should start automatically"
+echo
+log INFO "If you need to reload Niri config:"
 echo "  niri msg action reload-config"
+echo
+log INFO "To manually start ii:"
 echo "  qs -c ii"
+echo
+log INFO "For issues, see: https://github.com/snowarch/quickshell-ii-niri"
