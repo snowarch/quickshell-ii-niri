@@ -227,11 +227,4 @@ After logging in or restarting the compositor:
 If a specific feature fails, cross-check its dependencies in the matrix above.
 
 ---
-
-## 7. Notes for contributors
-
-- Keep commit messages in **English** with natural, human phrasing.
-- When adding a feature that shells out to a new tool:
-  - Use `Quickshell.execDetached` or QML `Process` carefully.
-  - Make sure the feature fails gracefully when the tool is missing (ideally with a clear notification instead of a crash).
-  - Update this file to include the new dependency.
+Work in progress..
