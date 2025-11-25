@@ -360,6 +360,7 @@ ContentPage {
         title: Translation.tr("Lock screen")
 
         ConfigSwitch {
+            visible: CompositorService.isHyprland
             buttonIcon: "water_drop"
             text: Translation.tr('Use Hyprlock (instead of Quickshell)')
             checked: Config.options.lock.useHyprlock

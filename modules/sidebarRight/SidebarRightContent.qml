@@ -21,7 +21,7 @@ Item {
     id: root
     property int sidebarWidth: Appearance.sizes.sidebarWidth
     property int sidebarPadding: 10
-    property string settingsQmlPath: Quickshell.shellPath("settings.qml")
+    property string settingsQmlPath: Quickshell.configPath("ii") + "/settings.qml"
     property bool showAudioOutputDialog: false
     property bool showAudioInputDialog: false
     property bool showBluetoothDialog: false
@@ -275,11 +275,15 @@ Item {
                 toggled: false
                 buttonIcon: "restart_alt"
                 onClicked: {
-                    Hyprland.dispatch("reload");
+                    if (CompositorService.isHyprland) {
+                        Hyprland.dispatch("reload");
+                    } else if (CompositorService.isNiri) {
+                        Quickshell.execDetached(["niri", "msg", "action", "reload-config"]);
+                    }
                     Quickshell.reload(true);
                 }
                 StyledToolTip {
-                    text: Translation.tr("Reload Hyprland & Quickshell")
+                    text: Translation.tr("Reload Quickshell")
                 }
             }
             QuickToggleButton {
