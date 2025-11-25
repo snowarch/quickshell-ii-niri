@@ -1,10 +1,6 @@
 # ii on Niri
 
-A Quickshell configuration for Niri, forked from end-4's illogical-impulse.
-
----
-
-## Screenshots
+A Quickshell shell for Niri, forked from end-4's illogical-impulse.
 
 | Overview | Sidebars |
 |:---|:---|
@@ -16,28 +12,17 @@ A Quickshell configuration for Niri, forked from end-4's illogical-impulse.
 
 ---
 
-## What's Here
+## Features
 
-- **Bar, sidebars, overview** - the usual shell stuff, adapted for Niri
-- **Alt+Tab switcher** - cycles windows across all workspaces with MRU order
-- **Clipboard panel** - cliphist-based, with search and previews
-- **Region tools** - screenshots, recording, OCR, image search
-- **Wallpaper pipeline** - matugen colors, video wallpapers, backdrop blur
-- **Settings UI** - searchable config with live preview
+- **Bar + sidebars** with media controls, system toggles, notepad
+- **Overview** adapted for Niri's scrolling workspace model
+- **Alt+Tab** cycling windows across all workspaces (MRU order)
+- **Clipboard panel** with search, previews, and history (cliphist)
+- **Region tools** for screenshots, recording, OCR, image search
+- **Wallpaper pipeline** with matugen colors and video wallpaper support
+- **Settings UI** with global search and live preview
 
-The compositor layer (`NiriService`) talks to Niri via socket for workspace/window tracking, keyboard layout switching, and output management.
-
----
-
-## Requirements
-
-- **Niri** 25.08+
-- **Quickshell** 0.2.0+ (AUR: `quickshell-git`)
-- **matugen** for theming
-- **cliphist** + **wl-clipboard** for clipboard
-- Optional: DMS if you want both shells running
-
-See [docs/INSTALL.md](docs/INSTALL.md) for the full dependency list.
+Everything talks to Niri via socket (`NiriService`) for workspace tracking, window management, and keyboard layouts.
 
 ---
 
