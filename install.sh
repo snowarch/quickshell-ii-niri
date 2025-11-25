@@ -260,7 +260,7 @@ show_banner() {
 }
 
 # =============================================================================
-# PACKAGE DEFINITIONS
+# PACKAGE DEFINITIONS (based on illogical-impulse meta-packages)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -271,20 +271,15 @@ NIRI_PKGS=(
 )
 
 # -----------------------------------------------------------------------------
-# CORE: Quickshell dependencies (from illogical-impulse-quickshell-git PKGBUILD)
-# These are the Qt6 and system libs that Quickshell needs
+# CORE: Quickshell dependencies (from illogical-impulse-quickshell-git)
 # -----------------------------------------------------------------------------
 QUICKSHELL_DEPS=(
+  # Qt6 core
   qt6-declarative
   qt6-base
-  jemalloc
   qt6-svg
-  libpipewire
-  libxcb
-  wayland
-  libdrm
-  mesa
-  # Qt6 extras needed by ii
+  qt6-wayland
+  # Qt6 extras for ii
   qt6-5compat
   qt6-imageformats
   qt6-multimedia
@@ -294,24 +289,48 @@ QUICKSHELL_DEPS=(
   qt6-tools
   qt6-translations
   qt6-virtualkeyboard
-  qt6-wayland
-  # KDE/Qt integration
+  # System libs
+  jemalloc
+  libpipewire
+  libxcb
+  wayland
+  libdrm
+  mesa
+  # KDE integration
   kirigami
   kdialog
   syntax-highlighting
-  # Build deps that become runtime deps
-  polkit
 )
 
-# AUR packages for Quickshell (CRITICAL: quickshell-git, NOT quickshell)
 QUICKSHELL_AUR=(
   google-breakpad
   qt6-avif-image-plugin
-  quickshell-git
+  illogical-impulse-quickshell-git  # pinned version for ii
 )
 
 # -----------------------------------------------------------------------------
-# CORE: Basic utilities (from illogical-impulse-basic)
+# CORE: XDG portals (from illogical-impulse-portal)
+# -----------------------------------------------------------------------------
+PORTAL_PKGS=(
+  xdg-desktop-portal
+  xdg-desktop-portal-gtk
+  xdg-desktop-portal-gnome
+)
+
+PORTAL_AUR=(
+  xdg-desktop-portal-hyprland  # needed for some ii features
+)
+
+# -----------------------------------------------------------------------------
+# CORE: Polkit authentication agent
+# -----------------------------------------------------------------------------
+POLKIT_PKGS=(
+  polkit
+  mate-polkit  # authentication agent
+)
+
+# -----------------------------------------------------------------------------
+# CORE: Basic utilities
 # -----------------------------------------------------------------------------
 BASIC_PKGS=(
   bc
@@ -326,19 +345,11 @@ BASIC_PKGS=(
   git
   wl-clipboard
   libnotify
+  gum  # for installer UI
 )
 
 # -----------------------------------------------------------------------------
-# CORE: XDG portals for Niri
-# -----------------------------------------------------------------------------
-PORTAL_PKGS=(
-  xdg-desktop-portal
-  xdg-desktop-portal-gtk
-  xdg-desktop-portal-gnome
-)
-
-# -----------------------------------------------------------------------------
-# CORE: Audio dependencies (from illogical-impulse-audio)
+# CORE: Audio
 # -----------------------------------------------------------------------------
 AUDIO_PKGS=(
   pipewire
@@ -351,17 +362,18 @@ AUDIO_PKGS=(
 )
 
 # -----------------------------------------------------------------------------
-# OPTIONAL: Toolkit for input simulation (from illogical-impulse-toolkit)
+# CORE: Toolkit for input simulation
 # -----------------------------------------------------------------------------
 TOOLKIT_PKGS=(
   upower
   wtype
   ydotool
   python-evdev
+  python-pillow
 )
 
 # -----------------------------------------------------------------------------
-# OPTIONAL: Screenshot and recording (from illogical-impulse-screencapture)
+# OPTIONAL: Screenshot and recording
 # -----------------------------------------------------------------------------
 SCREENCAPTURE_PKGS=(
   grim
@@ -379,16 +391,21 @@ SCREENCAPTURE_PKGS=(
 WIDGET_PKGS=(
   fuzzel
   glib2
-  hyprpicker
   songrec
   translate-shell
 )
 
+WIDGET_AUR=(
+  hyprpicker  # color picker
+)
+
 # -----------------------------------------------------------------------------
-# OPTIONAL: Fonts and theming (from illogical-impulse-fonts-themes)
+# FONTS (from illogical-impulse-fonts-themes)
 # -----------------------------------------------------------------------------
 FONTS_PKGS=(
   fontconfig
+  ttf-dejavu
+  ttf-liberation
 )
 
 FONTS_AUR=(
@@ -398,31 +415,29 @@ FONTS_AUR=(
   ttf-material-symbols-variable-git
   ttf-readex-pro
   ttf-rubik-vf
-  ttf-gabarito
+  ttf-gabarito-git
+  ttf-roboto-flex
+  ttf-twemoji
 )
 
 # -----------------------------------------------------------------------------
-# OPTIONAL: Python dependencies
-# -----------------------------------------------------------------------------
-PYTHON_PKGS=(
-  python-pillow
-  python-opencv
-)
-
-# -----------------------------------------------------------------------------
-# THEMING: GTK, Qt, icons, cursors
+# THEMING: GTK, Qt, icons, cursors (from illogical-impulse-fonts-themes)
 # -----------------------------------------------------------------------------
 THEMING_PKGS=(
-  adw-gtk-theme      # adw-gtk3 for GTK3 apps
-  libadwaita         # GTK4/libadwaita
-  gnome-themes-extra # Extra GTK themes
+  libadwaita
+  gnome-themes-extra
   gsettings-desktop-schemas
-  dconf              # Settings storage
+  dconf
+  breeze
+  xsettingsd
+  qt6ct
+  kde-gtk-config
 )
 
 THEMING_AUR=(
-  adw-gtk3           # GTK3 libadwaita port
-  whitesur-icon-theme-git
+  adw-gtk-theme-git  # CORRECT package for adw-gtk3
+  breeze-plus
+  darkly-bin
   capitaine-cursors
   bibata-cursor-theme
 )
@@ -510,35 +525,42 @@ EOF
 # =============================================================================
 install_core() {
   log STEP "Installing core packages"
+  
+  log INFO "Niri compositor..."
   install_pkgs "${NIRI_PKGS[@]}"
-  install_pkgs "${QUICKSHELL_DEPS[@]}"
-  install_pkgs "${QUICKSHELL_AUR[@]}"
+  
+  log INFO "Quickshell and Qt6 dependencies..."
+  install_pkgs "${QUICKSHELL_DEPS[@]}" "${QUICKSHELL_AUR[@]}"
+  
+  log INFO "XDG portals..."
+  install_pkgs "${PORTAL_PKGS[@]}" "${PORTAL_AUR[@]}"
+  
+  log INFO "Polkit authentication..."
+  install_pkgs "${POLKIT_PKGS[@]}"
+  
+  log INFO "Basic utilities..."
   install_pkgs "${BASIC_PKGS[@]}"
-  install_pkgs "${PORTAL_PKGS[@]}"
+  
+  log INFO "Audio stack..."
   install_pkgs "${AUDIO_PKGS[@]}"
+  
+  log INFO "Input tools..."
+  install_pkgs "${TOOLKIT_PKGS[@]}"
 }
 
 install_optional() {
   log STEP "Optional components"
-  
-  if confirm "Install input tools (ydotool, wtype)?"; then
-    install_pkgs "${TOOLKIT_PKGS[@]}"
-  fi
   
   if confirm "Install screenshot/recording tools?"; then
     install_pkgs "${SCREENCAPTURE_PKGS[@]}"
   fi
   
   if confirm "Install widget dependencies (fuzzel, hyprpicker)?"; then
-    install_pkgs "${WIDGET_PKGS[@]}"
+    install_pkgs "${WIDGET_PKGS[@]}" "${WIDGET_AUR[@]}"
   fi
   
-  if confirm "Install fonts (JetBrains Mono, Material Symbols)?"; then
+  if confirm "Install fonts (JetBrains Mono, Material Symbols, etc)?"; then
     install_pkgs "${FONTS_PKGS[@]}" "${FONTS_AUR[@]}"
-  fi
-  
-  if confirm "Install Python dependencies?"; then
-    install_pkgs "${PYTHON_PKGS[@]}"
   fi
   
   if confirm "Install theming (GTK, icons, cursors)?"; then
@@ -612,23 +634,48 @@ configure_niri() {
 create_niri_config() {
   local config_file="$1"
   cat > "$config_file" << 'NIRI_EOF'
-// Niri config for ii (illogical-impulse) shell
-// Based on Niri defaults with ii integration
+// =============================================================================
+// NIRI CONFIGURATION for ii (illogical-impulse) shell
+// =============================================================================
+// Clean config with proper ii integration
+// =============================================================================
+
+prefer-no-csd
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// =============================================================================
+// INPUT
+// =============================================================================
 
 input {
     keyboard {
         xkb { }
+        repeat-delay 250
+        repeat-rate 50
     }
+    
     touchpad {
         tap
         natural-scroll
     }
-    mouse { }
+    
+    mouse {
+        accel-profile "flat"
+    }
 }
 
-// Clean layout without window borders
+// =============================================================================
+// LAYOUT - Clean, no borders (ii handles decorations)
+// =============================================================================
+
 layout {
-    gaps 8
+    gaps 16
+    background-color "transparent"
     center-focused-column "never"
     
     preset-column-widths {
@@ -639,73 +686,171 @@ layout {
     
     default-column-width { proportion 0.5 }
     
-    // Disable focus ring (ii handles this)
-    focus-ring { off }
-    
-    // Disable border
     border { off }
+    focus-ring { off }
+    shadow { off }
 }
 
-// Start ii shell
-spawn-at-startup "qs" "-c" "ii"
+cursor {
+    xcursor-theme "capitaine-cursors-light"
+    xcursor-size 24
+    hide-when-typing
+}
 
-// Environment for proper theming
+// =============================================================================
+// WINDOW RULES
+// =============================================================================
+
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+window-rule { 
+    match is-active=false
+    opacity 0.95
+}
+
+// =============================================================================
+// ANIMATIONS
+// =============================================================================
+
+animations {
+    workspace-switch {
+        spring damping-ratio=0.9 stiffness=800 epsilon=0.0001
+    }
+    window-open {
+        spring damping-ratio=0.9 stiffness=900 epsilon=0.0001
+    }
+    window-close {
+        spring damping-ratio=0.95 stiffness=1000 epsilon=0.0001
+    }
+}
+
+// =============================================================================
+// ENVIRONMENT
+// =============================================================================
+
 environment {
+    XDG_CURRENT_DESKTOP "niri"
     QT_QPA_PLATFORM "wayland"
     QT_QPA_PLATFORMTHEME "gtk3"
-    GDK_BACKEND "wayland"
-    XDG_CURRENT_DESKTOP "niri"
+    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
 }
 
-// Prefer server-side decorations
-prefer-no-csd
+// =============================================================================
+// STARTUP
+// =============================================================================
 
-// Hotkey overlay
-hotkey-overlay {
-    skip-at-startup
-}
+spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
+spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
+spawn-at-startup "qs" "-c" "ii"
+
+// =============================================================================
+// KEYBINDINGS
+// =============================================================================
 
 binds {
-    // ii window switcher
-    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
-    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }
+    // ii window switcher (Alt+Tab)
+    Alt+Tab {
+        spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"
+    }
+    Alt+Shift+Tab {
+        spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"
+    }
     
     // ii overlay
-    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
+    Super+G {
+        spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"
+    }
     
     // Clipboard
-    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
+    Mod+V {
+        spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"
+    }
     
     // Lock screen
-    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
+    Mod+Alt+L allow-when-locked=true {
+        spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"
+    }
     
     // Region tools
-    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
-    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }
+    Mod+Shift+S {
+        spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"
+    }
+    Mod+Shift+X {
+        spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"
+    }
     
     // Wallpaper selector
-    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
+    Ctrl+Alt+T {
+        spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"
+    }
     
-    // Standard Niri binds
-    Mod+Q { close-window; }
+    // System
+    Mod+Tab repeat=false { toggle-overview; }
+    Mod+Shift+E { quit; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    
+    // Window management
+    Mod+Q repeat=false { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+A { toggle-window-floating; }
+    
+    // Focus
     Mod+Left { focus-column-left; }
     Mod+Right { focus-column-right; }
     Mod+Up { focus-window-up; }
     Mod+Down { focus-window-down; }
-    Mod+Ctrl+Left { move-column-left; }
-    Mod+Ctrl+Right { move-column-right; }
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+    
+    // Move windows
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+    
+    // Workspaces
     Mod+1 { focus-workspace 1; }
     Mod+2 { focus-workspace 2; }
     Mod+3 { focus-workspace 3; }
     Mod+4 { focus-workspace 4; }
     Mod+5 { focus-workspace 5; }
-    Mod+F { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }
-    Mod+V { toggle-window-floating; }
-    Mod+R { switch-preset-column-width; }
-    Mod+Shift+E { quit; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    
+    // Screenshots
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+    
+    // Media keys
+    XF86AudioRaiseVolume allow-when-locked=true {
+        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"
+    }
+    XF86AudioLowerVolume allow-when-locked=true {
+        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"
+    }
+    XF86AudioMute allow-when-locked=true {
+        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"
+    }
 }
 NIRI_EOF
   log INFO "Created Niri config at $config_file"
