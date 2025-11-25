@@ -289,6 +289,9 @@ QUICKSHELL_DEPS=(
   qt6-tools
   qt6-translations
   qt6-virtualkeyboard
+  # Qt6 effects (required for blur/dim)
+  qt6-shadertools
+  qt6-quick3d
   # System libs
   jemalloc
   libpipewire

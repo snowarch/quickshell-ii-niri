@@ -68,6 +68,7 @@ Scope {
                 }
             }
 
+            // Focus grab for Hyprland (doesn't work on Niri)
             HyprlandFocusGrab {
                 id: grab
                 windows: [root]
@@ -76,6 +77,18 @@ Scope {
                 onCleared: () => {
                     if (!active)
                         GlobalStates.overviewOpen = false;
+                }
+            }
+            
+            // For Niri: detect window focus changes to close overview
+            Connections {
+                target: CompositorService.isNiri ? NiriService : null
+                enabled: CompositorService.isNiri
+                function onActiveWindowChanged() {
+                    // If a window gets focus while overview is open, close it
+                    if (GlobalStates.overviewOpen && NiriService.activeWindow) {
+                        GlobalStates.overviewOpen = false;
+                    }
                 }
             }
 
