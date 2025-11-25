@@ -44,7 +44,7 @@
         "network": "nm-connection-editor",
         "networkEthernet": "nm-connection-editor",
         "taskManager": "gnome-system-monitor",
-        "terminal": "ghostty",
+        "terminal": "foot",
         "volumeMixer": "pavucontrol"
     },
     "audio": {
