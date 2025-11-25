@@ -200,6 +200,13 @@ printf "  Press ${STY_INVERT} Ctrl+Alt+T ${STY_RST} to select a wallpaper\n"
 printf "  Press ${STY_INVERT} Super+G ${STY_RST} to toggle the overlay\n"
 printf "\n"
 
+# Reset ii "first run" marker so the welcome window appears after installation.
+# FirstRunExperience.qml looks for this file under XDG_STATE_HOME/quickshell/user.
+QUICKSHELL_FIRST_RUN_FILE="${XDG_STATE_HOME}/quickshell/user/first_run.txt"
+if [[ -f "${QUICKSHELL_FIRST_RUN_FILE}" ]]; then
+  x rm -f "${QUICKSHELL_FIRST_RUN_FILE}"
+fi
+
 # Final sanity check
 if ! command -v niri >/dev/null; then
   printf "${STY_RED}[WARNING]: Niri compositor not found in PATH!${STY_RST}\n"

@@ -13,6 +13,16 @@ hotkey-overlay {
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
+// Outputs (example - disabled by default)
+// Run `niri msg outputs` inside a niri session to see connector names and modes.
+// Then edit and uncomment this block to pin a specific monitor layout.
+/-output "eDP-1" {
+    // mode "1920x1080@60"
+    // scale 1
+    // transform "normal"
+    // position x=0 y=0
+}
+
 // ============================================================================
 // INPUT
 // ============================================================================
@@ -46,9 +56,9 @@ layout {
     preset-column-widths {
         proportion 0.33333
         proportion 0.5
-        proportion 0.66667
     }
-    
+
+    // You can change the default width of the new windows.
     default-column-width { 
         proportion 0.5
     }
@@ -62,7 +72,20 @@ layout {
     }
     
     shadow {
-        off
+        // Uncomment `on` to enable shadows and tweak the look with the options below.
+        // on
+
+        // Softness controls the shadow blur radius.
+        softness 30
+
+        // Spread expands the shadow.
+        spread 5
+
+        // Offset moves the shadow relative to the window.
+        offset x=0 y=5
+
+        // Shadow color and opacity.
+        color "#0007"
     }
 }
 
@@ -74,6 +97,14 @@ cursor {
 
 overview {
     zoom 0.75
+
+    // Uncomment to give the overview a solid backdrop between workspaces.
+    //backdrop-color "#777777"
+
+    // Uncomment to disable the workspace shadow in the overview.
+    //workspace-shadow {
+    //    off
+    //}
 }
 
 // ============================================================================
@@ -123,8 +154,9 @@ animations {
 environment {
     XDG_CURRENT_DESKTOP "niri"
     QT_QPA_PLATFORM "wayland"
-    QT_QPA_PLATFORMTHEME "kde"
     ELECTRON_OZONE_PLATFORM_HINT "auto"
+    QT_QPA_PLATFORMTHEME "gtk3"
+    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
 }
 
 // ============================================================================
