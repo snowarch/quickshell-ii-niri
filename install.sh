@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# If this script is run via a pipe (e.g. curl ... | bash), stdin is not a TTY.
-# Redirect stdin from the controlling terminal so interactive prompts still work
-# and do not interfere with the script source being read.
-if [ ! -t 0 ] && [ -r /dev/tty ]; then
-  exec < /dev/tty
-fi
-
 bold="" reset="" green="" yellow="" red=""
 if command -v tput >/dev/null 2>&1; then
   bold="$(tput bold || true)"
@@ -36,7 +29,18 @@ ask_yes_no() {
   esac
   while true; do
     printf '%s %s ' "$prompt" "$suffix"
-    read -r reply || reply=""
+    if [ -t 0 ]; then
+      # Normal interactive shell: read from stdin.
+      read -r reply || reply=""
+    elif [ -r /dev/tty ]; then
+      # When run via a pipe (e.g. curl ... | bash), stdin is not a TTY.
+      # Read answers from the controlling terminal instead.
+      read -r reply < /dev/tty || reply=""
+    else
+      # Non-interactive environment with no TTY: fall back to default.
+      echo
+      reply="$default"
+    fi
     reply="${reply:-$default}"
     case "$reply" in
       y|Y) return 0 ;;
