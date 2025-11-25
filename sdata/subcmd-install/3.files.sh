@@ -199,3 +199,14 @@ printf "${STY_CYAN}First steps:${STY_RST}\n"
 printf "  Press ${STY_INVERT} Ctrl+Alt+T ${STY_RST} to select a wallpaper\n"
 printf "  Press ${STY_INVERT} Super+G ${STY_RST} to toggle the overlay\n"
 printf "\n"
+
+# Final sanity check
+if ! command -v niri >/dev/null; then
+  printf "${STY_RED}[WARNING]: Niri compositor not found in PATH!${STY_RST}\n"
+  printf "Please ensure it is installed properly.\n\n"
+fi
+
+if [[ ! -f "${XDG_CONFIG_HOME}/niri/config.kdl" ]]; then
+  printf "${STY_RED}[WARNING]: Niri config not found at ~/.config/niri/config.kdl${STY_RST}\n"
+  printf "You may need to copy it manually from dots/.config/niri/config.kdl\n\n"
+fi

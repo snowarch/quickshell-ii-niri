@@ -75,6 +75,15 @@ install_pkgbuild_deps() {
 
 # Install from each PKGBUILD
 for pkgdir in ./sdata/dist-arch/ii-niri-*/; do
+  # Check group flags
+  pkgname=$(basename "$pkgdir")
+  case "$pkgname" in
+    ii-niri-audio) $INSTALL_AUDIO || continue ;;
+    ii-niri-toolkit) $INSTALL_TOOLKIT || continue ;;
+    ii-niri-screencapture) $INSTALL_SCREENCAPTURE || continue ;;
+    ii-niri-fonts) $INSTALL_FONTS || continue ;;
+  esac
+  
   v install_pkgbuild_deps "$pkgdir"
 done
 
@@ -88,31 +97,33 @@ AUR_PACKAGES=(
   quickshell-git
   google-breakpad
   qt6-avif-image-plugin
-  
-  # Fonts
-  matugen-bin
-  otf-space-grotesk
-  ttf-jetbrains-mono-nerd
-  ttf-material-symbols-variable-git
-  ttf-readex-pro
-  ttf-rubik-vf
-  ttf-twemoji
-  
-  # Theming
-  adw-gtk-theme-git
-  capitaine-cursors
-  whitesur-icon-theme-git
-  
-  # Widgets
-  hyprpicker
-  songrec
-  
-  # Audio visualization
-  cava
-  
-  # Python env
-  uv
 )
+
+# Add optional AUR packages
+if $INSTALL_FONTS; then
+  AUR_PACKAGES+=(
+    matugen-bin
+    otf-space-grotesk
+    ttf-jetbrains-mono-nerd
+    ttf-material-symbols-variable-git
+    ttf-readex-pro
+    ttf-rubik-vf
+    ttf-twemoji
+    adw-gtk-theme-git
+    capitaine-cursors
+    whitesur-icon-theme-git
+    hyprpicker
+    songrec
+  )
+fi
+
+if $INSTALL_AUDIO; then
+  AUR_PACKAGES+=(cava)
+fi
+
+if $INSTALL_TOOLKIT; then
+  AUR_PACKAGES+=(uv)
+fi
 
 installflags="--needed"
 $ask || installflags="$installflags --noconfirm"

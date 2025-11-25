@@ -18,12 +18,17 @@ Options:
   --skip-quickshell   Skip Quickshell config sync
   --skip-niri         Skip Niri config installation
   --skip-backup       Skip backup of existing configs
+  --no-audio          Skip audio dependencies
+  --no-toolkit        Skip toolkit dependencies (ydotool, backlight)
+  --no-screencapture  Skip screenshot/recording tools
+  --no-fonts          Skip fonts and theming tools
   -h, --help          Show this help
 
 Examples:
   $0 install              Interactive installation
   $0 install -y           Non-interactive installation
   $0 install --skip-deps  Skip dependencies (if already installed)
+  $0 install --no-audio   Skip audio stack (if you use something else)
 "
 }
 
@@ -37,6 +42,12 @@ SKIP_QUICKSHELL=false
 SKIP_NIRI=false
 SKIP_BACKUP=false
 SKIP_SYSUPDATE=false
+
+# Dependency groups (enabled by default)
+INSTALL_AUDIO=true
+INSTALL_TOOLKIT=true
+INSTALL_SCREENCAPTURE=true
+INSTALL_FONTS=true
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -75,6 +86,22 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-sysupdate)
       SKIP_SYSUPDATE=true
+      shift
+      ;;
+    --no-audio)
+      INSTALL_AUDIO=false
+      shift
+      ;;
+    --no-toolkit)
+      INSTALL_TOOLKIT=false
+      shift
+      ;;
+    --no-screencapture)
+      INSTALL_SCREENCAPTURE=false
+      shift
+      ;;
+    --no-fonts)
+      INSTALL_FONTS=false
       shift
       ;;
     -h|--help)
