@@ -581,7 +581,72 @@ EOF
 GTKCSS
   fi
   
+  # Create fuzzel theme template
+  if [ ! -f "$templates_dir/fuzzel_theme.ini" ]; then
+    cat > "$templates_dir/fuzzel_theme.ini" << 'FUZZEL'
+[colors]
+background={{colors.background.default.hex_stripped}}ff
+text={{colors.on_background.default.hex_stripped}}ff
+selection={{colors.surface_variant.default.hex_stripped}}ff
+selection-text={{colors.on_surface_variant.default.hex_stripped}}ff
+border={{colors.surface_variant.default.hex_stripped}}dd
+match={{colors.primary.default.hex_stripped}}ff
+selection-match={{colors.primary.default.hex_stripped}}ff
+FUZZEL
+  fi
+  
+  # Add fuzzel template to matugen config
+  cat >> "$matugen_dir/config.toml" << EOF
+
+[templates.fuzzel]
+input_path = '$templates_dir/fuzzel_theme.ini'
+output_path = '$CONFIG_ROOT/fuzzel/fuzzel_theme.ini'
+EOF
+  
   log OK "Matugen configured"
+}
+
+setup_fuzzel() {
+  log STEP "Setting up Fuzzel"
+  
+  local fuzzel_dir="$CONFIG_ROOT/fuzzel"
+  mkdir -p "$fuzzel_dir"
+  
+  # Create fuzzel.ini if not exists
+  if [ ! -f "$fuzzel_dir/fuzzel.ini" ]; then
+    cat > "$fuzzel_dir/fuzzel.ini" << 'EOF'
+include="~/.config/fuzzel/fuzzel_theme.ini"
+font=Rubik:weight=medium
+terminal=ghostty
+prompt=">>  "
+layer=overlay
+
+[border]
+radius=17
+width=1
+
+[dmenu]
+exit-immediately-if-empty=yes
+EOF
+    log INFO "Created fuzzel config"
+  fi
+  
+  # Create default theme if matugen hasn't run yet
+  if [ ! -f "$fuzzel_dir/fuzzel_theme.ini" ]; then
+    cat > "$fuzzel_dir/fuzzel_theme.ini" << 'EOF'
+[colors]
+background=1d1b20ff
+text=e6e0e9ff
+selection=49454fff
+selection-text=cac4d0ff
+border=49454fdd
+match=d0bcffff
+selection-match=d0bcffff
+EOF
+    log INFO "Created default fuzzel theme"
+  fi
+  
+  log OK "Fuzzel configured"
 }
 
 # =============================================================================
@@ -1127,6 +1192,7 @@ main() {
       install_optional
       setup_ii_config
       setup_matugen
+      setup_fuzzel
       setup_user_groups
       setup_ydotool_service
       setup_python_venv
@@ -1137,6 +1203,7 @@ main() {
       install_core
       setup_ii_config
       setup_matugen
+      setup_fuzzel
       configure_niri
       ;;
     "Update"*)
