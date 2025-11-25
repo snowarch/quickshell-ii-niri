@@ -262,48 +262,76 @@ show_banner() {
 # =============================================================================
 # PACKAGE DEFINITIONS
 # =============================================================================
-# Uses illogical-impulse metapackages from end-4's AUR when available.
-# These bundle all dependencies and are conflict-free.
+# Dependencies extracted from end-4's local PKGBUILDs, adapted for Niri.
+# The original uses local makepkg builds, we install deps directly.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# NIRI: Compositor (not in original end-4, Niri-specific)
+# NIRI: Compositor (Niri-specific, not in original end-4)
 # -----------------------------------------------------------------------------
 NIRI_PKGS=(
   niri
-  xdg-desktop-portal-gnome
 )
 
 # -----------------------------------------------------------------------------
-# METAPACKAGES: illogical-impulse bundles from AUR
-# These are the PREFERRED way to install - they handle all deps correctly
+# QUICKSHELL: Qt6 shell (from illogical-impulse-quickshell-git PKGBUILD)
 # -----------------------------------------------------------------------------
-II_METAPKGS=(
-  illogical-impulse-quickshell-git  # Quickshell pinned + all Qt6 deps
-  illogical-impulse-portal          # XDG portals
-  illogical-impulse-fonts-themes    # Fonts, GTK themes, icons, cursors
-  illogical-impulse-screencapture   # grim, slurp, wf-recorder, etc
-  illogical-impulse-widgets         # fuzzel, hyprpicker, matugen, etc
-  illogical-impulse-toolkit         # ydotool, wtype, python-evdev
-  illogical-impulse-python          # Python deps for scripts
-  illogical-impulse-kde             # KDE/Qt integration
+QUICKSHELL_PKGS=(
+  qt6-declarative
+  qt6-base
+  qt6-svg
+  qt6-wayland
+  qt6-5compat
+  qt6-imageformats
+  qt6-multimedia
+  qt6-positioning
+  qt6-quicktimeline
+  qt6-sensors
+  qt6-tools
+  qt6-translations
+  qt6-virtualkeyboard
+  jemalloc
+  libpipewire
+  libxcb
+  wayland
+  libdrm
+  mesa
+  kirigami
+  kdialog
+  syntax-highlighting
+)
+
+QUICKSHELL_AUR=(
+  google-breakpad
+  qt6-avif-image-plugin
+  quickshell-git  # from AUR (or build pinned version locally)
 )
 
 # -----------------------------------------------------------------------------
-# CORE: Polkit authentication agent
+# PORTALS: XDG desktop portals (adapted from illogical-impulse-portal)
+# -----------------------------------------------------------------------------
+PORTAL_PKGS=(
+  xdg-desktop-portal
+  xdg-desktop-portal-gtk
+  xdg-desktop-portal-gnome  # for Niri
+)
+
+# -----------------------------------------------------------------------------
+# POLKIT: Authentication agent (mate instead of kde for Niri)
 # -----------------------------------------------------------------------------
 POLKIT_PKGS=(
   polkit
-  mate-polkit  # authentication agent
+  mate-polkit
 )
 
 # -----------------------------------------------------------------------------
-# CORE: Basic utilities
+# BASIC: Core utilities (from illogical-impulse-basic)
 # -----------------------------------------------------------------------------
 BASIC_PKGS=(
   bc
   coreutils
   cliphist
+  cmake
   curl
   wget
   ripgrep
@@ -313,27 +341,114 @@ BASIC_PKGS=(
   git
   wl-clipboard
   libnotify
-  gum  # for installer UI
+)
+
+BASIC_AUR=(
+  go-yq
 )
 
 # -----------------------------------------------------------------------------
-# CORE: Audio
+# AUDIO: Sound stack (from illogical-impulse-audio)
 # -----------------------------------------------------------------------------
 AUDIO_PKGS=(
   pipewire
   pipewire-pulse
   pipewire-alsa
-  pipewire-jack
   wireplumber
   playerctl
   libdbusmenu-gtk3
+  pavucontrol
 )
 
-# NOTE: The following are included via illogical-impulse metapackages:
-# - illogical-impulse-toolkit: ydotool, wtype, python-evdev, upower
-# - illogical-impulse-screencapture: grim, slurp, wf-recorder, tesseract, swappy
-# - illogical-impulse-widgets: fuzzel, hyprpicker, songrec, translate-shell
-# - illogical-impulse-fonts-themes: all fonts, icons, cursors, GTK themes
+AUDIO_AUR=(
+  cava
+)
+
+# -----------------------------------------------------------------------------
+# TOOLKIT: Input tools (from illogical-impulse-toolkit)
+# -----------------------------------------------------------------------------
+TOOLKIT_PKGS=(
+  upower
+  wtype
+  ydotool
+)
+
+# -----------------------------------------------------------------------------
+# SCREENCAPTURE: Screenshots/recording (adapted from illogical-impulse-screencapture)
+# Note: Using grim instead of hyprshot for Niri
+# -----------------------------------------------------------------------------
+SCREENCAPTURE_PKGS=(
+  grim
+  slurp
+  swappy
+  tesseract
+  tesseract-data-eng
+  wf-recorder
+  imagemagick
+)
+
+# -----------------------------------------------------------------------------
+# WIDGETS: Overlay tools (adapted from illogical-impulse-widgets)
+# Note: Removed hyprlock/hypridle/wlogout (Hyprland-specific)
+# -----------------------------------------------------------------------------
+WIDGETS_PKGS=(
+  fuzzel
+  glib2
+)
+
+WIDGETS_AUR=(
+  hyprpicker
+  songrec
+  translate-shell
+)
+
+# -----------------------------------------------------------------------------
+# PYTHON: Python dependencies (from illogical-impulse-python)
+# -----------------------------------------------------------------------------
+PYTHON_PKGS=(
+  python
+  gtk4
+  libadwaita
+  libsoup3
+  gobject-introspection
+)
+
+PYTHON_AUR=(
+  uv
+)
+
+# -----------------------------------------------------------------------------
+# FONTS/THEMES: Theming (from illogical-impulse-fonts-themes)
+# -----------------------------------------------------------------------------
+FONTS_PKGS=(
+  fontconfig
+  breeze
+)
+
+FONTS_AUR=(
+  adw-gtk-theme-git
+  breeze-plus
+  darkly-bin
+  matugen-bin
+  otf-space-grotesk
+  ttf-jetbrains-mono-nerd
+  ttf-material-symbols-variable-git
+  ttf-readex-pro
+  ttf-rubik-vf
+  ttf-twemoji
+  whitesur-icon-theme-git
+  capitaine-cursors
+)
+
+# -----------------------------------------------------------------------------
+# KDE: Integration tools (adapted from illogical-impulse-kde)
+# Note: Using mate-polkit, removed polkit-kde-agent
+# -----------------------------------------------------------------------------
+KDE_PKGS=(
+  gnome-keyring
+  networkmanager
+  dolphin
+)
 
 # =============================================================================
 # THEMING CONFIGURATION
@@ -452,26 +567,44 @@ install_core() {
   log INFO "Niri compositor..."
   install_pkgs "${NIRI_PKGS[@]}"
   
-  log INFO "illogical-impulse metapackages (Quickshell, fonts, tools, etc)..."
-  install_pkgs "${II_METAPKGS[@]}"
+  log INFO "Quickshell and Qt6 dependencies..."
+  install_pkgs "${QUICKSHELL_PKGS[@]}" "${QUICKSHELL_AUR[@]}"
+  
+  log INFO "XDG portals..."
+  install_pkgs "${PORTAL_PKGS[@]}"
   
   log INFO "Polkit authentication..."
   install_pkgs "${POLKIT_PKGS[@]}"
   
   log INFO "Basic utilities..."
-  install_pkgs "${BASIC_PKGS[@]}"
+  install_pkgs "${BASIC_PKGS[@]}" "${BASIC_AUR[@]}"
   
   log INFO "Audio stack..."
-  install_pkgs "${AUDIO_PKGS[@]}"
+  install_pkgs "${AUDIO_PKGS[@]}" "${AUDIO_AUR[@]}"
+  
+  log INFO "Input toolkit..."
+  install_pkgs "${TOOLKIT_PKGS[@]}"
+  
+  log INFO "Screenshot and recording..."
+  install_pkgs "${SCREENCAPTURE_PKGS[@]}"
+  
+  log INFO "Widget tools..."
+  install_pkgs "${WIDGETS_PKGS[@]}" "${WIDGETS_AUR[@]}"
+  
+  log INFO "Python dependencies..."
+  install_pkgs "${PYTHON_PKGS[@]}" "${PYTHON_AUR[@]}"
+  
+  log INFO "Fonts and themes..."
+  install_pkgs "${FONTS_PKGS[@]}" "${FONTS_AUR[@]}"
+  
+  log INFO "KDE integration..."
+  install_pkgs "${KDE_PKGS[@]}"
 }
 
 install_optional() {
-  log STEP "Optional configuration"
+  log STEP "Configuring system"
   
-  # Metapackages already include fonts/icons/themes, just need to configure
-  if confirm "Configure GTK theming (icons, cursors, dark mode)?"; then
-    configure_gtk_theming
-  fi
+  configure_gtk_theming
 }
 
 setup_ii_config() {
