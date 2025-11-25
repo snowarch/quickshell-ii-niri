@@ -43,8 +43,6 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 ensure_yay() {
   if command -v yay >/dev/null 2>&1; then
     return 0
@@ -252,10 +250,10 @@ if ask_yes_no "Install and enable the Super-tap daemon for ii overview on Niri?"
 
   mkdir -p "$HOME/.local/bin" "$SYSTEMD_USER_DIR"
 
-  install -Dm755 "$SCRIPT_DIR/scripts/daemon/ii_super_overview_daemon.py" \
+  install -Dm755 "$II_DIR/scripts/daemon/ii_super_overview_daemon.py" \
     "$HOME/.local/bin/ii_super_overview_daemon.py"
 
-  install -Dm644 "$SCRIPT_DIR/scripts/systemd/ii-super-overview.service" \
+  install -Dm644 "$II_DIR/scripts/systemd/ii-super-overview.service" \
     "$SYSTEMD_USER_DIR/ii-super-overview.service"
 
   if command -v systemctl >/dev/null 2>&1; then
