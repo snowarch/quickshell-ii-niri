@@ -305,19 +305,52 @@ ContentPage {
             }
         }
         ConfigSwitch {
-            buttonIcon: "radio_button_unchecked"
-            text: Translation.tr("Minimize unfocused apps to dot")
-            checked: Config.options.dock.minimizeUnfocused
-            onCheckedChanged: {
-                Config.options.dock.minimizeUnfocused = checked;
-            }
-        }
-        ConfigSwitch {
             buttonIcon: "blur_on"
             text: Translation.tr("Enable dock blur glass")
             checked: Config.options.dock.enableBlurGlass
             onCheckedChanged: {
                 Config.options.dock.enableBlurGlass = checked;
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Appearance")
+
+            ConfigSpinBox {
+                icon: "height"
+                text: Translation.tr("Dock height (px)")
+                value: Config.options.dock.height ?? 60
+                from: 40
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.dock.height = value;
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "aspect_ratio"
+                text: Translation.tr("Icon size (px)")
+                value: Config.options.dock.iconSize ?? 35
+                from: 20
+                to: 60
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.dock.iconSize = value;
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "vertical_align_bottom"
+                text: Translation.tr("Hover reveal region height (px)")
+                value: Config.options.dock.hoverRegionHeight ?? 2
+                from: 1
+                to: 20
+                stepSize: 1
+                enabled: Config.options.dock.hoverToReveal
+                onValueChanged: {
+                    Config.options.dock.hoverRegionHeight = value;
+                }
             }
         }
     }

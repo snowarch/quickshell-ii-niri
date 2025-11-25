@@ -79,18 +79,19 @@ Singleton {
     }
 
     function getData() {
-        let command = "curl -s wttr.in";
+        let command = "curl -s --max-time 10 'wttr.in";
 
         if (root.gpsActive && root.location.valid) {
             command += `/${root.location.lat},${root.location.long}`;
-        } else {
+        } else if (root.city && root.city.length > 0) {
             command += `/${formatCityName(root.city)}`;
         }
+        // If no city and no GPS, use auto-location based on IP
 
         // format as json
-        command += "?format=j1";
+        command += "?format=j1'";
         command += " | ";
-        // only take the current weather, location, asytronmy data
+        // only take the current weather, location, astronomy data
         command += "jq '{current: .current_condition[0], location: .nearest_area[0], astronomy: .weather[0].astronomy[0]}'";
         fetcher.command[2] = command;
         fetcher.running = true;
@@ -156,10 +157,10 @@ Singleton {
     }
 
     Timer {
-        running: !root.gpsActive
+        running: true
         repeat: true
-        interval: root.fetchInterval
-        triggeredOnStart: !root.gpsActive
+        interval: root.fetchInterval > 0 ? root.fetchInterval : 600000  // Default 10min if not set
+        triggeredOnStart: true
         onTriggered: root.getData()
     }
 }
