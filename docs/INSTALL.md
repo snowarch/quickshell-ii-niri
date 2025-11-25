@@ -81,13 +81,20 @@ These must be present for ii to behave as a shell on Niri.
 ```
 qt6-declarative qt6-base qt6-svg qt6-5compat qt6-imageformats qt6-multimedia
 qt6-positioning qt6-quicktimeline qt6-sensors qt6-tools qt6-translations
-qt6-virtualkeyboard qt6-wayland kirigami kdialog syntax-highlighting
-jemalloc libpipewire libxcb wayland libdrm mesa polkit
+qt6-virtualkeyboard qt6-wayland qt6-shadertools qt6-quick3d
+kirigami kdialog syntax-highlighting
+jemalloc libpipewire libxcb wayland libdrm mesa polkit mate-polkit
 ```
 
 **AUR dependencies:**
 ```
-google-breakpad qt6-avif-image-plugin quickshell-git
+google-breakpad qt6-avif-image-plugin illogical-impulse-quickshell-git
+```
+
+**Theming dependencies:**
+```
+adw-gtk-theme-git whitesur-icon-theme-git capitaine-cursors
+gsettings-desktop-schemas dconf xsettingsd qt6ct kde-gtk-config
 ```
 
 If any of the above is missing, core UI will be broken or heavily degraded.
