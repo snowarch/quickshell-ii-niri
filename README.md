@@ -1,71 +1,49 @@
-# illogical-impulse (ii) on Niri
+# ii on Niri
 
-<div align="center">
-  <h3>My Quickshell shell fork of end‑4's ii, adapted for the Niri compositor</h3>
-</div>
-
----
-
-## Overview
-
-- Runs the illogical‑impulse (ii) shell on **Niri** instead of Hyprland.
-- Designed to live **alongside DankMaterialShell (DMS)** in the same session.
-- Heavy personal customization; this repo mirrors my live `~/.config/quickshell/ii`.
-- Work in progress: I change things often and don’t promise stability.
+A Quickshell configuration for Niri, forked from end-4's illogical-impulse.
 
 ---
 
 ## Screenshots
 
-All screenshots are taken from my actual Niri session with this config:
-
-| Workspaces | Overview |
+| Overview | Sidebars |
 |:---|:---|
-| <img width="1920" height="1080" src="https://github.com/user-attachments/assets/9faaad0e-a665-4747-9428-ea94756e1f0f" alt="Overview and workspaces on Niri" /> | <img width="1918" height="1080" src="https://github.com/user-attachments/assets/21e43f3e-d6d9-4625-8210-642f9c05509b" alt="Sidebars, volume, media and widgets" /> |
+| ![Overview](https://github.com/user-attachments/assets/9faaad0e-a665-4747-9428-ea94756e1f0f) | ![Sidebars](https://github.com/user-attachments/assets/21e43f3e-d6d9-4625-8210-642f9c05509b) |
 
-| Overlay | Settings UI · Sidebar |
+| Settings | Overlay |
 |:---|:---|
-| <img width="1912" height="1080" src="https://github.com/user-attachments/assets/25700a1c-70e6-4456-b053-35cf83fcac7a" alt="Settings window, global search and theming" /> | <img width="1920" height="1080" src="https://github.com/user-attachments/assets/1d5ca0f0-6ffb-46da-be1a-2d5e494089e7" alt="Settings UI" /> |
+| ![Settings](https://github.com/user-attachments/assets/25700a1c-70e6-4456-b053-35cf83fcac7a) | ![Overlay](https://github.com/user-attachments/assets/1d5ca0f0-6ffb-46da-be1a-2d5e494089e7) |
 
 ---
 
-## Features
+## What's Here
 
-- **Niri-aware compositor layer**  
-  `CompositorService` + `NiriService` track workspaces, windows, outputs, overview and keyboard layouts using `NIRI_SOCKET`.
+- **Bar, sidebars, overview** - the usual shell stuff, adapted for Niri
+- **Alt+Tab switcher** - cycles windows across all workspaces with MRU order
+- **Clipboard panel** - cliphist-based, with search and previews
+- **Region tools** - screenshots, recording, OCR, image search
+- **Wallpaper pipeline** - matugen colors, video wallpapers, backdrop blur
+- **Settings UI** - searchable config with live preview
 
-- **Overview tuned for Niri**  
-  Dedicated `OverviewNiriWidget` with a grid of workspaces based on Niri’s scrolling layout, drag & drop of windows between workspaces, and a context panel with live preview + quick actions (focus / close).
-
-- **Custom Alt‑Tab (AltSwitcher)**  
-  Overlay panel that cycles Niri windows (all workspaces) using MRU order, with configurable animation and monochrome icons.
-
-- **Wallpaper + theming pipeline**  
-  Matugen‑driven Material You colors, dynamic blur/dim of the wallpaper based on windows on the current workspace, and colors shared with ii, DMS and apps.
-
-- **Clipboard history panel**  
-  Built‑in cliphist‑based history popup with search, previews and copy/paste/delete actions, which you can bind to something like Super+V if you want it fully integrated into Niri.
-
-- **Quality‑of‑life bits**  
-  Global Settings search with indexed options, unified search bar style (Overview + Settings), integrated notepad in the right sidebar, and a Super‑tap daemon (tap Super → toggle ii overview on Niri).
+The compositor layer (`NiriService`) talks to Niri via socket for workspace/window tracking, keyboard layout switching, and output management.
 
 ---
 
 ## Requirements
 
-- **Compositor:** Niri 25.08+
-- **Shell:** Quickshell ≥ 0.2.0
-- **Theming:** Matugen for color generation
-- **Clipboard tools:** `cliphist` (or compatible) + `wl-copy` / `wl-paste` (wl-clipboard), optionally `ydotool` if you want superpaste-style key injection.
-- **Optional:** DankMaterialShell (DMS), Python + `python-evdev` for the Super-tap daemon.
+- **Niri** 25.08+
+- **Quickshell** 0.2.0+ (AUR: `quickshell-git`)
+- **matugen** for theming
+- **cliphist** + **wl-clipboard** for clipboard
+- Optional: DMS if you want both shells running
+
+See [docs/INSTALL.md](docs/INSTALL.md) for the full dependency list.
 
 ---
 
 ## Installation
 
-### Quick Install (Arch-based systems)
-
-Clone and run the setup script:
+### Quick (Arch-based)
 
 ```bash
 git clone https://github.com/snowarch/quickshell-ii-niri.git
@@ -73,81 +51,47 @@ cd quickshell-ii-niri
 ./setup install
 ```
 
-Or for non-interactive installation:
+### Manual
 
 ```bash
-./setup install -y
+git clone https://github.com/snowarch/quickshell-ii-niri.git ~/.config/quickshell/ii
+cp -r dots/.config/* ~/.config/
 ```
 
-The installer will:
-1. **Install dependencies** via local PKGBUILDs (similar to end-4's approach)
-2. **Setup system** (user groups, services like ydotool)
-3. **Copy config files** to your `~/.config/`
+Then add to `~/.config/niri/config.kdl`:
 
-### What gets installed
-
-**Core:**
-- Niri compositor
-- Quickshell (`quickshell-git` from AUR) + Qt6 dependencies
-- XDG portals for Niri (`xdg-desktop-portal-gnome`)
-- Basic utilities: `cliphist`, `wl-clipboard`, `libnotify`, `jq`, `ripgrep`
-- Audio: PipeWire, WirePlumber, playerctl
-- Polkit: `mate-polkit`
-
-**Toolkit:**
-- `ydotool`, `wtype`, `python-evdev` for input simulation
-- `brightnessctl`, `ddcutil` for backlight control
-
-**Screenshots/Recording:**
-- `grim`, `slurp`, `swappy`, `wf-recorder`
-- `tesseract` for OCR
-
-**Fonts/Theming:**
-- Matugen for Material You colors
-- JetBrains Mono, Material Symbols, Rubik, Readex Pro
-- `adw-gtk-theme`, Capitaine cursors
-
-### Manual Install
-
-If you prefer to handle dependencies yourself:
-
-1. Install dependencies manually (see `sdata/dist-arch/` for package lists)
-2. Clone this repo:
-   ```bash
-   git clone https://github.com/snowarch/quickshell-ii-niri.git ~/.config/quickshell/ii
-   ```
-3. Copy configs from `dots/.config/` to your `~/.config/`
-4. Add to `~/.config/niri/config.kdl`:
-   ```kdl
-   spawn-at-startup "qs" "-c" "ii"
-   ```
-5. Log out and select Niri at your display manager
-
-### Partial Installation
-
-You can run individual steps:
-
-```bash
-./setup install-deps    # Only install packages
-./setup install-setups  # Only configure services/groups
-./setup install-files   # Only copy config files
+```kdl
+spawn-at-startup "qs" "-c" "ii"
 ```
 
-Use `./setup help` for all options.
+More details in [docs/INSTALL.md](docs/INSTALL.md).
 
 ---
 
-## Usage notes
+## IPC Targets
 
-- This is **not** a plug‑and‑play theme; it’s my real config directory.
-- Treat it as:
-  - a reference if you’re building your own ii‑on‑Niri setup, or
-  - a starting point to fork and adapt to your system.
-- To use the clipboard history panel like a Super+V menu, point a Niri keybind at the ii IPC target `clipboard.toggle` (same pattern you would use for `overview.toggle`).
+Bind these in your Niri config:
+
+```kdl
+// Examples
+bind "Super" { spawn "qs" "ipc" "-c" "ii" "call" "overview" "toggle"; }
+bind "Super+V" { spawn "qs" "ipc" "-c" "ii" "call" "clipboard" "toggle"; }
+bind "Super+Shift+S" { spawn "qs" "ipc" "-c" "ii" "call" "region" "snip"; }
+```
+
+Available targets: `overview`, `clipboard`, `sidebar`, `cheatsheet`, `session`, `region`, `lock`.
+
+---
+
+## Notes
+
+This is my daily driver config. It works for me but might need tweaking for your setup. I break things sometimes.
+
+If you're looking for a stable, polished experience, check out end-4's original ii for Hyprland.
 
 ---
 
 ## Credits
 
-- **end‑4** for the original illogical‑impulse design and Hyprland dotfiles.
-- **Quickshell** developers and community for the widget system this depends on.
+- **end-4** for the original illogical-impulse
+- **Quickshell** devs for the framework
