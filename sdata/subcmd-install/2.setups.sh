@@ -104,18 +104,29 @@ function setup_super_daemon(){
 function setup_desktop_settings(){
   echo -e "${STY_BLUE}Applying desktop settings...${STY_RST}"
   
-  # gsettings for GNOME/GTK apps
+  # gsettings for GNOME/GTK apps (Nautilus, etc.)
   if command -v gsettings &>/dev/null; then
     try gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     try gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark'
     try gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark'
     try gsettings set org.gnome.desktop.interface cursor-theme 'capitaine-cursors-light'
     try gsettings set org.gnome.desktop.interface cursor-size 24
+    try gsettings set org.gnome.desktop.interface font-name 'Rubik 11'
   fi
   
-  # KDE widget style
+  # KDE/Qt settings (Dolphin, etc.)
   if command -v kwriteconfig6 &>/dev/null; then
-    try kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Breeze
+    # Use Darkly widget style for KDE apps
+    try kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Darkly
+    # Set color scheme
+    try kwriteconfig6 --file kdeglobals --group General --key ColorScheme MaterialYouDark
+    # Set icons
+    try kwriteconfig6 --file kdeglobals --group Icons --key Theme breeze-dark
+  fi
+  
+  # Configure Kvantum to use Colloid theme
+  if command -v kvantummanager &>/dev/null; then
+    try kvantummanager --set Colloid-Dark
   fi
   
   log_success "Desktop settings applied"

@@ -118,6 +118,10 @@ if $INSTALL_FONTS; then
     whitesur-icon-theme-git
     hyprpicker
     songrec
+    
+    # KDE/Qt theming
+    darkly
+    colloid-kde-theme-git
   )
 fi
 

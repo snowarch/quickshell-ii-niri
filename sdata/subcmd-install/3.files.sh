@@ -161,6 +161,20 @@ if [[ -d "dots/.config/Kvantum" ]]; then
   install_dir "dots/.config/Kvantum" "${XDG_CONFIG_HOME}/Kvantum"
 fi
 
+# Copy Colloid theme to user Kvantum folder if installed
+if [[ -d "/usr/share/Kvantum/Colloid" ]]; then
+  echo -e "${STY_CYAN}Setting up Kvantum Colloid theme...${STY_RST}"
+  mkdir -p "${XDG_CONFIG_HOME}/Kvantum/Colloid"
+  cp -r /usr/share/Kvantum/Colloid/* "${XDG_CONFIG_HOME}/Kvantum/Colloid/"
+  log_success "Kvantum Colloid theme configured"
+fi
+
+# Setup MaterialAdw folder for dynamic theming
+mkdir -p "${XDG_CONFIG_HOME}/Kvantum/MaterialAdw"
+if [[ -f "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" ]]; then
+  cp "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" "${XDG_CONFIG_HOME}/Kvantum/MaterialAdw/MaterialAdw.kvconfig"
+fi
+
 # Fontconfig
 if [[ -d "dots/.config/fontconfig" ]]; then
   install_dir__sync "dots/.config/fontconfig" "${XDG_CONFIG_HOME}/fontconfig"
@@ -199,6 +213,10 @@ cat > "${II_ENV_FILE}" << 'ENVEOF'
 # ii-niri environment variables
 # Source this file in your .bashrc/.zshrc or add to your shell profile
 export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv"
+
+# Qt theming - use Kvantum for consistent look with KDE apps
+export QT_STYLE_OVERRIDE=kvantum
+export QT_QPA_PLATFORMTHEME=kde
 ENVEOF
 
 # Add to fish config if fish is used
@@ -208,6 +226,10 @@ if [[ -d "${XDG_CONFIG_HOME}/fish" ]]; then
   cat > "${FISH_CONF}" << 'FISHEOF'
 # ii-niri environment variables
 set -gx ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
+
+# Qt theming
+set -gx QT_STYLE_OVERRIDE kvantum
+set -gx QT_QPA_PLATFORMTHEME kde
 FISHEOF
   log_success "Fish environment configured"
 fi
