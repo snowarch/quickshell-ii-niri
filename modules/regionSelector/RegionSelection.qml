@@ -59,15 +59,17 @@ PanelWindow {
     readonly property var layers: useNiri ? ({}) : HyprlandData.layers
     readonly property real falsePositivePreventionRatio: 0.5
 
-    readonly property HyprlandMonitor hyprlandMonitor: Hyprland.monitorFor(screen)
+    readonly property HyprlandMonitor hyprlandMonitor: CompositorService.isHyprland ? Hyprland.monitorFor(screen) : null
     readonly property real monitorScale: root.useNiri
         ? ((NiriService.displayScales && NiriService.displayScales[screen.name] !== undefined)
             ? NiriService.displayScales[screen.name]
             : 1)
         : (hyprlandMonitor ? hyprlandMonitor.scale : 1)
-    readonly property real monitorOffsetX: hyprlandMonitor ? hyprlandMonitor.x : 0
-    readonly property real monitorOffsetY: hyprlandMonitor ? hyprlandMonitor.y : 0
-    property int activeWorkspaceId: hyprlandMonitor && hyprlandMonitor.activeWorkspace ? hyprlandMonitor.activeWorkspace.id : 0
+    readonly property real monitorOffsetX: root.useNiri ? 0 : (hyprlandMonitor ? hyprlandMonitor.x : 0)
+    readonly property real monitorOffsetY: root.useNiri ? 0 : (hyprlandMonitor ? hyprlandMonitor.y : 0)
+    property int activeWorkspaceId: root.useNiri 
+        ? (NiriService.focusedWorkspaceIndex ?? 0)
+        : (hyprlandMonitor && hyprlandMonitor.activeWorkspace ? hyprlandMonitor.activeWorkspace.id : 0)
     property string screenshotPath: `${root.screenshotDir}/image-${screen.name}`
     property real dragStartX: 0
     property real dragStartY: 0

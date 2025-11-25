@@ -8,6 +8,9 @@ import Quickshell.Io
 AndroidQuickToggleButton {
     id: root
 
+    // Game mode is Hyprland-specific (animations, blur, gaps, tearing)
+    visible: CompositorService.isHyprland
+    
     name: Translation.tr("Game mode")
     statusText: ""
     toggled: toggled

@@ -6,6 +6,8 @@ import Quickshell.Io
 
 QuickToggleButton {
     id: root
+    // Game mode is Hyprland-specific (animations, blur, gaps, tearing)
+    visible: CompositorService.isHyprland
     buttonIcon: "gamepad"
     toggled: toggled
 

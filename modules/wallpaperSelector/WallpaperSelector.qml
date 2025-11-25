@@ -19,8 +19,10 @@ Scope {
 
         sourceComponent: PanelWindow {
             id: panelWindow
-            readonly property HyprlandMonitor monitor: Hyprland.monitorFor(panelWindow.screen)
-            property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
+            readonly property HyprlandMonitor monitor: CompositorService.isHyprland ? Hyprland.monitorFor(panelWindow.screen) : null
+            property bool monitorIsFocused: CompositorService.isHyprland 
+                ? (Hyprland.focusedMonitor?.id == monitor?.id)
+                : (CompositorService.isNiri ? (panelWindow.screen?.name === NiriService.currentOutput) : true)
 
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.namespace: "quickshell:wallpaperSelector"
