@@ -166,9 +166,9 @@ binds {
     // ii Wallpaper selector
     Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
     
-    // Applications
-    Mod+T { spawn "ghostty"; }
-    Mod+Return { spawn "ghostty"; }
+    // Applications (change "foot" to your preferred terminal)
+    Mod+T { spawn "foot"; }
+    Mod+Return { spawn "foot"; }
     Super+E { spawn "dolphin"; }
     
     // Window management

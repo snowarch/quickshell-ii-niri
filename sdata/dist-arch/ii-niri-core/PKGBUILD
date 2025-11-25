@@ -37,4 +37,7 @@ depends=(
   
   # File manager
   dolphin
+  
+  # Terminal (foot is lightweight, change to your preference)
+  foot
 )
