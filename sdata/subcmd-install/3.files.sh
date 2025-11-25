@@ -115,9 +115,12 @@ echo -e "${STY_CYAN}Installing config files from dots/...${STY_RST}"
 case "${SKIP_NIRI}" in
   true) sleep 0;;
   *)
-    if [[ -d "dots/.config/niri" ]]; then
+    if [[ -f "defaults/niri/config.kdl" ]]; then
+      install_file__auto_backup "defaults/niri/config.kdl" "${XDG_CONFIG_HOME}/niri/config.kdl"
+      log_success "Niri config installed (defaults)"
+    elif [[ -d "dots/.config/niri" ]]; then
       install_file__auto_backup "dots/.config/niri/config.kdl" "${XDG_CONFIG_HOME}/niri/config.kdl"
-      log_success "Niri config installed"
+      log_success "Niri config installed (dots)"
     fi
     ;;
 esac
