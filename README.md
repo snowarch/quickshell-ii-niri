@@ -73,14 +73,26 @@ All screenshots are taken from my actual Niri session with this config:
 
  The script will:
 
-- Install the core packages with pacman: Niri, Quickshell, wl-clipboard, cliphist, libnotify, PipeWire and git.
-- Offer to install the extra tools used for screenshots, recording, theming, WARP and a few utilities.
-- Clone this repo into `~/.config/quickshell/ii` (and optionally into `~/quickshell-workspace/ii`).
-- Offer to append `spawn-at-startup "qs" "-c" "ii"` to your `~/.config/niri/config.kdl` if it is not present.
-- Optionally install an input toolkit (`ydotool`, `wtype`, `python-evdev`, `illogical-impulse-python`) for the on-screen keyboard and Super-based shortcuts.
-- Optionally install AI and keyring helpers (`libsecret`, `gnome-keyring`, optional `ollama`) used by the AI panel and translation tools.
-- Optionally install icon and cursor themes (WhiteSur icons/GTK themes via AUR and Capitaine cursors).
-- Optionally install and enable the Super-tap daemon so that a clean tap on Super toggles the ii overview on Niri.
+**Core (always installed):**
+- **Niri** compositor
+- **Quickshell** from AUR (`quickshell-git`) with all Qt6 dependencies
+- Basic utilities: `cliphist`, `wl-clipboard`, `libnotify`, `jq`, `ripgrep`, etc.
+- XDG portals for Niri
+- Audio stack: PipeWire, WirePlumber, playerctl
+
+**Optional (you choose):**
+- **Toolkit**: `ydotool`, `wtype`, `python-evdev` for input simulation
+- **Screenshots/Recording**: `grim`, `slurp`, `wf-recorder`, `tesseract` (OCR)
+- **Widgets**: `fuzzel`, `hyprpicker`, `songrec`
+- **Fonts/Theming**: Matugen, JetBrains Mono, Material Symbols, etc.
+- **Icon themes**: WhiteSur, Capitaine cursors
+- **Super-tap daemon**: tap Super key to toggle overview
+
+**Configuration:**
+- Clone this repo into `~/.config/quickshell/ii`
+- Add `spawn-at-startup "qs" "-c" "ii"` to your Niri config
+
+> **Important:** This installer uses `quickshell-git` from AUR, not the official `quickshell` package. The official package may not include all the Wayland modules ii needs.
 
  When it finishes, restart Niri.
 
@@ -88,7 +100,7 @@ All screenshots are taken from my actual Niri session with this config:
 
  If you prefer to handle things yourself:
 
- 1. Install Niri, Quickshell and whatever extra tools you care about (recording, OCR, EasyEffects, WARP, AI, etc.).
+ 1. Install Niri and **`quickshell-git` from AUR** (not the official `quickshell` package). You'll also need all the Qt6 dependencies - see `docs/INSTALL.md` for the full list.
  2. Clone this repo as your ii config:
 
     ```bash
