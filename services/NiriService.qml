@@ -592,6 +592,16 @@ Singleton {
                     })
     }
 
+    function quit() {
+        return send({
+                        "Action": {
+                            "Quit": {
+                                "skip_confirmation": true
+                            }
+                        }
+                    })
+    }
+
     function getCurrentOutputWorkspaceNumbers() {
         // Niri workspaces already expose a 1-based idx for their position on the monitor.
         // Use idx directly as the workspace number for the current output.

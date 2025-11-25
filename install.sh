@@ -393,38 +393,76 @@ else
   fi
 fi
 
-WORKSPACE_DIR="$HOME/quickshell-workspace/ii"
-if ask_yes_no "Also keep a workspace clone at $WORKSPACE_DIR?" "n"; then
-  mkdir -p "$(dirname "$WORKSPACE_DIR")"
-  if [ -d "$WORKSPACE_DIR/.git" ]; then
-    log INFO "Workspace clone already exists at $WORKSPACE_DIR."
-  else
-    log INFO "Cloning workspace repo into $WORKSPACE_DIR."
-    git clone "$REPO_URL" "$WORKSPACE_DIR"
-  fi
-fi
 
 log STEP "Configuring Niri..."
 
 NIRI_CONFIG="$CONFIG_ROOT/niri/config.kdl"
 if [ -f "$NIRI_CONFIG" ]; then
+  # Add spawn-at-startup for ii
   if grep -q 'spawn-at-startup "qs" "-c" "ii"' "$NIRI_CONFIG"; then
     log INFO "Niri already starts ii at login."
   else
-    if ask_yes_no "Add 'spawn-at-startup \"qs\" \"-c\" \"ii\"' to $NIRI_CONFIG?" "y"; then
+    if ask_yes_no "Add ii startup and keybinds to $NIRI_CONFIG?" "y"; then
       {
         echo
-        echo "// ii shell on Niri"
+        echo "// ============================================================================"
+        echo "// illogical-impulse (ii) shell configuration"
+        echo "// ============================================================================"
+        echo
         echo "spawn-at-startup \"qs\" \"-c\" \"ii\""
+        echo
+        echo "binds {"
+        echo "    // Alt+Tab window switcher (ii AltSwitcher)"
+        echo "    Alt+Tab {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"altSwitcher\" \"next\";"
+        echo "    }"
+        echo "    Alt+Shift+Tab {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"altSwitcher\" \"previous\";"
+        echo "    }"
+        echo
+        echo "    // ii overlay toggle"
+        echo "    Super+G hotkey-overlay-title=\"Toggle ii Overlay\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"overlay\" \"toggle\";"
+        echo "    }"
+        echo
+        echo "    // Clipboard manager"
+        echo "    Mod+V hotkey-overlay-title=\"Clipboard Manager\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"clipboard\" \"toggle\";"
+        echo "    }"
+        echo
+        echo "    // Lock screen"
+        echo "    Mod+Alt+L allow-when-locked=true hotkey-overlay-title=\"Lock Screen\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"lock\" \"activate\";"
+        echo "    }"
+        echo
+        echo "    // Region tools"
+        echo "    Mod+Shift+S hotkey-overlay-title=\"Region Screenshot\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"region\" \"screenshot\";"
+        echo "    }"
+        echo "    Mod+Shift+A hotkey-overlay-title=\"Region Search\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"region\" \"search\";"
+        echo "    }"
+        echo "    Mod+Shift+X hotkey-overlay-title=\"Region OCR\" {"
+        echo "        spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"region\" \"ocr\";"
+        echo "    }"
+        echo "}"
       } >> "$NIRI_CONFIG"
-      log INFO "Added ii spawn line to $NIRI_CONFIG."
+      log INFO "Added ii configuration and keybinds to $NIRI_CONFIG."
     else
-      log INFO "Skipped editing $NIRI_CONFIG. Add the spawn line manually if needed."
+      log INFO "Skipped editing $NIRI_CONFIG. Add the spawn line and keybinds manually if needed."
     fi
   fi
 else
-  log WARN "Could not find $NIRI_CONFIG. Make sure Niri starts ii with:"
+  log WARN "Could not find $NIRI_CONFIG."
+  log WARN "Create your Niri config and add these lines:"
   echo '  spawn-at-startup "qs" "-c" "ii"'
+  echo
+  echo "  binds {"
+  echo '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'
+  echo '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'
+  echo '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'
+  echo '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'
+  echo "  }"
 fi
 
 log STEP "Super-tap daemon..."
