@@ -87,9 +87,9 @@ ContentPage {
             Layout.preferredWidth: keyLabel.implicitWidth + 16
             Layout.preferredHeight: 28
             radius: Appearance.rounding.small
-            color: Appearance.colors.colSurfaceContainerHighest
+            color: Appearance.colors.colSurfaceContainerHighest ?? Appearance.colors.colLayer1
             border.width: 1
-            border.color: Appearance.colors.colLayer1Border
+            border.color: Appearance.colors.colLayer1Border ?? "transparent"
 
             StyledText {
                 id: keyLabel
