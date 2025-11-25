@@ -65,7 +65,7 @@ Scope { // Scope
                 right: true
             }
 
-            HyprlandFocusGrab { // Click outside to close (Hyprland only)
+            CompositorFocusGrab { // Click outside to close (Hyprland only)
                 id: grab
                 windows: [ sidebarRoot ]
                 active: CompositorService.isHyprland && sidebarRoot.visible
@@ -127,7 +127,7 @@ Scope { // Scope
                 }
             }
 
-            // Also focus active tab when the sidebar becomes visible (for compositors without HyprlandFocusGrab)
+            // Also focus active tab when the sidebar becomes visible (for compositors without CompositorFocusGrab)
             onVisibleChanged: {
                 if (visible && sidebarLeftBackground.children.length > 0) {
                     Qt.callLater(() => sidebarLeftBackground.children[0].focusActiveItem());

@@ -119,7 +119,7 @@ Scope {
                 right: true
             }
 
-            HyprlandFocusGrab {
+            CompositorFocusGrab {
                 windows: [mediaControlsRoot]
                 active: CompositorService.isHyprland && mediaControlsLoader.active
                 onCleared: () => {

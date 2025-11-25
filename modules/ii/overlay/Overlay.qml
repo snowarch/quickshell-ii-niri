@@ -44,7 +44,7 @@ Scope {
                 right: true
             }
 
-            HyprlandFocusGrab {
+            CompositorFocusGrab {
                 id: grab
                 windows: [overlayWindow]
                 active: false

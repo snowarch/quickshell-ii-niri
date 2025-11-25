@@ -39,7 +39,7 @@ Scope {
             implicitHeight: Appearance.sizes.wallpaperSelectorHeight
             implicitWidth: Appearance.sizes.wallpaperSelectorWidth
 
-            HyprlandFocusGrab { // Click outside to close
+            CompositorFocusGrab { // Click outside to close
                 id: grab
                 windows: [ panelWindow ]
                 active: wallpaperSelectorLoader.active

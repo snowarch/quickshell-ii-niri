@@ -33,7 +33,7 @@ Scope {
             left: true
         }
 
-        HyprlandFocusGrab {
+        CompositorFocusGrab {
             id: grab
             windows: [ sidebarRoot ]
             active: CompositorService.isHyprland && sidebarRoot.visible
@@ -83,7 +83,7 @@ Scope {
             sourceComponent: SidebarRightContent {}
         }
 
-        // Fallback focus when becoming visible (for compositors without HyprlandFocusGrab behavior)
+        // Fallback focus when becoming visible (for compositors without CompositorFocusGrab behavior)
         onVisibleChanged: {
             if (visible && sidebarContentLoader.item && sidebarContentLoader.item.focusActiveItem) {
                 Qt.callLater(() => sidebarContentLoader.item.focusActiveItem())

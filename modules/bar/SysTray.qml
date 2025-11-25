@@ -63,7 +63,7 @@ Item {
         }
     }
 
-    HyprlandFocusGrab {
+    CompositorFocusGrab {
         id: focusGrab
         active: false
         windows: [trayOverflowLayout.QsWindow?.window, root.activeMenu]

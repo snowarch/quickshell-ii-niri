@@ -69,7 +69,7 @@ Scope {
             }
 
             // Focus grab for Hyprland (doesn't work on Niri)
-            HyprlandFocusGrab {
+            CompositorFocusGrab {
                 id: grab
                 windows: [root]
                 property bool canBeActive: root.monitorIsFocused

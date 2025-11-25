@@ -54,7 +54,7 @@ Scope { // Scope
                 item: cheatsheetBackground
             }
 
-            HyprlandFocusGrab { // Click outside to close
+            CompositorFocusGrab { // Click outside to close
                 id: grab
                 windows: [cheatsheetRoot]
                 active: cheatsheetRoot.visible
