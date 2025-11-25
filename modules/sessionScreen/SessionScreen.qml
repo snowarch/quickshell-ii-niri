@@ -190,10 +190,7 @@ Scope {
                         buttonIcon: "dark_mode"
                         buttonText: Translation.tr("Sleep")
                         onClicked:  { 
-                            // Lock first, then suspend to prevent crash and ensure security
-                            Session.lock(); 
-                            // Delayed suspend to allow lock to engage
-                            Quickshell.execDetached(["sh", "-c", "sleep 1; systemctl suspend"]);
+                            Session.suspend();
                             sessionRoot.hide();
                         }
                         onFocusChanged: { if (focus) sessionRoot.subtitle = buttonText }

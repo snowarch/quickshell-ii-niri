@@ -8,7 +8,7 @@ import qs.modules.common.widgets
 
 ContentPage {
     forceWidth: true
-    settingsPageIndex: 7
+    settingsPageIndex: 8
     settingsPageName: Translation.tr("About")
 
     ContentSection {
