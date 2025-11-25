@@ -101,6 +101,7 @@ AUR_PACKAGES=(
   # Theming
   adw-gtk-theme-git
   capitaine-cursors
+  whitesur-icon-theme-git
   
   # Widgets
   hyprpicker

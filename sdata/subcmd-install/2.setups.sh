@@ -62,6 +62,43 @@ function setup_systemd_services(){
 }
 
 #####################################################################################
+# Super-tap daemon (tap Super key to toggle overview)
+#####################################################################################
+function setup_super_daemon(){
+  echo -e "${STY_BLUE}Setting up Super-tap daemon...${STY_RST}"
+  
+  local daemon_src="${REPO_ROOT}/scripts/daemon/ii_super_overview_daemon.py"
+  local service_src="${REPO_ROOT}/scripts/systemd/ii-super-overview.service"
+  local daemon_dst="${HOME}/.local/bin/ii_super_overview_daemon.py"
+  local service_dst="${XDG_CONFIG_HOME}/systemd/user/ii-super-overview.service"
+  
+  if [[ ! -f "$daemon_src" ]]; then
+    log_warning "Super-tap daemon not found in repo, skipping"
+    return 0
+  fi
+  
+  # Install daemon script
+  x mkdir -p "$(dirname "$daemon_dst")"
+  x cp "$daemon_src" "$daemon_dst"
+  x chmod +x "$daemon_dst"
+  
+  # Install systemd service
+  x mkdir -p "$(dirname "$service_dst")"
+  x cp "$service_src" "$service_dst"
+  
+  # Enable service if in graphical session
+  if [[ ! -z "${DBUS_SESSION_BUS_ADDRESS}" ]]; then
+    v systemctl --user daemon-reload
+    v systemctl --user enable ii-super-overview.service --now
+  else
+    log_warning "Not in graphical session. Enable later with:"
+    echo "  systemctl --user enable ii-super-overview.service --now"
+  fi
+  
+  log_success "Super-tap daemon installed"
+}
+
+#####################################################################################
 # GTK/KDE settings
 #####################################################################################
 function setup_desktop_settings(){
@@ -95,6 +132,10 @@ v setup_systemd_services
 
 showfun setup_desktop_settings
 v setup_desktop_settings
+
+# Super-tap daemon
+showfun setup_super_daemon
+v setup_super_daemon
 
 # Python packages (in venv)
 showfun install-python-packages
