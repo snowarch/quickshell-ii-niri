@@ -436,10 +436,10 @@ THEMING_PKGS=(
 
 THEMING_AUR=(
   adw-gtk-theme-git  # CORRECT package for adw-gtk3
+  whitesur-icon-theme-git  # Icon theme
+  capitaine-cursors  # Cursor theme
   breeze-plus
   darkly-bin
-  capitaine-cursors
-  bibata-cursor-theme
 )
 
 # =============================================================================
@@ -456,11 +456,23 @@ configure_gtk_theming() {
 gtk-theme-name=adw-gtk3-dark
 gtk-icon-theme-name=WhiteSur-dark
 gtk-font-name=Rubik 11
-gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-cursor-theme-name=capitaine-cursors-light
 gtk-cursor-theme-size=24
+gtk-toolbar-style=3
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=0
+gtk-menu-images=0
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=0
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintslight
+gtk-xft-rgba=rgb
 gtk-application-prefer-dark-theme=1
+gtk-decoration-layout=icon:minimize,maximize,close
 gtk-enable-animations=true
 gtk-modules=colorreload-gtk-module
+gtk-primary-button-warps-slider=true
 EOF
   log INFO "GTK3 settings configured"
   
@@ -470,20 +482,38 @@ EOF
 gtk-theme-name=adw-gtk3-dark
 gtk-icon-theme-name=WhiteSur-dark
 gtk-font-name=Rubik 11
-gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-cursor-theme-name=capitaine-cursors-light
 gtk-cursor-theme-size=24
 gtk-application-prefer-dark-theme=1
 EOF
   log INFO "GTK4 settings configured"
   
+  # Create cursor theme index for X11 compatibility
+  mkdir -p "$HOME/.icons/default"
+  cat > "$HOME/.icons/default/index.theme" << 'EOF'
+[Icon Theme]
+Name=Default
+Comment=Default Cursor Theme
+Inherits=capitaine-cursors-light
+EOF
+  
   # Apply via gsettings if available
   if command -v gsettings >/dev/null 2>&1; then
     gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' 2>/dev/null || true
     gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-theme 'capitaine-cursors-light' 2>/dev/null || true
     gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface font-name 'Rubik 11' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface enable-animations true 2>/dev/null || true
     log INFO "gsettings applied"
+  fi
+  
+  # Start xsettingsd if available (for live theme updates)
+  if command -v xsettingsd >/dev/null 2>&1; then
+    pkill xsettingsd 2>/dev/null || true
+    xsettingsd &
+    log INFO "xsettingsd started"
   fi
 }
 
@@ -597,8 +627,18 @@ setup_ii_config() {
   mkdir -p "$STATE_ROOT/quickshell/user/generated/wallpaper"
   mkdir -p "$STATE_ROOT/quickshell/user"
   
-  # Create first_run flag if not exists
-  touch "$STATE_ROOT/quickshell/user/first_run.txt"
+  # DO NOT create first_run.txt - it triggers welcome screen on first launch
+  # The file is created automatically when welcome.qml closes
+  
+  # Copy default config for illogical-impulse if not exists
+  local ii_config_dir="$CONFIG_ROOT/illogical-impulse"
+  if [ ! -f "$ii_config_dir/config.json" ]; then
+    mkdir -p "$ii_config_dir"
+    if [ -f "$ii_dir/defaults/config.json" ]; then
+      cp "$ii_dir/defaults/config.json" "$ii_config_dir/config.json"
+      log INFO "Copied default ii config"
+    fi
+  fi
   
   log INFO "ii config ready at $ii_dir"
 }
