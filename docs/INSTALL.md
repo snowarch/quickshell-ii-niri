@@ -88,13 +88,19 @@ jemalloc libpipewire libxcb wayland libdrm mesa polkit mate-polkit
 
 **AUR dependencies:**
 ```
-google-breakpad qt6-avif-image-plugin illogical-impulse-quickshell-git
+google-breakpad qt6-avif-image-plugin quickshell-git
 ```
 
 **Theming dependencies:**
 ```
-adw-gtk-theme-git whitesur-icon-theme-git capitaine-cursors
-gsettings-desktop-schemas dconf xsettingsd qt6ct kde-gtk-config
+adw-gtk-theme-git whitesur-icon-theme-git capitaine-cursors breeze-plus darkly-bin
+matugen-bin ttf-jetbrains-mono-nerd ttf-material-symbols-variable-git
+ttf-rubik-vf ttf-readex-pro otf-space-grotesk
+```
+
+**Backlight control:**
+```
+brightnessctl ddcutil geoclue
 ```
 
 If any of the above is missing, core UI will be broken or heavily degraded.
