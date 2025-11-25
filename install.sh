@@ -374,6 +374,15 @@ TOOLKIT_PKGS=(
 )
 
 # -----------------------------------------------------------------------------
+# BACKLIGHT: Brightness control (from illogical-impulse-backlight)
+# -----------------------------------------------------------------------------
+BACKLIGHT_PKGS=(
+  brightnessctl
+  ddcutil
+  geoclue
+)
+
+# -----------------------------------------------------------------------------
 # SCREENCAPTURE: Screenshots/recording (adapted from illogical-impulse-screencapture)
 # Note: Using grim instead of hyprshot for Niri
 # -----------------------------------------------------------------------------
@@ -751,6 +760,9 @@ install_core() {
   
   log INFO "Input toolkit..."
   install_pkgs "${TOOLKIT_PKGS[@]}"
+  
+  log INFO "Backlight control..."
+  install_pkgs "${BACKLIGHT_PKGS[@]}"
   
   log INFO "Screenshot and recording..."
   install_pkgs "${SCREENCAPTURE_PKGS[@]}"
