@@ -6,13 +6,17 @@ It assumes you are comfortable with a terminal and your distro's package manager
 
 ## 0. Quick install (Arch-based systems)
 
-If you're on an Arch-based system (for example Arch Linux, EndeavourOS, CachyOS) and just want ii running on Niri, you can let the installer handle the boring bits:
+If you're on an Arch-based system (for example Arch Linux, EndeavourOS, CachyOS) and just want ii running on Niri:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
+git clone https://github.com/snowarch/quickshell-ii-niri.git
+cd quickshell-ii-niri
+./setup install
 ```
 
-The script will:
+For non-interactive installation: `./setup install -y`
+
+The installer will:
 
 **Core (always installed):**
 - **Niri** compositor
@@ -234,22 +238,28 @@ For the Python virtual environment referenced by `$ILLOGICAL_IMPULSE_VIRTUAL_ENV
 
 You can install ii directly into Quickshells config directory, or keep it in a separate workspace and symlink it.
 
-### Option A: Directly into `~/.config/quickshell/ii`
+### Option A: Using the setup script (recommended)
 
 ```bash
-git clone https://github.com/snowarch/quickshell-ii-niri.git \
-  ~/.config/quickshell/ii
+git clone https://github.com/snowarch/quickshell-ii-niri.git
+cd quickshell-ii-niri
+./setup install
 ```
 
-### Option B: Workspace checkout
+This will:
+1. Install all dependencies
+2. Copy QML code to `~/.config/quickshell/ii/`
+3. Copy configs to `~/.config/` (niri, matugen, gtk, etc.)
+4. Setup services (ydotool, Super-tap daemon)
+
+### Option B: Manual installation
 
 ```bash
-mkdir -p ~/quickshell-workspace
-cd ~/quickshell-workspace
-git clone https://github.com/snowarch/quickshell-ii-niri.git ii
+# Clone to config directory
+git clone https://github.com/snowarch/quickshell-ii-niri.git \
+  ~/.config/quickshell/ii
 
-# Optional: link into ~/.config
-ln -s ~/quickshell-workspace/ii ~/.config/quickshell/ii
+# Copy configs manually from dots/.config/ to ~/.config/
 ```
 
 ---
