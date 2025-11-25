@@ -63,24 +63,48 @@ All screenshots are taken from my actual Niri session with this config:
 
 ## Installation
 
-The short version:
+ If you're on an Arch-based system (for example Arch Linux, EndeavourOS, CachyOS) and just want ii running on Niri with sane defaults, run:
 
-1. Clone this repo as your ii config:
+ ```bash
+ curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
+ ```
 
-   ```bash
-   git clone https://github.com/snowarch/quickshell-ii-niri.git \
-     ~/.config/quickshell/ii
-   ```
+ Right now the installer knows about pacman-based distros only. On anything else, use the manual steps below.
 
-2. In `~/.config/niri/config.kdl`, make sure Niri starts ii:
+ The script will:
 
-   ```kdl
-   spawn-at-startup "qs" "-c" "ii"
-   ```
+- Install the core packages with pacman: Niri, Quickshell, wl-clipboard, cliphist, libnotify, PipeWire and git.
+- Offer to install the extra tools used for screenshots, recording, theming, WARP and a few utilities.
+- Clone this repo into `~/.config/quickshell/ii` (and optionally into `~/quickshell-workspace/ii`).
+- Offer to append `spawn-at-startup "qs" "-c" "ii"` to your `~/.config/niri/config.kdl` if it is not present.
+- Optionally install an input toolkit (`ydotool`, `wtype`, `python-evdev`, `illogical-impulse-python`) for the on-screen keyboard and Super-based shortcuts.
+- Optionally install AI and keyring helpers (`libsecret`, `gnome-keyring`, optional `ollama`) used by the AI panel and translation tools.
+- Optionally install icon and cursor themes (WhiteSur icons/GTK themes via AUR and Capitaine cursors).
+- Optionally install and enable the Super-tap daemon so that a clean tap on Super toggles the ii overview on Niri.
 
-3. Restart Niri.
+ When it finishes, restart Niri.
 
-For a full breakdown of external tools (recording, OCR, EasyEffects, WARP, AI, etc.) and an Arch example of required packages, see **`docs/INSTALL.md`** in this repo.
+ ### Manual install
+
+ If you prefer to handle things yourself:
+
+ 1. Install Niri, Quickshell and whatever extra tools you care about (recording, OCR, EasyEffects, WARP, AI, etc.).
+ 2. Clone this repo as your ii config:
+
+    ```bash
+    git clone https://github.com/snowarch/quickshell-ii-niri.git \
+      ~/.config/quickshell/ii
+    ```
+
+ 3. In `~/.config/niri/config.kdl`, make sure Niri starts ii:
+
+    ```kdl
+    spawn-at-startup "qs" "-c" "ii"
+    ```
+
+ 4. Restart Niri.
+
+ For a full breakdown of external tools and an Arch package list that matches what the installer uses, see **`docs/INSTALL.md`** in this repo.
 
 ---
 

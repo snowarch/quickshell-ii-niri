@@ -2,7 +2,34 @@
 
 This document explains what you need to run this shell on **Niri**, what each feature depends on, and how to wire it into your session in a predictable way.
 
-It assumes you are comfortable with a terminal and your distros package manager.
+It assumes you are comfortable with a terminal and your distro's package manager.
+
+## 0. Quick install (Arch-based systems)
+
+If you're on an Arch-based system (for example Arch Linux, EndeavourOS, CachyOS) and just want ii running on Niri, you can let the installer handle the boring bits:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
+```
+
+The script will:
+
+- Install the core packages with pacman: Niri, Quickshell, wl-clipboard, cliphist, libnotify, PipeWire and git.
+- Offer to install the extra tools used for screenshots, recording, theming, WARP and a few utilities.
+- Clone this repo into `~/.config/quickshell/ii` (and optionally into `~/quickshell-workspace/ii`).
+- Offer to append `spawn-at-startup "qs" "-c" "ii"` to your `~/.config/niri/config.kdl` if it is not present.
+- Optionally install an input toolkit (`ydotool`, `wtype`, `python-evdev`, `illogical-impulse-python`) for the on-screen keyboard and Super-based shortcuts.
+- Optionally install AI and keyring helpers (`libsecret`, `gnome-keyring`, optional `ollama`) used by the AI panel and translation tools.
+- Optionally install icon and cursor themes (WhiteSur icons/GTK themes via AUR and Capitaine cursors).
+- Optionally install and enable the Super-tap daemon so that a clean tap on Super toggles the ii overview on Niri.
+
+After it finishes, restart Niri or reload the config:
+
+```bash
+niri msg action reload-config
+```
+
+If you are on a non-Arch distro, or you prefer to manage packages by hand, use the rest of this document as a guide.
 
 ---
 
@@ -136,9 +163,9 @@ Optional: if `systemd --user` isnt used, the Autostart page becomes mostly info
 
 ---
 
-## 3. Example installation on Arch / CachyOS
+## 3. Example installation on Arch Linux
 
-This is **only an example**. Adjust package names to your distribution.
+This is **only an example** for Arch Linux and Arch-based derivatives. Adjust package names to match your distribution.
 
 ### 3.1 Core
 
