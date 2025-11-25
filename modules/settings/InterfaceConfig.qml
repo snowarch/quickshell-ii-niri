@@ -353,6 +353,46 @@ ContentPage {
                 }
             }
         }
+
+        ContentSubsection {
+            title: Translation.tr("Window indicators")
+
+            ConfigSwitch {
+                buttonIcon: "my_location"
+                text: Translation.tr("Smart indicator (highlight focused window)")
+                checked: Config.options.dock.smartIndicator !== false
+                onCheckedChanged: {
+                    Config.options.dock.smartIndicator = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("When multiple windows of the same app are open, highlight which one is focused")
+                }
+            }
+
+            ConfigSwitch {
+                buttonIcon: "more_horiz"
+                text: Translation.tr("Show dots for inactive apps")
+                checked: Config.options.dock.showAllWindowDots !== false
+                onCheckedChanged: {
+                    Config.options.dock.showAllWindowDots = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Show a dot per window even for apps that aren't currently focused")
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "filter_5"
+                text: Translation.tr("Maximum indicator dots")
+                value: Config.options.dock.maxIndicatorDots ?? 5
+                from: 1
+                to: 10
+                stepSize: 1
+                onValueChanged: {
+                    Config.options.dock.maxIndicatorDots = value;
+                }
+            }
+        }
     }
 
     ContentSection {

@@ -80,13 +80,15 @@ Scope {
                 }
             }
             
-            // For Niri: detect window focus changes to close overview
+            // For Niri: detect window focus changes to close overview (if configured)
             Connections {
                 target: CompositorService.isNiri ? NiriService : null
                 enabled: CompositorService.isNiri
                 function onActiveWindowChanged() {
-                    // If a window gets focus while overview is open, close it
-                    if (GlobalStates.overviewOpen && NiriService.activeWindow) {
+                    // Respect keepOverviewOpenOnWindowClick setting
+                    const keepOpen = !Config.options.overview || Config.options.overview.keepOverviewOpenOnWindowClick !== false;
+                    // If a window gets focus while overview is open, close it only if not configured to keep open
+                    if (GlobalStates.overviewOpen && NiriService.activeWindow && !keepOpen) {
                         GlobalStates.overviewOpen = false;
                     }
                 }

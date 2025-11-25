@@ -351,6 +351,10 @@ Singleton {
                 property list<string> pinnedApps: [ // IDs of pinned entries
                     "org.kde.dolphin", "kitty",]
                 property list<string> ignoredAppRegexes: []
+                // Smart indicator settings
+                property bool smartIndicator: true // Show which window is focused
+                property bool showAllWindowDots: true // Show dots for all windows (even inactive apps)
+                property int maxIndicatorDots: 5 // Maximum dots to show
             }
 
             property JsonObject interactions: JsonObject {

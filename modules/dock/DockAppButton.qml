@@ -19,6 +19,51 @@ DockButton {
     property bool hasWindows: appToplevel.toplevels.length > 0
     property bool buttonHovered: false
     
+    // Determine focused window index for smart indicator (Niri only)
+    // Returns the index (0-based) of the focused window sorted by column position
+    property int focusedWindowIndex: {
+        if (!root.appIsActive || appToplevel.toplevels.length <= 1)
+            return 0;
+        
+        // Find the focused toplevel
+        const focusedToplevel = appToplevel.toplevels.find(t => t.activated === true);
+        if (!focusedToplevel)
+            return 0;
+        
+        // For Niri: use column position to determine order
+        if (CompositorService.isNiri && focusedToplevel.niriWindowId) {
+            const niriWindows = NiriService.windows;
+            
+            // Build array of {toplevelIdx, column} for sorting
+            const windowPositions = [];
+            for (let i = 0; i < appToplevel.toplevels.length; i++) {
+                const tl = appToplevel.toplevels[i];
+                let col = 999999;
+                if (tl.niriWindowId) {
+                    const niriWin = niriWindows.find(w => w.id === tl.niriWindowId);
+                    if (niriWin && niriWin.layout && niriWin.layout.pos_in_scrolling_layout) {
+                        col = niriWin.layout.pos_in_scrolling_layout[0];
+                    }
+                }
+                windowPositions.push({ idx: i, col: col, activated: tl.activated });
+            }
+            
+            // Sort by column
+            windowPositions.sort((a, b) => a.col - b.col);
+            
+            // Find the focused one's position in sorted array
+            for (let i = 0; i < windowPositions.length; i++) {
+                if (windowPositions[i].activated) return i;
+            }
+        }
+        
+        // Fallback: find by activated flag in original order
+        for (let i = 0; i < appToplevel.toplevels.length; i++) {
+            if (appToplevel.toplevels[i].activated) return i;
+        }
+        return 0;
+    }
+    
     // Subtle highlight for active app
     scale: appIsActive ? 1.05 : 1.0
     Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
@@ -157,7 +202,7 @@ DockButton {
                 }
             }
 
-            // Indicator: line for active, dot for inactive with windows
+            // Smart indicator: shows window count and which is focused
             Loader {
                 active: root.hasWindows && !root.isSeparator
                 anchors {
@@ -165,21 +210,55 @@ DockButton {
                     topMargin: 2
                     horizontalCenter: parent.horizontalCenter
                 }
+                
+                // Config options
+                property bool smartIndicator: Config.options.dock.smartIndicator !== false
+                property bool showAllDots: Config.options.dock.showAllWindowDots !== false
+                property int maxDots: Config.options.dock.maxIndicatorDots ?? 5
+                
                 sourceComponent: Row {
                     spacing: 3
-                    // Active app: show line indicators for each window
+                    
                     Repeater {
-                        model: root.appIsActive ? Math.min(appToplevel.toplevels.length, 3) : 0
+                        // Show dots for all windows if enabled, otherwise just for active apps
+                        model: {
+                            const showAll = Config.options.dock.showAllWindowDots !== false;
+                            const max = Config.options.dock.maxIndicatorDots ?? 5;
+                            if (root.appIsActive || showAll) {
+                                return Math.min(appToplevel.toplevels.length, max);
+                            }
+                            return 0;
+                        }
+                        
                         delegate: Rectangle {
+                            required property int index
+                            
+                            property bool smartMode: Config.options.dock.smartIndicator !== false
+                            
+                            // Determine if this indicator corresponds to the focused window
+                            property bool isFocusedWindow: {
+                                if (!root.appIsActive) return false;
+                                if (!smartMode) return true; // All indicators same when smart mode off
+                                if (appToplevel.toplevels.length <= 1) return true;
+                                return index === root.focusedWindowIndex;
+                            }
+                            
                             radius: Appearance.rounding.full
-                            implicitWidth: (appToplevel.toplevels.length <= 3) ? root.countDotWidth : root.countDotHeight
+                            implicitWidth: isFocusedWindow ? root.countDotWidth : root.countDotHeight
                             implicitHeight: root.countDotHeight
-                            color: Appearance.colors.colPrimary
+                            color: isFocusedWindow 
+                                   ? Appearance.colors.colPrimary 
+                                   : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.5)
+                            
+                            Behavior on implicitWidth { 
+                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad } 
+                            }
                         }
                     }
-                    // Inactive app with windows: show single dot
+                    
+                    // Fallback: single dot when showAllDots is off and app is inactive
                     Rectangle {
-                        visible: !root.appIsActive && root.hasWindows
+                        visible: !root.appIsActive && root.hasWindows && Config.options.dock.showAllWindowDots === false
                         width: 5
                         height: 5
                         radius: 2.5
