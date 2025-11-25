@@ -464,7 +464,7 @@ ApplicationWindow {
                             materialIcon: "tune"
                             mainText: Translation.tr("Open Settings")
                             onClicked: {
-                                Quickshell.execDetached(["qs", "-i", "ii-settings", "-p", Quickshell.shellPath("settings.qml")]);
+                                Quickshell.execDetached(["qs", "-n", "-p", Quickshell.shellPath("settings.qml")]);
                             }
                         }
                         RippleButtonWithIcon {

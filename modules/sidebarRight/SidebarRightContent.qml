@@ -287,8 +287,8 @@ Item {
                 buttonIcon: "settings"
                 onClicked: {
                     GlobalStates.sidebarRightOpen = false;
-                    // Use -i flag to ensure single instance
-                    Quickshell.execDetached(["qs", "-i", "ii-settings", "-p", root.settingsQmlPath]);
+                    // Use -n flag to prevent duplicate instances
+                    Quickshell.execDetached(["qs", "-n", "-p", root.settingsQmlPath]);
                 }
                 StyledToolTip {
                     text: Translation.tr("Settings")
