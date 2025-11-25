@@ -22,6 +22,8 @@ Singleton {
 
     function suspend() {
         lock();
+        // Niri requires explicit monitor power off command or idle daemon.
+        // Assuming systemd-suspend handles hardware state, but we trigger lock first.
         Quickshell.execDetached(["bash", "-c", "sleep 1; systemctl suspend"]);
     }
 

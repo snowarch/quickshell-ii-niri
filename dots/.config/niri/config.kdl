@@ -7,9 +7,12 @@
 
 prefer-no-csd
 
-hotkey-overlay {
-    skip-at-startup
-}
+    // Background blur for Quickshell session and lock
+    layer-rule {
+        match namespace="^quickshell:(session|lock)$"
+        block-out-from "screen-capture"
+        blur
+    }
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
@@ -189,6 +192,9 @@ binds {
     
     // ii Lock screen
     Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
+    
+    // Screen off
+    Mod+Shift+O allow-when-locked=true { action "power-off-monitors"; }
     
     // ii Region tools
     Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
