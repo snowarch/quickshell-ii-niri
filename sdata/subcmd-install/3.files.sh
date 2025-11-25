@@ -185,6 +185,30 @@ v gen_firstrun
 v dedup_and_sort_listfile "${INSTALLED_LISTFILE}" "${INSTALLED_LISTFILE}"
 
 #####################################################################################
+# Set default wallpaper and generate initial theme
+#####################################################################################
+DEFAULT_WALLPAPER="${II_TARGET}/assets/wallpapers/qs-niri.jpg"
+if [[ -f "${DEFAULT_WALLPAPER}" ]]; then
+  echo -e "${STY_CYAN}Setting default wallpaper...${STY_RST}"
+  
+  # Update config.json with default wallpaper path
+  if [[ -f "${XDG_CONFIG_HOME}/illogical-impulse/config.json" ]]; then
+    if command -v jq >/dev/null 2>&1; then
+      jq --arg path "${DEFAULT_WALLPAPER}" '.background.wallpaperPath = $path' \
+        "${XDG_CONFIG_HOME}/illogical-impulse/config.json" > "${XDG_CONFIG_HOME}/illogical-impulse/config.json.tmp" \
+        && mv "${XDG_CONFIG_HOME}/illogical-impulse/config.json.tmp" "${XDG_CONFIG_HOME}/illogical-impulse/config.json"
+      log_success "Default wallpaper configured"
+    fi
+  fi
+  
+  # Generate initial theme colors with matugen
+  if command -v matugen >/dev/null 2>&1; then
+    echo -e "${STY_CYAN}Generating theme colors from wallpaper...${STY_RST}"
+    matugen image "${DEFAULT_WALLPAPER}" --mode dark 2>/dev/null && log_success "Theme colors generated"
+  fi
+fi
+
+#####################################################################################
 # Finished
 #####################################################################################
 printf "\n"

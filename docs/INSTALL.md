@@ -1,5 +1,7 @@
 # Installation
 
+> **Arch Linux only.** The installer only supports Arch-based distros. If you're on something else, you're on your own - check the manual section below and figure out the equivalent packages for your distro. No support provided, no complaints accepted.
+
 ---
 
 ## The Easy Way (Arch)
@@ -28,7 +30,7 @@ Log out and back in, or just restart Niri. Done.
 
 ## The Hard Way (Manual)
 
-For when you're not on Arch, or you just like pain.
+For when you're not on Arch, or you enjoy suffering.
 
 ### 1. Get dependencies
 
