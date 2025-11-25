@@ -97,6 +97,10 @@ AUR_PACKAGES=(
   quickshell-git
   google-breakpad
   qt6-avif-image-plugin
+  
+  # System & Tools
+  mission-center
+  illogical-impulse-python
 )
 
 # Add optional AUR packages

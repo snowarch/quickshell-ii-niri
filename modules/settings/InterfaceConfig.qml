@@ -305,6 +305,14 @@ ContentPage {
             }
         }
         ConfigSwitch {
+            buttonIcon: "radio_button_unchecked"
+            text: Translation.tr("Minimize unfocused apps to dot")
+            checked: Config.options.dock.minimizeUnfocused
+            onCheckedChanged: {
+                Config.options.dock.minimizeUnfocused = checked;
+            }
+        }
+        ConfigSwitch {
             buttonIcon: "blur_on"
             text: Translation.tr("Enable dock blur glass")
             checked: Config.options.dock.enableBlurGlass

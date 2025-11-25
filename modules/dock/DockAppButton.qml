@@ -110,7 +110,7 @@ DockButton {
                     right: parent.right
                     verticalCenter: parent.verticalCenter
                 }
-                active: !root.isSeparator
+                active: !root.isSeparator && (!Config.options.dock.minimizeUnfocused || root.appIsActive || mouseArea.containsMouse)
                 sourceComponent: IconImage {
                     // Use desktop entry icon if available, fallback to guessed icon
                     source: {
@@ -150,6 +150,7 @@ DockButton {
             }
 
             RowLayout {
+                visible: !Config.options.dock.minimizeUnfocused || root.appIsActive || mouseArea.containsMouse
                 spacing: 3
                 anchors {
                     top: iconImageLoader.bottom
@@ -166,6 +167,18 @@ DockButton {
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                     }
+                }
+            }
+            // Dot for minimized/unfocused state
+            Loader {
+                active: Config.options.dock.minimizeUnfocused && !root.appIsActive && !mouseArea.containsMouse && !root.isSeparator
+                anchors.centerIn: parent
+                sourceComponent: Rectangle {
+                    width: 6
+                    height: 6
+                    radius: 3
+                    color: Appearance.colors.colOnLayer0
+                    opacity: 0.6
                 }
             }
         }

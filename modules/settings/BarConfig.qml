@@ -196,6 +196,15 @@ ContentPage {
                 }
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "layers"
+            text: Translation.tr("Show bar background")
+            checked: Config.options.bar.showBackground
+            onCheckedChanged: {
+                Config.options.bar.showBackground = checked;
+            }
+        }
     }
 
     ContentSection {
