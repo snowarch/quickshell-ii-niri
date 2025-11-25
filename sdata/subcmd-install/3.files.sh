@@ -144,11 +144,15 @@ for gtkver in gtk-3.0 gtk-4.0; do
   fi
 done
 
-# KDE settings (for Dolphin)
-if [[ -f "dots/.config/kdeglobals" ]]; then
+# KDE settings (for Dolphin and Qt apps)
+if [[ -f "defaults/kde/kdeglobals" ]]; then
+  install_file__auto_backup "defaults/kde/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
+elif [[ -f "dots/.config/kdeglobals" ]]; then
   install_file__auto_backup "dots/.config/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
 fi
-if [[ -f "dots/.config/dolphinrc" ]]; then
+if [[ -f "defaults/kde/dolphinrc" ]]; then
+  install_file__auto_backup "defaults/kde/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
+elif [[ -f "dots/.config/dolphinrc" ]]; then
   install_file__auto_backup "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 fi
 
@@ -185,6 +189,32 @@ v gen_firstrun
 v dedup_and_sort_listfile "${INSTALLED_LISTFILE}" "${INSTALLED_LISTFILE}"
 
 #####################################################################################
+# Setup environment variables
+#####################################################################################
+echo -e "${STY_CYAN}Setting up environment variables...${STY_RST}"
+
+# Create shell profile snippet for ii environment
+II_ENV_FILE="${XDG_CONFIG_HOME}/ii-niri-env.sh"
+cat > "${II_ENV_FILE}" << 'ENVEOF'
+# ii-niri environment variables
+# Source this file in your .bashrc/.zshrc or add to your shell profile
+export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv"
+ENVEOF
+
+# Add to fish config if fish is used
+if [[ -d "${XDG_CONFIG_HOME}/fish" ]]; then
+  FISH_CONF="${XDG_CONFIG_HOME}/fish/conf.d/ii-niri-env.fish"
+  mkdir -p "$(dirname "$FISH_CONF")"
+  cat > "${FISH_CONF}" << 'FISHEOF'
+# ii-niri environment variables
+set -gx ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
+FISHEOF
+  log_success "Fish environment configured"
+fi
+
+log_success "Environment file created: $II_ENV_FILE"
+
+#####################################################################################
 # Set default wallpaper and generate initial theme
 #####################################################################################
 DEFAULT_WALLPAPER="${II_TARGET}/assets/wallpapers/qs-niri.jpg"
@@ -201,7 +231,8 @@ if [[ -f "${DEFAULT_WALLPAPER}" ]]; then
     fi
   fi
   
-  # Generate initial theme colors with matugen
+  # Generate initial theme colors with matugen (needs the venv variable)
+  export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME}/quickshell/.venv"
   if command -v matugen >/dev/null 2>&1; then
     echo -e "${STY_CYAN}Generating theme colors from wallpaper...${STY_RST}"
     matugen image "${DEFAULT_WALLPAPER}" --mode dark 2>/dev/null && log_success "Theme colors generated"

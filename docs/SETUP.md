@@ -45,11 +45,19 @@ Copies configs to `~/.config/`:
 | Source | Destination |
 |--------|-------------|
 | `*.qml`, `modules/`, `services/`, etc. | `~/.config/quickshell/ii/` |
-| `dots/.config/niri/config.kdl` | `~/.config/niri/config.kdl` |
+| `defaults/niri/config.kdl` | `~/.config/niri/config.kdl` |
 | `dots/.config/matugen/` | `~/.config/matugen/` |
 | `dots/.config/fuzzel/` | `~/.config/fuzzel/` |
 | `dots/.config/gtk-3.0/`, `gtk-4.0/` | GTK settings |
+| `defaults/kde/kdeglobals`, `dolphinrc` | KDE/Qt app settings |
 | `dots/.config/illogical-impulse/config.json` | ii runtime config |
+
+Also sets up:
+
+- **Environment variables** - Creates `~/.config/ii-niri-env.sh` with `ILLOGICAL_IMPULSE_VIRTUAL_ENV`
+- **Fish config** - If fish is installed, creates `~/.config/fish/conf.d/ii-niri-env.fish`
+- **Default wallpaper** - Sets `qs-niri.jpg` as the initial wallpaper
+- **Initial theme** - Runs matugen to generate colors from the default wallpaper
 
 ---
 
