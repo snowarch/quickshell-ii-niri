@@ -1,75 +1,121 @@
-# Installation Guide
+# Installation
 
 ---
 
-## Quick Start (Arch-based)
+## The Easy Way (Arch)
 
 ```bash
 git clone https://github.com/snowarch/quickshell-ii-niri.git
 cd quickshell-ii-niri
-./setup install      # interactive
-./setup install -y   # non-interactive
+./setup install
 ```
 
-After it finishes:
+Add `-y` if you don't want to answer questions:
+
+```bash
+./setup install -y
+```
+
+When it's done:
 
 ```bash
 niri msg action reload-config
 ```
 
+Log out and back in, or just restart Niri. Done.
+
 ---
 
-## Manual Installation
+## The Hard Way (Manual)
 
-### 1. Install dependencies
+For when you're not on Arch, or you just like pain.
 
-See [PACKAGES.md](PACKAGES.md) for the full list. The essentials:
+### 1. Get dependencies
 
-- `niri` - compositor
-- `quickshell-git` (AUR) - shell runtime (not the official `quickshell` package)
-- `wl-clipboard`, `cliphist` - clipboard
-- `pipewire`, `wireplumber` - audio
-- `grim`, `slurp` - screenshots
-- `matugen` - theming
+The bare minimum to not crash immediately:
 
-### 2. Clone
+| Package | Why |
+|---------|-----|
+| `niri` | The compositor. Obviously. |
+| `quickshell-git` | The shell runtime. **Must be the AUR version**, not the one in Arch repos. |
+| `wl-clipboard` | Copy/paste. |
+| `cliphist` | Clipboard history. |
+| `pipewire` + `wireplumber` | Audio. |
+| `grim` + `slurp` | Screenshots. |
+| `matugen` | Material You colors from wallpaper. |
+
+For everything else, check [PACKAGES.md](PACKAGES.md). It's organized by category so you can skip what you don't need.
+
+### 2. Clone the repo
 
 ```bash
 git clone https://github.com/snowarch/quickshell-ii-niri.git ~/.config/quickshell/ii
 ```
 
-### 3. Copy configs
+### 3. Copy the configs
 
 ```bash
 cp -r dots/.config/* ~/.config/
 ```
 
-### 4. Add to Niri
+This gives you:
+- Niri config with ii keybindings
+- Matugen templates for theming
+- GTK settings
+- Fuzzel config
 
-In `~/.config/niri/config.kdl`:
+### 4. Tell Niri to start ii
+
+Add this to `~/.config/niri/config.kdl`:
 
 ```kdl
 spawn-at-startup "qs" "-c" "ii"
 ```
 
+### 5. Restart Niri
+
+```bash
+niri msg action reload-config
+```
+
+Or log out and back in.
+
 ---
 
-## Verification
+## Did it work?
+
+Check the logs:
 
 ```bash
 qs log -c ii
 ```
 
-- Bar and background should appear
-- Alt+Tab should cycle windows
-- `Super+V` opens clipboard
+You should see:
+- Bar at the top
+- Background/wallpaper
+- `Alt+Tab` cycles windows
+- `Super+V` opens clipboard panel
 - `Super+Shift+S` takes a screenshot
+
+If something's broken, the logs will probably tell you which package is missing.
 
 ---
 
-## More Info
+## Partial Install
 
-- [PACKAGES.md](PACKAGES.md) - Full package list by category
-- [SETUP.md](SETUP.md) - How the setup script works, update/uninstall info
-- [KEYBINDS.md](KEYBINDS.md) - Default keyboard shortcuts
-- [IPC.md](IPC.md) - All IPC targets for custom bindings
+Don't want everything? The setup script has options:
+
+```bash
+./setup install-deps    # just packages, no config files
+./setup install-setups  # just services (ydotool, groups)
+./setup install-files   # just config files
+```
+
+---
+
+## What now?
+
+- [KEYBINDS.md](KEYBINDS.md) - Learn the shortcuts
+- [IPC.md](IPC.md) - Make your own keybindings
+- [SETUP.md](SETUP.md) - Updating, uninstalling, how configs are handled
+- [PACKAGES.md](PACKAGES.md) - Full package list if something's missing

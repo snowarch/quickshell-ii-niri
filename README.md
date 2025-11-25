@@ -1,6 +1,6 @@
 # ii on Niri
 
-A Quickshell shell for Niri, forked from end-4's illogical-impulse.
+A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to work on a different compositor.
 
 | Overview | Sidebars |
 |:---|:---|
@@ -12,23 +12,38 @@ A Quickshell shell for Niri, forked from end-4's illogical-impulse.
 
 ---
 
-## Features
+## What is this
 
-- **Bar + sidebars** with media controls, system toggles, notepad
-- **Overview** adapted for Niri's scrolling workspace model
-- **Alt+Tab** cycling windows across all workspaces (MRU order)
-- **Clipboard panel** with search, previews, and history (cliphist)
-- **Region tools** for screenshots, recording, OCR, image search
-- **Wallpaper pipeline** with matugen colors and video wallpaper support
-- **Settings UI** with global search and live preview
+A shell. Bar at the top, sidebars on the sides, overlays that pop up when you press keys. The usual.
 
-Everything talks to Niri via socket (`NiriService`) for workspace tracking, window management, and keyboard layouts.
+- **Bar** - clock, workspaces, tray, the stuff you expect
+- **Sidebars** - left one has AI chat and apps, right one has toggles and a notepad
+- **Overview** - workspace grid, adapted for Niri's scrolling model
+- **Alt+Tab** - window switcher that actually works across workspaces
+- **Clipboard** - history panel with search (needs cliphist)
+- **Region tools** - screenshots, screen recording, OCR, reverse image search
+- **Wallpaper stuff** - picker, matugen colors, video wallpaper support
+- **Settings** - GUI config with search, so you don't have to edit JSON like a caveman
 
 ---
 
-## Installation
+## Documentation
 
-### Quick (Arch-based)
+Read these or suffer.
+
+| Doc | What's in it |
+|-----|--------------|
+| [docs/INSTALL.md](docs/INSTALL.md) | How to install this thing |
+| [docs/PACKAGES.md](docs/PACKAGES.md) | Every package the installer uses, by category |
+| [docs/KEYBINDS.md](docs/KEYBINDS.md) | Default keyboard shortcuts |
+| [docs/IPC.md](docs/IPC.md) | All IPC targets for custom keybindings |
+| [docs/SETUP.md](docs/SETUP.md) | How the setup script works, updates, uninstall |
+
+---
+
+## Quick Install
+
+Arch-based? Run this:
 
 ```bash
 git clone https://github.com/snowarch/quickshell-ii-niri.git
@@ -36,33 +51,50 @@ cd quickshell-ii-niri
 ./setup install
 ```
 
-### Manual
+Not on Arch? Check [docs/INSTALL.md](docs/INSTALL.md) for manual steps.
+
+After install, reload Niri:
 
 ```bash
-git clone https://github.com/snowarch/quickshell-ii-niri.git ~/.config/quickshell/ii
-cp -r dots/.config/* ~/.config/
+niri msg action reload-config
 ```
-
-Then add to `~/.config/niri/config.kdl`:
-
-```kdl
-spawn-at-startup "qs" "-c" "ii"
-```
-
-More details in [docs/INSTALL.md](docs/INSTALL.md).
 
 ---
 
-## IPC Targets
+## Keybinds (the important ones)
 
-ii exposes these targets for keybindings:
+These come configured by default:
+
+| Key | What it does |
+|-----|--------------|
+| `Alt+Tab` | Window switcher |
+| `Super+V` | Clipboard history |
+| `Super+G` | Overlay (search, widgets) |
+| `Super+Shift+S` | Region screenshot |
+| `Super+Shift+X` | Region OCR |
+| `Ctrl+Alt+T` | Wallpaper picker |
+| `Super+/` | Keyboard shortcuts cheatsheet |
+
+Full list in [docs/KEYBINDS.md](docs/KEYBINDS.md).
+
+---
+
+## IPC (for custom bindings)
+
+ii exposes IPC targets you can bind to keys. The syntax:
+
+```kdl
+bind "Key" { spawn "qs" "-c" "ii" "ipc" "call" "<target>" "<function>"; }
+```
+
+Main targets:
 
 | Target | Functions |
 |--------|-----------|
 | `overview` | `toggle` |
 | `overlay` | `toggle` |
 | `clipboard` | `toggle`, `open`, `close` |
-| `altSwitcher` | `toggle`, `next`, `previous` |
+| `altSwitcher` | `next`, `previous`, `toggle` |
 | `region` | `screenshot`, `ocr`, `search`, `record` |
 | `session` | `toggle` |
 | `lock` | `activate` |
@@ -70,32 +102,29 @@ ii exposes these targets for keybindings:
 | `sidebarLeft` | `toggle` |
 | `sidebarRight` | `toggle` |
 | `wallpaperSelector` | `toggle` |
-| `bar` | `toggle` |
-| `mpris` | `playPause`, `next`, `previous`, `pauseAll` |
+| `mpris` | `playPause`, `next`, `previous` |
 | `brightness` | `increment`, `decrement` |
-| `zoom` | `zoomIn`, `zoomOut` |
 
-Usage in Niri config:
-
-```kdl
-bind "Alt+Tab" { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
-bind "Super+V" { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
-bind "Super+Shift+S" { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
-```
-
-See [docs/IPC.md](docs/IPC.md) for the complete reference.
+Full reference with examples: [docs/IPC.md](docs/IPC.md)
 
 ---
 
-## Notes
+## Fair warning
 
-This is my daily driver config. It works for me but might need tweaking for your setup. I break things sometimes.
+This is my daily driver. It works. Most of the time. I break things when I'm bored.
 
-If you're looking for a stable, polished experience, check out end-4's original ii for Hyprland.
+If something explodes, check the logs:
+
+```bash
+qs log -c ii
+```
+
+If you want something stable and polished, check out end-4's original ii for Hyprland instead.
 
 ---
 
 ## Credits
 
-- **end-4** for the original illogical-impulse
-- **Quickshell** devs for the framework
+- **end-4** - the original illogical-impulse
+- **Quickshell** - the framework that makes this possible
+- **Niri** - the compositor that doesn't crash
