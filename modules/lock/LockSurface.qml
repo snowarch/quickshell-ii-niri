@@ -11,7 +11,14 @@ import qs.modules.bar as Bar
 import Quickshell
 import Quickshell.Services.SystemTray
 
-    // Background
+MouseArea {
+    id: root
+    required property LockContext context
+    property bool active: false
+    property bool showInputField: active || context.currentText.length > 0
+    readonly property bool requirePasswordToPower: Config.options.lock.security.requirePasswordToPower
+
+    // Background wallpaper with blur
     Image {
         id: backgroundWallpaper
         anchors.fill: parent
@@ -19,13 +26,11 @@ import Quickshell.Services.SystemTray
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         
-        // Blur effect
         layer.enabled: Config.options.lock.blur.enable
         layer.effect: FastBlur {
             radius: Config.options.lock.blur.radius
         }
         
-        // Extra zoom
         transform: Scale {
             origin.x: backgroundWallpaper.width / 2
             origin.y: backgroundWallpaper.height / 2
@@ -34,7 +39,7 @@ import Quickshell.Services.SystemTray
         }
     }
 
-    // Clock
+    // Clock (center)
     Loader {
         active: Config.options.lock.centerClock
         anchors.centerIn: parent
@@ -61,7 +66,7 @@ import Quickshell.Services.SystemTray
         }
     }
     
-    // Locked text
+    // Locked text (top)
     Loader {
         active: Config.options.lock.showLockedText
         anchors.top: parent.top
@@ -81,13 +86,6 @@ import Quickshell.Services.SystemTray
             }
         }
     }
-
-    MouseArea {
-        id: root
-    required property LockContext context
-    property bool active: false
-    property bool showInputField: active || context.currentText.length > 0
-    readonly property bool requirePasswordToPower: Config.options.lock.security.requirePasswordToPower
 
     // Force focus on entry
     function forceFieldFocus() {
@@ -132,29 +130,11 @@ import Quickshell.Services.SystemTray
     // Key presses
     Keys.onPressed: event => {
         root.context.resetClearTimer();
-        if (event.key === Qt.Key_Escape) { // Esc to clear
+        if (event.key === Qt.Key_Escape) {
             root.context.currentText = "";
         }
         forceFieldFocus();
     }
-
-    // RippleButton {
-    //     anchors {
-    //         top: parent.top
-    //         left: parent.left
-    //         leftMargin: 10
-    //         topMargin: 10
-    //     }
-    //     implicitHeight: 40
-    //     colBackground: Appearance.colors.colLayer2
-    //     onClicked: {
-    //         context.unlocked(LockContext.ActionEnum.Unlock);
-    //         GlobalStates.screenLocked = false;
-    //     }
-    //     contentItem: StyledText {
-    //         text: "[[ DEBUG BYPASS ]]"
-    //     }
-    // }
 
     // Main toolbar: password box
     Toolbar {
@@ -193,16 +173,13 @@ import Quickshell.Services.SystemTray
             Layout.rightMargin: -Layout.leftMargin
             placeholderText: GlobalStates.screenUnlockFailed ? Translation.tr("Incorrect password") : Translation.tr("Enter password")
 
-            // Style
             clip: true
             font.pixelSize: Appearance.font.pixelSize.small
 
-            // Password
             enabled: !root.context.unlockInProgress
             echoMode: TextInput.Password
             inputMethodHints: Qt.ImhSensitiveData
 
-            // Synchronizing (across monitors) and unlocking
             onTextChanged: root.context.currentText = this.text
             onAccepted: root.context.tryUnlock()
             Connections {
@@ -225,7 +202,6 @@ import Quickshell.Services.SystemTray
                 }
             }
 
-            // Shake when wrong password
             SequentialAnimation {
                 id: wrongPasswordShakeAnim
                 NumberAnimation { target: passwordBox; property: "Layout.leftMargin"; to: -30; duration: 50 }
@@ -241,7 +217,6 @@ import Quickshell.Services.SystemTray
                 }
             }
 
-            // We're drawing dots manually
             property bool materialShapeChars: Config.options.lock.materialShapeChars
             color: ColorUtils.transparentize(Appearance.colors.colOnLayer1, materialShapeChars ? 1 : 0)
             Loader {
@@ -297,18 +272,15 @@ import Quickshell.Services.SystemTray
         scale: root.toolbarScale
         opacity: root.toolbarOpacity
 
-        // Username
         IconAndTextPair {
             Layout.leftMargin: 8
             icon: "account_circle"
             text: SystemInfo.username
         }
 
-        // Keyboard layout (Xkb)
         Loader {
             Layout.rightMargin: 8
             Layout.fillHeight: true
-
             active: true
             visible: active
 
@@ -334,7 +306,6 @@ import Quickshell.Services.SystemTray
             }
         }
 
-        // Keyboard layout (Fcitx)
         Bar.SysTray {
             Layout.rightMargin: 10
             Layout.alignment: Qt.AlignVCenter
@@ -414,7 +385,6 @@ import Quickshell.Services.SystemTray
         Layout.fillHeight: true
         Layout.leftMargin: 10
         Layout.rightMargin: 10
-        
 
         MaterialSymbol {
             anchors.verticalCenter: parent.verticalCenter
