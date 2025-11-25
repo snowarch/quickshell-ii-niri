@@ -272,6 +272,13 @@ DEFAULT_WALLPAPER="${II_TARGET}/assets/wallpapers/qs-niri.jpg"
 if [[ -f "${DEFAULT_WALLPAPER}" ]]; then
   echo -e "${STY_CYAN}Setting default wallpaper...${STY_RST}"
   
+  # Ensure output directories exist for matugen
+  mkdir -p "${XDG_STATE_HOME}/quickshell/user/generated"
+  mkdir -p "${XDG_STATE_HOME}/quickshell/user/generated/wallpaper"
+  mkdir -p "${XDG_CONFIG_HOME}/gtk-3.0"
+  mkdir -p "${XDG_CONFIG_HOME}/gtk-4.0"
+  mkdir -p "${XDG_CONFIG_HOME}/fuzzel"
+  
   # Update config.json with default wallpaper path
   if [[ -f "${XDG_CONFIG_HOME}/illogical-impulse/config.json" ]]; then
     if command -v jq >/dev/null 2>&1; then
@@ -282,11 +289,18 @@ if [[ -f "${DEFAULT_WALLPAPER}" ]]; then
     fi
   fi
   
-  # Generate initial theme colors with matugen (needs the venv variable)
+  # Generate initial theme colors with matugen
   export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME}/quickshell/.venv"
   if command -v matugen >/dev/null 2>&1; then
     echo -e "${STY_CYAN}Generating theme colors from wallpaper...${STY_RST}"
-    matugen image "${DEFAULT_WALLPAPER}" --mode dark 2>/dev/null && log_success "Theme colors generated"
+    # Use --config to ensure correct config file is used
+    if matugen image "${DEFAULT_WALLPAPER}" --mode dark --config "${XDG_CONFIG_HOME}/matugen/config.toml" 2>&1; then
+      log_success "Theme colors generated"
+    else
+      log_warning "Matugen failed to generate colors. Theme may not work correctly."
+    fi
+  else
+    log_warning "Matugen not installed. GTK/Qt theming will not be applied."
   fi
 fi
 
@@ -386,5 +400,5 @@ echo ""
 echo -e "${STY_FAINT}Backups saved to: ${BACKUP_DIR}${STY_RST}"
 echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
 echo ""
-echo -e "${STY_GREEN}Enjoy your new desktop! 🚀${STY_RST}"
+echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
 echo ""

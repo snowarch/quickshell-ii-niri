@@ -124,10 +124,10 @@ function setup_desktop_settings(){
     try kwriteconfig6 --file kdeglobals --group Icons --key Theme breeze-dark
   fi
   
-  # Configure Kvantum to use Colloid theme
-  if command -v kvantummanager &>/dev/null; then
-    try kvantummanager --set Colloid-Dark
-  fi
+  # Configure Kvantum theme via config file (avoid GUI)
+  # kvantummanager --set can open a GUI window, so we write the config directly
+  mkdir -p "${XDG_CONFIG_HOME}/Kvantum"
+  echo -e "[General]\ntheme=Colloid-Dark" > "${XDG_CONFIG_HOME}/Kvantum/kvantum.kvconfig"
   
   log_success "Desktop settings applied"
 }
