@@ -16,6 +16,7 @@ DockButton {
     property real countDotWidth: 10
     property real countDotHeight: 4
     property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
+    property bool buttonHovered: false
 
     property bool isSeparator: appToplevel.appId === "SEPARATOR"
     // Use originalAppId (preserves case) for desktop entry lookup, fallback to appId for backwards compat
@@ -42,11 +43,13 @@ DockButton {
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
             onEntered: {
+                root.buttonHovered = true
                 appListRoot.lastHoveredButton = root
                 appListRoot.buttonHovered = true
                 lastFocused = appToplevel.toplevels.length - 1
             }
             onExited: {
+                root.buttonHovered = false
                 if (appListRoot.lastHoveredButton === root) {
                     appListRoot.buttonHovered = false
                 }
@@ -110,7 +113,7 @@ DockButton {
                     right: parent.right
                     verticalCenter: parent.verticalCenter
                 }
-                active: !root.isSeparator && (!Config.options.dock.minimizeUnfocused || root.appIsActive || mouseArea.containsMouse)
+                active: !root.isSeparator && (!Config.options.dock.minimizeUnfocused || root.appIsActive || root.buttonHovered)
                 sourceComponent: IconImage {
                     // Use desktop entry icon if available, fallback to guessed icon
                     source: {
@@ -150,7 +153,7 @@ DockButton {
             }
 
             RowLayout {
-                visible: !Config.options.dock.minimizeUnfocused || root.appIsActive || mouseArea.containsMouse
+                visible: !Config.options.dock.minimizeUnfocused || root.appIsActive || root.buttonHovered
                 spacing: 3
                 anchors {
                     top: iconImageLoader.bottom
@@ -171,7 +174,7 @@ DockButton {
             }
             // Dot for minimized/unfocused state
             Loader {
-                active: Config.options.dock.minimizeUnfocused && !root.appIsActive && !mouseArea.containsMouse && !root.isSeparator
+                active: Config.options.dock.minimizeUnfocused && !root.appIsActive && !root.buttonHovered && !root.isSeparator
                 anchors.centerIn: parent
                 sourceComponent: Rectangle {
                     width: 6
