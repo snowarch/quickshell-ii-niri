@@ -8,7 +8,8 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    readonly property var keybinds: HyprlandKeybinds.keybinds
+    // Use NiriKeybinds when on Niri, HyprlandKeybinds otherwise
+    readonly property var keybinds: CompositorService.isNiri ? NiriKeybinds.keybinds : HyprlandKeybinds.keybinds
     property real spacing: 20
     property real titleSpacing: 7
     property real padding: 4

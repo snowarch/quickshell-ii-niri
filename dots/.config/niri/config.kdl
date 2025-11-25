@@ -204,6 +204,9 @@ binds {
     // ii Wallpaper selector
     Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
     
+    // ii Cheatsheet (keyboard shortcuts reference)
+    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }
+    
     // Applications (change "foot" to your preferred terminal)
     Mod+T { spawn "foot"; }
     Mod+Return { spawn "foot"; }
