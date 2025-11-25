@@ -50,43 +50,49 @@ input {
 // ============================================================================
 
 layout {
-    gaps 20
+    gaps 25
     background-color "transparent"
     center-focused-column "never"
     
     preset-column-widths {
         proportion 0.33333
         proportion 0.5
+        proportion 0.66667
     }
-
-    // You can change the default width of the new windows.
+    
     default-column-width { 
         proportion 0.5
     }
     
     border {
         off
+        width 4
+        active-color   "#707070"
+        inactive-color "#d0d0d0"
+        urgent-color   "#cc4444"
     }
     
     focus-ring {
         off
+        width 1
+        active-color   "#808080"
+        inactive-color "#505050"
     }
     
     shadow {
-        // Uncomment `on` to enable shadows and tweak the look with the options below.
-        // on
-
-        // Softness controls the shadow blur radius.
+        off
         softness 30
-
-        // Spread expands the shadow.
         spread 5
-
-        // Offset moves the shadow relative to the window.
         offset x=0 y=5
-
-        // Shadow color and opacity.
         color "#0007"
+    }
+    
+    struts { }
+}
+
+gestures {
+    hot-corners {
+        // off
     }
 }
 
@@ -206,9 +212,10 @@ binds {
     
     // Window management
     Mod+Q repeat=false { close-window; }
+    Mod+D { maximize-column; }
     Mod+F { fullscreen-window; }
     Mod+A { toggle-window-floating; }
-    
+
     // Focus
     Mod+Left { focus-column-left; }
     Mod+Right { focus-column-right; }
