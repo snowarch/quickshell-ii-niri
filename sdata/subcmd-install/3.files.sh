@@ -291,38 +291,100 @@ if [[ -f "${DEFAULT_WALLPAPER}" ]]; then
 fi
 
 #####################################################################################
-# Finished
+# Reset first run marker
 #####################################################################################
-printf "\n"
-printf "${STY_GREEN}${STY_BOLD}Installation complete!${STY_RST}\n"
-printf "\n"
-printf "${STY_CYAN}To start using ii on Niri:${STY_RST}\n"
-printf "  1. Log out and select 'Niri' at your display manager\n"
-printf "  2. ii should start automatically\n"
-printf "\n"
-printf "${STY_CYAN}Useful commands:${STY_RST}\n"
-printf "  niri msg action reload-config  # Reload Niri config\n"
-printf "  qs -c ii                        # Start ii manually\n"
-printf "\n"
-printf "${STY_CYAN}First steps:${STY_RST}\n"
-printf "  Press ${STY_INVERT} Ctrl+Alt+T ${STY_RST} to select a wallpaper\n"
-printf "  Press ${STY_INVERT} Super+G ${STY_RST} to toggle the overlay\n"
-printf "\n"
-
-# Reset ii "first run" marker so the welcome window appears after installation.
-# FirstRunExperience.qml looks for this file under XDG_STATE_HOME/quickshell/user.
 QUICKSHELL_FIRST_RUN_FILE="${XDG_STATE_HOME}/quickshell/user/first_run.txt"
 if [[ -f "${QUICKSHELL_FIRST_RUN_FILE}" ]]; then
   x rm -f "${QUICKSHELL_FIRST_RUN_FILE}"
 fi
 
-# Final sanity check
+#####################################################################################
+# Final status checks
+#####################################################################################
+WARNINGS=()
+
 if ! command -v niri >/dev/null; then
-  printf "${STY_RED}[WARNING]: Niri compositor not found in PATH!${STY_RST}\n"
-  printf "Please ensure it is installed properly.\n\n"
+  WARNINGS+=("Niri compositor not found in PATH")
 fi
 
 if [[ ! -f "${XDG_CONFIG_HOME}/niri/config.kdl" ]]; then
-  printf "${STY_RED}[WARNING]: Niri config not found at ~/.config/niri/config.kdl${STY_RST}\n"
-  printf "You may need to copy it manually from dots/.config/niri/config.kdl\n\n"
+  WARNINGS+=("Niri config not found at ~/.config/niri/config.kdl")
 fi
+
+if ! command -v qs >/dev/null; then
+  WARNINGS+=("Quickshell (qs) not found in PATH")
+fi
+
+if ! command -v matugen >/dev/null; then
+  WARNINGS+=("Matugen not found - theming may not work")
+fi
+
+#####################################################################################
+# Final Summary
+#####################################################################################
+echo ""
+echo ""
+printf "${STY_GREEN}${STY_BOLD}"
+cat << 'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                  ✓ Installation Complete                     ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+EOF
+printf "${STY_RST}"
+echo ""
+
+# Show what was configured
+echo -e "${STY_BLUE}${STY_BOLD}┌─ What was installed${STY_RST}"
+echo -e "${STY_BLUE}│${STY_RST}"
+echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii copied to ~/.config/quickshell/ii/"
+echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Niri config with ii keybindings"
+echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} GTK/Qt theming (Matugen + Kvantum + Darkly)"
+echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Environment variables for ${DETECTED_SHELL:-your shell}"
+echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper and color scheme"
+echo -e "${STY_BLUE}│${STY_RST}"
+echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
+echo ""
+
+# Show warnings if any
+if [[ ${#WARNINGS[@]} -gt 0 ]]; then
+  echo -e "${STY_YELLOW}${STY_BOLD}┌─ Warnings${STY_RST}"
+  echo -e "${STY_YELLOW}│${STY_RST}"
+  for warn in "${WARNINGS[@]}"; do
+    echo -e "${STY_YELLOW}│${STY_RST}  ${STY_RED}⚠${STY_RST} ${warn}"
+  done
+  echo -e "${STY_YELLOW}│${STY_RST}"
+  echo -e "${STY_YELLOW}└──────────────────────────────${STY_RST}"
+  echo ""
+fi
+
+# Next steps
+echo -e "${STY_CYAN}${STY_BOLD}┌─ Next Steps${STY_RST}"
+echo -e "${STY_CYAN}│${STY_RST}"
+echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}1.${STY_RST} Log out and select ${STY_BOLD}Niri${STY_RST} at your display manager"
+echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}2.${STY_RST} ii will start automatically with your session"
+echo -e "${STY_CYAN}│${STY_RST}"
+echo -e "${STY_CYAN}│${STY_RST}  Or reload now if already in Niri:"
+echo -e "${STY_CYAN}│${STY_RST}  ${STY_FAINT}$ niri msg action reload-config${STY_RST}"
+echo -e "${STY_CYAN}│${STY_RST}"
+echo -e "${STY_CYAN}└──────────────────────────────${STY_RST}"
+echo ""
+
+# Key shortcuts
+echo -e "${STY_PURPLE}${STY_BOLD}┌─ Key Shortcuts${STY_RST}"
+echo -e "${STY_PURPLE}│${STY_RST}"
+echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+G ${STY_RST}         Overlay (search, widgets)"
+echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Alt+Tab ${STY_RST}         Window switcher"
+echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+V ${STY_RST}         Clipboard history"
+echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Ctrl+Alt+T ${STY_RST}      Wallpaper picker"
+echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+/ ${STY_RST}         Show all shortcuts"
+echo -e "${STY_PURPLE}│${STY_RST}"
+echo -e "${STY_PURPLE}└──────────────────────────────${STY_RST}"
+echo ""
+
+echo -e "${STY_FAINT}Backups saved to: ${BACKUP_DIR}${STY_RST}"
+echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
+echo ""
+echo -e "${STY_GREEN}Enjoy your new desktop! 🚀${STY_RST}"
+echo ""
