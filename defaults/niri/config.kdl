@@ -1,0 +1,225 @@
+// ============================================================================
+// NIRI CONFIGURATION - Base for illogical-impulse (ii)
+// ============================================================================
+// Minimal base config - customize to your needs
+// Wiki: https://github.com/YaLTeR/niri/wiki/Configuration:-Introduction
+// ============================================================================
+
+prefer-no-csd
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// ============================================================================
+// INPUT
+// ============================================================================
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        repeat-delay 250
+        repeat-rate 50
+    }
+    
+    mouse {
+        accel-profile "flat"
+    }
+
+    mod-key "Super"
+    mod-key-nested "Alt"
+}
+
+// ============================================================================
+// LAYOUT
+// ============================================================================
+
+layout {
+    gaps 20
+    background-color "transparent"
+    center-focused-column "never"
+    
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    
+    default-column-width { 
+        proportion 0.5
+    }
+    
+    border {
+        off
+    }
+    
+    focus-ring {
+        off
+    }
+    
+    shadow {
+        off
+    }
+}
+
+cursor {
+    xcursor-theme "capitaine-cursors-light"
+    xcursor-size 24
+    hide-when-typing
+}
+
+overview {
+    zoom 0.75
+}
+
+// ============================================================================
+// WINDOW RULES
+// ============================================================================
+
+window-rule {
+    geometry-corner-radius 16
+    clip-to-geometry true
+}
+
+window-rule { 
+    match is-active=false
+    opacity 0.9
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+animations {
+    workspace-switch {
+        spring damping-ratio=0.92 stiffness=800 epsilon=0.0001
+    }
+    
+    window-open {
+        spring damping-ratio=0.92 stiffness=900 epsilon=0.0001
+    }
+    
+    window-close {
+        spring damping-ratio=0.95 stiffness=1000 epsilon=0.0001
+    }
+    
+    horizontal-view-movement {
+        spring damping-ratio=0.90 stiffness=800 epsilon=0.0001
+    }
+    
+    window-movement {
+        spring damping-ratio=0.96 stiffness=850 epsilon=0.0001
+    }
+}
+
+// ============================================================================
+// ENVIRONMENT
+// ============================================================================
+
+environment {
+    XDG_CURRENT_DESKTOP "niri"
+    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORMTHEME "kde"
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+}
+
+// ============================================================================
+// STARTUP
+// ============================================================================
+
+spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
+spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
+spawn-at-startup "qs" "-c" "ii"
+
+// ============================================================================
+// KEYBINDINGS
+// ============================================================================
+
+binds {
+    // System
+    Mod+Tab repeat=false { toggle-overview; }
+    Mod+Shift+E { quit; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    
+    // ii Window Switcher (Alt+Tab)
+    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
+    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }
+    
+    // ii Overlay
+    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
+    
+    // ii Clipboard
+    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
+    
+    // ii Lock screen
+    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
+    
+    // ii Region tools
+    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
+    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }
+    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }
+    
+    // ii Wallpaper selector
+    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
+    
+    // Applications
+    Mod+T { spawn "ghostty"; }
+    Mod+Return { spawn "ghostty"; }
+    Super+E { spawn "dolphin"; }
+    
+    // Window management
+    Mod+Q repeat=false { close-window; }
+    Mod+F { fullscreen-window; }
+    Mod+A { toggle-window-floating; }
+    
+    // Focus
+    Mod+Left { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+    
+    // Move windows
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+    
+    // Workspaces
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    
+    // Screenshots (native)
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+    
+    // Media keys
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
+    XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+}

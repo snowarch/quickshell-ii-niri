@@ -2,8 +2,8 @@
 # =============================================================================
 # illogical-impulse (ii) on Niri - Installer
 # =============================================================================
-# Modern installer with gum UI for Arch-based systems.
-# Includes system checks, theming, and proper configuration.
+# One-shot installer for Arch-based systems that replicates the exact
+# configuration from the original end-4 dots-hyprland, adapted for Niri.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/snowarch/quickshell-ii-niri/main/install.sh | bash
@@ -15,1227 +15,460 @@ set -euo pipefail
 # CONFIGURATION
 # -----------------------------------------------------------------------------
 REPO_URL="${REPO_URL:-https://github.com/snowarch/quickshell-ii-niri.git}"
-CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
-STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}"
-DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# Colors
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+CYAN='\e[36m'
+BOLD='\e[1m'
+RST='\e[0m'
 
 # -----------------------------------------------------------------------------
-# UI HELPERS (gum or fallback)
+# LOGGING
 # -----------------------------------------------------------------------------
-USE_GUM=false
-if command -v gum >/dev/null 2>&1; then
-  USE_GUM=true
-fi
-
 log() {
-  local level="$1"; shift
-  if $USE_GUM; then
-    case "$level" in
-      INFO)  gum style --foreground 10 "✓ $*" ;;
-      WARN)  gum style --foreground 11 "⚠ $*" ;;
-      ERR)   gum style --foreground 9 "✗ $*" ;;
-      STEP)  echo; gum style --bold --foreground 14 "▶ $*" ;;
-      *)     echo "[$level] $*" ;;
+    case "$1" in
+        INFO)  shift; printf "${GREEN}✓${RST} %s\n" "$*" ;;
+        WARN)  shift; printf "${YELLOW}⚠${RST} %s\n" "$*" ;;
+        ERR)   shift; printf "${RED}✗${RST} %s\n" "$*" ;;
+        STEP)  shift; printf "\n${BOLD}${CYAN}▶ %s${RST}\n" "$*" ;;
+        *)     printf "[%s] %s\n" "$1" "${*:2}" ;;
     esac
-  else
-    local bold="" reset="" green="" yellow="" red="" cyan=""
-    if command -v tput >/dev/null 2>&1; then
-      bold="$(tput bold 2>/dev/null || true)"
-      reset="$(tput sgr0 2>/dev/null || true)"
-      green="$(tput setaf 2 2>/dev/null || true)"
-      yellow="$(tput setaf 3 2>/dev/null || true)"
-      red="$(tput setaf 1 2>/dev/null || true)"
-      cyan="$(tput setaf 6 2>/dev/null || true)"
-    fi
-    case "$level" in
-      INFO)  printf '%s[INFO]%s %s\n' "$bold$green" "$reset" "$*" ;;
-      WARN)  printf '%s[WARN]%s %s%s%s\n' "$bold$yellow" "$reset" "$yellow" "$*" "$reset" ;;
-      ERR)   printf '%s[ERR]%s %s%s%s\n' "$bold$red" "$reset" "$red" "$*" "$reset" ;;
-      STEP)  printf '\n%s==> %s%s\n' "$bold$cyan" "$*" "$reset" ;;
-      *)     printf '[%s] %s\n' "$level" "$*" ;;
-    esac
-  fi
 }
 
 confirm() {
-  local prompt="$1" default="${2:-y}"
-  if [ "${II_INSTALLER_ASSUME_DEFAULTS:-}" = "1" ]; then
-    [[ "$default" =~ ^[Yy] ]] && return 0 || return 1
-  fi
-  if $USE_GUM; then
-    if [[ "$default" =~ ^[Yy] ]]; then
-      gum confirm --default=yes "$prompt"
+    local prompt="$1"
+    printf "%s [Y/n] " "$prompt"
+    read -r reply </dev/tty || reply="y"
+    [[ -z "$reply" || "$reply" =~ ^[Yy] ]]
+}
+
+# -----------------------------------------------------------------------------
+# PACKAGE INSTALLATION
+# -----------------------------------------------------------------------------
+detect_aur_helper() {
+    if command -v yay &>/dev/null; then
+        echo "yay"
+    elif command -v paru &>/dev/null; then
+        echo "paru"
     else
-      gum confirm --default=no "$prompt"
+        echo ""
     fi
-  else
-    local reply suffix="[y/N]"
-    [[ "$default" =~ ^[Yy] ]] && suffix="[Y/n]"
-    while true; do
-      printf '%s %s ' "$prompt" "$suffix"
-      if [ -t 0 ]; then
-        read -r reply || reply=""
-      elif [ -r /dev/tty ]; then
-        read -r reply </dev/tty || reply=""
-      else
-        reply="$default"
-      fi
-      reply="${reply:-$default}"
-      case "$reply" in
-        y|Y) return 0 ;;
-        n|N) return 1 ;;
-      esac
-    done
-  fi
 }
 
-choose() {
-  local prompt="$1"; shift
-  if $USE_GUM; then
-    gum choose --header="$prompt" "$@"
-  else
-    echo "$prompt"
-    select opt in "$@"; do
-      [ -n "$opt" ] && echo "$opt" && break
-    done </dev/tty
-  fi
+install_yay() {
+    log STEP "Installing yay (AUR helper)"
+    sudo pacman -S --needed --noconfirm base-devel git
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    git clone https://aur.archlinux.org/yay-bin.git "$tmpdir/yay-bin"
+    (cd "$tmpdir/yay-bin" && makepkg -si --noconfirm)
+    rm -rf "$tmpdir"
 }
 
-spin() {
-  local title="$1"; shift
-  if $USE_GUM; then
-    gum spin --spinner dot --title "$title" -- "$@"
-  else
-    echo "$title..."
-    "$@"
-  fi
-}
-
-# -----------------------------------------------------------------------------
-# SYSTEM HELPERS
-# -----------------------------------------------------------------------------
-require_cmd() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-pkg_installed() {
-  pacman -Q "$1" >/dev/null 2>&1
-}
-
-pacman_has_pkg() {
-  pacman -Si "$1" >/dev/null 2>&1
-}
-
-get_aur_helper() {
-  for helper in yay paru; do
-    if command -v "$helper" >/dev/null 2>&1; then
-      echo "$helper"
-      return 0
+install_packages() {
+    local helper
+    helper=$(detect_aur_helper)
+    
+    if [[ -z "$helper" ]]; then
+        install_yay
+        helper="yay"
     fi
-  done
-  return 1
+    
+    log STEP "Installing packages with $helper"
+    
+    # All packages in one shot - extracted from end-4 PKGBUILDs
+    local pkgs=(
+        # Niri compositor
+        niri
+        
+        # Quickshell and Qt6 (from illogical-impulse-quickshell-git PKGBUILD)
+        qt6-declarative qt6-base qt6-svg qt6-wayland qt6-5compat
+        qt6-imageformats qt6-multimedia qt6-positioning qt6-quicktimeline
+        qt6-sensors qt6-tools qt6-translations qt6-virtualkeyboard
+        jemalloc libpipewire libxcb wayland libdrm mesa
+        kirigami kdialog syntax-highlighting
+        
+        # XDG Portals (from illogical-impulse-portal, adapted for Niri)
+        xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+        
+        # Basic utils (from illogical-impulse-basic)
+        bc coreutils cliphist cmake curl wget ripgrep jq xdg-user-dirs rsync git
+        wl-clipboard libnotify
+        
+        # Audio (from illogical-impulse-audio)
+        pipewire pipewire-pulse pipewire-alsa wireplumber playerctl
+        libdbusmenu-gtk3 pavucontrol
+        
+        # Toolkit (from illogical-impulse-toolkit)
+        upower wtype ydotool
+        
+        # Backlight (from illogical-impulse-backlight)
+        brightnessctl ddcutil geoclue
+        
+        # Screencapture (adapted - grim instead of hyprshot)
+        grim slurp swappy tesseract tesseract-data-eng wf-recorder imagemagick
+        
+        # Widgets (adapted - removed hyprlock/hypridle)
+        fuzzel glib2
+        
+        # Python (from illogical-impulse-python)
+        python gtk4 libadwaita libsoup3 gobject-introspection
+        
+        # KDE integration (adapted for Niri)
+        gnome-keyring networkmanager dolphin
+        breeze qt6ct kde-gtk-config
+        
+        # Fonts and themes base
+        fontconfig
+        
+        # Polkit
+        polkit mate-polkit
+    )
+    
+    # AUR packages
+    local aur_pkgs=(
+        # Quickshell
+        quickshell-git google-breakpad qt6-avif-image-plugin
+        
+        # Basic
+        go-yq gum
+        
+        # Audio
+        cava
+        
+        # Widgets
+        hyprpicker songrec translate-shell
+        
+        # Python
+        uv
+        
+        # Fonts (from illogical-impulse-fonts-themes)
+        matugen-bin
+        otf-space-grotesk
+        ttf-jetbrains-mono-nerd
+        ttf-material-symbols-variable-git
+        ttf-readex-pro
+        ttf-rubik-vf
+        ttf-twemoji
+        
+        # Themes
+        adw-gtk-theme-git
+        whitesur-icon-theme-git
+        capitaine-cursors
+        breeze-plus
+        darkly-bin
+    )
+    
+    log INFO "Installing official packages..."
+    sudo pacman -S --needed --noconfirm "${pkgs[@]}" 2>/dev/null || {
+        log WARN "Some packages may have failed, continuing..."
+    }
+    
+    log INFO "Installing AUR packages..."
+    $helper -S --needed --noconfirm "${aur_pkgs[@]}" 2>/dev/null || {
+        log WARN "Some AUR packages may have failed, continuing..."
+    }
 }
 
-ensure_aur_helper() {
-  if get_aur_helper >/dev/null; then
-    return 0
-  fi
-  log INFO "Installing yay (AUR helper)..."
-  sudo pacman -S --needed --noconfirm base-devel git
-  local tmpdir="$(mktemp -d)"
-  git clone https://aur.archlinux.org/yay-bin.git "$tmpdir/yay-bin"
-  (cd "$tmpdir/yay-bin" && makepkg -si --noconfirm)
-  rm -rf "$tmpdir"
-}
-
-install_pkgs() {
-  local pkgs=("$@")
-  [ ${#pkgs[@]} -eq 0 ] && return 0
-  
-  local to_install=() pkg
-  for pkg in "${pkgs[@]}"; do
-    if ! pkg_installed "$pkg"; then
-      to_install+=("$pkg")
+# -----------------------------------------------------------------------------
+# CONFIGURATION SETUP
+# -----------------------------------------------------------------------------
+setup_ii_config() {
+    log STEP "Setting up ii configuration"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    
+    if [[ -d "$ii_dir/.git" ]]; then
+        log INFO "Updating existing ii config..."
+        git -C "$ii_dir" fetch origin
+        git -C "$ii_dir" reset --hard origin/main
+    else
+        log INFO "Cloning ii config..."
+        rm -rf "$ii_dir"
+        mkdir -p "$(dirname "$ii_dir")"
+        git clone --depth 1 "$REPO_URL" "$ii_dir"
     fi
-  done
-  
-  [ ${#to_install[@]} -eq 0 ] && return 0
-  
-  log INFO "Installing: ${to_install[*]}"
-  
-  local helper
-  if helper=$(get_aur_helper); then
-    "$helper" -S --needed --noconfirm "${to_install[@]}" || log WARN "Some packages failed"
-  else
-    local pacman_pkgs=() aur_pkgs=()
-    for pkg in "${to_install[@]}"; do
-      if pacman_has_pkg "$pkg"; then
-        pacman_pkgs+=("$pkg")
-      else
-        aur_pkgs+=("$pkg")
-      fi
-    done
-    [ ${#pacman_pkgs[@]} -gt 0 ] && sudo pacman -S --needed --noconfirm "${pacman_pkgs[@]}"
-    if [ ${#aur_pkgs[@]} -gt 0 ]; then
-      ensure_aur_helper
-      helper=$(get_aur_helper)
-      "$helper" -S --needed --noconfirm "${aur_pkgs[@]}" || log WARN "Some AUR packages failed"
+    
+    # Create state directories
+    mkdir -p "$XDG_STATE_HOME/quickshell/user/generated/wallpaper"
+    mkdir -p "$XDG_CACHE_HOME/quickshell"
+    
+    # Copy default config.json if not exists
+    local config_file="$XDG_CONFIG_HOME/illogical-impulse/config.json"
+    if [[ ! -f "$config_file" ]]; then
+        mkdir -p "$(dirname "$config_file")"
+        cp "$ii_dir/defaults/config.json" "$config_file"
+        log INFO "Created default config.json"
     fi
-  fi
+    
+    log INFO "ii config ready at $ii_dir"
 }
 
-# -----------------------------------------------------------------------------
-# SYSTEM CHECK
-# -----------------------------------------------------------------------------
-system_check() {
-  log STEP "System Check"
-  
-  local issues=()
-  
-  # Check OS
-  if ! require_cmd pacman; then
-    log ERR "Arch-based distro required (pacman not found)"
-    exit 1
-  fi
-  log INFO "Arch-based system detected"
-  
-  # Check sudo
-  if ! require_cmd sudo; then
-    log ERR "sudo required"
-    exit 1
-  fi
-  
-  # Check gum (install if missing for better UX)
-  if ! $USE_GUM; then
-    log WARN "gum not found - installing for better UI"
-    sudo pacman -S --needed --noconfirm gum 2>/dev/null || true
-    if command -v gum >/dev/null 2>&1; then
-      USE_GUM=true
-      log INFO "gum installed"
+setup_kde_theming() {
+    log STEP "Setting up KDE/Dolphin theming"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    
+    # Copy kdeglobals (critical for Dolphin theming)
+    if [[ -f "$ii_dir/defaults/kde/kdeglobals" ]]; then
+        cp "$ii_dir/defaults/kde/kdeglobals" "$XDG_CONFIG_HOME/kdeglobals"
+        log INFO "Installed kdeglobals (KDE color scheme)"
     fi
-  fi
-  
-  # Check AUR helper
-  if get_aur_helper >/dev/null; then
-    log INFO "AUR helper: $(get_aur_helper)"
-  else
-    log WARN "No AUR helper - will install yay"
-  fi
-  
-  # Check existing Niri
-  if pkg_installed niri; then
-    log INFO "Niri already installed"
-  fi
-  
-  # Check existing Quickshell
-  if pkg_installed quickshell-git || pkg_installed illogical-impulse-quickshell-git; then
-    log INFO "Quickshell already installed"
-  fi
-  
-  # Check existing ii config
-  if [ -d "$CONFIG_ROOT/quickshell/ii" ]; then
-    log INFO "Existing ii config found at $CONFIG_ROOT/quickshell/ii"
-  fi
+    
+    # Copy dolphinrc
+    if [[ -f "$ii_dir/defaults/kde/dolphinrc" ]]; then
+        cp "$ii_dir/defaults/kde/dolphinrc" "$XDG_CONFIG_HOME/dolphinrc"
+        log INFO "Installed dolphinrc"
+    fi
+    
+    # Set KDE widget style
+    if command -v kwriteconfig6 &>/dev/null; then
+        kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Darkly
+        log INFO "Set widget style to Darkly"
+    fi
 }
 
-# -----------------------------------------------------------------------------
-# SHOW BANNER
-# -----------------------------------------------------------------------------
-show_banner() {
-  if $USE_GUM; then
-    gum style \
-      --border double \
-      --border-foreground 212 \
-      --padding "1 2" \
-      --margin "1" \
-      "  ii on Niri  " \
-      "illogical-impulse shell for Niri compositor"
-  else
-    echo
-    echo "======================================"
-    echo "  ii on Niri - Installer"
-    echo "======================================"
-    echo
-  fi
-}
-
-# =============================================================================
-# PACKAGE DEFINITIONS
-# =============================================================================
-# Dependencies extracted from end-4's local PKGBUILDs, adapted for Niri.
-# The original uses local makepkg builds, we install deps directly.
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# NIRI: Compositor (Niri-specific, not in original end-4)
-# -----------------------------------------------------------------------------
-NIRI_PKGS=(
-  niri
-)
-
-# -----------------------------------------------------------------------------
-# QUICKSHELL: Qt6 shell (from illogical-impulse-quickshell-git PKGBUILD)
-# -----------------------------------------------------------------------------
-QUICKSHELL_PKGS=(
-  qt6-declarative
-  qt6-base
-  qt6-svg
-  qt6-wayland
-  qt6-5compat
-  qt6-imageformats
-  qt6-multimedia
-  qt6-positioning
-  qt6-quicktimeline
-  qt6-sensors
-  qt6-tools
-  qt6-translations
-  qt6-virtualkeyboard
-  jemalloc
-  libpipewire
-  libxcb
-  wayland
-  libdrm
-  mesa
-  kirigami
-  kdialog
-  syntax-highlighting
-)
-
-QUICKSHELL_AUR=(
-  google-breakpad
-  qt6-avif-image-plugin
-  quickshell-git  # from AUR (or build pinned version locally)
-)
-
-# -----------------------------------------------------------------------------
-# PORTALS: XDG desktop portals (adapted from illogical-impulse-portal)
-# -----------------------------------------------------------------------------
-PORTAL_PKGS=(
-  xdg-desktop-portal
-  xdg-desktop-portal-gtk
-  xdg-desktop-portal-gnome  # for Niri
-)
-
-# -----------------------------------------------------------------------------
-# POLKIT: Authentication agent (mate instead of kde for Niri)
-# -----------------------------------------------------------------------------
-POLKIT_PKGS=(
-  polkit
-  mate-polkit
-)
-
-# -----------------------------------------------------------------------------
-# BASIC: Core utilities (from illogical-impulse-basic)
-# -----------------------------------------------------------------------------
-BASIC_PKGS=(
-  bc
-  coreutils
-  cliphist
-  cmake
-  curl
-  wget
-  ripgrep
-  jq
-  xdg-user-dirs
-  rsync
-  git
-  wl-clipboard
-  libnotify
-)
-
-BASIC_AUR=(
-  go-yq
-)
-
-# -----------------------------------------------------------------------------
-# AUDIO: Sound stack (from illogical-impulse-audio)
-# -----------------------------------------------------------------------------
-AUDIO_PKGS=(
-  pipewire
-  pipewire-pulse
-  pipewire-alsa
-  wireplumber
-  playerctl
-  libdbusmenu-gtk3
-  pavucontrol
-)
-
-AUDIO_AUR=(
-  cava
-)
-
-# -----------------------------------------------------------------------------
-# TOOLKIT: Input tools (from illogical-impulse-toolkit)
-# -----------------------------------------------------------------------------
-TOOLKIT_PKGS=(
-  upower
-  wtype
-  ydotool
-)
-
-# -----------------------------------------------------------------------------
-# BACKLIGHT: Brightness control (from illogical-impulse-backlight)
-# -----------------------------------------------------------------------------
-BACKLIGHT_PKGS=(
-  brightnessctl
-  ddcutil
-  geoclue
-)
-
-# -----------------------------------------------------------------------------
-# SCREENCAPTURE: Screenshots/recording (adapted from illogical-impulse-screencapture)
-# Note: Using grim instead of hyprshot for Niri
-# -----------------------------------------------------------------------------
-SCREENCAPTURE_PKGS=(
-  grim
-  slurp
-  swappy
-  tesseract
-  tesseract-data-eng
-  wf-recorder
-  imagemagick
-)
-
-# -----------------------------------------------------------------------------
-# WIDGETS: Overlay tools (adapted from illogical-impulse-widgets)
-# Note: Removed hyprlock/hypridle/wlogout (Hyprland-specific)
-# -----------------------------------------------------------------------------
-WIDGETS_PKGS=(
-  fuzzel
-  glib2
-)
-
-WIDGETS_AUR=(
-  hyprpicker
-  songrec
-  translate-shell
-)
-
-# -----------------------------------------------------------------------------
-# PYTHON: Python dependencies (from illogical-impulse-python)
-# -----------------------------------------------------------------------------
-PYTHON_PKGS=(
-  python
-  gtk4
-  libadwaita
-  libsoup3
-  gobject-introspection
-)
-
-PYTHON_AUR=(
-  uv
-)
-
-# -----------------------------------------------------------------------------
-# FONTS/THEMES: Theming (from illogical-impulse-fonts-themes)
-# -----------------------------------------------------------------------------
-FONTS_PKGS=(
-  fontconfig
-  breeze
-)
-
-FONTS_AUR=(
-  adw-gtk-theme-git
-  breeze-plus
-  darkly-bin
-  matugen-bin
-  otf-space-grotesk
-  ttf-jetbrains-mono-nerd
-  ttf-material-symbols-variable-git
-  ttf-readex-pro
-  ttf-rubik-vf
-  ttf-twemoji
-  whitesur-icon-theme-git
-  capitaine-cursors
-)
-
-# -----------------------------------------------------------------------------
-# KDE: Integration tools (adapted from illogical-impulse-kde)
-# Note: Using mate-polkit, removed polkit-kde-agent
-# -----------------------------------------------------------------------------
-KDE_PKGS=(
-  gnome-keyring
-  networkmanager
-  dolphin
-)
-
-# =============================================================================
-# THEMING CONFIGURATION
-# =============================================================================
-configure_gtk_theming() {
-  log STEP "Configuring GTK theming"
-  
-  mkdir -p "$CONFIG_ROOT/gtk-3.0" "$CONFIG_ROOT/gtk-4.0"
-  
-  # GTK3 settings
-  cat > "$CONFIG_ROOT/gtk-3.0/settings.ini" << 'EOF'
-[Settings]
-gtk-theme-name=adw-gtk3-dark
-gtk-icon-theme-name=WhiteSur-dark
-gtk-font-name=Rubik 11
-gtk-cursor-theme-name=capitaine-cursors-light
-gtk-cursor-theme-size=24
-gtk-toolbar-style=3
-gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
-gtk-button-images=0
-gtk-menu-images=0
-gtk-enable-event-sounds=1
-gtk-enable-input-feedback-sounds=0
-gtk-xft-antialias=1
-gtk-xft-hinting=1
-gtk-xft-hintstyle=hintslight
-gtk-xft-rgba=rgb
-gtk-application-prefer-dark-theme=1
-gtk-decoration-layout=icon:minimize,maximize,close
-gtk-enable-animations=true
-gtk-modules=colorreload-gtk-module
-gtk-primary-button-warps-slider=true
-EOF
-  log INFO "GTK3 settings configured"
-  
-  # GTK4 settings
-  cat > "$CONFIG_ROOT/gtk-4.0/settings.ini" << 'EOF'
-[Settings]
-gtk-theme-name=adw-gtk3-dark
-gtk-icon-theme-name=WhiteSur-dark
-gtk-font-name=Rubik 11
-gtk-cursor-theme-name=capitaine-cursors-light
-gtk-cursor-theme-size=24
-gtk-application-prefer-dark-theme=1
-EOF
-  log INFO "GTK4 settings configured"
-  
-  # Create cursor theme index for X11 compatibility
-  mkdir -p "$HOME/.icons/default"
-  cat > "$HOME/.icons/default/index.theme" << 'EOF'
+setup_gtk_theming() {
+    log STEP "Setting up GTK theming"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    
+    # Copy GTK settings
+    mkdir -p "$XDG_CONFIG_HOME/gtk-3.0" "$XDG_CONFIG_HOME/gtk-4.0"
+    
+    if [[ -f "$ii_dir/defaults/gtk-3.0/settings.ini" ]]; then
+        cp "$ii_dir/defaults/gtk-3.0/settings.ini" "$XDG_CONFIG_HOME/gtk-3.0/"
+    fi
+    
+    if [[ -f "$ii_dir/defaults/gtk-4.0/settings.ini" ]]; then
+        cp "$ii_dir/defaults/gtk-4.0/settings.ini" "$XDG_CONFIG_HOME/gtk-4.0/"
+    fi
+    
+    # Set cursor theme
+    mkdir -p "$HOME/.icons/default"
+    cat > "$HOME/.icons/default/index.theme" << 'EOF'
 [Icon Theme]
 Name=Default
 Comment=Default Cursor Theme
 Inherits=capitaine-cursors-light
 EOF
-  
-  # Apply via gsettings if available
-  if command -v gsettings >/dev/null 2>&1; then
-    gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface cursor-theme 'capitaine-cursors-light' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface font-name 'Rubik 11' 2>/dev/null || true
-    gsettings set org.gnome.desktop.interface enable-animations true 2>/dev/null || true
-    log INFO "gsettings applied"
-  fi
-  
-  # Start xsettingsd if available (for live theme updates)
-  if command -v xsettingsd >/dev/null 2>&1; then
-    pkill xsettingsd 2>/dev/null || true
-    xsettingsd &
-    log INFO "xsettingsd started"
-  fi
+    
+    # Apply gsettings
+    if command -v gsettings &>/dev/null; then
+        gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark' 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface cursor-theme 'capitaine-cursors-light' 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface font-name 'Rubik 11' 2>/dev/null || true
+        log INFO "Applied gsettings"
+    fi
 }
 
 setup_matugen() {
-  log STEP "Setting up Matugen"
-  
-  local matugen_dir="$CONFIG_ROOT/matugen"
-  local templates_dir="$matugen_dir/templates"
-  local ii_dir="$CONFIG_ROOT/quickshell/ii"
-  
-  mkdir -p "$templates_dir"
-  mkdir -p "$STATE_ROOT/quickshell/user/generated/wallpaper"
-  mkdir -p "$STATE_ROOT/quickshell/user/generated"
-  
-  # Copy templates from ii
-  if [ -d "$ii_dir/matugen-templates" ]; then
-    cp -r "$ii_dir/matugen-templates"/* "$templates_dir/" 2>/dev/null || true
-    log INFO "Copied matugen templates"
-  fi
-  
-  # Create matugen config (adapted for Niri - no Hyprland templates)
-  cat > "$matugen_dir/config.toml" << EOF
-[config]
-version_check = false
-
-[templates.m3colors]
-input_path = '$templates_dir/colors.json'
-output_path = '$STATE_ROOT/quickshell/user/generated/colors.json'
-
-[templates.wallpaper]
-input_path = '$templates_dir/wallpaper.txt'
-output_path = '$STATE_ROOT/quickshell/user/generated/wallpaper/path.txt'
-
-[templates.gtk3]
-input_path = '$templates_dir/gtk.css'
-output_path = '$CONFIG_ROOT/gtk-3.0/gtk.css'
-
-[templates.gtk4]
-input_path = '$templates_dir/gtk.css'
-output_path = '$CONFIG_ROOT/gtk-4.0/gtk.css'
-EOF
-  
-  # Create gtk.css template if not exists
-  if [ ! -f "$templates_dir/gtk.css" ]; then
-    cat > "$templates_dir/gtk.css" << 'GTKCSS'
-@define-color accent_color {{colors.primary.default.hex}};
-@define-color accent_fg_color {{colors.on_primary.default.hex}};
-@define-color accent_bg_color {{colors.primary.default.hex}};
-@define-color window_bg_color {{colors.background.default.hex}};
-@define-color window_fg_color {{colors.on_background.default.hex}};
-@define-color headerbar_bg_color {{colors.surface_dim.default.hex}};
-@define-color headerbar_fg_color {{colors.on_surface.default.hex}};
-@define-color view_bg_color {{colors.surface.default.hex}};
-@define-color view_fg_color {{colors.on_surface.default.hex}};
-@define-color card_bg_color {{colors.surface.default.hex}};
-@define-color card_fg_color {{colors.on_surface.default.hex}};
-GTKCSS
-  fi
-  
-  # Create fuzzel theme template
-  if [ ! -f "$templates_dir/fuzzel_theme.ini" ]; then
-    cat > "$templates_dir/fuzzel_theme.ini" << 'FUZZEL'
-[colors]
-background={{colors.background.default.hex_stripped}}ff
-text={{colors.on_background.default.hex_stripped}}ff
-selection={{colors.surface_variant.default.hex_stripped}}ff
-selection-text={{colors.on_surface_variant.default.hex_stripped}}ff
-border={{colors.surface_variant.default.hex_stripped}}dd
-match={{colors.primary.default.hex_stripped}}ff
-selection-match={{colors.primary.default.hex_stripped}}ff
-FUZZEL
-  fi
-  
-  # Add fuzzel template to matugen config
-  cat >> "$matugen_dir/config.toml" << EOF
-
-[templates.fuzzel]
-input_path = '$templates_dir/fuzzel_theme.ini'
-output_path = '$CONFIG_ROOT/fuzzel/fuzzel_theme.ini'
-EOF
-  
-  log OK "Matugen configured"
+    log STEP "Setting up Matugen"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    local matugen_dir="$XDG_CONFIG_HOME/matugen"
+    
+    # Copy entire matugen config from defaults
+    if [[ -d "$ii_dir/defaults/matugen" ]]; then
+        rm -rf "$matugen_dir"
+        cp -r "$ii_dir/defaults/matugen" "$matugen_dir"
+        
+        # Fix paths in config.toml for user's home
+        sed -i "s|~|$HOME|g" "$matugen_dir/config.toml"
+        
+        log INFO "Installed matugen config and templates"
+    fi
+    
+    # Create output directories
+    mkdir -p "$XDG_STATE_HOME/quickshell/user/generated/wallpaper"
 }
 
 setup_fuzzel() {
-  log STEP "Setting up Fuzzel"
-  
-  local fuzzel_dir="$CONFIG_ROOT/fuzzel"
-  mkdir -p "$fuzzel_dir"
-  
-  # Create fuzzel.ini if not exists
-  if [ ! -f "$fuzzel_dir/fuzzel.ini" ]; then
-    cat > "$fuzzel_dir/fuzzel.ini" << 'EOF'
-include="~/.config/fuzzel/fuzzel_theme.ini"
-font=Rubik:weight=medium
-terminal=ghostty
-prompt=">>  "
-layer=overlay
-
-[border]
-radius=17
-width=1
-
-[dmenu]
-exit-immediately-if-empty=yes
-EOF
-    log INFO "Created fuzzel config"
-  fi
-  
-  # Create default theme if matugen hasn't run yet
-  if [ ! -f "$fuzzel_dir/fuzzel_theme.ini" ]; then
-    cat > "$fuzzel_dir/fuzzel_theme.ini" << 'EOF'
-[colors]
-background=1d1b20ff
-text=e6e0e9ff
-selection=49454fff
-selection-text=cac4d0ff
-border=49454fdd
-match=d0bcffff
-selection-match=d0bcffff
-EOF
-    log INFO "Created default fuzzel theme"
-  fi
-  
-  log OK "Fuzzel configured"
+    log STEP "Setting up Fuzzel"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    local fuzzel_dir="$XDG_CONFIG_HOME/fuzzel"
+    
+    mkdir -p "$fuzzel_dir"
+    
+    if [[ -f "$ii_dir/defaults/fuzzel/fuzzel.ini" ]]; then
+        cp "$ii_dir/defaults/fuzzel/fuzzel.ini" "$fuzzel_dir/"
+        log INFO "Installed fuzzel config"
+    fi
 }
 
-# =============================================================================
-# SYSTEM SETUP (permissions, services, venv)
-# =============================================================================
-setup_user_groups() {
-  log STEP "Setting up user groups"
-  
-  # Add user to required groups for input devices
-  if ! groups | grep -q input; then
-    sudo usermod -aG input "$(whoami)" 2>/dev/null || true
-    log INFO "Added user to input group"
-  fi
-  
-  if ! groups | grep -q video; then
-    sudo usermod -aG video "$(whoami)" 2>/dev/null || true
-    log INFO "Added user to video group"
-  fi
-  
-  log OK "User groups configured (re-login required)"
+setup_niri_config() {
+    log STEP "Setting up Niri config"
+    
+    local ii_dir="$XDG_CONFIG_HOME/quickshell/ii"
+    local niri_dir="$XDG_CONFIG_HOME/niri"
+    local config_file="$niri_dir/config.kdl"
+    
+    mkdir -p "$niri_dir"
+    
+    if [[ -f "$config_file" ]]; then
+        # Config exists - check if it has ii binds
+        if grep -q "qs.*-c.*ii" "$config_file"; then
+            log INFO "Niri config already has ii integration"
+        else
+            log WARN "Existing Niri config found without ii binds"
+            if confirm "Add ii keybinds to existing config?"; then
+                # Append ii binds before last closing brace
+                cat >> "$config_file" << 'EOF'
+
+// illogical-impulse (ii) integration - added by installer
+spawn-at-startup "qs" "-c" "ii"
+
+binds {
+    // ii Window Switcher
+    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
+    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }
+    
+    // ii Overlay
+    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
+    
+    // ii Clipboard
+    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
+    
+    // ii Lock screen
+    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
+    
+    // ii Region tools
+    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
+    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }
+    
+    // ii Wallpaper selector
+    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
+}
+EOF
+                log INFO "Added ii binds to existing config"
+            fi
+        fi
+    else
+        # No config - copy base config
+        if [[ -f "$ii_dir/defaults/niri/config.kdl" ]]; then
+            cp "$ii_dir/defaults/niri/config.kdl" "$config_file"
+            log INFO "Installed base Niri config with ii integration"
+        else
+            log WARN "No base config found, you'll need to configure Niri manually"
+        fi
+    fi
 }
 
-setup_ydotool_service() {
-  log STEP "Setting up ydotool service"
-  
-  # Create user service symlink if needed
-  if [ ! -e "/usr/lib/systemd/user/ydotool.service" ] && [ -e "/usr/lib/systemd/system/ydotool.service" ]; then
-    sudo ln -sf /usr/lib/systemd/system/ydotool.service /usr/lib/systemd/user/ydotool.service 2>/dev/null || true
-  fi
-  
-  # Enable service
-  if command -v systemctl &>/dev/null; then
-    systemctl --user daemon-reload 2>/dev/null || true
-    systemctl --user enable ydotool 2>/dev/null || true
-    systemctl --user start ydotool 2>/dev/null || true
-    log OK "ydotool service enabled"
-  fi
+setup_services() {
+    log STEP "Setting up system services"
+    
+    # User groups
+    if ! groups | grep -q input; then
+        sudo usermod -aG input "$(whoami)" 2>/dev/null || true
+        log INFO "Added user to input group (re-login required)"
+    fi
+    
+    if ! groups | grep -q video; then
+        sudo usermod -aG video "$(whoami)" 2>/dev/null || true
+        log INFO "Added user to video group"
+    fi
+    
+    # ydotool service
+    if [[ -f /usr/lib/systemd/system/ydotool.service ]]; then
+        if [[ ! -e /usr/lib/systemd/user/ydotool.service ]]; then
+            sudo ln -sf /usr/lib/systemd/system/ydotool.service /usr/lib/systemd/user/ydotool.service 2>/dev/null || true
+        fi
+        systemctl --user daemon-reload 2>/dev/null || true
+        systemctl --user enable --now ydotool 2>/dev/null || true
+        log INFO "Enabled ydotool service"
+    fi
 }
 
 setup_python_venv() {
-  log STEP "Setting up Python virtual environment"
-  
-  local venv_dir="$STATE_ROOT/quickshell/.venv"
-  local ii_dir="$CONFIG_ROOT/quickshell/ii"
-  
-  # Check if uv is available
-  if ! command -v uv &>/dev/null; then
-    log WARN "uv not installed, skipping Python venv setup"
-    return
-  fi
-  
-  mkdir -p "$venv_dir"
-  
-  # Create venv with Python 3.12 if possible
-  if ! [ -d "$venv_dir/bin" ]; then
-    uv venv --prompt .venv "$venv_dir" -p 3.12 2>/dev/null || uv venv --prompt .venv "$venv_dir" || {
-      log WARN "Could not create Python venv"
-      return
-    }
-  fi
-  
-  # Install required packages
-  if [ -f "$ii_dir/requirements.txt" ]; then
+    log STEP "Setting up Python environment"
+    
+    local venv_dir="$XDG_STATE_HOME/quickshell/.venv"
+    
+    if ! command -v uv &>/dev/null; then
+        log WARN "uv not installed, skipping Python venv"
+        return
+    fi
+    
+    if [[ ! -d "$venv_dir/bin" ]]; then
+        mkdir -p "$venv_dir"
+        uv venv --prompt .venv "$venv_dir" -p 3.12 2>/dev/null || uv venv --prompt .venv "$venv_dir" || {
+            log WARN "Could not create Python venv"
+            return
+        }
+    fi
+    
+    # Install packages
     source "$venv_dir/bin/activate"
-    uv pip install -r "$ii_dir/requirements.txt" 2>/dev/null || true
+    uv pip install pillow opencv-contrib-python material-color-utilities numpy psutil 2>/dev/null || true
     deactivate
-    log INFO "Python packages installed"
-  else
-    # Install minimal required packages
-    source "$venv_dir/bin/activate"
-    uv pip install pillow opencv-contrib-python material-color-utilities 2>/dev/null || true
-    deactivate
-    log INFO "Minimal Python packages installed"
-  fi
-  
-  log OK "Python venv ready at $venv_dir"
+    
+    log INFO "Python venv ready at $venv_dir"
 }
 
-# =============================================================================
-# MAIN INSTALLATION LOGIC
-# =============================================================================
-install_core() {
-  log STEP "Installing core packages"
-  
-  log INFO "Niri compositor..."
-  install_pkgs "${NIRI_PKGS[@]}"
-  
-  log INFO "Quickshell and Qt6 dependencies..."
-  install_pkgs "${QUICKSHELL_PKGS[@]}" "${QUICKSHELL_AUR[@]}"
-  
-  log INFO "XDG portals..."
-  install_pkgs "${PORTAL_PKGS[@]}"
-  
-  log INFO "Polkit authentication..."
-  install_pkgs "${POLKIT_PKGS[@]}"
-  
-  log INFO "Basic utilities..."
-  install_pkgs "${BASIC_PKGS[@]}" "${BASIC_AUR[@]}"
-  
-  log INFO "Audio stack..."
-  install_pkgs "${AUDIO_PKGS[@]}" "${AUDIO_AUR[@]}"
-  
-  log INFO "Input toolkit..."
-  install_pkgs "${TOOLKIT_PKGS[@]}"
-  
-  log INFO "Backlight control..."
-  install_pkgs "${BACKLIGHT_PKGS[@]}"
-  
-  log INFO "Screenshot and recording..."
-  install_pkgs "${SCREENCAPTURE_PKGS[@]}"
-  
-  log INFO "Widget tools..."
-  install_pkgs "${WIDGETS_PKGS[@]}" "${WIDGETS_AUR[@]}"
-  
-  log INFO "Python dependencies..."
-  install_pkgs "${PYTHON_PKGS[@]}" "${PYTHON_AUR[@]}"
-  
-  log INFO "Fonts and themes..."
-  install_pkgs "${FONTS_PKGS[@]}" "${FONTS_AUR[@]}"
-  
-  log INFO "KDE integration..."
-  install_pkgs "${KDE_PKGS[@]}"
-}
-
-install_optional() {
-  log STEP "Configuring system"
-  
-  configure_gtk_theming
-}
-
-setup_ii_config() {
-  log STEP "Setting up ii configuration"
-  
-  local qs_dir="$CONFIG_ROOT/quickshell"
-  local ii_dir="$qs_dir/ii"
-  
-  mkdir -p "$qs_dir"
-  
-  if [ -d "$ii_dir/.git" ]; then
-    log INFO "Found existing ii config at $ii_dir"
-    if confirm "Update from $REPO_URL?"; then
-      git -C "$ii_dir" pull --ff-only || log WARN "Git pull failed"
-    fi
-  elif [ -d "$ii_dir" ]; then
-    log WARN "$ii_dir exists but is not a git repo"
-    if confirm "Backup and replace?"; then
-      mv "$ii_dir" "$ii_dir.bak.$(date +%s)"
-      git clone "$REPO_URL" "$ii_dir"
-    fi
-  else
-    log INFO "Cloning ii config..."
-    git clone "$REPO_URL" "$ii_dir"
-  fi
-  
-  # Create required state directories
-  mkdir -p "$STATE_ROOT/quickshell/user/generated/wallpaper"
-  mkdir -p "$STATE_ROOT/quickshell/user"
-  
-  # DO NOT create first_run.txt - it triggers welcome screen on first launch
-  # The file is created automatically when welcome.qml closes
-  
-  # Copy default config for illogical-impulse if not exists
-  local ii_config_dir="$CONFIG_ROOT/illogical-impulse"
-  if [ ! -f "$ii_config_dir/config.json" ]; then
-    mkdir -p "$ii_config_dir"
-    if [ -f "$ii_dir/defaults/config.json" ]; then
-      cp "$ii_dir/defaults/config.json" "$ii_config_dir/config.json"
-      log INFO "Copied default ii config"
-    fi
-  fi
-  
-  log INFO "ii config ready at $ii_dir"
-}
-
-
-configure_niri() {
-  log STEP "Configuring Niri"
-  
-  local niri_dir="$CONFIG_ROOT/niri"
-  local niri_config="$niri_dir/config.kdl"
-  
-  mkdir -p "$niri_dir"
-  
-  # Check if config exists
-  if [ ! -f "$niri_config" ]; then
-    log INFO "Creating Niri config with ii integration..."
-    create_niri_config "$niri_config"
-    return
-  fi
-  
-  # Config exists - check if ii is already configured
-  if grep -q 'spawn-at-startup "qs" "-c" "ii"' "$niri_config"; then
-    log INFO "Niri already configured for ii"
-    return
-  fi
-  
-  # Ask to add ii binds
-  if confirm "Add ii keybinds to existing Niri config?"; then
-    append_ii_binds "$niri_config"
-  fi
-}
-
-create_niri_config() {
-  local config_file="$1"
-  cat > "$config_file" << 'NIRI_EOF'
-// =============================================================================
-// NIRI CONFIGURATION for ii (illogical-impulse) shell
-// =============================================================================
-// Clean config with proper ii integration
-// =============================================================================
-
-prefer-no-csd
-
-hotkey-overlay {
-    skip-at-startup
-}
-
-screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
-
-// =============================================================================
-// INPUT
-// =============================================================================
-
-input {
-    keyboard {
-        xkb { }
-        repeat-delay 250
-        repeat-rate 50
-    }
-    
-    touchpad {
-        tap
-        natural-scroll
-    }
-    
-    mouse {
-        accel-profile "flat"
-    }
-}
-
-// =============================================================================
-// LAYOUT - Clean, no borders (ii handles decorations)
-// =============================================================================
-
-layout {
-    gaps 16
-    background-color "transparent"
-    center-focused-column "never"
-    
-    preset-column-widths {
-        proportion 0.33333
-        proportion 0.5
-        proportion 0.66667
-    }
-    
-    default-column-width { proportion 0.5 }
-    
-    border { off }
-    focus-ring { off }
-    shadow { off }
-}
-
-cursor {
-    xcursor-theme "capitaine-cursors-light"
-    xcursor-size 24
-    hide-when-typing
-}
-
-// =============================================================================
-// WINDOW RULES
-// =============================================================================
-
-window-rule {
-    geometry-corner-radius 12
-    clip-to-geometry true
-}
-
-window-rule { 
-    match is-active=false
-    opacity 0.95
-}
-
-// =============================================================================
-// ANIMATIONS
-// =============================================================================
-
-animations {
-    workspace-switch {
-        spring damping-ratio=0.9 stiffness=800 epsilon=0.0001
-    }
-    window-open {
-        spring damping-ratio=0.9 stiffness=900 epsilon=0.0001
-    }
-    window-close {
-        spring damping-ratio=0.95 stiffness=1000 epsilon=0.0001
-    }
-}
-
-// =============================================================================
-// ENVIRONMENT
-// =============================================================================
-
-environment {
-    XDG_CURRENT_DESKTOP "niri"
-    QT_QPA_PLATFORM "wayland"
-    QT_QPA_PLATFORMTHEME "gtk3"
-    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
-    ELECTRON_OZONE_PLATFORM_HINT "auto"
-}
-
-// =============================================================================
-// STARTUP
-// =============================================================================
-
-spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
-spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
-spawn-at-startup "qs" "-c" "ii"
-
-// =============================================================================
-// KEYBINDINGS
-// =============================================================================
-
-binds {
-    // ii window switcher (Alt+Tab)
-    Alt+Tab {
-        spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"
-    }
-    Alt+Shift+Tab {
-        spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"
-    }
-    
-    // ii overlay
-    Super+G {
-        spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"
-    }
-    
-    // Clipboard
-    Mod+V {
-        spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"
-    }
-    
-    // Lock screen
-    Mod+Alt+L allow-when-locked=true {
-        spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"
-    }
-    
-    // Region tools
-    Mod+Shift+S {
-        spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"
-    }
-    Mod+Shift+X {
-        spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"
-    }
-    
-    // Wallpaper selector
-    Ctrl+Alt+T {
-        spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"
-    }
-    
-    // System
-    Mod+Tab repeat=false { toggle-overview; }
-    Mod+Shift+E { quit; }
-    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
-    
-    // Window management
-    Mod+Q repeat=false { close-window; }
-    Mod+F { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }
-    Mod+A { toggle-window-floating; }
-    
-    // Focus
-    Mod+Left { focus-column-left; }
-    Mod+Right { focus-column-right; }
-    Mod+Up { focus-window-up; }
-    Mod+Down { focus-window-down; }
-    Mod+H { focus-column-left; }
-    Mod+J { focus-window-down; }
-    Mod+K { focus-window-up; }
-    Mod+L { focus-column-right; }
-    
-    // Move windows
-    Mod+Shift+Left { move-column-left; }
-    Mod+Shift+Right { move-column-right; }
-    Mod+Shift+Up { move-window-up; }
-    Mod+Shift+Down { move-window-down; }
-    Mod+Shift+H { move-column-left; }
-    Mod+Shift+J { move-window-down; }
-    Mod+Shift+K { move-window-up; }
-    Mod+Shift+L { move-column-right; }
-    
-    // Workspaces
-    Mod+1 { focus-workspace 1; }
-    Mod+2 { focus-workspace 2; }
-    Mod+3 { focus-workspace 3; }
-    Mod+4 { focus-workspace 4; }
-    Mod+5 { focus-workspace 5; }
-    Mod+6 { focus-workspace 6; }
-    Mod+7 { focus-workspace 7; }
-    Mod+8 { focus-workspace 8; }
-    Mod+9 { focus-workspace 9; }
-    
-    Mod+Shift+1 { move-column-to-workspace 1; }
-    Mod+Shift+2 { move-column-to-workspace 2; }
-    Mod+Shift+3 { move-column-to-workspace 3; }
-    Mod+Shift+4 { move-column-to-workspace 4; }
-    Mod+Shift+5 { move-column-to-workspace 5; }
-    
-    // Screenshots
-    Print { screenshot; }
-    Ctrl+Print { screenshot-screen; }
-    Alt+Print { screenshot-window; }
-    
-    // Media keys
-    XF86AudioRaiseVolume allow-when-locked=true {
-        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"
-    }
-    XF86AudioLowerVolume allow-when-locked=true {
-        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"
-    }
-    XF86AudioMute allow-when-locked=true {
-        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"
-    }
-}
-NIRI_EOF
-  log INFO "Created Niri config at $config_file"
-}
-
-append_ii_binds() {
-  local config_file="$1"
-  cat >> "$config_file" << 'II_BINDS'
-
-// ii (illogical-impulse) shell integration
-spawn-at-startup "qs" "-c" "ii"
-
-binds {
-    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
-    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }
-    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
-    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
-    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
-    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
-    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
-}
-II_BINDS
-  log INFO "Added ii binds to $config_file"
-}
-
-setup_super_daemon() {
-  log STEP "Super-tap daemon"
-  
-  if ! confirm "Install Super-tap daemon (tap Super for overview)?"; then
-    log INFO "Skipping Super-tap daemon"
-    return
-  fi
-  
-  local ii_dir="$CONFIG_ROOT/quickshell/ii"
-  local systemd_dir="$CONFIG_ROOT/systemd/user"
-  
-  mkdir -p "$HOME/.local/bin" "$systemd_dir"
-  
-  if [ -f "$ii_dir/scripts/daemon/ii_super_overview_daemon.py" ]; then
-    install -Dm755 "$ii_dir/scripts/daemon/ii_super_overview_daemon.py" \
-      "$HOME/.local/bin/ii_super_overview_daemon.py"
-  fi
-  
-  if [ -f "$ii_dir/scripts/systemd/ii-super-overview.service" ]; then
-    install -Dm644 "$ii_dir/scripts/systemd/ii-super-overview.service" \
-      "$systemd_dir/ii-super-overview.service"
-  fi
-  
-  if command -v systemctl >/dev/null 2>&1; then
-    systemctl --user daemon-reload 2>/dev/null || true
-    if systemctl --user enable --now ii-super-overview.service 2>/dev/null; then
-      log INFO "Super-tap daemon enabled"
-    else
-      log WARN "Enable manually: systemctl --user enable --now ii-super-overview.service"
-    fi
-  fi
+# -----------------------------------------------------------------------------
+# MAIN
+# -----------------------------------------------------------------------------
+show_banner() {
+    printf "\n${BOLD}${CYAN}"
+    printf "╔══════════════════════════════════════════╗\n"
+    printf "║     illogical-impulse (ii) on Niri       ║\n"
+    printf "║          One-shot Installer              ║\n"
+    printf "╚══════════════════════════════════════════╝${RST}\n\n"
 }
 
 show_completion() {
-  log STEP "Installation complete!"
-  
-  if $USE_GUM; then
-    gum style \
-      --border rounded \
-      --border-foreground 10 \
-      --padding "1 2" \
-      "Next steps:" \
-      "" \
-      "1. Log out of your current session" \
-      "2. Select 'Niri' at the login screen" \
-      "3. ii should start automatically" \
-      "" \
-      "Commands:" \
-      "  niri msg action reload-config  # Reload Niri" \
-      "  qs -c ii                        # Start ii manually"
-  else
-    echo
-    log INFO "Next steps:"
-    echo "  1. Log out of your current session"
-    echo "  2. Select 'Niri' at the login screen"
-    echo "  3. ii should start automatically"
-    echo
-    log INFO "Useful commands:"
-    echo "  niri msg action reload-config  # Reload Niri config"
-    echo "  qs -c ii                        # Start ii manually"
-  fi
-  echo
-  log INFO "Issues: https://github.com/snowarch/quickshell-ii-niri"
+    printf "\n${BOLD}${GREEN}"
+    printf "╔══════════════════════════════════════════╗\n"
+    printf "║         Installation Complete!           ║\n"
+    printf "╚══════════════════════════════════════════╝${RST}\n\n"
+    
+    printf "${CYAN}Next steps:${RST}\n"
+    printf "  1. Log out and log back in (for group changes)\n"
+    printf "  2. Select 'Niri' at your display manager\n"
+    printf "  3. ii should start automatically\n\n"
+    
+    printf "${CYAN}Useful commands:${RST}\n"
+    printf "  niri msg action reload-config  # Reload Niri config\n"
+    printf "  qs -c ii                        # Start ii manually\n\n"
+    
+    printf "${CYAN}Issues:${RST} https://github.com/snowarch/quickshell-ii-niri\n\n"
 }
 
-# =============================================================================
-# MAIN ENTRY POINT
-# =============================================================================
 main() {
-  show_banner
-  system_check
-  
-  # Choose installation mode
-  local mode
-  if $USE_GUM; then
-    mode=$(choose "Select installation mode:" \
-      "Full install (recommended)" \
-      "Minimal (core only)" \
-      "Update existing" \
-      "Exit")
-  else
-    echo "Select installation mode:"
-    echo "1) Full install (recommended)"
-    echo "2) Minimal (core only)"
-    echo "3) Update existing"
-    echo "4) Exit"
-    read -r -p "Choice [1-4]: " choice
-    case "$choice" in
-      1) mode="Full install (recommended)" ;;
-      2) mode="Minimal (core only)" ;;
-      3) mode="Update existing" ;;
-      *) mode="Exit" ;;
-    esac
-  fi
-  
-  case "$mode" in
-    "Full install"*)
-      install_core
-      install_optional
-      setup_ii_config
-      setup_matugen
-      setup_fuzzel
-      setup_user_groups
-      setup_ydotool_service
-      setup_python_venv
-      configure_niri
-      setup_super_daemon
-      ;;
-    "Minimal"*)
-      install_core
-      setup_ii_config
-      setup_matugen
-      setup_fuzzel
-      configure_niri
-      ;;
-    "Update"*)
-      setup_ii_config
-      setup_matugen
-      if confirm "Update theming?"; then
-        configure_gtk_theming
-      fi
-      if confirm "Update Niri config?"; then
-        configure_niri
-      fi
-      ;;
-    *)
-      log INFO "Exiting"
-      exit 0
-      ;;
-  esac
-  
-  show_completion
+    show_banner
+    
+    # Check we're on Arch
+    if [[ ! -f /etc/arch-release ]] && ! command -v pacman &>/dev/null; then
+        log ERR "This installer is for Arch-based systems only"
+        exit 1
+    fi
+    
+    log STEP "Starting installation"
+    
+    # Install all packages
+    install_packages
+    
+    # Setup configurations
+    setup_ii_config
+    setup_kde_theming
+    setup_gtk_theming
+    setup_matugen
+    setup_fuzzel
+    setup_niri_config
+    setup_services
+    setup_python_venv
+    
+    show_completion
 }
 
-# Run main
 main "$@"
