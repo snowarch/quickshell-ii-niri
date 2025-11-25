@@ -534,6 +534,7 @@ setup_matugen() {
   
   mkdir -p "$templates_dir"
   mkdir -p "$STATE_ROOT/quickshell/user/generated/wallpaper"
+  mkdir -p "$STATE_ROOT/quickshell/user/generated"
   
   # Copy templates from ii
   if [ -d "$ii_dir/matugen-templates" ]; then
@@ -541,7 +542,7 @@ setup_matugen() {
     log INFO "Copied matugen templates"
   fi
   
-  # Create matugen config
+  # Create matugen config (adapted for Niri - no Hyprland templates)
   cat > "$matugen_dir/config.toml" << EOF
 [config]
 version_check = false
@@ -553,9 +554,110 @@ output_path = '$STATE_ROOT/quickshell/user/generated/colors.json'
 [templates.wallpaper]
 input_path = '$templates_dir/wallpaper.txt'
 output_path = '$STATE_ROOT/quickshell/user/generated/wallpaper/path.txt'
+
+[templates.gtk3]
+input_path = '$templates_dir/gtk.css'
+output_path = '$CONFIG_ROOT/gtk-3.0/gtk.css'
+
+[templates.gtk4]
+input_path = '$templates_dir/gtk.css'
+output_path = '$CONFIG_ROOT/gtk-4.0/gtk.css'
 EOF
   
-  log INFO "Matugen configured"
+  # Create gtk.css template if not exists
+  if [ ! -f "$templates_dir/gtk.css" ]; then
+    cat > "$templates_dir/gtk.css" << 'GTKCSS'
+@define-color accent_color {{colors.primary.default.hex}};
+@define-color accent_fg_color {{colors.on_primary.default.hex}};
+@define-color accent_bg_color {{colors.primary.default.hex}};
+@define-color window_bg_color {{colors.background.default.hex}};
+@define-color window_fg_color {{colors.on_background.default.hex}};
+@define-color headerbar_bg_color {{colors.surface_dim.default.hex}};
+@define-color headerbar_fg_color {{colors.on_surface.default.hex}};
+@define-color view_bg_color {{colors.surface.default.hex}};
+@define-color view_fg_color {{colors.on_surface.default.hex}};
+@define-color card_bg_color {{colors.surface.default.hex}};
+@define-color card_fg_color {{colors.on_surface.default.hex}};
+GTKCSS
+  fi
+  
+  log OK "Matugen configured"
+}
+
+# =============================================================================
+# SYSTEM SETUP (permissions, services, venv)
+# =============================================================================
+setup_user_groups() {
+  log STEP "Setting up user groups"
+  
+  # Add user to required groups for input devices
+  if ! groups | grep -q input; then
+    sudo usermod -aG input "$(whoami)" 2>/dev/null || true
+    log INFO "Added user to input group"
+  fi
+  
+  if ! groups | grep -q video; then
+    sudo usermod -aG video "$(whoami)" 2>/dev/null || true
+    log INFO "Added user to video group"
+  fi
+  
+  log OK "User groups configured (re-login required)"
+}
+
+setup_ydotool_service() {
+  log STEP "Setting up ydotool service"
+  
+  # Create user service symlink if needed
+  if [ ! -e "/usr/lib/systemd/user/ydotool.service" ] && [ -e "/usr/lib/systemd/system/ydotool.service" ]; then
+    sudo ln -sf /usr/lib/systemd/system/ydotool.service /usr/lib/systemd/user/ydotool.service 2>/dev/null || true
+  fi
+  
+  # Enable service
+  if command -v systemctl &>/dev/null; then
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user enable ydotool 2>/dev/null || true
+    systemctl --user start ydotool 2>/dev/null || true
+    log OK "ydotool service enabled"
+  fi
+}
+
+setup_python_venv() {
+  log STEP "Setting up Python virtual environment"
+  
+  local venv_dir="$STATE_ROOT/quickshell/.venv"
+  local ii_dir="$CONFIG_ROOT/quickshell/ii"
+  
+  # Check if uv is available
+  if ! command -v uv &>/dev/null; then
+    log WARN "uv not installed, skipping Python venv setup"
+    return
+  fi
+  
+  mkdir -p "$venv_dir"
+  
+  # Create venv with Python 3.12 if possible
+  if ! [ -d "$venv_dir/bin" ]; then
+    uv venv --prompt .venv "$venv_dir" -p 3.12 2>/dev/null || uv venv --prompt .venv "$venv_dir" || {
+      log WARN "Could not create Python venv"
+      return
+    }
+  fi
+  
+  # Install required packages
+  if [ -f "$ii_dir/requirements.txt" ]; then
+    source "$venv_dir/bin/activate"
+    uv pip install -r "$ii_dir/requirements.txt" 2>/dev/null || true
+    deactivate
+    log INFO "Python packages installed"
+  else
+    # Install minimal required packages
+    source "$venv_dir/bin/activate"
+    uv pip install pillow opencv-contrib-python material-color-utilities 2>/dev/null || true
+    deactivate
+    log INFO "Minimal Python packages installed"
+  fi
+  
+  log OK "Python venv ready at $venv_dir"
 }
 
 # =============================================================================
@@ -1025,16 +1127,21 @@ main() {
       install_optional
       setup_ii_config
       setup_matugen
+      setup_user_groups
+      setup_ydotool_service
+      setup_python_venv
       configure_niri
       setup_super_daemon
       ;;
     "Minimal"*)
       install_core
       setup_ii_config
+      setup_matugen
       configure_niri
       ;;
     "Update"*)
       setup_ii_config
+      setup_matugen
       if confirm "Update theming?"; then
         configure_gtk_theming
       fi
