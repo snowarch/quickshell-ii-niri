@@ -55,16 +55,35 @@ More details in [docs/INSTALL.md](docs/INSTALL.md).
 
 ## IPC Targets
 
-Bind these in your Niri config:
+ii exposes these targets for keybindings:
+
+| Target | Functions |
+|--------|-----------|
+| `overview` | `toggle` |
+| `overlay` | `toggle` |
+| `clipboard` | `toggle`, `open`, `close` |
+| `altSwitcher` | `toggle`, `next`, `previous` |
+| `region` | `screenshot`, `ocr`, `search`, `record` |
+| `session` | `toggle` |
+| `lock` | `activate` |
+| `cheatsheet` | `toggle` |
+| `sidebarLeft` | `toggle` |
+| `sidebarRight` | `toggle` |
+| `wallpaperSelector` | `toggle` |
+| `bar` | `toggle` |
+| `mpris` | `playPause`, `next`, `previous`, `pauseAll` |
+| `brightness` | `increment`, `decrement` |
+| `zoom` | `zoomIn`, `zoomOut` |
+
+Usage in Niri config:
 
 ```kdl
-// Examples
-bind "Super" { spawn "qs" "ipc" "-c" "ii" "call" "overview" "toggle"; }
-bind "Super+V" { spawn "qs" "ipc" "-c" "ii" "call" "clipboard" "toggle"; }
-bind "Super+Shift+S" { spawn "qs" "ipc" "-c" "ii" "call" "region" "snip"; }
+bind "Alt+Tab" { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }
+bind "Super+V" { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
+bind "Super+Shift+S" { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
 ```
 
-Available targets: `overview`, `clipboard`, `sidebar`, `cheatsheet`, `session`, `region`, `lock`.
+See [docs/IPC.md](docs/IPC.md) for the complete reference.
 
 ---
 
