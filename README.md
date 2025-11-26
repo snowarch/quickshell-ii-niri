@@ -48,7 +48,7 @@ Arch-based? Run this:
 ```bash
 git clone https://github.com/snowarch/quickshell-ii-niri.git
 cd quickshell-ii-niri
-./setup install
+./setup install -y
 ```
 
 Not on Arch? Check [docs/INSTALL.md](docs/INSTALL.md) for manual steps.
