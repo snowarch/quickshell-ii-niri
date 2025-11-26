@@ -260,8 +260,23 @@ Item {
                     id: workspaceButtonBackground
                     implicitWidth: workspaceButtonWidth
                     implicitHeight: workspaceButtonWidth
-                    property var biggestWindow: HyprlandData.biggestWindowForWorkspace(button.workspaceValue)
-                    property var mainAppIconSource: Quickshell.iconPath(AppSearch.guessIcon(biggestWindow?.class), "image-missing")
+                    property var biggestWindow: {
+                        if (CompositorService.isNiri) {
+                            const ws = NiriService.allWorkspaces.find(w => w.idx === button.workspaceValue)
+                            if (!ws) return null
+                            const wins = NiriService.windows.filter(w => w.workspace_id === ws.id)
+                            if (wins.length === 0) return null
+                            return wins.find(w => w.is_focused) || wins[0]
+                        } else {
+                            return HyprlandData.biggestWindowForWorkspace(button.workspaceValue)
+                        }
+                    }
+                    property var mainAppIconSource: {
+                        const appClass = CompositorService.isNiri 
+                            ? (biggestWindow?.app_id || biggestWindow?.appId) 
+                            : biggestWindow?.class
+                        return Quickshell.iconPath(AppSearch.guessIcon(appClass), "image-missing")
+                    }
 
                     StyledText { // Workspace number text
                         opacity: root.showNumbers

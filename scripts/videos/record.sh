@@ -7,7 +7,11 @@ getaudiooutput() {
     pactl list sources | grep 'Name' | grep 'monitor' | cut -d ' ' -f2
 }
 getactivemonitor() {
-    niri msg focused-output | head -n 1 | sed -n 's/.*(\(.*\))/\1/p'
+    if command -v niri >/dev/null 2>&1 && niri msg focused-output >/dev/null 2>&1; then
+        niri msg focused-output | head -n 1 | sed -n 's/.*(\(.*\))/\1/p'
+    elif command -v hyprctl >/dev/null 2>&1; then
+        hyprctl monitors -j | jq -r '.[] | select(.focused) | .name'
+    fi
 }
 
 xdgvideo="$(xdg-user-dir VIDEOS)"
