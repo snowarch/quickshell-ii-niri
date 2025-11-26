@@ -87,6 +87,7 @@ ShellRoot {
     LazyLoader { active: enablePolkit; component: Polkit {} }
     LazyLoader { active: enableRegionSelector; component: RegionSelector {} }
     LazyLoader { active: enableReloadPopup; component: ReloadPopup {} }
+    LazyLoader { active: CompositorService.isNiri; component: NiriConfigPopup {} }
     LazyLoader { active: enableScreenCorners; component: ScreenCorners {} }
     LazyLoader { active: enableSessionScreen; component: SessionScreen {} }
     LazyLoader { active: enableSidebarLeft; component: SidebarLeft {} }

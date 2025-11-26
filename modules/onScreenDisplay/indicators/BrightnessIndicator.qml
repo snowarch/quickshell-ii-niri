@@ -6,12 +6,13 @@ import qs.modules.onScreenDisplay
 
 OsdValueIndicator {
     id: root
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
-    property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
+    // Use the same screen logic as QuickSliders / bars so it works on Niri too
+    property var screen: root.QsWindow.window?.screen
+    // Brightness monitor may be undefined; guard access
+    property var brightnessMonitor: screen ? Brightness.getMonitorForScreen(screen) : null
 
     icon: Hyprsunset.active ? "routine" : "light_mode"
-    rotateIcon: true
-    scaleIcon: true
     name: Translation.tr("Brightness")
-    value: root.brightnessMonitor?.brightness ?? 50
+    // Brightness service exposes value in range [0, 1], same as volume
+    value: root.brightnessMonitor ? root.brightnessMonitor.brightness : 0
 }

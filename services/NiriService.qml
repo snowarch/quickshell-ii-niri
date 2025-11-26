@@ -20,6 +20,13 @@ Singleton {
     property var currentOutputWorkspaces: []
     property string currentOutput: ""
 
+    // Config load status (updated from ConfigLoaded event)
+    property bool configLoaded: false
+    property bool configLoadFailed: false
+    property string configError: ""
+
+    signal configLoadFinished(bool ok, string error)
+
     property var outputs: ({})
     property var windows: []
     property var displayScales: ({})
@@ -463,9 +470,15 @@ Singleton {
     }
 
     function handleConfigLoaded(data) {
-        if (data.failed)
-            return
-        fetchOutputs()
+        const failed = data && data.failed
+        configLoaded = !failed
+        configLoadFailed = !!failed
+        configError = (failed && data && data.error) ? data.error : ""
+
+        if (!failed)
+            fetchOutputs()
+
+        configLoadFinished(!failed, configError)
     }
 
     function handleKeyboardLayoutsChanged(data) {
