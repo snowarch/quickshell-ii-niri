@@ -118,6 +118,7 @@ if $INSTALL_FONTS; then
     whitesur-icon-theme-git
     hyprpicker
     songrec
+    xwayland-satellite
     
     # KDE/Qt theming
     darkly
