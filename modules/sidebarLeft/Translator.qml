@@ -86,7 +86,7 @@ Item {
             onStreamFinished: {
                 // Parse collected text into language list, ensure "auto" is first
                 const text = String(langsCollector.text || "");
-                if (!text.trim()) {
+                if (!text || !text.trim()) {
                     root.languages = ["auto"];
                     return;
                 }
@@ -103,7 +103,7 @@ Item {
                 try {
                     root.languages = result;
                 } catch (e) {
-                    console.warn("[Translator] Failed to set languages list, falling back to ['auto']:", e);
+                    console.warn("[Translator] Failed to set languages list, falling back to ['auto']");
                     root.languages = ["auto"];            
                 }
             }

@@ -48,14 +48,23 @@ Item {
 
                 // Compile ignored app regexes once
                 const ignoredRegexStrings = Config.options?.dock.ignoredAppRegexes ?? [];
-                const ignoredRegexes = ignoredRegexStrings.map(pattern => new RegExp(pattern, "i"));
+                // Add common filepickers/portals to ignore list to prevent lag
+                const systemIgnored = ["^$", "^portal$", "^x-run-dialog$", "^kdialog$", "^org.freedesktop.impl.portal.*"];
+                const allIgnored = ignoredRegexStrings.concat(systemIgnored);
+                const ignoredRegexes = allIgnored.map(pattern => new RegExp(pattern, "i"));
 
                 // Group open windows by appId (case-insensitive)
                 const openMap = new Map();
                 const allToplevels = CompositorService.sortedToplevels && CompositorService.sortedToplevels.length
                         ? CompositorService.sortedToplevels
                         : ToplevelManager.toplevels.values;
+                
                 for (const toplevel of allToplevels) {
+                    if (!toplevel.appId) continue;
+                    
+                    // Fast check for exact matches before regex
+                    if (toplevel.appId === "" || toplevel.appId === "null") continue;
+
                     if (ignoredRegexes.some(re => re.test(toplevel.appId))) {
                         continue;
                     }

@@ -46,19 +46,18 @@ Singleton {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
 
-    GlobalShortcut {
-        name: "workspaceNumber"
-        description: "Hold to show workspace numbers, release to show icons"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: GlobalShortcut {
+            name: "workspaceNumber"
+            description: "Hold to show workspace numbers, release to show icons"
 
-        onPressed: {
-            if (!CompositorService.isHyprland)
-                return
-            root.superDown = true
-        }
-        onReleased: {
-            if (!CompositorService.isHyprland)
-                return
-            root.superDown = false
+            onPressed: {
+                root.superDown = true
+            }
+            onReleased: {
+                root.superDown = false
+            }
         }
     }
 

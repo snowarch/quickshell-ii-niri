@@ -143,26 +143,30 @@ Scope {
         }
     }
 
-    GlobalShortcut {
-        name: "lock"
-        description: "Locks the screen"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "lock"
+                description: "Locks the screen"
 
-        onPressed: {
-            if (Config.options.lock.useHyprlock) {
-                Quickshell.execDetached(["bash", "-c", "pidof hyprlock || hyprlock"]);
-                return;
+                onPressed: {
+                    if (Config.options.lock.useHyprlock) {
+                        Quickshell.execDetached(["bash", "-c", "pidof hyprlock || hyprlock"]);
+                        return;
+                    }
+                    GlobalStates.screenLocked = true;
+                }
             }
-            GlobalStates.screenLocked = true;
-        }
-    }
 
-    GlobalShortcut {
-        name: "lockFocus"
-        description: "Re-focuses the lock screen. This is because Hyprland after waking up for whatever reason"
-            + "decides to keyboard-unfocus the lock screen"
+            GlobalShortcut {
+                name: "lockFocus"
+                description: "Re-focuses the lock screen."
 
-        onPressed: {
-            lockContext.shouldReFocus();
+                onPressed: {
+                    lockContext.shouldReFocus();
+                }
+            }
         }
     }
 

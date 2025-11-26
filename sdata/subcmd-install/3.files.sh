@@ -208,60 +208,45 @@ v dedup_and_sort_listfile "${INSTALLED_LISTFILE}" "${INSTALLED_LISTFILE}"
 #####################################################################################
 echo -e "${STY_CYAN}Setting up environment variables...${STY_RST}"
 
-# Create POSIX shell profile snippet (bash, zsh, sh)
-II_ENV_FILE="${XDG_CONFIG_HOME}/ii-niri-env.sh"
-cat > "${II_ENV_FILE}" << 'ENVEOF'
+# Create systemd user environment file (Standard for Wayland sessions)
+# This avoids shell-specific issues and ensures variables are available to all apps
+ENVD_DIR="${XDG_CONFIG_HOME}/environment.d"
+ENVD_FILE="${ENVD_DIR}/60-ii-niri.conf"
+
+v mkdir -p "$ENVD_DIR"
+
+cat > "${ENVD_FILE}" << 'ENVEOF'
 # ii-niri environment variables
-export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv"
+ILLOGICAL_IMPULSE_VIRTUAL_ENV=${HOME}/.local/state/quickshell/.venv
 
 # Qt theming (optional)
-# export QT_STYLE_OVERRIDE=kvantum
-# export QT_QPA_PLATFORMTHEME=kde
+# QT_STYLE_OVERRIDE=kvantum
+# QT_QPA_PLATFORMTHEME=kde
 ENVEOF
 
-# Auto-add to bash
-if [[ -f "$HOME/.bashrc" ]]; then
-  if ! grep -q "ii-niri-env.sh" "$HOME/.bashrc" 2>/dev/null; then
-    echo "" >> "$HOME/.bashrc"
-    echo "# ii-niri environment" >> "$HOME/.bashrc"
-    echo "[ -f \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\" ] && source \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\"" >> "$HOME/.bashrc"
-    log_success "Bash environment configured"
-  fi
+log_success "Systemd environment configured (${ENVD_FILE})"
+
+# Cleanup legacy shell-specific files that caused crashes
+LEGACY_FISH="${XDG_CONFIG_HOME}/fish/conf.d/ii-niri-env.fish"
+LEGACY_SH="${XDG_CONFIG_HOME}/ii-niri-env.sh"
+
+if [[ -f "$LEGACY_FISH" ]]; then
+  rm -f "$LEGACY_FISH"
+  log_success "Removed legacy fish config"
 fi
 
-# Auto-add to zsh
-if [[ -f "$HOME/.zshrc" ]]; then
-  if ! grep -q "ii-niri-env.sh" "$HOME/.zshrc" 2>/dev/null; then
-    echo "" >> "$HOME/.zshrc"
-    echo "# ii-niri environment" >> "$HOME/.zshrc"
-    echo "[ -f \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\" ] && source \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\"" >> "$HOME/.zshrc"
-    log_success "Zsh environment configured"
-  fi
+if [[ -f "$LEGACY_SH" ]]; then
+  rm -f "$LEGACY_SH"
+  # We don't remove lines from .bashrc/.zshrc automatically to avoid risk, 
+  # but the file they source is gone, so it will just fail silently/harmlessly or we can warn.
+  log_success "Removed legacy sh config"
 fi
 
-# Fish config (different syntax)
-if [[ -d "${XDG_CONFIG_HOME}/fish" ]] || command -v fish &>/dev/null; then
-  FISH_CONF="${XDG_CONFIG_HOME}/fish/conf.d/ii-niri-env.fish"
-  mkdir -p "$(dirname "$FISH_CONF")"
-  cat > "${FISH_CONF}" << 'FISHEOF'
-# ii-niri environment variables
-set -gx ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
-
-# Qt theming (optional)
-# set -gx QT_STYLE_OVERRIDE kvantum
-# set -gx QT_QPA_PLATFORMTHEME kde
-FISHEOF
-  log_success "Fish environment configured"
+# Try to apply environment immediately to current session if possible
+if command -v systemctl >/dev/null 2>&1; then
+    # Export to systemd --user
+    systemctl --user import-environment ILLOGICAL_IMPULSE_VIRTUAL_ENV
 fi
-
-# Clean up old global environment (prevent compositor crashes)
-ENVD_FILE="${XDG_CONFIG_HOME}/environment.d/ii-niri.conf"
-if [[ -f "$ENVD_FILE" ]]; then
-  echo -e "${STY_YELLOW}Removing legacy environment file: $ENVD_FILE${STY_RST}"
-  rm -f "$ENVD_FILE"
-fi
-
-log_success "Environment variables configured"
 
 #####################################################################################
 # Set default wallpaper and generate initial theme

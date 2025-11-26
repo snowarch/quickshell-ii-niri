@@ -306,67 +306,66 @@ Scope {
         }
     }
 
-    GlobalShortcut {
-        name: "overviewToggle"
-        description: "Toggles overview on press"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "overviewToggle"
+                description: "Toggles overview on press"
 
-        onPressed: {
-            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-        }
-    }
-    GlobalShortcut {
-        name: "overviewClose"
-        description: "Closes overview"
-
-        onPressed: {
-            GlobalStates.overviewOpen = false;
-        }
-    }
-    GlobalShortcut {
-        name: "overviewToggleRelease"
-        description: "Toggles overview on release"
-
-        onPressed: {
-            if (!CompositorService.isHyprland)
-                return;
-            GlobalStates.superReleaseMightTrigger = true;
-        }
-
-        onReleased: {
-            if (!CompositorService.isHyprland)
-                return;
-            if (!GlobalStates.superReleaseMightTrigger) {
-                GlobalStates.superReleaseMightTrigger = true;
-                return;
+                onPressed: {
+                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                }
             }
-            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-        }
-    }
-    GlobalShortcut {
-        name: "overviewToggleReleaseInterrupt"
-        description: "Interrupts possibility of overview being toggled on release. " + "This is necessary because GlobalShortcut.onReleased in quickshell triggers whether or not you press something else while holding the key. " + "To make sure this works consistently, use binditn = MODKEYS, catchall in an automatically triggered submap that includes everything."
+            GlobalShortcut {
+                name: "overviewClose"
+                description: "Closes overview"
 
-        onPressed: {
-            if (!CompositorService.isHyprland)
-                return;
-            GlobalStates.superReleaseMightTrigger = false;
-        }
-    }
-    GlobalShortcut {
-        name: "overviewClipboardToggle"
-        description: "Toggle clipboard query on overview widget"
+                onPressed: {
+                    GlobalStates.overviewOpen = false;
+                }
+            }
+            GlobalShortcut {
+                name: "overviewToggleRelease"
+                description: "Toggles overview on release"
 
-        onPressed: {
-            overviewScope.toggleClipboard();
-        }
-    }
+                onPressed: {
+                    GlobalStates.superReleaseMightTrigger = true;
+                }
 
-    GlobalShortcut {
-        name: "overviewEmojiToggle"
-        description: "Toggle emoji query on overview widget"
+                onReleased: {
+                    if (!GlobalStates.superReleaseMightTrigger) {
+                        GlobalStates.superReleaseMightTrigger = true;
+                        return;
+                    }
+                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+                }
+            }
+            GlobalShortcut {
+                name: "overviewToggleReleaseInterrupt"
+                description: "Interrupts possibility of overview being toggled on release."
 
-        onPressed: {
-            overviewScope.toggleEmojis();
+                onPressed: {
+                    GlobalStates.superReleaseMightTrigger = false;
+                }
+            }
+            GlobalShortcut {
+                name: "overviewClipboardToggle"
+                description: "Toggle clipboard query on overview widget"
+
+                onPressed: {
+                    overviewScope.toggleClipboard();
+                }
+            }
+
+            GlobalShortcut {
+                name: "overviewEmojiToggle"
+                description: "Toggle emoji query on overview widget"
+
+                onPressed: {
+                    overviewScope.toggleEmojis();
+                }
+            }
         }
     }
 }
