@@ -12,6 +12,7 @@ source ./sdata/lib/functions.sh
 source ./sdata/lib/package-installers.sh
 source ./sdata/lib/dist-determine.sh
 source ./sdata/lib/tui.sh
+source ./sdata/lib/conflicts.sh
 
 prevent_sudo_or_root
 set -e
@@ -100,6 +101,9 @@ case ${SUBCMD_NAME} in
     
     # Greeting
     source ${SUBCMD_DIR}/0.greeting.sh
+    
+    # Check for conflicts
+    check_conflicts
     
     # 1. Dependencies
     if [[ "${SKIP_ALLDEPS}" != true ]]; then

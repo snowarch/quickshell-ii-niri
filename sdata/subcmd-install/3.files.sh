@@ -232,6 +232,47 @@ do
     fi
 done
 
+# Clean up legacy lines in shell rc files
+if [[ -f "$HOME/.bashrc" ]]; then
+    if grep -q "ii-niri-env.sh" "$HOME/.bashrc"; then
+        sed -i '/ii-niri-env.sh/d' "$HOME/.bashrc"
+        log_success "Cleaned up .bashrc"
+    fi
+fi
+if [[ -f "$HOME/.zshrc" ]]; then
+    if grep -q "ii-niri-env.sh" "$HOME/.zshrc"; then
+        sed -i '/ii-niri-env.sh/d' "$HOME/.zshrc"
+        log_success "Cleaned up .zshrc"
+    fi
+fi
+
+# Fix Qt Icons (Apply GTK icon theme to KDE/Qt globals)
+# This ensures Qt apps use the same icons as GTK apps
+GTK_SETTINGS="${XDG_CONFIG_HOME}/gtk-3.0/settings.ini"
+KDE_GLOBALS="${XDG_CONFIG_HOME}/kdeglobals"
+
+if [[ -f "$GTK_SETTINGS" ]]; then
+    ICON_THEME=$(grep "gtk-icon-theme-name" "$GTK_SETTINGS" | cut -d= -f2 | xargs)
+    if [[ -n "$ICON_THEME" ]]; then
+        echo -e "${STY_CYAN}Applying icon theme '$ICON_THEME' to Qt/KDE...${STY_RST}"
+        
+        # Ensure [Icons] section exists
+        if ! grep -q "\[Icons\]" "$KDE_GLOBALS" 2>/dev/null; then
+            mkdir -p "$(dirname "$KDE_GLOBALS")"
+            echo -e "\n[Icons]" >> "$KDE_GLOBALS"
+        fi
+        
+        # Update or add Theme key
+        if grep -q "Theme=" "$KDE_GLOBALS"; then
+            sed -i "s/^Theme=.*/Theme=$ICON_THEME/" "$KDE_GLOBALS"
+        else
+            # Insert after [Icons]
+            sed -i "/\[Icons\]/a Theme=$ICON_THEME" "$KDE_GLOBALS"
+        fi
+        log_success "Qt icon theme configured"
+    fi
+fi
+
 #####################################################################################
 # Set default wallpaper and generate initial theme
 #####################################################################################

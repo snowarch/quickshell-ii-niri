@@ -308,6 +308,7 @@ Item {
                                 id: workspaceWallpaperSource
                                 anchors.fill: parent
                                 source: root.wallpaperPath
+                                asynchronous: true
                                 fillMode: Image.PreserveAspectCrop
                                 visible: false
                             }
@@ -613,6 +614,7 @@ Item {
                             }
                             height: width
                             source: Quickshell.iconPath(AppSearch.guessIcon(windowData.app_id || windowData.appId || ""), "image-missing")
+                            asynchronous: true
                             fillMode: Image.PreserveAspectFit
                             scale: windowItem.hovered ? 1.08 : 1.0
                             Behavior on scale {
@@ -737,6 +739,7 @@ Item {
                         id: contextWallpaperSource
                         anchors.fill: parent
                         source: root.wallpaperPath
+                        asynchronous: true
                         fillMode: Image.PreserveAspectCrop
                         visible: false
                     }

@@ -1,0 +1,81 @@
+# Conflict detection for ii-niri
+# Checks for packages that might conflict with Quickshell's functionality
+
+check_conflicts() {
+    echo -e "${STY_CYAN}Checking for conflicting packages...${STY_RST}"
+    
+    local conflicts=()
+    local package_manager=""
+    
+    if command -v pacman &>/dev/null; then
+        package_manager="pacman"
+    elif command -v rpm &>/dev/null; then
+        package_manager="rpm"
+    elif command -v dpkg &>/dev/null; then
+        package_manager="dpkg"
+    fi
+    
+    # Define conflict groups
+    declare -A conflict_map
+    
+    # Notifications (Quickshell has built-in notifications)
+    conflict_map["dunst"]="Notification Daemon"
+    conflict_map["mako"]="Notification Daemon"
+    conflict_map["swaync"]="Notification Daemon"
+    
+    # Bars/Shells (Quickshell provides the bar/shell)
+    conflict_map["waybar"]="Status Bar"
+    conflict_map["ironbar"]="Status Bar"
+    conflict_map["eww"]="Widget System"
+    conflict_map["ags"]="Shell System"
+    
+    # Wallpaper (Quickshell handles wallpaper)
+    conflict_map["hyprpaper"]="Wallpaper Daemon"
+    conflict_map["swww"]="Wallpaper Daemon"
+    conflict_map["mpvpaper"]="Wallpaper Daemon"
+    conflict_map["wpaperd"]="Wallpaper Daemon"
+    
+    # Check for installed conflicts
+    for pkg in "${!conflict_map[@]}"; do
+        local installed=false
+        case $package_manager in
+            pacman)
+                if pacman -Qi "$pkg" &>/dev/null; then installed=true; fi
+                ;;
+            rpm)
+                if rpm -q "$pkg" &>/dev/null; then installed=true; fi
+                ;;
+            dpkg)
+                if dpkg -s "$pkg" &>/dev/null; then installed=true; fi
+                ;;
+            *)
+                # Fallback: check if binary exists in path
+                if command -v "$pkg" &>/dev/null; then installed=true; fi
+                ;;
+        esac
+        
+        if $installed; then
+            conflicts+=("$pkg (${conflict_map[$pkg]})")
+        fi
+    done
+    
+    if [ ${#conflicts[@]} -gt 0 ]; then
+        echo -e "${STY_YELLOW}Found potential conflicting packages:${STY_RST}"
+        for c in "${conflicts[@]}"; do
+            echo -e "  ${STY_RED}⚠${STY_RST} $c"
+        done
+        echo ""
+        echo -e "${STY_BOLD}Quickshell provides these functionalities natively.${STY_RST}"
+        echo -e "Running them simultaneously might cause visual glitches or double notifications."
+        echo -e "It is recommended to uninstall or disable them."
+        echo ""
+        
+        if [[ "$ask" == "true" ]]; then
+            read -p "Press Enter to continue installation (or Ctrl+C to abort and remove them manually)..."
+        else
+            echo "Continuing in non-interactive mode..."
+        fi
+    else
+        log_success "No conflicting packages found."
+    fi
+}
