@@ -18,6 +18,7 @@ Item {
 
     implicitWidth: Appearance.sizes.osdWidth + 2 * Appearance.sizes.elevationMargin
     implicitHeight: valueIndicator.implicitHeight + 2 * Appearance.sizes.elevationMargin
+    clip: true
 
     StyledRectangularShadow {
         target: valueIndicator

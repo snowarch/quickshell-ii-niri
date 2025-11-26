@@ -213,9 +213,9 @@ cat > "${II_ENV_FILE}" << 'ENVEOF'
 # ii-niri environment variables
 export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv"
 
-# Qt theming - use Kvantum for consistent look with KDE apps
-export QT_STYLE_OVERRIDE=kvantum
-export QT_QPA_PLATFORMTHEME=kde
+# Qt theming (optional)
+# export QT_STYLE_OVERRIDE=kvantum
+# export QT_QPA_PLATFORMTHEME=kde
 ENVEOF
 
 # Auto-add to bash
@@ -246,24 +246,21 @@ if [[ -d "${XDG_CONFIG_HOME}/fish" ]] || command -v fish &>/dev/null; then
 # ii-niri environment variables
 set -gx ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
 
-# Qt theming
-set -gx QT_STYLE_OVERRIDE kvantum
-set -gx QT_QPA_PLATFORMTHEME kde
+# Qt theming (optional)
+# set -gx QT_STYLE_OVERRIDE kvantum
+# set -gx QT_QPA_PLATFORMTHEME kde
 FISHEOF
   log_success "Fish environment configured"
 fi
 
-# Also add to environment.d for systemd user sessions (affects all apps)
-ENVD_DIR="${XDG_CONFIG_HOME}/environment.d"
-mkdir -p "$ENVD_DIR"
-cat > "${ENVD_DIR}/ii-niri.conf" << 'ENVDEOF'
-ILLOGICAL_IMPULSE_VIRTUAL_ENV=${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv
-QT_STYLE_OVERRIDE=kvantum
-QT_QPA_PLATFORMTHEME=kde
-ENVDEOF
-log_success "Systemd environment.d configured"
+# Clean up old global environment (prevent compositor crashes)
+ENVD_FILE="${XDG_CONFIG_HOME}/environment.d/ii-niri.conf"
+if [[ -f "$ENVD_FILE" ]]; then
+  echo -e "${STY_YELLOW}Removing legacy environment file: $ENVD_FILE${STY_RST}"
+  rm -f "$ENVD_FILE"
+fi
 
-log_success "Environment variables configured for all shells"
+log_success "Environment variables configured"
 
 #####################################################################################
 # Set default wallpaper and generate initial theme
