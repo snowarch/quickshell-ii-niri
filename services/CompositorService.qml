@@ -42,13 +42,20 @@ Singleton {
         }
     }
 
+    Timer {
+        id: sortTimer
+        interval: 100 // Limit updates to 10 FPS to prevent lag spikes
+        repeat: false
+        onTriggered: {
+            _sortScheduled = false
+            sortedToplevelsCache = computeSortedToplevels()
+        }
+    }
+
     function scheduleSort() {
         if (_sortScheduled) return
         _sortScheduled = true
-        Qt.callLater(function() {
-            _sortScheduled = false
-            sortedToplevelsCache = computeSortedToplevels()
-        })
+        sortTimer.restart()
     }
 
     function scheduleRefresh() {
