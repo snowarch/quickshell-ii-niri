@@ -164,6 +164,9 @@ environment {
     ELECTRON_OZONE_PLATFORM_HINT "auto"
     QT_QPA_PLATFORMTHEME "gtk3"
     QT_QPA_PLATFORMTHEME_QT6 "gtk3"
+    
+    // Quickshell Python virtual environment
+    ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
 }
 
 // ============================================================================

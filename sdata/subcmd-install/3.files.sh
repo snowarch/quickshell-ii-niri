@@ -204,47 +204,33 @@ v gen_firstrun
 v dedup_and_sort_listfile "${INSTALLED_LISTFILE}" "${INSTALLED_LISTFILE}"
 
 #####################################################################################
-# Setup environment variables for all shells
+# Environment variables are configured in Niri
 #####################################################################################
-echo -e "${STY_CYAN}Setting up environment variables...${STY_RST}"
+echo -e "${STY_CYAN}Configuring environment variables...${STY_RST}"
 
-# Create POSIX shell profile snippet (bash, zsh, sh)
-# Note: We avoid using Fish conf.d as it can cause shell startup issues
-II_ENV_FILE="${XDG_CONFIG_HOME}/ii-niri-env.sh"
-cat > "${II_ENV_FILE}" << 'ENVEOF'
-# ii-niri environment variables
-export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/.venv"
+# Note: ILLOGICAL_IMPULSE_VIRTUAL_ENV is set in ~/.config/niri/config.kdl
+# in the environment {} block. This is the proper way for Niri/Wayland compositors.
+# The Niri config has been installed with this variable already set.
 
-# Qt theming (optional)
-# export QT_STYLE_OVERRIDE=kvantum
-# export QT_QPA_PLATFORMTHEME=kde
-ENVEOF
-
-# Auto-add to bash
-if [[ -f "$HOME/.bashrc" ]]; then
-  if ! grep -q "ii-niri-env.sh" "$HOME/.bashrc" 2>/dev/null; then
-    echo "" >> "$HOME/.bashrc"
-    echo "# ii-niri environment" >> "$HOME/.bashrc"
-    echo "[ -f \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\" ] && source \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\"" >> "$HOME/.bashrc"
-    log_success "Bash environment configured"
-  fi
+# Verify the variable will be available after Niri restart
+if grep -q "ILLOGICAL_IMPULSE_VIRTUAL_ENV" "${XDG_CONFIG_HOME}/niri/config.kdl" 2>/dev/null; then
+    log_success "Environment variable configured in Niri config"
+else
+    echo -e "${STY_YELLOW}Warning: ILLOGICAL_IMPULSE_VIRTUAL_ENV not found in Niri config${STY_RST}"
+    echo -e "${STY_YELLOW}Quickshell may not work correctly until you add it to ~/.config/niri/config.kdl${STY_RST}"
 fi
 
-# Auto-add to zsh
-if [[ -f "$HOME/.zshrc" ]]; then
-  if ! grep -q "ii-niri-env.sh" "$HOME/.zshrc" 2>/dev/null; then
-    echo "" >> "$HOME/.zshrc"
-    echo "# ii-niri environment" >> "$HOME/.zshrc"
-    echo "[ -f \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\" ] && source \"\${XDG_CONFIG_HOME:-\$HOME/.config}/ii-niri-env.sh\"" >> "$HOME/.zshrc"
-    log_success "Zsh environment configured"
-  fi
-fi
-
-# Note: Fish config.d is intentionally skipped to avoid shell startup freezes
-# Users can manually add to their fish config if needed:
-# set -gx ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
-
-log_success "Environment variables configured"
+# Clean up legacy shell-specific files from previous versions
+for legacy_file in \
+    "${XDG_CONFIG_HOME}/fish/conf.d/ii-niri-env.fish" \
+    "${XDG_CONFIG_HOME}/ii-niri-env.sh" \
+    "${XDG_CONFIG_HOME}/environment.d/60-ii-niri.conf"
+do
+    if [[ -f "$legacy_file" ]]; then
+        rm -f "$legacy_file"
+        log_success "Removed legacy config: $(basename $legacy_file)"
+    fi
+done
 
 #####################################################################################
 # Set default wallpaper and generate initial theme
