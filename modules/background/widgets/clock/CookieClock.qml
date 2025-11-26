@@ -81,6 +81,12 @@ Item {
         onLoaded: {
             root.setClockPreset(categoryFileView.text().trim())
         }
+        onLoadFailed: (error) => {
+            // If the category file doesn't exist yet, keep defaults without spamming logs
+            if (error === FileViewError.FileNotFound) {
+                return;
+            }
+        }
     }
 
     property bool useSineCookie: Config.options.background.widgets.clock.cookie.useSineCookie

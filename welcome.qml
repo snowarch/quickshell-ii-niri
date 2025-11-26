@@ -178,14 +178,14 @@ ApplicationWindow {
                         columnSpacing: 24
                         rowSpacing: 6
 
-                        ShortcutRow { keys: ["Super"]; desc: Translation.tr("Overview (tap)") }
-                        ShortcutRow { keys: ["Alt", "Tab"]; desc: Translation.tr("Switch windows") }
+                        ShortcutRow { keys: ["Mod", "Space"]; desc: Translation.tr("ii overview (daemon)") }
+                        ShortcutRow { keys: ["Mod", "Tab"]; desc: Translation.tr("Niri overview (native)") }
+                        ShortcutRow { keys: ["Alt", "Tab"]; desc: Translation.tr("ii window switcher") }
                         ShortcutRow { keys: ["Super", "G"]; desc: Translation.tr("ii overlay") }
                         ShortcutRow { keys: ["Mod", "V"]; desc: Translation.tr("Clipboard manager") }
                         ShortcutRow { keys: ["Mod", "Q"]; desc: Translation.tr("Close window") }
                         ShortcutRow { keys: ["Ctrl", "Alt", "T"]; desc: Translation.tr("Wallpaper selector") }
                         ShortcutRow { keys: ["Mod", "Alt", "L"]; desc: Translation.tr("Lock screen") }
-                        ShortcutRow { keys: ["Mod", "Tab"]; desc: Translation.tr("Niri overview") }
                     }
                 }
 

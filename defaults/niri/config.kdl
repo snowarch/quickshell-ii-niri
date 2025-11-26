@@ -193,6 +193,9 @@ binds {
     
     // ii Overlay
     Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
+
+    // ii Overview (daemon)
+    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }
     
     // ii Clipboard
     Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }

@@ -5,6 +5,7 @@ import Quickshell
 import qs
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import qs.modules.ii.overlay
 
 StyledOverlayWidget {
@@ -83,7 +84,7 @@ StyledOverlayWidget {
                     }
                     StyledText {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Translation.tr("Open recordings folder")
+                        text: "Open recordings folder"
                     }
                 }
             }

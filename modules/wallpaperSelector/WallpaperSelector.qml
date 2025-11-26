@@ -78,20 +78,24 @@ Scope {
             Wallpapers.randomFromCurrentFolder();
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "wallpaperSelectorToggle"
+                description: "Toggle wallpaper selector"
+                onPressed: {
+                    root.toggleWallpaperSelector();
+                }
+            }
 
-    GlobalShortcut {
-        name: "wallpaperSelectorToggle"
-        description: "Toggle wallpaper selector"
-        onPressed: {
-            root.toggleWallpaperSelector();
-        }
-    }
-
-    GlobalShortcut {
-        name: "wallpaperSelectorRandom"
-        description: "Select random wallpaper in current folder"
-        onPressed: {
-            Wallpapers.randomFromCurrentFolder();
+            GlobalShortcut {
+                name: "wallpaperSelectorRandom"
+                description: "Select random wallpaper in current folder"
+                onPressed: {
+                    Wallpapers.randomFromCurrentFolder();
+                }
+            }
         }
     }
 }

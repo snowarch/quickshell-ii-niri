@@ -144,9 +144,15 @@ v setup_systemd_services
 showfun setup_desktop_settings
 v setup_desktop_settings
 
-# Super-tap daemon
-showfun setup_super_daemon
-v setup_super_daemon
+# Super-tap daemon (legacy - optional)
+# Disabled by default in favor of Mod+Space ii overview.
+# To install anyway, set II_ENABLE_SUPER_DAEMON=1 in the environment.
+if [[ "${II_ENABLE_SUPER_DAEMON:-0}" == "1" ]]; then
+  showfun setup_super_daemon
+  v setup_super_daemon
+else
+  log_warning "Skipping legacy Super-tap daemon; use Mod+Space for ii overview. Set II_ENABLE_SUPER_DAEMON=1 to install."
+fi
 
 # Python packages (in venv)
 showfun install-python-packages

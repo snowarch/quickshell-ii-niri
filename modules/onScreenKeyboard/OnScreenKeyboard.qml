@@ -67,9 +67,20 @@ Scope { // Scope
                 anchors.centerIn: parent
                 color: Appearance.colors.colLayer0
                 radius: Appearance.rounding.windowRounding
+                transformOrigin: Item.Bottom
+                property real initScale: 0.98
+                scale: initScale
                 property real padding: 10
                 implicitWidth: oskRowLayout.implicitWidth + padding * 2
                 implicitHeight: oskRowLayout.implicitHeight + padding * 2
+
+                Component.onCompleted: {
+                    initScale = 1.0
+                }
+
+                Behavior on scale {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                }
 
                 Keys.onPressed: (event) => { // Esc to close
                     if (event.key === Qt.Key_Escape) {
@@ -135,31 +146,35 @@ Scope { // Scope
             GlobalStates.oskOpen = true
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "oskToggle"
+                description: "Toggles on screen keyboard on press"
 
-    GlobalShortcut {
-        name: "oskToggle"
-        description: "Toggles on screen keyboard on press"
+                onPressed: {
+                    GlobalStates.oskOpen = !GlobalStates.oskOpen;
+                }
+            }
 
-        onPressed: {
-            GlobalStates.oskOpen = !GlobalStates.oskOpen;
-        }
-    }
+            GlobalShortcut {
+                name: "oskOpen"
+                description: "Opens on screen keyboard on press"
 
-    GlobalShortcut {
-        name: "oskOpen"
-        description: "Opens on screen keyboard on press"
+                onPressed: {
+                    GlobalStates.oskOpen = true
+                }
+            }
 
-        onPressed: {
-            GlobalStates.oskOpen = true
-        }
-    }
+            GlobalShortcut {
+                name: "oskClose"
+                description: "Closes on screen keyboard on press"
 
-    GlobalShortcut {
-        name: "oskClose"
-        description: "Closes on screen keyboard on press"
-
-        onPressed: {
-            GlobalStates.oskOpen = false
+                onPressed: {
+                    GlobalStates.oskOpen = false
+                }
+            }
         }
     }
 

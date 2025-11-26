@@ -83,12 +83,17 @@ Scope {
         }
     }
 
-    GlobalShortcut {
-        name: "overlayToggle"
-        description: "Toggles overlay on press"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "overlayToggle"
+                description: "Toggles overlay on press"
 
-        onPressed: {
-            GlobalStates.overlayOpen = !GlobalStates.overlayOpen;
+                onPressed: {
+                    GlobalStates.overlayOpen = !GlobalStates.overlayOpen;
+                }
+            }
         }
     }
 }

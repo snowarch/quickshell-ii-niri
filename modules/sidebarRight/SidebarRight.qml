@@ -109,29 +109,33 @@ Scope {
             GlobalStates.sidebarRightOpen = true;
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "sidebarRightToggle"
+                description: "Toggles right sidebar on press"
 
-    GlobalShortcut {
-        name: "sidebarRightToggle"
-        description: "Toggles right sidebar on press"
+                onPressed: {
+                    GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+                }
+            }
+            GlobalShortcut {
+                name: "sidebarRightOpen"
+                description: "Opens right sidebar on press"
 
-        onPressed: {
-            GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
-        }
-    }
-    GlobalShortcut {
-        name: "sidebarRightOpen"
-        description: "Opens right sidebar on press"
+                onPressed: {
+                    GlobalStates.sidebarRightOpen = true;
+                }
+            }
+            GlobalShortcut {
+                name: "sidebarRightClose"
+                description: "Closes right sidebar on press"
 
-        onPressed: {
-            GlobalStates.sidebarRightOpen = true;
-        }
-    }
-    GlobalShortcut {
-        name: "sidebarRightClose"
-        description: "Closes right sidebar on press"
-
-        onPressed: {
-            GlobalStates.sidebarRightOpen = false;
+                onPressed: {
+                    GlobalStates.sidebarRightOpen = false;
+                }
+            }
         }
     }
 

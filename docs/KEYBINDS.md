@@ -8,7 +8,8 @@ These are the default keybinds shipped in `dots/.config/niri/config.kdl`. Custom
 
 | Key | Action |
 |-----|--------|
-| `Super+Tab` | Niri overview (native) |
+| `Super+Tab` | Niri overview (native compositor) |
+| `Mod+Space` (`Super+Space`) | ii overview (daemon) |
 | `Super+G` | ii overlay (search, widgets) |
 | `Alt+Tab` | ii window switcher (next) |
 | `Alt+Shift+Tab` | ii window switcher (previous) |

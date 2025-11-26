@@ -61,9 +61,11 @@ These come configured by default:
 
 | Key | What it does |
 |-----|--------------|
-| `Alt+Tab` | Window switcher |
+| `Mod+Tab` | Niri overview (native) |
+| `Mod+Space` (`Super+Space`) | ii overview (daemon) |
+| `Alt+Tab` | ii window switcher |
+| `Super+G` | ii overlay (search, widgets) |
 | `Super+V` | Clipboard history |
-| `Super+G` | Overlay (search, widgets) |
 | `Super+Shift+S` | Region screenshot |
 | `Super+Shift+X` | Region OCR |
 | `Ctrl+Alt+T` | Wallpaper picker |
@@ -119,6 +121,6 @@ If you want something stable and polished, check out end-4's original ii for Hyp
 
 ## Credits
 
-- [**end-4**](https://github.com/end-4/dots-hyprland) – illogical-impulse for Hyprland
+- [**end-4 – illogical-impulse for Hyprland**](https://github.com/end-4/dots-hyprland)
 - [**Quickshell**](https://quickshell.outfoxxed.me/) – the framework that makes this possible
 - [**Niri**](https://github.com/YaLTeR/niri) – the compositor that doesn't crash

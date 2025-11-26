@@ -236,29 +236,33 @@ Scope {
             Notifications.timeoutAll();
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "mediaControlsToggle"
+                description: "Toggles media controls on press"
 
-    GlobalShortcut {
-        name: "mediaControlsToggle"
-        description: "Toggles media controls on press"
+                onPressed: {
+                    GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
+                }
+            }
+            GlobalShortcut {
+                name: "mediaControlsOpen"
+                description: "Opens media controls on press"
 
-        onPressed: {
-            GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
-        }
-    }
-    GlobalShortcut {
-        name: "mediaControlsOpen"
-        description: "Opens media controls on press"
+                onPressed: {
+                    GlobalStates.mediaControlsOpen = true;
+                }
+            }
+            GlobalShortcut {
+                name: "mediaControlsClose"
+                description: "Closes media controls on press"
 
-        onPressed: {
-            GlobalStates.mediaControlsOpen = true;
-        }
-    }
-    GlobalShortcut {
-        name: "mediaControlsClose"
-        description: "Closes media controls on press"
-
-        onPressed: {
-            GlobalStates.mediaControlsOpen = false;
+                onPressed: {
+                    GlobalStates.mediaControlsOpen = false;
+                }
+            }
         }
     }
 }

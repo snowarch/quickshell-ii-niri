@@ -38,7 +38,11 @@ AUR packages are installed via yay or paru (auto-detected).
 
 - Adds user to `input` group (for ydotool)
 - Enables `ydotool` systemd service
-- Sets up Super-tap daemon (optional)
+- Optional legacy Super-tap daemon (tap Super to toggle ii overview, **not recommended** on Niri). Disabled by default; enable it explicitly with:
+
+  ```bash
+  II_ENABLE_SUPER_DAEMON=1 ./setup install-setups
+  ```
 
 ### 3. Config Files (`install-files`)
 

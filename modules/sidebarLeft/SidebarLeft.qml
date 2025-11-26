@@ -185,40 +185,44 @@ Scope { // Scope
             GlobalStates.sidebarLeftOpen = true
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "sidebarLeftToggle"
+                description: "Toggles left sidebar on press"
 
-    GlobalShortcut {
-        name: "sidebarLeftToggle"
-        description: "Toggles left sidebar on press"
+                onPressed: {
+                    GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
+                }
+            }
 
-        onPressed: {
-            GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
-        }
-    }
+            GlobalShortcut {
+                name: "sidebarLeftOpen"
+                description: "Opens left sidebar on press"
 
-    GlobalShortcut {
-        name: "sidebarLeftOpen"
-        description: "Opens left sidebar on press"
+                onPressed: {
+                    GlobalStates.sidebarLeftOpen = true;
+                }
+            }
 
-        onPressed: {
-            GlobalStates.sidebarLeftOpen = true;
-        }
-    }
+            GlobalShortcut {
+                name: "sidebarLeftClose"
+                description: "Closes left sidebar on press"
 
-    GlobalShortcut {
-        name: "sidebarLeftClose"
-        description: "Closes left sidebar on press"
+                onPressed: {
+                    GlobalStates.sidebarLeftOpen = false;
+                }
+            }
 
-        onPressed: {
-            GlobalStates.sidebarLeftOpen = false;
-        }
-    }
+            GlobalShortcut {
+                name: "sidebarLeftToggleDetach"
+                description: "Detach left sidebar into a window/Attach it back"
 
-    GlobalShortcut {
-        name: "sidebarLeftToggleDetach"
-        description: "Detach left sidebar into a window/Attach it back"
-
-        onPressed: {
-            root.detach = !root.detach;
+                onPressed: {
+                    root.detach = !root.detach;
+                }
+            }
         }
     }
 

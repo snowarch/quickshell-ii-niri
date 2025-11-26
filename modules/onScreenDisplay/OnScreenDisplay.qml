@@ -205,20 +205,26 @@ Scope {
             GlobalStates.osdVolumeOpen = !GlobalStates.osdVolumeOpen;
         }
     }
-    GlobalShortcut {
-        name: "osdVolumeTrigger"
-        description: "Triggers volume OSD on press"
 
-        onPressed: {
-            root.triggerOsd();
-        }
-    }
-    GlobalShortcut {
-        name: "osdVolumeHide"
-        description: "Hides volume OSD on press"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "osdVolumeTrigger"
+                description: "Triggers volume OSD on press"
 
-        onPressed: {
-            GlobalStates.osdVolumeOpen = false;
+                onPressed: {
+                    root.triggerOsd();
+                }
+            }
+            GlobalShortcut {
+                name: "osdVolumeHide"
+                description: "Hides volume OSD on press"
+
+                onPressed: {
+                    GlobalStates.osdVolumeOpen = false;
+                }
+            }
         }
     }
 }

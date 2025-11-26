@@ -11,6 +11,8 @@ Singleton {
     id: root
     // property string cliphistBinary: FileUtils.trimFileProtocol(`${Directories.home}/.cargo/bin/stash`)
     property string cliphistBinary: "cliphist"
+    // Limit how many entries we keep/read to avoid huge models and heavy fuzzy search
+    property int maxEntries: 400
     property real pasteDelay: 0.05
     property string pressPasteCommand: "ydotool key -d 1 29:1 47:1 47:0 29:0"
     property bool sloppySearch: Config.options?.search.sloppy ?? false
@@ -22,10 +24,10 @@ Singleton {
     }))
     function fuzzyQuery(search: string): var {
         if (search.trim() === "") {
-            return entries;
+            return entries.slice(0, root.maxEntries);
         }
         if (root.sloppySearch) {
-            const results = entries.slice(0, 100).map(str => ({
+            const results = entries.slice(0, Math.min(100, root.maxEntries)).map(str => ({
                 entry: str,
                 score: Levendist.computeTextMatchScore(str.toLowerCase(), search.toLowerCase())
             })).filter(item => item.score > root.scoreThreshold)
@@ -141,7 +143,8 @@ Singleton {
 
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 0) {
-                root.entries = readProc.buffer
+                // Cap the number of entries we keep to avoid heavy models
+                root.entries = readProc.buffer.slice(0, root.maxEntries)
             } else {
                 console.error("[Cliphist] Failed to refresh with code", exitCode, "and status", exitStatus)
             }

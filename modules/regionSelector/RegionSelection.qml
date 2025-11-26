@@ -148,7 +148,7 @@ PanelWindow {
     property bool enableLayerRegions: Config.options.regionSelector.targetRegions.layers && !isCircleSelection
     property bool enableContentRegions: Config.options.regionSelector.targetRegions.content
     property real targetRegionOpacity: Config.options.regionSelector.targetRegions.opacity
-    property bool contentRegionOpacity: Config.options.regionSelector.targetRegions.contentRegionOpacity
+    property real contentRegionOpacity: Config.options.regionSelector.targetRegions.contentRegionOpacity
 
     property real targetedRegionX: -1
     property real targetedRegionY: -1
@@ -166,10 +166,21 @@ PanelWindow {
     }
 
     function updateTargetedRegion(x, y) {
+        function regionContainsPoint(region) {
+            if (!region || !region.at || !region.size)
+                return false;
+            if (region.at.length < 2 || region.size.length < 2)
+                return false;
+
+            const rx = region.at[0];
+            const ry = region.at[1];
+            const rw = region.size[0];
+            const rh = region.size[1];
+            return rx <= x && x <= rx + rw && ry <= y && y <= ry + rh;
+        }
+
         // Image regions
-        const clickedRegion = root.imageRegions.find(region => {
-            return region.at[0] <= x && x <= region.at[0] + region.size[0] && region.at[1] <= y && y <= region.at[1] + region.size[1];
-        });
+        const clickedRegion = root.imageRegions.find(region => regionContainsPoint(region));
         if (clickedRegion) {
             root.targetedRegionX = clickedRegion.at[0];
             root.targetedRegionY = clickedRegion.at[1];
@@ -179,9 +190,7 @@ PanelWindow {
         }
 
         // Layer regions
-        const clickedLayer = root.layerRegions.find(region => {
-            return region.at[0] <= x && x <= region.at[0] + region.size[0] && region.at[1] <= y && y <= region.at[1] + region.size[1];
-        });
+        const clickedLayer = root.layerRegions.find(region => regionContainsPoint(region));
         if (clickedLayer) {
             root.targetedRegionX = clickedLayer.at[0];
             root.targetedRegionY = clickedLayer.at[1];
@@ -191,9 +200,7 @@ PanelWindow {
         }
 
         // Window regions
-        const clickedWindow = root.windowRegions.find(region => {
-            return region.at[0] <= x && x <= region.at[0] + region.size[0] && region.at[1] <= y && y <= region.at[1] + region.size[1];
-        });
+        const clickedWindow = root.windowRegions.find(region => regionContainsPoint(region));
         if (clickedWindow) {
             root.targetedRegionX = clickedWindow.at[0];
             root.targetedRegionY = clickedWindow.at[1];
@@ -206,6 +213,18 @@ PanelWindow {
         root.targetedRegionY = -1;
         root.targetedRegionWidth = 0;
         root.targetedRegionHeight = 0;
+    }
+
+    function regionMatchesTarget(region) {
+        if (!region || !region.at || !region.size)
+            return false;
+        if (region.at.length < 2 || region.size.length < 2)
+            return false;
+
+        return root.targetedRegionX === region.at[0]
+            && root.targetedRegionY === region.at[1]
+            && root.targetedRegionWidth === region.size[0]
+            && root.targetedRegionHeight === region.size[1];
     }
 
     property real regionWidth: Math.abs(draggingX - dragStartX)
@@ -432,11 +451,7 @@ PanelWindow {
                     required property var modelData
                     clientDimensions: modelData
                     showIcon: true
-                    targeted: !root.draggedAway &&
-                        (root.targetedRegionX === modelData.at[0] 
-                        && root.targetedRegionY === modelData.at[1]
-                        && root.targetedRegionWidth === modelData.size[0]
-                        && root.targetedRegionHeight === modelData.size[1])
+                    targeted: !root.draggedAway && root.regionMatchesTarget(modelData)
 
                     opacity: root.draggedAway ? 0 : root.targetRegionOpacity
                     borderColor: root.windowBorderColor
@@ -455,11 +470,7 @@ PanelWindow {
                     z: 3
                     required property var modelData
                     clientDimensions: modelData
-                    targeted: !root.draggedAway &&
-                        (root.targetedRegionX === modelData.at[0] 
-                        && root.targetedRegionY === modelData.at[1]
-                        && root.targetedRegionWidth === modelData.size[0]
-                        && root.targetedRegionHeight === modelData.size[1])
+                    targeted: !root.draggedAway && root.regionMatchesTarget(modelData)
 
                     opacity: root.draggedAway ? 0 : root.targetRegionOpacity
                     borderColor: root.windowBorderColor
@@ -478,11 +489,7 @@ PanelWindow {
                     z: 4
                     required property var modelData
                     clientDimensions: modelData
-                    targeted: !root.draggedAway &&
-                        (root.targetedRegionX === modelData.at[0] 
-                        && root.targetedRegionY === modelData.at[1]
-                        && root.targetedRegionWidth === modelData.size[0]
-                        && root.targetedRegionHeight === modelData.size[1])
+                    targeted: !root.draggedAway && root.regionMatchesTarget(modelData)
 
                     opacity: root.draggedAway ? 0 : root.contentRegionOpacity
                     borderColor: root.imageBorderColor

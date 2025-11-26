@@ -46,12 +46,17 @@ Scope {
         }
     }
 
-    GlobalShortcut {
-        name: "crosshairToggle"
-        description: "Toggles crosshair on press"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "crosshairToggle"
+                description: "Toggles crosshair on press"
 
-        onPressed: {
-            GlobalStates.crosshairOpen = !GlobalStates.crosshairOpen;
+                onPressed: {
+                    GlobalStates.crosshairOpen = !GlobalStates.crosshairOpen;
+                }
+            }
         }
     }
 }

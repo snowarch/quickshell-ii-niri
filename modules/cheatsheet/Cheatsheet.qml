@@ -184,31 +184,35 @@ Scope { // Scope
             cheatsheetLoader.active = true;
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "cheatsheetToggle"
+                description: "Toggles cheatsheet on press"
 
-    GlobalShortcut {
-        name: "cheatsheetToggle"
-        description: "Toggles cheatsheet on press"
+                onPressed: {
+                    cheatsheetLoader.active = !cheatsheetLoader.active;
+                }
+            }
 
-        onPressed: {
-            cheatsheetLoader.active = !cheatsheetLoader.active;
-        }
-    }
+            GlobalShortcut {
+                name: "cheatsheetOpen"
+                description: "Opens cheatsheet on press"
 
-    GlobalShortcut {
-        name: "cheatsheetOpen"
-        description: "Opens cheatsheet on press"
+                onPressed: {
+                    cheatsheetLoader.active = true;
+                }
+            }
 
-        onPressed: {
-            cheatsheetLoader.active = true;
-        }
-    }
+            GlobalShortcut {
+                name: "cheatsheetClose"
+                description: "Closes cheatsheet on press"
 
-    GlobalShortcut {
-        name: "cheatsheetClose"
-        description: "Closes cheatsheet on press"
-
-        onPressed: {
-            cheatsheetLoader.active = false;
+                onPressed: {
+                    cheatsheetLoader.active = false;
+                }
+            }
         }
     }
 }

@@ -25,7 +25,7 @@ Toggle the workspace overview panel.
 | `toggle` | Open/close overview |
 
 ```kdl
-bind "Super+Tab" { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }
+bind "Mod+Space" { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }
 ```
 
 ---

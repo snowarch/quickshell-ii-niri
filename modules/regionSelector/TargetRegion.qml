@@ -10,6 +10,10 @@ Rectangle {
     id: root
     required property var clientDimensions
 
+    property bool hasValidGeometry: !!(clientDimensions
+        && clientDimensions.at && clientDimensions.size
+        && clientDimensions.at.length >= 2 && clientDimensions.size.length >= 2)
+
     property color colBackground: Qt.alpha("#88111111", 0.9)
     property color colForeground: "#ddffffff"
     property bool showLabel: Config.options.regionSelector.targetRegions.showLabel
@@ -25,14 +29,14 @@ Rectangle {
     border.width: targeted ? 4 : 2
     radius: 4
 
-    visible: opacity > 0
+    visible: hasValidGeometry && opacity > 0
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
-    x: clientDimensions.at[0]
-    y: clientDimensions.at[1]
-    width: clientDimensions.size[0]
-    height: clientDimensions.size[1]
+    x: hasValidGeometry ? clientDimensions.at[0] : 0
+    y: hasValidGeometry ? clientDimensions.at[1] : 0
+    width: hasValidGeometry ? clientDimensions.size[0] : 0
+    height: hasValidGeometry ? clientDimensions.size[1] : 0
 
     Loader {
         anchors {

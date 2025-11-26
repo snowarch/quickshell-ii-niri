@@ -95,9 +95,11 @@ qs log -c ii
 You should see:
 - Bar at the top
 - Background/wallpaper
-- `Alt+Tab` cycles windows
-- `Super+V` opens clipboard panel
-- `Super+Shift+S` takes a screenshot
+- `Mod+Tab` opens the Niri overview (native)
+- `Mod+Space` (`Super+Space`) toggles the ii overview daemon
+- `Alt+Tab` cycles windows using ii's switcher
+- `Super+V` opens the clipboard panel
+- `Super+Shift+S` takes a region screenshot
 
 If something's broken, the logs will probably tell you which package is missing.
 

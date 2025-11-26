@@ -224,30 +224,35 @@ Scope {
         }
     }
 
-    GlobalShortcut {
-        name: "barToggle"
-        description: "Toggles bar on press"
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "barToggle"
+                description: "Toggles bar on press"
 
-        onPressed: {
-            GlobalStates.barOpen = !GlobalStates.barOpen;
-        }
-    }
+                onPressed: {
+                    GlobalStates.barOpen = !GlobalStates.barOpen;
+                }
+            }
 
-    GlobalShortcut {
-        name: "barOpen"
-        description: "Opens bar on press"
+            GlobalShortcut {
+                name: "barOpen"
+                description: "Opens bar on press"
 
-        onPressed: {
-            GlobalStates.barOpen = true;
-        }
-    }
+                onPressed: {
+                    GlobalStates.barOpen = true;
+                }
+            }
 
-    GlobalShortcut {
-        name: "barClose"
-        description: "Closes bar on press"
+            GlobalShortcut {
+                name: "barClose"
+                description: "Closes bar on press"
 
-        onPressed: {
-            GlobalStates.barOpen = false;
+                onPressed: {
+                    GlobalStates.barOpen = false;
+                }
+            }
         }
     }
 }

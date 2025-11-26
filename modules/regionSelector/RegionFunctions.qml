@@ -6,6 +6,14 @@ Singleton {
 
     function intersectionOverUnion(regionA, regionB) {
         // region: { at: [x, y], size: [w, h] }
+        if (!regionA || !regionB
+            || !regionA.at || !regionB.at
+            || !regionA.size || !regionB.size
+            || regionA.at.length < 2 || regionB.at.length < 2
+            || regionA.size.length < 2 || regionB.size.length < 2) {
+            return 0;
+        }
+
         const ax1 = regionA.at[0], ay1 = regionA.at[1];
         const ax2 = ax1 + regionA.size[0], ay2 = ay1 + regionA.size[1];
         const bx1 = regionB.at[0], by1 = regionB.at[1];

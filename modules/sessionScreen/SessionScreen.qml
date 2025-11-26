@@ -309,31 +309,35 @@ Scope {
             GlobalStates.sessionOpen = true
         }
     }
+    Loader {
+        active: CompositorService.isHyprland
+        sourceComponent: Item {
+            GlobalShortcut {
+                name: "sessionToggle"
+                description: "Toggles session screen on press"
 
-    GlobalShortcut {
-        name: "sessionToggle"
-        description: "Toggles session screen on press"
+                onPressed: {
+                    GlobalStates.sessionOpen = !GlobalStates.sessionOpen;
+                }
+            }
 
-        onPressed: {
-            GlobalStates.sessionOpen = !GlobalStates.sessionOpen;
-        }
-    }
+            GlobalShortcut {
+                name: "sessionOpen"
+                description: "Opens session screen on press"
 
-    GlobalShortcut {
-        name: "sessionOpen"
-        description: "Opens session screen on press"
+                onPressed: {
+                    GlobalStates.sessionOpen = true
+                }
+            }
 
-        onPressed: {
-            GlobalStates.sessionOpen = true
-        }
-    }
+            GlobalShortcut {
+                name: "sessionClose"
+                description: "Closes session screen on press"
 
-    GlobalShortcut {
-        name: "sessionClose"
-        description: "Closes session screen on press"
-
-        onPressed: {
-            GlobalStates.sessionOpen = false
+                onPressed: {
+                    GlobalStates.sessionOpen = false
+                }
+            }
         }
     }
 

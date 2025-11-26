@@ -103,8 +103,8 @@ Item {
                 try {
                     root.languages = result;
                 } catch (e) {
-                    console.warn("[Translator] Failed to set languages list, falling back to ['auto']");
-                    root.languages = ["auto"];            
+                    // Keep the initial ["auto"] default and avoid spamming the full error
+                    console.warn("[Translator] Failed to set languages list, keeping ['auto'] as fallback");
                 }
             }
         }

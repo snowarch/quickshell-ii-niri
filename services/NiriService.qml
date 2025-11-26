@@ -402,7 +402,7 @@ Singleton {
     }
 
     function handleWindowsChanged(data) {
-        windows = sortWindowsByLayout(data.windows)
+        scheduleWindowsUpdate(data.windows)
     }
 
     function handleWindowClosed(data) {
@@ -418,14 +418,41 @@ Singleton {
             return
 
         const window = data.window
-        const existingIndex = windows.findIndex(w => w.id === window.id)
+        const currentList = _windowsDirty ? _pendingWindows : windows
+        const existingIndex = currentList.findIndex(w => w.id === window.id)
+        let updatedWindows
 
         if (existingIndex >= 0) {
-            const updatedWindows = [...windows]
+            updatedWindows = [...currentList]
             updatedWindows[existingIndex] = window
-            windows = sortWindowsByLayout(updatedWindows)
         } else {
-            windows = sortWindowsByLayout([...windows, window])
+            updatedWindows = [...currentList, window]
+        }
+        
+        scheduleWindowsUpdate(updatedWindows)
+    }
+
+    // Batching para actualizaciones de ventanas
+    property bool _windowsDirty: false
+    property var _pendingWindows: []
+
+    Timer {
+        id: windowsUpdateTimer
+        interval: 50 // 20 FPS max update rate for window list
+        repeat: false
+        onTriggered: {
+            if (_windowsDirty) {
+                windows = sortWindowsByLayout(_pendingWindows)
+                _windowsDirty = false
+            }
+        }
+    }
+
+    function scheduleWindowsUpdate(newWindowsList) {
+        _pendingWindows = newWindowsList
+        _windowsDirty = true
+        if (!windowsUpdateTimer.running) {
+            windowsUpdateTimer.restart()
         }
     }
 
@@ -433,7 +460,9 @@ Singleton {
         if (!data.changes)
             return
 
-        const updatedWindows = [...windows]
+        // Usar _pendingWindows si hay cambios pendientes, o windows actual
+        const currentList = _windowsDirty ? _pendingWindows : windows
+        const updatedWindows = [...currentList]
         let hasChanges = false
 
         for (const change of data.changes) {
@@ -456,7 +485,7 @@ Singleton {
         if (!hasChanges)
             return
 
-        windows = sortWindowsByLayout(updatedWindows)
+        scheduleWindowsUpdate(updatedWindows)
     }
 
     function handleOutputsChanged(data) {
@@ -464,7 +493,8 @@ Singleton {
             return
         outputs = data.outputs
         updateDisplayScales()
-        windows = sortWindowsByLayout(windows)
+        // Force immediate update for outputs as it affects geometry calculations significantly
+        windows = sortWindowsByLayout(windows) 
     }
 
     function handleOverviewChanged(data) {
