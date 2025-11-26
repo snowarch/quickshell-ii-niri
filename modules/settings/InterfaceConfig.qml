@@ -1272,6 +1272,16 @@ ContentPage {
                 }
             }
             ConfigSwitch {
+                buttonIcon: "close_fullscreen"
+                text: Translation.tr("Close Overview after moving window")
+                checked: !Config.options.overview || Config.options.overview.closeAfterWindowMove !== false
+                onCheckedChanged: {
+                    if (!Config.options.overview)
+                        Config.options.overview = ({})
+                    Config.options.overview.closeAfterWindowMove = checked;
+                }
+            }
+            ConfigSwitch {
                 buttonIcon: "looks_one"
                 text: Translation.tr("Show workspace numbers")
                 checked: !Config.options.overview || Config.options.overview.showWorkspaceNumbers !== false

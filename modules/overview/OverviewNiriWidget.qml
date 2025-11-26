@@ -435,11 +435,36 @@ Item {
             implicitWidth: workspaceColumnLayout.implicitWidth
             implicitHeight: workspaceColumnLayout.implicitHeight
 
+    // Debounced properties for performance
+    property var _debouncedWindows: []
+    property var _debouncedWorkspaces: []
+
+    Timer {
+        id: modelDebounceTimer
+        interval: 50 // 50ms debounce
+        repeat: false
+        onTriggered: {
+            _debouncedWindows = NiriService.windows || []
+            _debouncedWorkspaces = root.workspacesForOutput || []
+        }
+    }
+
+    Connections {
+        target: NiriService
+        function onWindowsChanged() { modelDebounceTimer.restart() }
+        function onCurrentOutputWorkspacesChanged() { modelDebounceTimer.restart() }
+    }
+
+    Component.onCompleted: {
+        _debouncedWindows = NiriService.windows || []
+        _debouncedWorkspaces = root.workspacesForOutput || []
+    }
+
             Repeater {
                 model: ScriptModel {
                     values: {
-                        const wins = NiriService.windows || []
-                        const wsList = root.workspacesForOutput || []
+                        const wins = root._debouncedWindows || []
+                        const wsList = root._debouncedWorkspaces || []
                         if (wsList.length === 0 || wins.length === 0)
                             return []
 
