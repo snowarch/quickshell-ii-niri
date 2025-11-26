@@ -53,12 +53,6 @@ cd quickshell-ii-niri
 
 Not on Arch? Check [docs/INSTALL.md](docs/INSTALL.md) for manual steps.
 
-After install, reload Niri:
-
-```bash
-niri msg action reload-config
-```
-
 ---
 
 ## Keybinds (the important ones)
