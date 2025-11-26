@@ -134,12 +134,12 @@ There's no uninstall command. To remove ii:
 
 ### First run marker
 
-The script tracks first-run status in:
+The installer tracks its own first-run state in:
 ```
-~/.local/state/ii-niri/first_run.txt
+~/.config/illogical-impulse/installed_true
 ```
 
-Delete this file to make the installer treat the next run as a fresh install (which will backup existing configs as `.old`).
+Delete this file (or run `./setup install --firstrun`) to make the next `install` behave like a fresh run, backing up clashing configs as `.old` again.
 
 ### Installed files list
 
@@ -152,7 +152,17 @@ This is informational only.
 
 ### Quickshell first-run
 
-ii has its own first-run experience. The installer resets this so the welcome window appears after install:
+ii has its own first-run experience (default wallpaper + welcome window).
+
+The Quickshell first-run marker lives at:
 ```
 ~/.local/state/quickshell/user/first_run.txt
 ```
+
+On **first install**, or when you explicitly run:
+```bash
+./setup install --firstrun
+```
+the installer resets this file so you get the welcome flow again.
+
+On normal updates (`./setup update` or `./setup install` without `--firstrun`), it leaves this file alone so your wallpaper and "stop greeting me" choice are respected.
