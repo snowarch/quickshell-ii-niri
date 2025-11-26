@@ -163,6 +163,7 @@ Fonts, theming, and utilities.
 | `adw-gtk-theme-git` | Adwaita GTK theme |
 | `capitaine-cursors` | Capitaine cursor theme |
 | `hyprpicker` | Color picker |
+| `xwayland-satellite` | Xwayland helper for legacy apps |
 | `songrec` | Music recognition |
 
 ---
