@@ -119,6 +119,6 @@ If you want something stable and polished, check out end-4's original ii for Hyp
 
 ## Credits
 
-- [**end-4 – illogical-impulse for Hyprland**](https://github.com/end-4/dots-hyprland)
+- [**end-4**](https://github.com/end-4/dots-hyprland) – illogical-impulse for Hyprland
 - [**Quickshell**](https://quickshell.outfoxxed.me/) – the framework that makes this possible
 - [**Niri**](https://github.com/YaLTeR/niri) – the compositor that doesn't crash
