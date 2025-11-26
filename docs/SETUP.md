@@ -12,6 +12,7 @@ How the `./setup` script works and what it does.
 ./setup install-deps    # Only install packages
 ./setup install-setups  # Only configure services/groups
 ./setup install-files   # Only copy config files
+./setup update          # Update ii configs/QML only (alias of install-files)
 ./setup help            # Show help
 ```
 
@@ -95,17 +96,17 @@ The installer prompts to backup your existing `~/.config/` before making changes
 
 ## Updating
 
-There's no dedicated `update` command yet. To update:
+To update ii after a `git pull` on this repo:
 
 ```bash
 cd ~/quickshell-ii-niri  # or wherever you cloned
 git pull
-./setup install-files   # copies new QML code, saves configs as .new
+./setup update          # sync QML + configs into ~/.config
 ```
 
-Then review any `.new` files and merge changes you want.
-
-For the QML code itself (`modules/`, `services/`, etc.), the installer uses `rsync --delete` so you get a clean sync with the repo.
+- This is equivalent to `./setup install-files`, but clearer for updates.
+- Your existing `config.kdl` / `config.json` are still preserved as described above (new defaults go to `.new`).
+- For the QML code itself (`modules/`, `services/`, etc.), the installer uses `rsync --delete` so you get a clean sync with the repo.
 
 ---
 

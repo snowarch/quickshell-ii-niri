@@ -81,6 +81,7 @@ case "${SKIP_QUICKSHELL}" in
       shell.qml
       GlobalStates.qml
       ReloadPopup.qml
+      NiriConfigPopup.qml
       killDialog.qml
       settings.qml
       welcome.qml

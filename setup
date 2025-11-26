@@ -36,6 +36,7 @@ Subcommands:
   install-deps   Install only dependencies
   install-setups Run only system setup (groups, services)
   install-files  Copy only config files
+  update         Update ii-niri configs (QML + configs only)
 
   help           Show this help message
 
@@ -54,7 +55,7 @@ case $1 in
     showhelp_global
     exit 0
     ;;
-  install|install-deps|install-setups|install-files)
+  install|install-deps|install-setups|install-files|update)
     SUBCMD_NAME=$1
     SUBCMD_DIR=./sdata/subcmd-install
     shift
@@ -118,6 +119,15 @@ case ${SUBCMD_NAME} in
     ;;
     
   install-files)
+    detect_distro
+    pause
+    if [[ "${SKIP_ALLFILES}" != true ]]; then
+      source ${SUBCMD_DIR}/3.files.sh
+    fi
+    ;;
+    
+  update)
+    # Convenience alias for config/QML sync after git pull
     detect_distro
     pause
     if [[ "${SKIP_ALLFILES}" != true ]]; then
