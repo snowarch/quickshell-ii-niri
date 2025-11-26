@@ -569,27 +569,40 @@ Singleton {
                     })
     }
 
-    function moveWindowToWorkspace(windowId, workspaceIndex, focus) {
+    function moveWindowToWorkspace(windowId, workspaceIdx, focus) {
+        // workspaceIdx should be the Niri 1-based idx from workspace.idx
         // First focus the target window so MoveWindowToWorkspace acts on it.
-        send({
-                  "Action": {
-                      "FocusWindow": {
-                          "id": windowId
-                      }
-                  }
-              })
+        const focusResult = send({
+            "Action": {
+                "FocusWindow": {
+                    "id": windowId
+                }
+            }
+        })
+        
+        if (!focusResult) {
+            console.warn("[NiriService] Failed to focus window", windowId, "before moving")
+            return false
+        }
 
-        return send({
-                        "Action": {
-                            "MoveWindowToWorkspace": {
-                                "window_id": null,
-                                "reference": {
-                                    "Index": workspaceIndex
-                                },
-                                "focus": focus === undefined ? false : focus
-                            }
-                        }
-                    })
+        // Move the window using the Niri 1-based workspace index
+        const moveResult = send({
+            "Action": {
+                "MoveWindowToWorkspace": {
+                    "window_id": null,  // null means use the focused window
+                    "reference": {
+                        "Index": workspaceIdx  // Niri uses 1-based indices
+                    },
+                    "focus": focus === undefined ? true : focus
+                }
+            }
+        })
+        
+        if (!moveResult) {
+            console.warn("[NiriService] Failed to move window", windowId, "to workspace", workspaceIdx)
+        }
+        
+        return moveResult
     }
 
     function closeWindow(windowId) {
