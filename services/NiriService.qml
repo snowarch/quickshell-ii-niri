@@ -571,25 +571,12 @@ Singleton {
 
     function moveWindowToWorkspace(windowId, workspaceIdx, focus) {
         // workspaceIdx should be the Niri 1-based idx from workspace.idx
-        // First focus the target window so MoveWindowToWorkspace acts on it.
-        const focusResult = send({
-            "Action": {
-                "FocusWindow": {
-                    "id": windowId
-                }
-            }
-        })
-        
-        if (!focusResult) {
-            console.warn("[NiriService] Failed to focus window", windowId, "before moving")
-            return false
-        }
-
-        // Move the window using the Niri 1-based workspace index
+        // Optimized: Send move command directly with window_id specified
+        // This is faster than focus-then-move approach
         const moveResult = send({
             "Action": {
                 "MoveWindowToWorkspace": {
-                    "window_id": null,  // null means use the focused window
+                    "window_id": windowId,  // Specify window directly instead of using focused window
                     "reference": {
                         "Index": workspaceIdx  // Niri uses 1-based indices
                     },

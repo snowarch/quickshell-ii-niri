@@ -543,15 +543,15 @@ Item {
                     Behavior on x {
                         enabled: !windowItem.Drag.active
                         NumberAnimation {
-                            duration: 140
-                            easing.type: Easing.InOutQuad
+                            duration: 80  // Reduced from 140ms for snappier response
+                            easing.type: Easing.OutCubic
                         }
                     }
                     Behavior on y {
                         enabled: !windowItem.Drag.active
                         NumberAnimation {
-                            duration: 140
-                            easing.type: Easing.InOutQuad
+                            duration: 80  // Reduced from 140ms for snappier response
+                            easing.type: Easing.OutCubic
                         }
                     }
 
@@ -678,6 +678,13 @@ Item {
                                 if (movedToOtherWorkspace) {
                                     // Drop válido en otro workspace: mover ventana allí
                                     NiriService.moveWindowToWorkspace(windowData.id, targetWorkspace, true)
+                                    
+                                    // Close overview immediately for instant feedback
+                                    // User can configure to keep it open if desired
+                                    const closeAfterMove = Config.options.overview?.closeAfterWindowMove !== false
+                                    if (closeAfterMove) {
+                                        GlobalStates.overviewOpen = false
+                                    }
                                 } else {
                                     // Drop fuera de cualquier workspace diferente o mismo workspace: efecto imán
                                     windowItem.x = Qt.binding(function() { return windowItem.baseX + windowItem.tileMargin })
