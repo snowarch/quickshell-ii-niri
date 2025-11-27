@@ -404,78 +404,104 @@ Item {
             anchors.centerIn: parent
             implicitWidth: workspaceColumnLayout.implicitWidth
             implicitHeight: workspaceColumnLayout.implicitHeight
+            
+            property var windowItems: []
+            
+            function rebuildWindowItems() {
+                if (!GlobalStates.overviewOpen) {
+                    windowItems = []
+                    return
+                }
+                
+                const wins = NiriService.windows || []
+                const wsList = root.workspacesForOutput || []
+                if (wsList.length === 0 || wins.length === 0) {
+                    windowItems = []
+                    return
+                }
+
+                const workspaceSlotById = {}
+                for (let i = 0; i < wsList.length; ++i) {
+                    const ws = wsList[i]
+                    if (ws)
+                        workspaceSlotById[ws.id] = i
+                }
+
+                const startSlot = root.firstVisibleWorkspaceSlot
+                const endSlot = Math.min(startSlot + root.workspacesShown - 1, wsList.length - 1)
+
+                const collected = []
+                const counters = {}
+                const maxPerWorkspace = {}
+
+                for (let i = 0; i < wins.length; ++i) {
+                    const w = wins[i]
+                    const slot = workspaceSlotById[w.workspace_id]
+                    if (slot === undefined)
+                        continue
+                    if (slot < startSlot || slot > endSlot)
+                        continue
+
+                    const wsNumber = slot + 1
+
+                    const pos = w.layout && w.layout.pos_in_scrolling_layout ? w.layout.pos_in_scrolling_layout : [1, 1]
+                    const col = pos.length >= 1 && pos[0] ? pos[0] : 1
+                    const row = pos.length >= 2 && pos[1] ? pos[1] : 1
+
+                    const keyWs = wsNumber.toString()
+                    const info = maxPerWorkspace[keyWs] || { maxCol: 1, maxRow: 1 }
+                    info.maxCol = Math.max(info.maxCol, col)
+                    info.maxRow = Math.max(info.maxRow, row)
+                    maxPerWorkspace[keyWs] = info
+
+                    collected.push({ window: w, workspaceNumber: wsNumber, workspaceSlot: slot })
+                }
+
+                const result = []
+                for (let i = 0; i < collected.length; ++i) {
+                    const entry = collected[i]
+                    const wsKey = entry.workspaceNumber.toString()
+                    const key = wsKey
+                    const count = counters[key] || 0
+                    counters[key] = count + 1
+
+                    const gridInfo = maxPerWorkspace[wsKey] || { maxCol: 1, maxRow: 1 }
+
+                    result.push({
+                        "id": entry.window.id,
+                        "window": entry.window,
+                        "workspaceNumber": entry.workspaceNumber,
+                        "workspaceSlot": entry.workspaceSlot,
+                        "indexInWorkspace": count,
+                        "maxCol": gridInfo.maxCol,
+                        "maxRow": gridInfo.maxRow
+                    })
+                }
+
+                windowItems = result
+            }
+            
+            Connections {
+                target: NiriService
+                function onWindowsChanged() {
+                    windowSpace.rebuildWindowItems()
+                }
+            }
+            
+            Connections {
+                target: GlobalStates
+                function onOverviewOpenChanged() {
+                    if (GlobalStates.overviewOpen) {
+                        windowSpace.rebuildWindowItems()
+                    }
+                }
+            }
+            
+            Component.onCompleted: rebuildWindowItems()
 
             Repeater {
                 model: ScriptModel {
-                    objectProp: "id"
-                    values: {
-                        if (!GlobalStates.overviewOpen)
-                            return []
-                        
-                        const wins = NiriService.windows || []
-                        const wsList = root.workspacesForOutput || []
-                        if (wsList.length === 0 || wins.length === 0)
-                            return []
-
-                        const workspaceSlotById = {}
-                        for (let i = 0; i < wsList.length; ++i) {
-                            const ws = wsList[i]
-                            if (ws)
-                                workspaceSlotById[ws.id] = i
-                        }
-
-                        const startSlot = root.firstVisibleWorkspaceSlot
-                        const endSlot = Math.min(startSlot + root.workspacesShown - 1, wsList.length - 1)
-
-                        const collected = []
-                        const counters = {}
-                        const maxPerWorkspace = {}
-
-                        for (let i = 0; i < wins.length; ++i) {
-                            const w = wins[i]
-                            const slot = workspaceSlotById[w.workspace_id]
-                            if (slot === undefined)
-                                continue
-                            if (slot < startSlot || slot > endSlot)
-                                continue
-
-                            const wsNumber = slot + 1
-
-                            const pos = w.layout && w.layout.pos_in_scrolling_layout ? w.layout.pos_in_scrolling_layout : [1, 1]
-                            const col = pos.length >= 1 && pos[0] ? pos[0] : 1
-                            const row = pos.length >= 2 && pos[1] ? pos[1] : 1
-
-                            const keyWs = wsNumber.toString()
-                            const info = maxPerWorkspace[keyWs] || { maxCol: 1, maxRow: 1 }
-                            info.maxCol = Math.max(info.maxCol, col)
-                            info.maxRow = Math.max(info.maxRow, row)
-                            maxPerWorkspace[keyWs] = info
-
-                            collected.push({ window: w, workspaceNumber: wsNumber, workspaceSlot: slot })
-                        }
-
-                        const result = []
-                        for (let i = 0; i < collected.length; ++i) {
-                            const entry = collected[i]
-                            const wsKey = entry.workspaceNumber.toString()
-                            const key = wsKey
-                            const count = counters[key] || 0
-                            counters[key] = count + 1
-
-                            const gridInfo = maxPerWorkspace[wsKey] || { maxCol: 1, maxRow: 1 }
-
-                            result.push({
-                                "window": entry.window,
-                                "workspaceNumber": entry.workspaceNumber,
-                                "workspaceSlot": entry.workspaceSlot,
-                                "indexInWorkspace": count,
-                                "maxCol": gridInfo.maxCol,
-                                "maxRow": gridInfo.maxRow
-                            })
-                        }
-
-                        return result
-                    }
+                    values: windowSpace.windowItems
                 }
 
                 delegate: Item {
