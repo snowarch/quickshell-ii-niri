@@ -150,6 +150,10 @@ Item {
         }
     }
 
+
+
+
+
     // Scroll del mouse para subir/bajar de workspace en Niri
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -403,12 +407,11 @@ Item {
 
             Repeater {
                 model: ScriptModel {
+                    objectProp: "id"
                     values: {
                         if (!GlobalStates.overviewOpen)
                             return []
                         
-                        // Force update when windows change
-                        const _ = NiriService.windows
                         const wins = NiriService.windows || []
                         const wsList = root.workspacesForOutput || []
                         if (wsList.length === 0 || wins.length === 0)
