@@ -500,6 +500,10 @@ Singleton {
                 property real blurAmount: 0.4
                 // Dim strength for the fullscreen scrim (0-100)
                 property int scrimDim: 35
+                property string panelAlignment: "right" // right | center
+                property bool useM3Layout: false
+                property bool showOverviewWhileSwitching: false
+                property int autoHideDelayMs: 500
             }
 
             property JsonObject regionSelector: JsonObject {

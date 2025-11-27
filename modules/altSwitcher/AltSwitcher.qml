@@ -14,7 +14,7 @@ import Quickshell.Widgets
 
 Scope {
     id: root
-    property int panelWidth: 330
+    property int panelWidth: 380
     property string searchText: ""
     // Animation and visibility control
     property bool animationsEnabled: Config.options.altSwitcher ? (Config.options.altSwitcher.enableAnimation !== false) : true
@@ -22,6 +22,30 @@ Scope {
     property real panelRightMargin: -panelWidth
     // Snapshot actual de ventanas ordenadas que se usa mientras el panel está abierto
     property var itemSnapshot: []
+    property bool useM3Layout: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
+    property bool centerPanel: Config.options.altSwitcher && Config.options.altSwitcher.panelAlignment === "center"
+    property bool showOverviewWhileSwitching: Config.options.altSwitcher && Config.options.altSwitcher.showOverviewWhileSwitching
+    property bool overviewOpenedByAltSwitcher: false
+
+    onCenterPanelChanged: {
+        // Cuando se cambia la alineación (centrado 
+        // vs borde derecho) desde settings, aseguramos
+        // que el panel vuelva a un estado consistente.
+        if (!GlobalStates.altSwitcherOpen) {
+            panelVisible = false
+            panelRightMargin = centerPanel ? 0 : -panelWidth
+        }
+    }
+
+    onUseM3LayoutChanged: {
+        // Al cambiar de layout normal 
+        // a Material 3 (y viceversa), reseteamos la visibilidad
+        // interna si el switcher está cerrado para que se
+        // vuelva a construir limpio en el próximo Alt+Tab.
+        if (!GlobalStates.altSwitcherOpen) {
+            panelVisible = false
+        }
+    }
 
     function toTitleCase(name) {
         if (!name)
@@ -56,13 +80,16 @@ Scope {
                 appName = w.title
 
             appName = toTitleCase(appName)
+            const ws = workspaces[w.workspace_id]
+            const wsIdx = ws && ws.idx !== undefined ? ws.idx : 0
 
             const item = {
                 id: w.id,
                 appId: appId,
                 appName: appName,
                 title: w.title || "",
-                workspaceId: w.workspace_id
+                workspaceId: w.workspace_id,
+                workspaceIdx: wsIdx
             }
             items.push(item)
             itemsById[item.id] = item
@@ -125,6 +152,32 @@ Scope {
             rebuildSnapshot()
     }
 
+    function maybeOpenOverview() {
+        if (!CompositorService.isNiri)
+            return
+        const cfg = Config.options.altSwitcher
+        if (!cfg || !cfg.showOverviewWhileSwitching)
+            return
+        if (!NiriService.inOverview) {
+            overviewOpenedByAltSwitcher = true
+            NiriService.toggleOverview()
+        } else {
+            overviewOpenedByAltSwitcher = false
+        }
+    }
+
+    function maybeCloseOverview() {
+        if (!CompositorService.isNiri)
+            return
+        const cfg = Config.options.altSwitcher
+        if (!cfg || !cfg.showOverviewWhileSwitching)
+            return
+        if (overviewOpenedByAltSwitcher && NiriService.inOverview) {
+            NiriService.toggleOverview()
+        }
+        overviewOpenedByAltSwitcher = false
+    }
+
     // Fullscreen scrim on all screens: same pattern as Overview, controlled by GlobalStates.altSwitcherOpen.
     Variants {
         id: altSwitcherScrimVariants
@@ -184,11 +237,15 @@ Scope {
         }
 
         MouseArea {
+            id: windowMouseArea
             anchors.fill: parent
             onClicked: function (mouse) {
-                const local = panel.mapFromItem(window, mouse.x, mouse.y)
-                if (local.x < 0 || local.x > panel.width || local.y < 0 || local.y > panel.height)
+                // mouse.x/mouse.y están en coordenadas del PanelWindow.
+                // Cerramos el AltSwitcher solo si el click cae fuera del rectángulo visual del panel.
+                if (mouse.x < panel.x || mouse.x > panel.x + panel.width
+                        || mouse.y < panel.y || mouse.y > panel.y + panel.height) {
                     GlobalStates.altSwitcherOpen = false
+                }
             }
         }
 
@@ -213,17 +270,18 @@ Scope {
         Rectangle {
             id: panel
             width: root.panelWidth
-            radius: 0
-            topLeftRadius: Appearance.rounding.screenRounding
-            bottomLeftRadius: Appearance.rounding.screenRounding
-            topRightRadius: 0
-            bottomRightRadius: 0
+            radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
+            topLeftRadius: radius
+            bottomLeftRadius: radius
+            topRightRadius: radius
+            bottomRightRadius: radius
             color: "transparent"
             border.width: 0
 
             anchors {
-                right: parent.right
-                rightMargin: root.panelRightMargin
+                right: root.centerPanel ? undefined : parent.right
+                rightMargin: root.centerPanel ? 0 : root.panelRightMargin
+                horizontalCenter: root.centerPanel ? parent.horizontalCenter : undefined
                 verticalCenter: parent.verticalCenter
             }
 
@@ -241,11 +299,14 @@ Scope {
                 bottomRightRadius: panel.bottomRightRadius
                 color: {
                     const cfg = Config.options.altSwitcher
+                    if (cfg && cfg.useM3Layout)
+                        return Appearance.colors.colLayer0
                     const base = ColorUtils.mix(Appearance.colors.colLayer0, Qt.rgba(0, 0, 0, 1), 0.35)
                     const opacity = cfg && cfg.backgroundOpacity !== undefined ? cfg.backgroundOpacity : 0.9
                     return ColorUtils.applyAlpha(base, opacity)
                 }
-                border.width: 0
+                border.width: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout ? 1 : 0
+                border.color: Appearance.colors.colLayer0Border
             }
 
             StyledRectangularShadow {
@@ -256,7 +317,7 @@ Scope {
                 z: 0.5
                 anchors.fill: panelBackground
                 source: panelBackground
-                visible: Config.options.altSwitcher && Config.options.altSwitcher.enableBlurGlass && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
+                visible: Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
                 blurEnabled: true
                 blur: Config.options.altSwitcher && Config.options.altSwitcher.blurAmount !== undefined ? Config.options.altSwitcher.blurAmount : 0.4
                 blurMax: 64
@@ -305,7 +366,9 @@ Scope {
                             anchors.fill: parent
                             radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut
                             visible: selected
-                            color: Appearance.colors.colLayer1
+                            color: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
+                                   ? Appearance.m3colors.m3primaryContainer
+                                   : Appearance.colors.colLayer1
                         }
 
                         // Dark gradient towards the left edge inside the highlight
@@ -347,7 +410,16 @@ Scope {
 
                                 StyledText {
                                     text: modelData.appName || modelData.title || "Window"
-                                    color: Appearance.colors.colOnLayer1
+                                    color: {
+                                        const selected = row.selected
+                                        const cfg = Config.options.altSwitcher
+                                        const useM3 = cfg && cfg.useM3Layout
+                                        if (useM3 && selected)
+                                            return Appearance.m3colors.m3onPrimaryContainer
+                                        if (useM3)
+                                            return Appearance.m3colors.m3onSurface
+                                        return Appearance.colors.colOnLayer1
+                                    }
                                     font.pixelSize: Appearance.font.pixelSize.large
                                     elide: Text.ElideRight
                                 }
@@ -359,8 +431,25 @@ Scope {
                                     StyledText {
                                         id: subtitleText
                                         anchors.fill: parent
-                                        text: modelData.title
-                                        color: ColorUtils.transparentize(Appearance.colors.colOnLayer1, 0.6)
+                                        text: {
+                                            const wsIdx = modelData.workspaceIdx
+                                            const title = modelData.title
+                                            if (wsIdx && wsIdx > 0 && title)
+                                                return "WS " + wsIdx + " · " + title
+                                            if (wsIdx && wsIdx > 0)
+                                                return "WS " + wsIdx
+                                            return title
+                                        }
+                                        color: {
+                                            const selected = row.selected
+                                            const cfg = Config.options.altSwitcher
+                                            const useM3 = cfg && cfg.useM3Layout
+                                            if (useM3 && selected)
+                                                return Appearance.m3colors.m3onPrimaryContainer
+                                            if (useM3)
+                                                return Appearance.colors.colSubtext
+                                            return ColorUtils.transparentize(Appearance.colors.colOnLayer1, 0.6)
+                                        }
                                         font.pixelSize: Appearance.font.pixelSize.small
                                         elide: Text.ElideRight
                                     }
@@ -425,7 +514,9 @@ Scope {
 
         Timer {
             id: autoHideTimer
-            interval: 500
+            interval: Config.options.altSwitcher && Config.options.altSwitcher.autoHideDelayMs !== undefined
+                      ? Config.options.altSwitcher.autoHideDelayMs
+                      : 500
             repeat: false
             onTriggered: GlobalStates.altSwitcherOpen = false
         }
@@ -434,10 +525,13 @@ Scope {
         Connections {
             target: GlobalStates
             function onAltSwitcherOpenChanged() {
-                if (GlobalStates.altSwitcherOpen)
+                if (GlobalStates.altSwitcherOpen) {
                     root.showPanel()
-                else
+                    root.maybeOpenOverview()
+                } else {
                     root.hidePanel()
+                    root.maybeCloseOverview()
+                }
             }
         }
 
@@ -508,7 +602,7 @@ Scope {
     function showPanel() {
         rebuildSnapshot()
         panelVisible = true
-        if (animationsEnabled) {
+        if (animationsEnabled && !centerPanel) {
             const dur = currentAnimDuration()
             slideOutAnim.stop()
             root.panelRightMargin = -panelWidth
@@ -524,7 +618,7 @@ Scope {
     function hidePanel() {
         if (!panelVisible)
             return
-        if (animationsEnabled) {
+        if (animationsEnabled && !centerPanel) {
             const dur = currentAnimDuration()
             slideInAnim.stop()
             slideOutAnim.from = panelRightMargin
@@ -558,8 +652,10 @@ Scope {
             listView.currentIndex = 0
         else
             listView.currentIndex = (listView.currentIndex + 1) % total
-        if (panelVisible)
+        if (panelVisible) {
+            listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
             autoHideTimer.restart()
+        }
     }
 
     function previousItem() {
@@ -572,8 +668,10 @@ Scope {
             listView.currentIndex = total - 1
         else
             listView.currentIndex = (listView.currentIndex - 1 + total) % total
-        if (panelVisible)
+        if (panelVisible) {
+            listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
             autoHideTimer.restart()
+        }
     }
 
     function activateCurrent() {

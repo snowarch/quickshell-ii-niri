@@ -196,17 +196,6 @@ ContentPage {
             }
         }
 
-        ConfigSwitch {
-            buttonIcon: "blur_on"
-            text: Translation.tr("Enable blur glass")
-            checked: Config.options.altSwitcher && Config.options.altSwitcher.enableBlurGlass
-            onCheckedChanged: {
-                if (!Config.options.altSwitcher)
-                    Config.options.altSwitcher = ({})
-                Config.options.altSwitcher.enableBlurGlass = checked;
-            }
-        }
-
         ConfigSpinBox {
             icon: "opacity"
             text: Translation.tr("Background opacity (%)")
@@ -252,6 +241,74 @@ ContentPage {
                 if (!Config.options.altSwitcher)
                     Config.options.altSwitcher = ({})
                 Config.options.altSwitcher.scrimDim = value;
+            }
+        }
+
+        ConfigSpinBox {
+            icon: "hourglass_top"
+            text: Translation.tr("Auto-hide delay after selection (ms)")
+            value: Config.options.altSwitcher && Config.options.altSwitcher.autoHideDelayMs !== undefined
+                   ? Config.options.altSwitcher.autoHideDelayMs
+                   : 500
+            from: 50
+            to: 2000
+            stepSize: 50
+            onValueChanged: {
+                if (!Config.options.altSwitcher)
+                    Config.options.altSwitcher = ({})
+                Config.options.altSwitcher.autoHideDelayMs = value;
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "overview_key"
+            text: Translation.tr("Show Niri overview while switching")
+            checked: Config.options.altSwitcher && Config.options.altSwitcher.showOverviewWhileSwitching
+            onCheckedChanged: {
+                if (!Config.options.altSwitcher)
+                    Config.options.altSwitcher = ({})
+                Config.options.altSwitcher.showOverviewWhileSwitching = checked;
+                GlobalStates.altSwitcherOpen = false
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Layout & alignment")
+
+            ConfigSelectionArray {
+                currentValue: Config.options.altSwitcher && Config.options.altSwitcher.panelAlignment
+                               ? Config.options.altSwitcher.panelAlignment
+                               : "right"
+                onSelected: newValue => {
+                    if (!Config.options.altSwitcher)
+                        Config.options.altSwitcher = ({})
+                    Config.options.altSwitcher.panelAlignment = newValue;
+                    GlobalStates.altSwitcherOpen = false
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Align to right edge"),
+                        icon: "align_horizontal_right",
+                        value: "right"
+                    },
+                    {
+                        displayName: Translation.tr("Center on screen"),
+                        icon: "align_horizontal_center",
+                        value: "center"
+                    }
+                ]
+            }
+
+            ConfigSwitch {
+                buttonIcon: "styler"
+                text: Translation.tr("Use Material 3 card layout")
+                checked: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
+                onCheckedChanged: {
+                    if (!Config.options.altSwitcher)
+                        Config.options.altSwitcher = ({})
+                    Config.options.altSwitcher.useM3Layout = checked;
+                    GlobalStates.altSwitcherOpen = false
+                }
             }
         }
     }
@@ -747,21 +804,26 @@ ContentPage {
             }
         }
 
-        ConfigSpinBoxRow {
-            label: Translation.tr('Wallhaven results per page')
+        ConfigSpinBox {
+            icon: "format_list_numbered"
+            text: Translation.tr("Wallhaven results per page")
+            value: Config.options.sidebar.wallhaven.limit
             from: 12
             to: 72
             stepSize: 4
-            value: Config.options.sidebar.wallhaven.limit
-            onValueChanged: Config.options.sidebar.wallhaven.limit = value
+            onValueChanged: {
+                Config.options.sidebar.wallhaven.limit = value;
+            }
         }
 
-        ConfigTextFieldRow {
-            label: Translation.tr('Wallhaven API key (optional)')
+        MaterialTextField {
+            Layout.fillWidth: true
+            placeholderText: Translation.tr("Wallhaven API key (optional)")
             text: Config.options.sidebar.wallhaven.apiKey
-            placeholderText: Translation.tr('Needed for NSFW and account filters')
             echoMode: TextInput.Password
-            onTextChanged: Config.options.sidebar.wallhaven.apiKey = text
+            onTextChanged: {
+                Config.options.sidebar.wallhaven.apiKey = text;
+            }
         }
 
         ContentSubsection {

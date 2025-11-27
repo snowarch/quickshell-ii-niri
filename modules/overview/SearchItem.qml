@@ -1,4 +1,4 @@
-// pragma NativeMethodBehavior: AcceptThisObject
+pragma NativeMethodBehavior: AcceptThisObject
 import qs
 import qs.services
 import qs.modules.common
@@ -18,7 +18,6 @@ RippleButton {
     property string itemType: entry?.type ?? Translation.tr("App")
     property string itemName: entry?.name ?? ""
     property string itemIcon: entry?.icon ?? ""
-    property var itemExecute: entry?.execute
     property string fontType: entry?.fontType ?? "main"
     property string itemClickActionName: entry?.clickActionName ?? "Open"
     property string bigText: entry?.bigText ?? ""
@@ -94,13 +93,15 @@ RippleButton {
 
     onClicked: {
         GlobalStates.overviewOpen = false
-        root.itemExecute()
+        if (root.entry && root.entry.execute)
+            root.entry.execute()
     }
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Delete && event.modifiers === Qt.ShiftModifier) {
-            const deleteAction = root.entry.actions.find(action => action.name == "Delete");
+            const actions = (root.entry?.actions ?? [])
+            const deleteAction = actions.find(action => action.name == "Delete");
 
-            if (deleteAction) {
+            if (deleteAction && deleteAction.execute) {
                 deleteAction.execute()
             }
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -240,7 +241,7 @@ RippleButton {
             Layout.bottomMargin: -root.buttonVerticalPadding // Why is this necessary? Good question.
             spacing: 4
             Repeater {
-                model: (root.entry.actions ?? []).slice(0, 4)
+                model: (root.entry?.actions ?? []).slice(0, 4)
                 delegate: RippleButton {
                     id: actionButton
                     required property var modelData
@@ -274,7 +275,10 @@ RippleButton {
                         }
                     }
 
-                    onClicked: modelData.execute()
+                    onClicked: {
+                        if (modelData && modelData.execute)
+                            modelData.execute()
+                    }
 
                     StyledToolTip {
                         text: modelData.name

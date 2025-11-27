@@ -5,11 +5,11 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import QtQuick.Controls
-import Qt.labs.synchronizer
+// import Qt.labs.synchronizer // Removed: causes event loop crashes
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
+// import Quickshell.Hyprland // Niri doesn't use this
 
 PanelWindow {
     id: root
@@ -59,7 +59,7 @@ PanelWindow {
     readonly property var layers: useNiri ? ({}) : HyprlandData.layers
     readonly property real falsePositivePreventionRatio: 0.5
 
-    readonly property HyprlandMonitor hyprlandMonitor: CompositorService.isHyprland ? Hyprland.monitorFor(screen) : null
+    readonly property var hyprlandMonitor: CompositorService.isHyprland ? null : null // Disabled for Niri
     readonly property real monitorScale: root.useNiri
         ? ((NiriService.displayScales && NiriService.displayScales[screen.name] !== undefined)
             ? NiriService.displayScales[screen.name]
@@ -260,7 +260,8 @@ PanelWindow {
             root.dismiss();
             return;
         }
-        root.visible = true;
+        // Small delay to ensure screenshot is written to disk
+        Qt.callLater(() => { root.visible = true; });
     }
 
     Process {
@@ -354,10 +355,16 @@ PanelWindow {
         id: snipProc
     }
 
-    ScreencopyView {
+    Rectangle {
         anchors.fill: parent
-        live: false
-        captureSource: root.screen
+        color: "transparent"
+
+        Image {
+            anchors.fill: parent
+            source: root.visible ? `file://${root.screenshotPath}` : ""
+            fillMode: Image.PreserveAspectFit
+            cache: false
+        }
 
         focus: root.visible
         Keys.onPressed: (event) => { // Esc to close
@@ -525,12 +532,10 @@ PanelWindow {
                 spacing: 6
 
                 OptionsToolbar {
-                    Synchronizer on action {
-                        property alias source: root.action
-                    }
-                    Synchronizer on selectionMode {
-                        property alias source: root.selectionMode
-                    }
+                    action: root.action
+                    selectionMode: root.selectionMode
+                    onActionChanged: root.action = action
+                    onSelectionModeChanged: root.selectionMode = selectionMode
                     onDismiss: root.dismiss();
                 }
                 Item {
