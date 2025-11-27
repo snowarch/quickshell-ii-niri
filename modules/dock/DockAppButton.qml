@@ -135,8 +135,12 @@ DockButton {
         // Con ventanas: rotar foco entre instancias abiertas
         lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
         const toplevel = appToplevel.toplevels[lastFocused]
-        if (CompositorService.isNiri && toplevel?.niriWindowId) {
-            NiriService.focusWindow(toplevel.niriWindowId)
+        if (CompositorService.isNiri) {
+            if (toplevel?.niriWindowId) {
+                NiriService.focusWindow(toplevel.niriWindowId)
+            } else if (toplevel?.activate) {
+                toplevel.activate()
+            }
         } else {
             toplevel?.activate()
         }
