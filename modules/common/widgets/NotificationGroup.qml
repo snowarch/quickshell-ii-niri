@@ -43,12 +43,12 @@ MouseArea { // Notification group area
     hoverEnabled: true
     onContainsMouseChanged: {
         if (!root.popup) return;
-        if (root.containsMouse) root.notifications.forEach(notif => {
-            Notifications.cancelTimeout(notif.notificationId);
-        });
-        else root.notifications.forEach(notif => {
-            Notifications.timeoutNotification(notif.notificationId);
-        });
+        if (root.containsMouse) {
+            root.notifications.forEach(notif => {
+                Notifications.cancelTimeout(notif.notificationId);
+            });
+        }
+        // Don't immediately hide on mouse leave - let the timer handle it naturally
     }
 
     SequentialAnimation { // Drag finish animation
@@ -92,8 +92,11 @@ MouseArea { // Notification group area
         }
 
         onClicked: (mouse) => {
-            if (mouse.button === Qt.MiddleButton) 
+            if (mouse.button === Qt.LeftButton && !dragging) {
+                root.toggleExpanded();
+            } else if (mouse.button === Qt.MiddleButton) {
                 root.destroyWithAnimation();
+            }
         }
 
         onDraggingChanged: () => {
@@ -138,7 +141,7 @@ MouseArea { // Notification group area
         clip: true
         implicitHeight: expanded ? 
             row.implicitHeight + padding * 2 :
-            Math.min(80, row.implicitHeight + padding * 2)
+            row.implicitHeight + padding * 2
 
         Behavior on implicitHeight {
             id: implicitHeightAnim

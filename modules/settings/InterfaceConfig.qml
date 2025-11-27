@@ -616,50 +616,7 @@ ContentPage {
             }
         }
 
-        ContentSubsection {
-            title: Translation.tr("Popup position")
 
-            ConfigSelectionArray {
-                currentValue: Config.options.notifications.position
-                onSelected: newValue => {
-                    Config.options.notifications.position = newValue;
-                }
-                options: [
-                    {
-                        displayName: Translation.tr("Top right"),
-                        icon: "north_east",
-                        value: "topRight"
-                    },
-                    {
-                        displayName: Translation.tr("Bottom right"),
-                        icon: "south_east",
-                        value: "bottomRight"
-                    },
-                    {
-                        displayName: Translation.tr("Top left"),
-                        icon: "north_west",
-                        value: "topLeft"
-                    },
-                    {
-                        displayName: Translation.tr("Bottom left"),
-                        icon: "south_west",
-                        value: "bottomLeft"
-                    }
-                ]
-            }
-        }
-
-        ConfigSpinBox {
-            icon: "open_in_full"
-            text: Translation.tr("Popup margin (px)")
-            value: Config.options.notifications.edgeMargin
-            from: 0
-            to: 64
-            stepSize: 1
-            onValueChanged: {
-                Config.options.notifications.edgeMargin = value;
-            }
-        }
 
         ContentSubsection {
             title: Translation.tr("Test notifications")

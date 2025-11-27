@@ -66,8 +66,13 @@ Singleton {
         running: true
         onTriggered: () => {
             const index = root.list.findIndex((notif) => notif.notificationId === notificationId);
+            if (index === -1) {
+                console.warn("[Notifications] Timer triggered for non-existent notification ID: " + notificationId);
+                destroy()
+                return
+            }
             const notifObject = root.list[index];
-            print("[Notifications] Notification timer triggered for ID: " + notificationId + ", transient: " + notifObject?.isTransient);
+            console.log("[Notifications] Timer triggered for ID: " + notificationId + ", transient: " + notifObject.isTransient);
             if (notifObject.isTransient) root.discardNotification(notificationId);
             else root.timeoutNotification(notificationId);
             destroy()
@@ -285,8 +290,9 @@ Singleton {
 
     function cancelTimeout(id) {
         const index = root.list.findIndex((notif) => notif.notificationId === id);
-        if (root.list[index] != null)
+        if (index !== -1 && root.list[index] != null && root.list[index].timer != null) {
             root.list[index].timer.stop();
+        }
     }
 
     function timeoutNotification(id) {
@@ -359,6 +365,22 @@ Singleton {
                 t.summary,
                 t.body,
             ]);
+        }
+    }
+
+    IpcHandler {
+        target: "notifications"
+
+        function test() {
+            root.sendTestNotifications()
+        }
+
+        function clearAll() {
+            root.discardAllNotifications()
+        }
+
+        function toggleSilent() {
+            root.silent = !root.silent
         }
     }
 

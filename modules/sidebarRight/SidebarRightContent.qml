@@ -290,14 +290,21 @@ Item {
                 toggled: false
                 buttonIcon: "settings"
                 onClicked: {
-                    GlobalStates.sidebarRightOpen = false;
-                    
-                    const existingWindow = NiriService.findWindowByTitle("Settings")
-                    if (existingWindow) {
-                        NiriService.focusWindow(existingWindow.id)
-                        return
+                    if (CompositorService.isNiri) {
+                        const wins = NiriService.windows || []
+                        for (let i = 0; i < wins.length; i++) {
+                            const w = wins[i]
+                            if (w.title === "illogical-impulse Settings" && w.app_id === "org.quickshell") {
+                                GlobalStates.sidebarRightOpen = false;
+                                Qt.callLater(() => {
+                                    NiriService.focusWindow(w.id)
+                                })
+                                return
+                            }
+                        }
                     }
                     
+                    GlobalStates.sidebarRightOpen = false;
                     Quickshell.execDetached(["qs", "-n", "-p", root.settingsQmlPath]);
                 }
                 StyledToolTip {

@@ -761,9 +761,22 @@ Singleton {
 
     function findWindowByTitle(titlePattern) {
         const wins = windows || []
+        const pattern = titlePattern.toLowerCase()
         for (let i = 0; i < wins.length; i++) {
             const w = wins[i]
-            if (w.title && w.title.includes(titlePattern)) {
+            if (w.title && w.title.toLowerCase().includes(pattern)) {
+                return w
+            }
+        }
+        return null
+    }
+
+    function findWindowByAppId(appIdPattern) {
+        const wins = windows || []
+        const pattern = appIdPattern.toLowerCase()
+        for (let i = 0; i < wins.length; i++) {
+            const w = wins[i]
+            if (w.app_id && w.app_id.toLowerCase().includes(pattern)) {
                 return w
             }
         }
@@ -788,15 +801,16 @@ Singleton {
     function enrichToplevel(toplevel, niriWindow) {
         const workspace = workspaces[niriWindow.workspace_id]
         const isFocused = niriWindow.is_focused ?? (workspace && workspace.active_window_id === niriWindow.id) ?? false
+        const windowId = niriWindow.id
 
         const enriched = {
             "appId": toplevel.appId,
             "title": toplevel.title,
             "activated": isFocused,
-            "niriWindowId": niriWindow.id,
+            "niriWindowId": windowId,
             "niriWorkspaceId": niriWindow.workspace_id,
             "activate": function () {
-                return NiriService.focusWindow(niriWindow.id)
+                return NiriService.focusWindow(windowId)
             },
             "close": function () {
                 if (toplevel.close) {

@@ -248,7 +248,11 @@ Item {
                                 windowButton.modelData?.close();
                             }
                             onClicked: {
-                                windowButton.modelData?.activate();
+                                if (CompositorService.isNiri && windowButton.modelData?.niriWindowId) {
+                                    NiriService.focusWindow(windowButton.modelData.niriWindowId)
+                                } else {
+                                    windowButton.modelData?.activate();
+                                }
                             }
                             contentItem: ColumnLayout {
                                 implicitWidth: screencopyView.implicitWidth
