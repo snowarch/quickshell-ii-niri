@@ -37,6 +37,7 @@ Read these or suffer.
 | [docs/PACKAGES.md](docs/PACKAGES.md) | Every package the installer uses, by category |
 | [docs/KEYBINDS.md](docs/KEYBINDS.md) | Default keyboard shortcuts |
 | [docs/IPC.md](docs/IPC.md) | All IPC targets for custom keybindings |
+| [docs/NIRI.md](docs/NIRI.md) | Niri-specific features and compatibility |
 | [docs/SETUP.md](docs/SETUP.md) | How the setup script works, updates, uninstall |
 
 ---
