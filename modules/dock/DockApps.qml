@@ -118,6 +118,13 @@ Item {
     }
     
     Connections {
+        target: CompositorService
+        function onSortedToplevelsChanged() {
+            root.rebuildDockItems()
+        }
+    }
+    
+    Connections {
         target: Config.options?.dock
         function onPinnedAppsChanged() {
             root.rebuildDockItems()

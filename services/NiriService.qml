@@ -424,7 +424,9 @@ Singleton {
     }
 
     function handleWindowClosed(data) {
-        windows = windows.filter(w => w.id !== data.id)
+        const currentList = _windowsDirty ? _pendingWindows : windows
+        const updatedWindows = currentList.filter(w => w.id !== data.id)
+        scheduleWindowsUpdate(updatedWindows)
 
         if (mruWindowIds && mruWindowIds.length > 0) {
             mruWindowIds = mruWindowIds.filter(id => id !== data.id)

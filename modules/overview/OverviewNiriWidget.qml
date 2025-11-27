@@ -489,6 +489,16 @@ Item {
             }
             
             Connections {
+                target: root
+                function onWorkspacesForOutputChanged() {
+                    windowSpace.rebuildWindowItems()
+                }
+                function onFirstVisibleWorkspaceSlotChanged() {
+                    windowSpace.rebuildWindowItems()
+                }
+            }
+            
+            Connections {
                 target: GlobalStates
                 function onOverviewOpenChanged() {
                     if (GlobalStates.overviewOpen) {
@@ -679,6 +689,8 @@ Item {
                                 if (movedToOtherWorkspace) {
                                     // Drop válido en otro workspace: mover ventana allí
                                     NiriService.moveWindowToWorkspace(windowData.id, targetWorkspace, true)
+                                    // Force immediate rebuild after move
+                                    Qt.callLater(() => windowSpace.rebuildWindowItems())
                                 } else {
                                     // Drop fuera de cualquier workspace diferente o mismo workspace: efecto imán
                                     windowItem.x = Qt.binding(function() { return windowItem.baseX + windowItem.tileMargin })
