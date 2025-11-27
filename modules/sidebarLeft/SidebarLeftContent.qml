@@ -107,7 +107,7 @@ Item {
         }
         Component {
             id: wallhaven
-            Wallhaven {}
+            WallhavenView {}
         }
         
     }
