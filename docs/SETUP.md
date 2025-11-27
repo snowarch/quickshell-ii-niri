@@ -44,6 +44,8 @@ AUR packages are installed via yay or paru (auto-detected).
   II_ENABLE_SUPER_DAEMON=1 ./setup install-setups
   ```
 
+  If you previously had the legacy Super-tap daemon installed, running `./setup install-setups` **without** `II_ENABLE_SUPER_DAEMON` will also stop/disable its user service and remove its helper script.
+
 ### 3. Config Files (`install-files`)
 
 Copies configs to `~/.config/`:

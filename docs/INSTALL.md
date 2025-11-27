@@ -96,7 +96,7 @@ You should see:
 - Bar at the top
 - Background/wallpaper
 - `Mod+Tab` opens the Niri overview (native)
-- `Mod+Space` (`Super+Space`) toggles the ii overview daemon
+- `Mod+Space` (`Super+Space`) toggles the ii overview (no extra daemon required)
 - `Alt+Tab` cycles windows using ii's switcher
 - `Super+V` opens the clipboard panel
 - `Super+Shift+S` takes a region screenshot
