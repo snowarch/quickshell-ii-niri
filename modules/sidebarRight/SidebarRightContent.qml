@@ -305,7 +305,9 @@ Item {
                     }
                     
                     GlobalStates.sidebarRightOpen = false;
-                    Quickshell.execDetached(["qs", "-n", "-p", root.settingsQmlPath]);
+                    Qt.callLater(() => {
+                        Quickshell.execDetached(["qs", "-n", "-p", root.settingsQmlPath]);
+                    })
                 }
                 StyledToolTip {
                     text: Translation.tr("Settings")

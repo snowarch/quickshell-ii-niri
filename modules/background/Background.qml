@@ -208,6 +208,12 @@ Variants {
                 // tenga siempre una fuente completa. El efecto dinámico se
                 // controla solo a través de la opacidad del blur overlay.
                 opacity: (status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 400
+                        easing.type: Easing.InOutQuad
+                    }
+                }
                 cache: false
                 smooth: false
                 // Range = groups that workspaces span on

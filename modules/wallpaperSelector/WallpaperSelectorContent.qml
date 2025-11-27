@@ -44,12 +44,11 @@ MouseArea {
         if (filePath && filePath.length > 0) {
             if (Config.options.wallpaperSelector.selectionTarget === "backdrop") {
                 Config.options.background.backdrop.wallpaperPath = filePath;
-                filterField.text = "";
-                GlobalStates.wallpaperSelectorOpen = false;
             } else {
                 Wallpapers.select(filePath, root.useDarkMode);
-                filterField.text = "";
             }
+            filterField.text = "";
+            GlobalStates.wallpaperSelectorOpen = false;
         }
     }
 
