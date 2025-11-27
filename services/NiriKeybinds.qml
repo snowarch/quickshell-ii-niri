@@ -25,10 +25,11 @@ Singleton {
             children: [
                 {
                     keybinds: [
-                        { mods: ["Super"], key: "Tab", comment: "Toggle Overview" },
+                        { mods: ["Super"], key: "Tab", comment: "Niri Overview" },
+                        { mods: ["Super", "Shift"], key: "Slash", comment: "Show hotkey overlay" },
                         { mods: ["Super", "Shift"], key: "E", comment: "Quit Niri" },
-                        { mods: ["Super"], key: "Escape", comment: "Toggle keyboard shortcuts inhibit" },
-                        { mods: ["Super", "Shift"], key: "O", comment: "Power off monitors" }
+                        { mods: ["Super"], key: "Escape", comment: "Toggle shortcuts inhibit" },
+                        { mods: ["Super", "Shift"], key: "P", comment: "Power off monitors" }
                     ]
                 }
             ]
@@ -49,9 +50,14 @@ Singleton {
             children: [
                 {
                     keybinds: [
-                        { mods: ["Super"], key: "T", comment: "Open terminal" },
-                        { mods: ["Super"], key: "Return", comment: "Open terminal" },
-                        { mods: ["Super"], key: "E", comment: "Open file manager" }
+                        { mods: ["Super"], key: "T", comment: "Terminal" },
+                        { mods: ["Super"], key: "Return", comment: "Terminal" },
+                        { mods: ["Super"], key: "W", comment: "Browser" },
+                        { mods: ["Super"], key: "E", comment: "File manager" },
+                        { mods: ["Super"], key: "C", comment: "Windsurf" },
+                        { mods: ["Super"], key: "X", comment: "VS Code" },
+                        { mods: ["Super"], key: "B", comment: "System monitor" },
+                        { mods: ["Ctrl", "Super"], key: "V", comment: "Volume control" }
                     ]
                 }
             ]
@@ -62,7 +68,8 @@ Singleton {
                 {
                     keybinds: [
                         { mods: ["Super"], key: "Q", comment: "Close window" },
-                        { mods: ["Super"], key: "F", comment: "Toggle fullscreen" },
+                        { mods: ["Super"], key: "D", comment: "Maximize column" },
+                        { mods: ["Super"], key: "F", comment: "Fullscreen" },
                         { mods: ["Super"], key: "A", comment: "Toggle floating" }
                     ]
                 }
@@ -114,23 +121,13 @@ Singleton {
             children: [
                 {
                     keybinds: [
-                        { mods: ["Super"], key: "G", comment: "Toggle overlay" },
+                        { mods: ["Super"], key: "Space", comment: "ii Overview" },
+                        { mods: ["Super"], key: "G", comment: "ii Overlay" },
                         { mods: ["Super"], key: "V", comment: "Clipboard history" },
+                        { mods: ["Super"], key: "Comma", comment: "Settings" },
+                        { mods: ["Super"], key: "N", comment: "Notepad" },
                         { mods: ["Super", "Alt"], key: "L", comment: "Lock screen" },
-                        { mods: ["Ctrl", "Alt"], key: "T", comment: "Wallpaper selector" },
-                        { mods: ["Super"], key: "/", comment: "Keyboard shortcuts" }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "Region Tools",
-            children: [
-                {
-                    keybinds: [
-                        { mods: ["Super", "Shift"], key: "S", comment: "Screenshot region" },
-                        { mods: ["Super", "Shift"], key: "X", comment: "OCR region" },
-                        { mods: ["Super", "Shift"], key: "A", comment: "Google Lens search" }
+                        { mods: ["Super"], key: "Slash", comment: "Cheatsheet" }
                     ]
                 }
             ]
@@ -140,9 +137,25 @@ Singleton {
             children: [
                 {
                     keybinds: [
+                        { mods: ["Super", "Shift"], key: "S", comment: "Screenshot region" },
+                        { mods: ["Super", "Shift"], key: "X", comment: "OCR region" },
                         { mods: [], key: "Print", comment: "Screenshot (select)" },
                         { mods: ["Ctrl"], key: "Print", comment: "Screenshot screen" },
                         { mods: ["Alt"], key: "Print", comment: "Screenshot window" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "Media",
+            children: [
+                {
+                    keybinds: [
+                        { mods: [], key: "XF86AudioRaiseVolume", comment: "Volume up" },
+                        { mods: [], key: "XF86AudioLowerVolume", comment: "Volume down" },
+                        { mods: [], key: "XF86AudioMute", comment: "Mute audio" },
+                        { mods: [], key: "XF86MonBrightnessUp", comment: "Brightness up" },
+                        { mods: [], key: "XF86MonBrightnessDown", comment: "Brightness down" }
                     ]
                 }
             ]
