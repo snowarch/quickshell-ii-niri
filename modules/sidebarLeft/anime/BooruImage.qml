@@ -24,6 +24,9 @@ Button {
     property int maxTagStringLineLength: 50
     property real imageRadius: Appearance.rounding.small
 
+    // Allow consumers (e.g. Wallhaven) to opt-out of hover tooltips
+    property bool enableTooltip: true
+
     property bool showActions: false
     Process {
         id: downloadProcess
@@ -41,6 +44,7 @@ Button {
     }
 
     StyledToolTip {
+        visible: root.enableTooltip && root.imageData && root.imageData.tags && root.imageData.tags.length > 0
         text: `${StringUtils.wordWrap(root.imageData.tags, root.maxTagStringLineLength)}`
     }
 
@@ -78,12 +82,24 @@ Button {
             }
         }
 
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            hoverEnabled: false
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.RightButton) {
+                    root.showActions = !root.showActions
+                    mouse.accepted = true
+                }
+            }
+        }
+
         RippleButton {
             id: menuButton
             anchors.top: parent.top
             anchors.right: parent.right
-            property real buttonSize: 30
-            anchors.margins: Math.max(root.imageRadius - buttonSize / 2, 8)
+            property real buttonSize: 26
+            anchors.margins: 6
             implicitHeight: buttonSize
             implicitWidth: buttonSize
 
@@ -106,6 +122,7 @@ Button {
 
         Loader {
             id: contextMenuLoader
+            z: 10
             active: root.showActions
             anchors.top: menuButton.bottom
             anchors.right: parent.right
@@ -172,8 +189,24 @@ Button {
                             onClicked: {
                                 root.showActions = false;
                                 const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
+                                const localPath = `${targetPath}/${root.fileName}`;
                                 Quickshell.execDetached(["bash", "-c", 
-                                    `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${targetPath}/${root.fileName}' && notify-send '${Translation.tr("Download complete")}' '${root.downloadPath}/${root.fileName}' -a 'Shell'`
+                                    `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${localPath}' && notify-send '${Translation.tr("Download complete")}' '${localPath}' -a 'Shell'`
+                                ])
+                                Quickshell.execDetached(["xdg-open", targetPath])
+                            }
+                        }
+                        MenuButton {
+                            id: setWallpaperButton
+                            Layout.fillWidth: true
+                            buttonText: Translation.tr("Set as wallpaper")
+                            onClicked: {
+                                root.showActions = false;
+                                const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
+                                const localPath = `${targetPath}/${root.fileName}`;
+                                const mode = Appearance.m3colors.darkmode ? "dark" : "light";
+                                Quickshell.execDetached(["bash", "-c",
+                                    `mkdir -p '${targetPath}' && curl -sSL '${root.imageData.file_url}' -o '${localPath}' && '${Directories.wallpaperSwitchScriptPath}' --image '${localPath}' --mode '${mode}'`
                                 ])
                             }
                         }

@@ -29,6 +29,10 @@ QtObject {
     property int defaultLimit: Config.options?.sidebar?.wallhaven?.limit ?? 24
     // Reuse global NSFW toggle used by Anime boorus for now
     property bool allowNsfw: Persistent.states.booru.allowNsfw
+    // Listing mode: "toplist", "date_added", "random", etc.
+    property string sortingMode: "toplist"
+    // Toplist range when sortingMode == "toplist": 1d, 3d, 1w, 1M, 3M, 6M, 1y
+    property string topRange: "1M"
 
     function clearResponses() {
         responses = []
@@ -70,9 +74,13 @@ QtObject {
         }
         params.push("purity=" + purity)
 
-        // sort newest first
-        params.push("sorting=date_added")
+        // Sorting / listing mode
+        var sorting = sortingMode
+        params.push("sorting=" + sorting)
         params.push("order=desc")
+        if (sorting === "toplist" && topRange.length > 0) {
+            params.push("topRange=" + topRange)
+        }
 
         if (apiKey && apiKey.length > 0) {
             params.push("apikey=" + encodeURIComponent(apiKey))

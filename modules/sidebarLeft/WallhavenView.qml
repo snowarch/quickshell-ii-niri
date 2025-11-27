@@ -21,6 +21,8 @@ Item {
     property string nsfwPath: Directories.booruDownloadsNsfw
     property string commandPrefix: "/"
     property real scrollOnNewResponse: 100
+    property var suggestionQuery: ""
+    property var suggestionList: []
 
     property bool pullLoading: false
     property int pullLoadingGap: 80
@@ -33,9 +35,21 @@ Item {
         }
     }
 
+    // Always start with an empty view and wait for explicit user input
+    Component.onCompleted: {
+        Wallhaven.clearResponses()
+    }
+
     property var allCommands: [
         {
             name: "clear",
+            description: Translation.tr("Clear the current list of images"),
+            execute: () => {
+                Wallhaven.clearResponses();
+            }
+        },
+        {
+            name: "clean",
             description: Translation.tr("Clear the current list of images"),
             execute: () => {
                 Wallhaven.clearResponses();
@@ -65,6 +79,40 @@ Item {
             description: Translation.tr("Allow NSFW content (requires Wallhaven API key)"),
             execute: () => {
                 Persistent.states.booru.allowNsfw = true;
+            }
+        },
+        {
+            name: "top",
+            description: Translation.tr("Use monthly toplist (topRange=1M)"),
+            execute: () => {
+                Wallhaven.sortingMode = "toplist";
+                Wallhaven.topRange = "1M";
+                Wallhaven.addSystemMessage(Translation.tr("Sorting set to toplist (1M)"));
+            }
+        },
+        {
+            name: "topw",
+            description: Translation.tr("Use weekly toplist (topRange=1w)"),
+            execute: () => {
+                Wallhaven.sortingMode = "toplist";
+                Wallhaven.topRange = "1w";
+                Wallhaven.addSystemMessage(Translation.tr("Sorting set to toplist (1w)"));
+            }
+        },
+        {
+            name: "latest",
+            description: Translation.tr("Sort by newest wallpapers"),
+            execute: () => {
+                Wallhaven.sortingMode = "date_added";
+                Wallhaven.addSystemMessage(Translation.tr("Sorting set to latest"));
+            }
+        },
+        {
+            name: "random",
+            description: Translation.tr("Show random wallpapers"),
+            execute: () => {
+                Wallhaven.sortingMode = "random";
+                Wallhaven.addSystemMessage(Translation.tr("Sorting set to random"));
             }
         }
     ]
@@ -176,6 +224,10 @@ Item {
                     previewDownloadPath: root.previewDownloadPath
                     downloadPath: root.downloadPath
                     nsfwPath: root.nsfwPath
+                    // Use the same layout tuning as Anime/Booru for consistent rows
+                    rowTooShortThreshold: 190
+                    imageSpacing: 5
+                    responsePadding: 5
                 }
 
                 onDragEnded: {
@@ -187,14 +239,56 @@ Item {
                 }
             }
 
-            PagePlaceholder {
-                id: placeholderItem
+            Item {
+                id: placeholderHost
                 z: 2
-                shown: root.responses.length === 0
-                icon: "image"
-                title: Translation.tr("Wallhaven wallpapers")
-                description: Translation.tr("Type tags and hit Enter to search on wallhaven.cc")
-                shape: MaterialShape.Shape.Bun
+                visible: root.responses.length === 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(parent.width - 40, 420)
+                height: 220
+
+                PagePlaceholder {
+                    id: placeholderItem
+                    anchors.fill: parent
+                    shown: true
+                    icon: "image"
+                    title: Translation.tr("Wallhaven wallpapers")
+                    description: Translation.tr("Type tags and hit Enter to search on wallhaven.cc")
+                    shape: MaterialShape.Shape.Bun
+                }
+            }
+
+            FlowButtonGroup {
+                id: placeholderCommands
+                z: 3
+                visible: root.responses.length === 0
+                anchors.horizontalCenter: placeholderHost.horizontalCenter
+                anchors.top: placeholderHost.bottom
+                anchors.topMargin: 8
+                spacing: 6
+
+                Repeater {
+                    model: [
+                        { label: Translation.tr("Top weekly"), sorting: "toplist", topRange: "1w" },
+                        { label: Translation.tr("Top monthly"), sorting: "toplist", topRange: "1M" },
+                        { label: Translation.tr("Latest"), sorting: "date_added" },
+                        { label: Translation.tr("Random"), sorting: "random" },
+                    ]
+                    delegate: ApiCommandButton {
+                        required property var modelData
+                        buttonText: modelData.label
+                        colBackground: Appearance.colors.colLayer2
+
+                        downAction: () => {
+                            Wallhaven.sortingMode = modelData.sorting
+                            if (modelData.topRange !== undefined) {
+                                Wallhaven.topRange = modelData.topRange
+                            }
+                            Wallhaven.makeRequest([], Persistent.states.booru.allowNsfw, Config.options.sidebar.wallhaven.limit, 1)
+                        }
+                    }
+                }
             }
 
             ScrollToBottomButton {
@@ -220,6 +314,60 @@ Item {
                 loading: root.pullLoading || Wallhaven.runningRequests > 0
                 pullProgress: Math.min(1, wallhavenResponseListView.verticalOvershoot / root.pullLoadingGap * wallhavenResponseListView.dragging)
                 scale: root.pullLoading ? 1 : Math.min(1, root.normalizedPullDistance * 2)
+            }
+        }
+
+        DescriptionBox {
+            text: root.suggestionList[commandSuggestions.selectedIndex]?.description ?? ""
+            showArrows: root.suggestionList.length > 1
+        }
+
+        FlowButtonGroup {
+            id: commandSuggestions
+            visible: root.suggestionList.length > 0 && tagInputField.text.length > 0 && tagInputField.text.startsWith(root.commandPrefix)
+            property int selectedIndex: 0
+            Layout.fillWidth: true
+            spacing: 5
+
+            Repeater {
+                id: commandSuggestionRepeater
+                model: {
+                    commandSuggestions.selectedIndex = 0
+                    return root.suggestionList.slice(0, 10)
+                }
+                delegate: ApiCommandButton {
+                    id: cmdButton
+                    colBackground: commandSuggestions.selectedIndex === index ? Appearance.colors.colSecondaryContainerHover : Appearance.colors.colSecondaryContainer
+                    bounce: false
+                    contentItem: StyledText {
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colOnSecondaryContainer
+                        horizontalAlignment: Text.AlignHCenter
+                        text: modelData.name
+                    }
+
+                    onHoveredChanged: {
+                        if (cmdButton.hovered) {
+                            commandSuggestions.selectedIndex = index;
+                        }
+                    }
+                    onClicked: {
+                        commandSuggestions.acceptCommand(modelData.name)
+                    }
+                }
+            }
+
+            function acceptCommand(cmd) {
+                tagInputField.text = cmd + " "
+                tagInputField.cursorPosition = tagInputField.text.length
+                tagInputField.forceActiveFocus()
+            }
+
+            function acceptSelectedCommand() {
+                if (commandSuggestions.selectedIndex >= 0 && commandSuggestions.selectedIndex < commandSuggestionRepeater.count) {
+                    const cmd = root.suggestionList[commandSuggestions.selectedIndex].name;
+                    commandSuggestions.acceptCommand(cmd);
+                }
             }
         }
 
@@ -256,13 +404,42 @@ Item {
                     placeholderText: Translation.tr('Enter tags, or "%1" for commands').arg(root.commandPrefix)
                     background: null
 
+                    onTextChanged: {
+                        if (tagInputField.text.length === 0) {
+                            root.suggestionQuery = ""
+                            root.suggestionList = []
+                            return
+                        }
+                        if (tagInputField.text.startsWith(root.commandPrefix)) {
+                            root.suggestionQuery = tagInputField.text
+                            root.suggestionList = root.allCommands.filter(cmd => cmd.name.startsWith(tagInputField.text.substring(1))).map(cmd => {
+                                return {
+                                    name: `${root.commandPrefix}${cmd.name}`,
+                                    description: `${cmd.description}`,
+                                }
+                            })
+                        } else {
+                            root.suggestionQuery = ""
+                            root.suggestionList = []
+                        }
+                    }
+
                     function accept() {
                         root.handleInput(text)
                         text = ""
                     }
 
                     Keys.onPressed: (event) => {
-                        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) {
+                        if (event.key === Qt.Key_Tab) {
+                            commandSuggestions.acceptSelectedCommand();
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_Up) {
+                            commandSuggestions.selectedIndex = Math.max(0, commandSuggestions.selectedIndex - 1);
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_Down) {
+                            commandSuggestions.selectedIndex = Math.min(root.suggestionList.length - 1, commandSuggestions.selectedIndex + 1);
+                            event.accepted = true;
+                        } else if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) {
                             if (event.modifiers & Qt.ShiftModifier) {
                                 tagInputField.insert(tagInputField.cursorPosition, "\n")
                                 event.accepted = true
@@ -315,11 +492,21 @@ Item {
                 anchors.leftMargin: 5
                 anchors.rightMargin: 5
                 spacing: 5
+                property var commandsShown: [
+                    {
+                        name: "next",
+                        sendDirectly: true,
+                    },
+                    {
+                        name: "clear",
+                        sendDirectly: true,
+                    },
+                ]
 
                 ApiInputBoxIndicator {
                     icon: "image"
                     text: "wallhaven.cc"
-                    tooltipText: Translation.tr("Search wallpapers from wallhaven.cc\nUse %1safe or %2lewd to toggle NSFW (requires API key)")
+                    tooltipText: Translation.tr("Search wallpapers from wallhaven.cc\nUse %1safe or %2lewd to toggle NSFW (requires API key)\nUse %1top, %1topw, %1latest, %1random for listing modes")
                         .arg(root.commandPrefix).arg(root.commandPrefix)
                 }
 
@@ -392,17 +579,6 @@ Item {
                             }
                         }
                     }
-
-                    property var commandsShown: [
-                        {
-                            name: "clear",
-                            sendDirectly: true,
-                        },
-                        {
-                            name: "next",
-                            sendDirectly: true,
-                        },
-                    ]
                 }
             }
         }

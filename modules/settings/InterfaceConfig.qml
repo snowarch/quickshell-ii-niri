@@ -738,6 +738,32 @@ ContentPage {
             }
         }
 
+        ConfigSwitch {
+            buttonIcon: "image"
+            text: Translation.tr('Enable Wallhaven sidebar')
+            checked: Config.options.sidebar.wallhaven.enable
+            onCheckedChanged: {
+                Config.options.sidebar.wallhaven.enable = checked;
+            }
+        }
+
+        ConfigSpinBoxRow {
+            label: Translation.tr('Wallhaven results per page')
+            from: 12
+            to: 72
+            stepSize: 4
+            value: Config.options.sidebar.wallhaven.limit
+            onValueChanged: Config.options.sidebar.wallhaven.limit = value
+        }
+
+        ConfigTextFieldRow {
+            label: Translation.tr('Wallhaven API key (optional)')
+            text: Config.options.sidebar.wallhaven.apiKey
+            placeholderText: Translation.tr('Needed for NSFW and account filters')
+            echoMode: TextInput.Password
+            onTextChanged: Config.options.sidebar.wallhaven.apiKey = text
+        }
+
         ContentSubsection {
             title: Translation.tr("Quick toggles")
             

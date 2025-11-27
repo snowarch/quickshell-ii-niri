@@ -20,6 +20,8 @@ Rectangle {
     property string downloadPath
     property string nsfwPath
 
+    readonly property bool isWallhaven: root.responseData.provider === "wallhaven"
+
     property real availableWidth: parent.width
     property real rowTooShortThreshold: 190
     property real imageSpacing: 5
@@ -75,12 +77,14 @@ Rectangle {
                     anchors.centerIn: parent
                     font.pixelSize: Appearance.font.pixelSize.large
                     color: Appearance.m3colors.m3onSecondaryContainer
-                    text: Booru.providers[root.responseData.provider].name
+                    text: root.isWallhaven
+                        ? Translation.tr("Page %1").arg(root.responseData.page)
+                        : Booru.providers[root.responseData.provider].name
                 }
             }
             Item { Layout.fillWidth: true }
             Item { // Page number
-                visible: root.responseData.page != "" && root.responseData.page > 0
+                visible: !root.isWallhaven && root.responseData.page != "" && root.responseData.page > 0
                 implicitWidth: Math.max(pageNumber.implicitWidth + 10 * 2, 30)
                 implicitHeight: pageNumber.implicitHeight + 5 * 2
                 Layout.alignment: Qt.AlignVCenter
@@ -229,6 +233,8 @@ Rectangle {
                         imageData: modelData
                         rowHeight: imageRow.rowHeight
                         imageRadius: imageRow.modelData.images.length == 1 ? 50 : Appearance.rounding.normal
+                        // Disable hover tooltips for Wallhaven provider to avoid empty bubbles
+                        enableTooltip: root.responseData.provider !== "wallhaven"
                         // Download manually to reduce redundant requests or make sure downloading works
                         manualDownload: ["danbooru", "waifu.im", "t.alcy.cc"].includes(root.responseData.provider)
                         previewDownloadPath: root.previewDownloadPath
@@ -239,46 +245,92 @@ Rectangle {
             }
         }
 
-        RippleButton { // Next page button
-            id: button
-            property string buttonText
+        RowLayout { // Paging buttons
+            id: pagingButtonsRow
+            Layout.alignment: Qt.AlignRight
+            spacing: 6
             visible: root.responseData.page != "" && root.responseData.page > 0
 
-            Layout.alignment: Qt.AlignRight
-            implicitHeight: 30
-            leftPadding: 10
-            rightPadding: 5
+            RippleButton { // Next page button
+                id: button
+                property string buttonText
 
-            onClicked: {
-                tagInputField.text = `${responseData.tags.join(" ")} ${parseInt(root.responseData.page) + 1}`
-                tagInputField.accept()
+                implicitHeight: 30
+                leftPadding: 10
+                rightPadding: 5
+
+                onClicked: {
+                    tagInputField.text = `${responseData.tags.join(" ")} ${parseInt(root.responseData.page) + 1}`
+                    tagInputField.accept()
+                }
+
+                buttonRadius: Appearance.rounding.small
+                colBackground: Appearance.colors.colSurfaceContainerHighest
+                colBackgroundHover: Appearance.colors.colSurfaceContainerHighestHover
+                colRipple: Appearance.colors.colSurfaceContainerHighestActive            
+
+                contentItem: Item {
+                    anchors.fill: parent
+                    implicitHeight: nextPageRow.implicitHeight
+                    implicitWidth: nextPageRow.implicitWidth
+
+                    RowLayout {
+                        id: nextPageRow
+                        anchors.centerIn: parent
+                        spacing: 0
+                        StyledText {
+                            Layout.alignment: Qt.AlignVCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: "Next page"
+                            color: Appearance.m3colors.m3onSurface
+                        }
+                        MaterialSymbol {
+                            Layout.alignment: Qt.AlignVCenter
+                            iconSize: Appearance.font.pixelSize.larger
+                            color: Appearance.m3colors.m3onSurface
+                            text: "chevron_right"
+                        }
+                    }
+                }
             }
 
-            buttonRadius: Appearance.rounding.small
-            colBackground: Appearance.colors.colSurfaceContainerHighest
-            colBackgroundHover: Appearance.colors.colSurfaceContainerHighestHover
-            colRipple: Appearance.colors.colSurfaceContainerHighestActive            
+            RippleButton { // Clear button
+                id: clearButton
+                implicitHeight: 30
+                leftPadding: 10
+                rightPadding: 10
 
-            contentItem: Item {
-                anchors.fill: parent
-                implicitHeight: nextPageRow.implicitHeight
-                implicitWidth: nextPageRow.implicitWidth
-
-                RowLayout {
-                    id: nextPageRow
-                    anchors.centerIn: parent
-                    spacing: 0
-                    StyledText {
-                        Layout.alignment: Qt.AlignVCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: "Next page"
-                        color: Appearance.m3colors.m3onSurface
+                onClicked: {
+                    if (root.tagInputField) {
+                        root.tagInputField.text = ""
                     }
-                    MaterialSymbol {
-                        Layout.alignment: Qt.AlignVCenter
-                        iconSize: Appearance.font.pixelSize.larger
-                        color: Appearance.m3colors.m3onSurface
-                        text: "chevron_right"
+                    if (root.responseData.provider === "wallhaven") {
+                        Wallhaven.clearResponses()
+                    } else {
+                        Booru.clearResponses()
+                    }
+                }
+
+                buttonRadius: Appearance.rounding.small
+                colBackground: Appearance.colors.colSurfaceContainerHighest
+                colBackgroundHover: Appearance.colors.colSurfaceContainerHighestHover
+                colRipple: Appearance.colors.colSurfaceContainerHighestActive
+
+                contentItem: Item {
+                    anchors.fill: parent
+                    implicitHeight: clearRow.implicitHeight
+                    implicitWidth: clearRow.implicitWidth
+
+                    RowLayout {
+                        id: clearRow
+                        anchors.centerIn: parent
+                        spacing: 0
+                        StyledText {
+                            Layout.alignment: Qt.AlignVCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: Translation.tr("Clear")
+                            color: Appearance.m3colors.m3onSurface
+                        }
                     }
                 }
             }
