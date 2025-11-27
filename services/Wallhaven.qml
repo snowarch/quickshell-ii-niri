@@ -34,6 +34,18 @@ Singleton {
         responses = []
     }
 
+    function addSystemMessage(message) {
+        var resp = wallhavenResponseComponent.createObject(null, {
+            "provider": "system",
+            "tags": [],
+            "page": -1,
+            "images": [],
+            "message": message
+        })
+        responses = [...responses, resp]
+        responseFinished()
+    }
+
     function _buildSearchUrl(tags, nsfw, limit, page) {
         var url = apiSearchEndpoint
         var params = []

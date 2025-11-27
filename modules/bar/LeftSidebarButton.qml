@@ -41,6 +41,14 @@ RippleButton {
     }
 
     Connections {
+        target: Wallhaven
+        function onResponseFinished() {
+            if (GlobalStates.sidebarLeftOpen) return;
+            root.showPing = true;
+        }
+    }
+
+    Connections {
         target: GlobalStates
         function onSidebarLeftOpenChanged() {
             root.showPing = false;

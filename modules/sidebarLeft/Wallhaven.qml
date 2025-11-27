@@ -77,11 +77,7 @@ Item {
             if (commandObj) {
                 commandObj.execute(args);
             } else {
-                Wallhaven.clearResponses();
-                Wallhaven.responses = [];
-                Wallhaven.responses = [
-                    root.responses, // keep type consistency; Anime uses Booru.addSystemMessage
-                ];
+                Wallhaven.addSystemMessage(Translation.tr("Unknown command: ") + command);
             }
         }
         else if (inputText.trim() == "+") {
