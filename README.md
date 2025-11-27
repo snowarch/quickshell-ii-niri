@@ -62,7 +62,7 @@ These come configured by default:
 | Key | What it does |
 |-----|--------------|
 | `Mod+Tab` | Niri overview (native) |
-| `Mod+Space` (`Super+Space`) | ii overview (daemon) |
+| `Mod+Space` (`Super+Space`) | ii overview |
 | `Alt+Tab` | ii window switcher |
 | `Super+G` | ii overlay (search, widgets) |
 | `Super+V` | Clipboard history |
