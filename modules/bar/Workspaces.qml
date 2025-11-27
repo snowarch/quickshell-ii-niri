@@ -18,11 +18,12 @@ Item {
     property bool borderless: Config.options.bar.borderless
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
+    readonly property var wsConfig: Config.options?.bar.workspaces ?? {}
     
     readonly property int currentWorkspaceNumber: CompositorService.isNiri
             ? NiriService.getCurrentWorkspaceNumber()
             : (monitor?.activeWorkspace?.id || 1)
-    readonly property int workspacesShown: Config.options.bar.workspaces.shown
+    readonly property int workspacesShown: wsConfig.shown ?? 10
     readonly property int workspaceGroup: Math.floor((currentWorkspaceNumber - 1) / root.workspacesShown)
     property list<bool> workspaceOccupied: []
     property int widgetPadding: 4
@@ -58,14 +59,23 @@ Item {
         }
     }
 
-    // Function to update workspaceOccupied
+    Timer {
+        id: updateWorkspaceOccupiedTimer
+        interval: 16
+        repeat: false
+        onTriggered: doUpdateWorkspaceOccupied()
+    }
+
     function updateWorkspaceOccupied() {
+        updateWorkspaceOccupiedTimer.restart()
+    }
+
+    function doUpdateWorkspaceOccupied() {
         if (CompositorService.isNiri) {
             const wsList = NiriService.currentOutputWorkspaces || []
             const base = workspaceGroup * root.workspacesShown
             workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {
                 const targetNumber = base + i + 1
-                // Niri workspaces already use a 1-based idx for their position on the monitor.
                 return wsList.some(ws => ws.idx === targetNumber)
             })
         } else {
@@ -76,7 +86,7 @@ Item {
     }
 
     // Occupied workspace updates
-    Component.onCompleted: updateWorkspaceOccupied()
+    Component.onCompleted: doUpdateWorkspaceOccupied()
     Connections {
         target: Hyprland.workspaces
         function onValuesChanged() {
@@ -260,11 +270,13 @@ Item {
                     id: workspaceButtonBackground
                     implicitWidth: workspaceButtonWidth
                     implicitHeight: workspaceButtonWidth
+                    readonly property var niriWorkspace: CompositorService.isNiri 
+                        ? NiriService.allWorkspaces.find(w => w.idx === button.workspaceValue) 
+                        : null
                     property var biggestWindow: {
                         if (CompositorService.isNiri) {
-                            const ws = NiriService.allWorkspaces.find(w => w.idx === button.workspaceValue)
-                            if (!ws) return null
-                            const wins = NiriService.windows.filter(w => w.workspace_id === ws.id)
+                            if (!niriWorkspace) return null
+                            const wins = NiriService.windows.filter(w => w.workspace_id === niriWorkspace.id)
                             if (wins.length === 0) return null
                             return wins.find(w => w.is_focused) || wins[0]
                         } else {
@@ -280,8 +292,8 @@ Item {
 
                     StyledText { // Workspace number text
                         opacity: root.showNumbers
-                            || ((Config.options?.bar.workspaces.alwaysShowNumbers && (!Config.options?.bar.workspaces.showAppIcons || !workspaceButtonBackground.biggestWindow || root.showNumbers))
-                            || (root.showNumbers && !Config.options?.bar.workspaces.showAppIcons)
+                            || ((wsConfig.alwaysShowNumbers && (!wsConfig.showAppIcons || !workspaceButtonBackground.biggestWindow || root.showNumbers))
+                            || (root.showNumbers && !wsConfig.showAppIcons)
                             )  ? 1 : 0
                         z: 3
 
@@ -290,9 +302,9 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         font {
                             pixelSize: Appearance.font.pixelSize.small - ((text.length - 1) * (text !== "10") * 2)
-                            family: Config.options?.bar.workspaces.useNerdFont ? Appearance.font.family.iconNerd : defaultFont
+                            family: wsConfig.useNerdFont ? Appearance.font.family.iconNerd : defaultFont
                         }
-                        text: Config.options?.bar.workspaces.numberMap[button.workspaceValue - 1] || button.workspaceValue
+                        text: wsConfig.numberMap?.[button.workspaceValue - 1] || button.workspaceValue
                         elide: Text.ElideRight
                         color: (currentWorkspaceNumber == button.workspaceValue) ? 
                             Appearance.m3colors.m3onPrimary : 
@@ -305,9 +317,9 @@ Item {
                     }
                     Rectangle { // Dot instead of ws number
                         id: wsDot
-                        opacity: (Config.options?.bar.workspaces.alwaysShowNumbers
+                        opacity: (wsConfig.alwaysShowNumbers
                             || root.showNumbers
-                            || (Config.options?.bar.workspaces.showAppIcons && workspaceButtonBackground.biggestWindow)
+                            || (wsConfig.showAppIcons && workspaceButtonBackground.biggestWindow)
                             ) ? 0 : 1
                         visible: opacity > 0
                         anchors.centerIn: parent
@@ -327,21 +339,21 @@ Item {
                         anchors.centerIn: parent
                         width: workspaceButtonWidth
                         height: workspaceButtonWidth
-                        opacity: !Config.options?.bar.workspaces.showAppIcons ? 0 :
-                            (workspaceButtonBackground.biggestWindow && !root.showNumbers && Config.options?.bar.workspaces.showAppIcons) ? 
+                        opacity: !wsConfig.showAppIcons ? 0 :
+                            (workspaceButtonBackground.biggestWindow && !root.showNumbers && wsConfig.showAppIcons) ? 
                             1 : workspaceButtonBackground.biggestWindow ? workspaceIconOpacityShrinked : 0
                             visible: opacity > 0
                         IconImage {
                             id: mainAppIcon
                             anchors.bottom: parent.bottom
                             anchors.right: parent.right
-                            anchors.bottomMargin: (!root.showNumbers && Config.options?.bar.workspaces.showAppIcons) ? 
+                            anchors.bottomMargin: (!root.showNumbers && wsConfig.showAppIcons) ? 
                                 (workspaceButtonWidth - workspaceIconSize) / 2 : workspaceIconMarginShrinked
-                            anchors.rightMargin: (!root.showNumbers && Config.options?.bar.workspaces.showAppIcons) ? 
+                            anchors.rightMargin: (!root.showNumbers && wsConfig.showAppIcons) ? 
                                 (workspaceButtonWidth - workspaceIconSize) / 2 : workspaceIconMarginShrinked
 
                             source: workspaceButtonBackground.mainAppIconSource
-                            implicitSize: (!root.showNumbers && Config.options?.bar.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
+                            implicitSize: (!root.showNumbers && wsConfig.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
 
                             Behavior on opacity {
                                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
@@ -358,7 +370,7 @@ Item {
                         }
 
                         Loader {
-                            active: Config.options.bar.workspaces.monochromeIcons
+                            active: wsConfig.monochromeIcons
                             anchors.fill: mainAppIcon
                             sourceComponent: Item {
                                 Desaturate {

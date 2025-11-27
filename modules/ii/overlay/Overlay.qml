@@ -19,7 +19,7 @@ Scope {
     
     Loader {
         id: overlayLoader
-        active: GlobalStates.overlayOpen || OverlayContext.hasPinnedWidgets
+        active: true  // Always keep loaded for instant opening
         sourceComponent: PanelWindow {
             id: overlayWindow
             exclusionMode: ExclusionMode.Ignore

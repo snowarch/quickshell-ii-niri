@@ -291,7 +291,13 @@ Item {
                 buttonIcon: "settings"
                 onClicked: {
                     GlobalStates.sidebarRightOpen = false;
-                    // Use -n flag to prevent duplicate instances
+                    
+                    const existingWindow = NiriService.findWindowByTitle("Settings")
+                    if (existingWindow) {
+                        NiriService.focusWindow(existingWindow.id)
+                        return
+                    }
+                    
                     Quickshell.execDetached(["qs", "-n", "-p", root.settingsQmlPath]);
                 }
                 StyledToolTip {

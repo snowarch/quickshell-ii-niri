@@ -260,10 +260,17 @@ Singleton {
         const output = ws.output
 
         const updatedWorkspaces = {}
+        let hasChanges = false
 
         for (const id in root.workspaces) {
             const workspace = root.workspaces[id]
             const got_activated = workspace.id === data.id
+            const needsUpdate = (workspace.output === output) || (data.focused && got_activated)
+
+            if (!needsUpdate) {
+                updatedWorkspaces[id] = workspace
+                continue
+            }
 
             const updatedWs = {}
             for (let prop in workspace) {
@@ -279,8 +286,10 @@ Singleton {
             }
 
             updatedWorkspaces[id] = updatedWs
+            hasChanges = true
         }
 
+        if (!hasChanges) return
         root.workspaces = updatedWorkspaces
 
         allWorkspaces = Object.values(updatedWorkspaces).sort((a, b) => a.idx - b.idx)
@@ -315,24 +324,33 @@ Singleton {
 
         let focusedWindow = null
         const updatedWindows = []
+        let hasChanges = false
 
         for (var i = 0; i < windows.length; i++) {
             const w = windows[i]
-            const updatedWindow = {}
+            const shouldBeFocused = (w.id === focusedWindowId)
+            
+            if (w.is_focused === shouldBeFocused) {
+                updatedWindows.push(w)
+                if (shouldBeFocused) focusedWindow = w
+                continue
+            }
 
+            const updatedWindow = {}
             for (let prop in w) {
                 updatedWindow[prop] = w[prop]
             }
 
-            updatedWindow.is_focused = (w.id === focusedWindowId)
-            if (updatedWindow.is_focused) {
+            updatedWindow.is_focused = shouldBeFocused
+            if (shouldBeFocused) {
                 focusedWindow = updatedWindow
             }
 
             updatedWindows.push(updatedWindow)
+            hasChanges = true
         }
 
-        windows = updatedWindows
+        if (hasChanges) windows = updatedWindows
 
         // Update activeWindow (signal is auto-emitted on property change)
         if (activeWindow !== focusedWindow) {
@@ -716,23 +734,12 @@ Singleton {
                 if (usedToplevels.has(toplevel))
                     continue
 
-                if (toplevel.appId === niriWindow.app_id) {
-                    let score = 1
-
-                    if (niriWindow.title && toplevel.title) {
-                        if (toplevel.title === niriWindow.title) {
-                            score = 3
-                        } else if (toplevel.title.includes(niriWindow.title) || niriWindow.title.includes(toplevel.title)) {
-                            score = 2
-                        }
-                    }
-
-                    if (score > bestScore) {
-                        bestScore = score
-                        bestMatch = toplevel
-                        if (score === 3)
-                            break
-                    }
+                const score = matchToplevelToWindow(toplevel, niriWindow)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = toplevel
+                    if (score === 3)
+                        break
                 }
             }
 
@@ -740,34 +747,7 @@ Singleton {
                 continue
 
             usedToplevels.add(bestMatch)
-
-            const workspace = workspaces[niriWindow.workspace_id]
-            const isFocused = niriWindow.is_focused ?? (workspace && workspace.active_window_id === niriWindow.id) ?? false
-
-            const enrichedToplevel = {
-                "appId": bestMatch.appId,
-                "title": bestMatch.title,
-                "activated": isFocused,
-                "niriWindowId": niriWindow.id,
-                "niriWorkspaceId": niriWindow.workspace_id,
-                "activate": function () {
-                    return NiriService.focusWindow(niriWindow.id)
-                },
-                "close": function () {
-                    if (bestMatch.close) {
-                        return bestMatch.close()
-                    }
-                    return false
-                }
-            }
-
-            for (let prop in bestMatch) {
-                if (!(prop in enrichedToplevel)) {
-                    enrichedToplevel[prop] = bestMatch[prop]
-                }
-            }
-
-            enrichedToplevels.push(enrichedToplevel)
+            enrichedToplevels.push(enrichToplevel(bestMatch, niriWindow))
         }
 
         for (const toplevel of toplevels) {
@@ -777,6 +757,62 @@ Singleton {
         }
 
         return enrichedToplevels
+    }
+
+    function findWindowByTitle(titlePattern) {
+        const wins = windows || []
+        for (let i = 0; i < wins.length; i++) {
+            const w = wins[i]
+            if (w.title && w.title.includes(titlePattern)) {
+                return w
+            }
+        }
+        return null
+    }
+
+    function matchToplevelToWindow(toplevel, niriWindow) {
+        if (toplevel.appId !== niriWindow.app_id)
+            return 0
+
+        let score = 1
+        if (niriWindow.title && toplevel.title) {
+            if (toplevel.title === niriWindow.title) {
+                score = 3
+            } else if (toplevel.title.includes(niriWindow.title) || niriWindow.title.includes(toplevel.title)) {
+                score = 2
+            }
+        }
+        return score
+    }
+
+    function enrichToplevel(toplevel, niriWindow) {
+        const workspace = workspaces[niriWindow.workspace_id]
+        const isFocused = niriWindow.is_focused ?? (workspace && workspace.active_window_id === niriWindow.id) ?? false
+
+        const enriched = {
+            "appId": toplevel.appId,
+            "title": toplevel.title,
+            "activated": isFocused,
+            "niriWindowId": niriWindow.id,
+            "niriWorkspaceId": niriWindow.workspace_id,
+            "activate": function () {
+                return NiriService.focusWindow(niriWindow.id)
+            },
+            "close": function () {
+                if (toplevel.close) {
+                    return toplevel.close()
+                }
+                return false
+            }
+        }
+
+        for (let prop in toplevel) {
+            if (!(prop in enriched)) {
+                enriched[prop] = toplevel[prop]
+            }
+        }
+
+        return enriched
     }
 
     function filterCurrentWorkspace(toplevels, screenName) {
@@ -805,23 +841,12 @@ Singleton {
                 if (usedToplevels.has(toplevel))
                     continue
 
-                if (toplevel.appId === niriWindow.app_id) {
-                    let score = 1
-
-                    if (niriWindow.title && toplevel.title) {
-                        if (toplevel.title === niriWindow.title) {
-                            score = 3
-                        } else if (toplevel.title.includes(niriWindow.title) || niriWindow.title.includes(toplevel.title)) {
-                            score = 2
-                        }
-                    }
-
-                    if (score > bestScore) {
-                        bestScore = score
-                        bestMatch = toplevel
-                        if (score === 3)
-                            break
-                    }
+                const score = matchToplevelToWindow(toplevel, niriWindow)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = toplevel
+                    if (score === 3)
+                        break
                 }
             }
 
@@ -829,34 +854,7 @@ Singleton {
                 continue
 
             usedToplevels.add(bestMatch)
-
-            const workspace = workspaces[niriWindow.workspace_id]
-            const isFocused = niriWindow.is_focused ?? (workspace && workspace.active_window_id === niriWindow.id) ?? false
-
-            const enrichedToplevel = {
-                "appId": bestMatch.appId,
-                "title": bestMatch.title,
-                "activated": isFocused,
-                "niriWindowId": niriWindow.id,
-                "niriWorkspaceId": niriWindow.workspace_id,
-                "activate": function () {
-                    return NiriService.focusWindow(niriWindow.id)
-                },
-                "close": function () {
-                    if (bestMatch.close) {
-                        return bestMatch.close()
-                    }
-                    return false
-                }
-            }
-
-            for (let prop in bestMatch) {
-                if (!(prop in enrichedToplevel)) {
-                    enrichedToplevel[prop] = bestMatch[prop]
-                }
-            }
-
-            result.push(enrichedToplevel)
+            result.push(enrichToplevel(bestMatch, niriWindow))
         }
 
         return result

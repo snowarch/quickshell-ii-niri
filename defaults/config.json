@@ -12,6 +12,7 @@
     "enableBlurGlass": false,
     "monochromeIcons": false,
     "scrimDim": 0,
+    "showOverviewWhileSwitching": true,
     "useMostRecentFirst": true
   },
   "appearance": {

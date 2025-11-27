@@ -16,12 +16,12 @@ Item {
 
     readonly property int workspacesShown: Config.options.overview.rows * Config.options.overview.columns
     readonly property var workspacesForOutput: NiriService.currentOutputWorkspaces
+    readonly property var outputWorkspaceNumbers: NiriService.getCurrentOutputWorkspaceNumbers ? NiriService.getCurrentOutputWorkspaceNumbers() : []
+    readonly property int currentWorkspaceNumber: NiriService.getCurrentWorkspaceNumber ? NiriService.getCurrentWorkspaceNumber() : 1
     readonly property int currentWorkspaceSlot: {
-        const nums = NiriService.getCurrentOutputWorkspaceNumbers ? NiriService.getCurrentOutputWorkspaceNumbers() : [];
-        if (!nums || nums.length === 0)
+        if (!outputWorkspaceNumbers || outputWorkspaceNumbers.length === 0)
             return 0;
-        const currentNum = NiriService.getCurrentWorkspaceNumber ? NiriService.getCurrentWorkspaceNumber() : 1;
-        const idx = nums.indexOf(currentNum);
+        const idx = outputWorkspaceNumbers.indexOf(currentWorkspaceNumber);
         return idx >= 0 ? idx : 0;
     }
     readonly property int totalWorkspacesForOutput: workspacesForOutput ? workspacesForOutput.length : 0
@@ -100,17 +100,11 @@ Item {
     property int windowDraggingZ: 99999
     property real workspaceSpacing: Config.options.overview.workspaceSpacing
 
-    // Panel contextual de ventana (preview + acciones)
+    // Context menu
     property bool contextVisible: false
     property var contextWindowData: null
-    property var contextToplevel: null
-    property real contextCardX: 0
-    property real contextCardY: 0
-    // Mismo tamaño base que las cajas de workspace del overview
-    property real contextWidthRatio: 1.0
-    property real contextHeightRatio: 1.0
-    property real contextCardWidth: workspaceImplicitWidth * contextWidthRatio
-    property real contextCardHeight: workspaceImplicitHeight * contextHeightRatio
+    property real contextMenuX: 0
+    property real contextMenuY: 0
 
     // Contador para suavizar el scroll de cambio de workspace
     property int wheelStepCounter: 0
@@ -124,58 +118,27 @@ Item {
     implicitWidth: overviewBackground.implicitWidth + Appearance.sizes.elevationMargin * 2
     implicitHeight: overviewBackground.implicitHeight + Appearance.sizes.elevationMargin * 2
 
-    function openWindowContext(windowItem) {
-        if (!windowItem || !windowItem.windowData)
-            return
+    Timer {
+        id: dragCleanupTimer
+        interval: 100
+        onTriggered: {
+            root.draggingFromWorkspace = -1
+            root.draggingTargetWorkspace = -1
+        }
+    }
 
+    function openWindowContext(windowItem, mouseX, mouseY) {
+        if (!windowItem || !windowItem.windowData) return
         contextWindowData = windowItem.windowData
-        contextToplevel = windowItem.toplevel
-
-        // Tamaño del panel contextual (idéntico a un workspace)
-        var cardWidth = contextCardWidth
-        var cardHeight = contextCardHeight
-
-        // Gap horizontal fijo entre el overview y el panel contextual
-        var gap = workspaceSpacing + Appearance.sizes.elevationMargin / 2
-
-        // Rectángulo real del "teléfono" principal (overviewBackground) en coords de root
-        var bgTopLeft = overviewBackground.mapToItem(root, 0, 0)
-        var bgLeftRoot = bgTopLeft.x
-        var bgTopRoot = bgTopLeft.y
-        var bgRightRoot = bgLeftRoot + overviewBackground.width
-        var bgBottomRoot = bgTopRoot + overviewBackground.height
-
-        // Rectángulo de windowSpace (grid) en coords de root, usado para convertir de vuelta
-        var wsTopLeft = windowSpace.mapToItem(root, 0, 0)
-
-        // Fila del workspace donde vive este tile (0..rows-1)
-        var rowIndex = windowItem.workspaceRowIndex
-
-        // Top de la fila en coordenadas de root (misma altura que la caja de workspace)
-        var rowTopRoot = wsTopLeft.y + rowIndex * (root.workspaceImplicitHeight + workspaceSpacing)
-
-        // Posición inicial del panel en root: SIEMPRE a la derecha del overview
-        var cardLeftRoot = bgRightRoot + gap
-        var cardTopRoot = rowTopRoot
-
-        // Clamp vertical para que no se salga del "teléfono" principal
-        var minRootY = bgTopRoot
-        var maxRootY = bgBottomRoot - cardHeight
-        if (cardTopRoot < minRootY)
-            cardTopRoot = minRootY
-        else if (cardTopRoot > maxRootY)
-            cardTopRoot = Math.max(minRootY, maxRootY)
-
-        // Convertir a coordenadas relativas a windowSpace (padre de windowContextOverlay)
-        contextCardX = cardLeftRoot - wsTopLeft.x
-        contextCardY = cardTopRoot - wsTopLeft.y
+        const pos = windowItem.mapToItem(windowSpace, mouseX, mouseY)
+        contextMenuX = pos.x
+        contextMenuY = pos.y
         contextVisible = true
     }
 
     function closeWindowContext() {
         contextVisible = false
         contextWindowData = null
-        contextToplevel = null
     }
 
     Connections {
@@ -203,15 +166,11 @@ Item {
 
             const direction = deltaY < 0 ? 1 : -1
 
-            const wsList = NiriService.getCurrentOutputWorkspaceNumbers
-                ? NiriService.getCurrentOutputWorkspaceNumbers()
-                : []
+            const wsList = root.outputWorkspaceNumbers
             if (!wsList || wsList.length < 2)
                 return
 
-            const currentNumber = NiriService.getCurrentWorkspaceNumber
-                ? NiriService.getCurrentWorkspaceNumber()
-                : 1
+            const currentNumber = root.currentWorkspaceNumber
             const currentIndex = wsList.indexOf(currentNumber)
             const validIndex = currentIndex === -1 ? 0 : currentIndex
             const nextIndex = direction > 0
@@ -445,6 +404,9 @@ Item {
             Repeater {
                 model: ScriptModel {
                     values: {
+                        if (!GlobalStates.overviewOpen)
+                            return []
+                        
                         const wins = NiriService.windows || []
                         const wsList = root.workspacesForOutput || []
                         if (wsList.length === 0 || wins.length === 0)
@@ -664,14 +626,10 @@ Item {
                                 const dy = Math.abs(event.y - pressY)
                                 const isClick = dx <= 4 && dy <= 4
 
-                                if (!windowData)
-                                    return
+                                if (!windowData) return
 
                                 if (event.button === Qt.RightButton) {
-                                    // Click derecho sin drag: abrir panel contextual
-                                    if (isClick) {
-                                        root.openWindowContext(windowItem)
-                                    }
+                                    if (isClick) root.openWindowContext(windowItem, event.x, event.y)
                                     windowItem.pressed = false
                                     windowItem.Drag.active = false
                                     root.draggingFromWorkspace = -1
@@ -683,8 +641,7 @@ Item {
                                 const targetWorkspace = root.draggingTargetWorkspace
                                 windowItem.pressed = false
                                 windowItem.Drag.active = false
-                                root.draggingFromWorkspace = -1
-                                root.draggingTargetWorkspace = -1
+                                dragCleanupTimer.restart()
 
                                 const movedToOtherWorkspace = (targetWorkspace !== -1 && targetWorkspace !== fromWorkspace)
 
@@ -711,175 +668,57 @@ Item {
                     }
                 }
             }
-            Item {
-                id: windowContextOverlay
+            MouseArea {
                 anchors.fill: parent
                 visible: root.contextVisible
                 z: root.windowZ + 50
+                onClicked: root.closeWindowContext()
+            }
 
-                // Clic fuera del panel: cerrar
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-                    onClicked: {
-                        root.closeWindowContext()
-                    }
-                }
+            Rectangle {
+                visible: root.contextVisible
+                x: root.contextMenuX
+                y: root.contextMenuY
+                z: root.windowZ + 51
+                width: col.implicitWidth
+                height: col.implicitHeight
+                radius: Appearance.rounding.normal
+                color: Appearance.colors.colLayer4
+                border.width: 1
+                border.color: ColorUtils.transparentize(Appearance.m3colors.m3outline, 0.5)
 
-                StyledRectangularShadow {
-                    target: windowContextCard
-                }
+                Column {
+                    id: col
+                    spacing: 0
+                    topPadding: 4
+                    bottomPadding: 4
+                    leftPadding: 4
+                    rightPadding: 4
 
-                Rectangle {
-                    id: windowContextCard
-                    width: root.contextCardWidth
-                    height: root.contextCardHeight
-                    x: root.contextCardX
-                    y: root.contextCardY
-                    radius: Appearance.rounding.large
-                    color: "transparent"
-                    border.width: 0
-                    clip: true
-
-                    // Fondo tipo workspace: wallpaper blur + dim
-                    Image {
-                        id: contextWallpaperSource
-                        anchors.fill: parent
-                        source: root.wallpaperPath
-                        asynchronous: true
-                        fillMode: Image.PreserveAspectCrop
-                        visible: false
-                    }
-
-                    FastBlur {
-                        anchors.fill: parent
-                        source: contextWallpaperSource
-                        radius: {
-                            const ov = Config.options.overview
-                            if (!ov || ov.backgroundBlurEnable === false)
-                                return 0
-                            const r = (ov && ov.backgroundBlurRadius !== undefined) ? ov.backgroundBlurRadius : 22
-                            return r * root.scale
-                        }
-                        transparentBorder: true
-                        layer.enabled: true
-                        layer.effect: OpacityMask {
-                            maskSource: Rectangle {
-                                width: windowContextCard.width
-                                height: windowContextCard.height
-                                radius: windowContextCard.radius
-                            }
+                    RippleButton {
+                        implicitWidth: contentItem.implicitWidth + 24
+                        height: 32
+                        buttonRadius: Appearance.rounding.small
+                        buttonText: Translation.tr("Focus")
+                        colBackgroundHover: Appearance.colors.colLayer4Hover
+                        onClicked: {
+                            if (!root.contextWindowData) return
+                            NiriService.focusWindow(root.contextWindowData.id)
+                            if (!root.keepOverviewOpenOnWindowClick) GlobalStates.overviewOpen = false
+                            root.closeWindowContext()
                         }
                     }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: {
-                            const ov = Config.options.overview
-                            const base = (ov && ov.backgroundDim !== undefined) ? ov.backgroundDim : 35
-                            const clamped = Math.max(0, Math.min(100, base))
-                            const a = clamped / 100
-                            return Qt.rgba(0, 0, 0, a)
-                        }
-                        radius: windowContextCard.radius
-                        border.width: 0
-                    }
-
-                    opacity: root.contextVisible ? 1 : 0
-                    scale: root.contextVisible ? 1.0 : 0.96
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 160
-                            easing.type: Appearance.animation.elementMoveEnter.type
-                            easing.bezierCurve: Appearance.animationCurves.expressiveEffects
-                        }
-                    }
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: 160
-                            easing.type: Appearance.animation.elementMoveEnter.type
-                            easing.bezierCurve: Appearance.animationCurves.expressiveEffects
-                        }
-                    }
-
-                    ColumnLayout {
-                        id: windowContextContent
-                        anchors.fill: parent
-                        anchors.margins: Appearance.sizes.elevationMargin
-                        spacing: Appearance.sizes.spacingSmall
-
-                        // Preview principal, mismo espíritu que una ventana en el overview
-                        Rectangle {
-                            id: windowContextPreview
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            radius: Appearance.rounding.normal
-                            color: Appearance.colors.colLayer1
-                            clip: true
-
-                            ScreencopyView {
-                                anchors.fill: parent
-                                captureSource: root.contextVisible ? root.contextToplevel : null
-                                live: true
-                            }
-
-                            // Icono centrado, mismo cálculo que los tiles de ventana
-                            Image {
-                                id: contextIcon
-                                anchors.centerIn: parent
-                                width: {
-                                    var size = Math.min(parent.width, parent.height) * 0.35;
-                                    const ov = Config.options.overview;
-                                    const min = ov && ov.iconMinSize !== undefined ? ov.iconMinSize : 0;
-                                    const max = ov && ov.iconMaxSize !== undefined ? ov.iconMaxSize : 0;
-                                    if (min > 0) size = Math.max(size, min);
-                                    if (max > 0) size = Math.min(size, max);
-                                    return size;
-                                }
-                                height: width
-                                source: Quickshell.iconPath(AppSearch.guessIcon(root.contextWindowData?.app_id || root.contextWindowData?.appId || ""), "image-missing")
-                                fillMode: Image.PreserveAspectFit
-                            }
-                        }
-
-                        // Fila de acciones: Focus / Close
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Appearance.sizes.spacingSmall
-
-                            RippleButton {
-                                Layout.fillWidth: true
-                                buttonRadius: Appearance.rounding.full
-                                buttonText: Translation.tr("Focus")
-                                colBackground: Appearance.colors.colLayer2
-                                colBackgroundHover: Appearance.colors.colLayer2Hover
-                                colRipple: Appearance.colors.colPrimaryActive
-                                onClicked: {
-                                    if (!root.contextWindowData)
-                                        return
-                                    NiriService.focusWindow(root.contextWindowData.id)
-                                    if (!root.keepOverviewOpenOnWindowClick) {
-                                        GlobalStates.overviewOpen = false
-                                    }
-                                    root.closeWindowContext()
-                                }
-                            }
-
-                            RippleButton {
-                                Layout.fillWidth: true
-                                buttonRadius: Appearance.rounding.full
-                                buttonText: Translation.tr("Close")
-                                colBackground: Appearance.colors.colLayer2
-                                colBackgroundHover: Appearance.colors.colLayer2Hover
-                                colRipple: Appearance.colors.colPrimaryActive
-                                onClicked: {
-                                    if (!root.contextWindowData)
-                                        return
-                                    NiriService.closeWindow(root.contextWindowData.id)
-                                    root.closeWindowContext()
-                                }
-                            }
+                    RippleButton {
+                        implicitWidth: contentItem.implicitWidth + 24
+                        height: 32
+                        buttonRadius: Appearance.rounding.small
+                        buttonText: Translation.tr("Close")
+                        colBackgroundHover: Appearance.colors.colLayer4Hover
+                        onClicked: {
+                            if (!root.contextWindowData) return
+                            NiriService.closeWindow(root.contextWindowData.id)
+                            root.closeWindowContext()
                         }
                     }
                 }

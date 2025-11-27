@@ -521,7 +521,6 @@ Scope {
             onTriggered: GlobalStates.altSwitcherOpen = false
         }
 
-        // Slide-in / slide-out animations driven by GlobalStates.altSwitcherOpen
         Connections {
             target: GlobalStates
             function onAltSwitcherOpenChanged() {
@@ -535,17 +534,17 @@ Scope {
             }
         }
 
-        // Ajuste incremental del snapshot cuando cambian las ventanas de Niri mientras el panel está abierto
         Connections {
             target: NiriService
             function onWindowsChanged() {
-                if (!root.panelVisible || !root.itemSnapshot || root.itemSnapshot.length === 0)
+                if (!GlobalStates.altSwitcherOpen || !root.itemSnapshot || root.itemSnapshot.length === 0)
                     return
 
                 const wins = NiriService.windows || []
                 if (!wins.length) {
                     root.itemSnapshot = []
                     listView.currentIndex = -1
+                    GlobalStates.altSwitcherOpen = false
                     return
                 }
 
@@ -561,13 +560,15 @@ Scope {
                         filtered.push(it)
                 }
 
+                if (filtered.length === 0) {
+                    GlobalStates.altSwitcherOpen = false
+                    return
+                }
+
                 root.itemSnapshot = filtered
 
-                const total = filtered.length
-                if (total === 0) {
-                    listView.currentIndex = -1
-                } else if (listView.currentIndex >= total) {
-                    listView.currentIndex = total - 1
+                if (listView.currentIndex >= filtered.length) {
+                    listView.currentIndex = filtered.length - 1
                 }
             }
         }
@@ -643,7 +644,6 @@ Scope {
     }
 
     function nextItem() {
-        ensureOpen()
         ensureSnapshot()
         const total = itemSnapshot ? itemSnapshot.length : 0
         if (total === 0)
@@ -652,14 +652,10 @@ Scope {
             listView.currentIndex = 0
         else
             listView.currentIndex = (listView.currentIndex + 1) % total
-        if (panelVisible) {
-            listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
-            autoHideTimer.restart()
-        }
+        listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
     }
 
     function previousItem() {
-        ensureOpen()
         ensureSnapshot()
         const total = itemSnapshot ? itemSnapshot.length : 0
         if (total === 0)
@@ -668,10 +664,7 @@ Scope {
             listView.currentIndex = total - 1
         else
             listView.currentIndex = (listView.currentIndex - 1 + total) % total
-        if (panelVisible) {
-            listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
-            autoHideTimer.restart()
-        }
+        listView.positionViewAtIndex(listView.currentIndex, ListView.Visible)
     }
 
     function activateCurrent() {
@@ -679,6 +672,8 @@ Scope {
             listView.currentItem.activate()
         }
     }
+
+
 
     IpcHandler {
         target: "altSwitcher"
@@ -699,12 +694,14 @@ Scope {
         }
 
         function next() {
+            ensureOpen()
             nextItem()
             activateCurrent()
             autoHideTimer.restart()
         }
 
         function previous() {
+            ensureOpen()
             previousItem()
             activateCurrent()
             autoHideTimer.restart()
