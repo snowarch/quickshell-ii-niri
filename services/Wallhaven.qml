@@ -9,7 +9,7 @@ import QtQuick
  * Simple wallpaper search service for wallhaven.cc
  * Reuses BooruResponseData so it can be rendered with existing Booru UI components.
  */
-Singleton {
+QtObject {
     id: root
 
     property Component wallhavenResponseComponent: BooruResponseData {}
