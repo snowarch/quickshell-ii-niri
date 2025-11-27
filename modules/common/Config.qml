@@ -568,6 +568,15 @@ Singleton {
                         property string username: "[unset]"
                     }
                 }
+                // Wallhaven-specific sidebar module options
+                property JsonObject wallhaven: JsonObject {
+                    // Enable/disable the Wallhaven tab in the left sidebar
+                    property bool enable: true
+                    // Default page size for API search
+                    property int limit: 24
+                    // Optional API key for NSFW & user-specific filters
+                    property string apiKey: ""
+                }
                 property JsonObject cornerOpen: JsonObject {
                     property bool enable: true
                     property bool bottom: false

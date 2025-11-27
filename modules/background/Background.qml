@@ -93,7 +93,7 @@ Variants {
                     const currentNumber = NiriService.getCurrentWorkspaceNumber();
                     const currentWs = allWs.find(ws => ws.idx === currentNumber);
                     if (!currentWs)
-                        return NiriService.windows.length > 0;
+                        return false;
 
                     return NiriService.windows.some(w => w.workspace_id === currentWs.id);
                 }

@@ -191,6 +191,7 @@ Item { // Player instance
                 StyledText {
                     id: trackTitle
                     Layout.fillWidth: true
+                    Layout.rightMargin: playPauseButton.size + 8
                     font.pixelSize: Appearance.font.pixelSize.large
                     color: blendedColors.colOnLayer0
                     elide: Text.ElideRight
@@ -202,6 +203,7 @@ Item { // Player instance
                 StyledText {
                     id: trackArtist
                     Layout.fillWidth: true
+                    Layout.rightMargin: playPauseButton.size + 8
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     color: blendedColors.colSubtext
                     elide: Text.ElideRight
@@ -220,6 +222,8 @@ Item { // Player instance
                         anchors.bottom: sliderRow.top
                         anchors.bottomMargin: 5
                         anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.rightMargin: playPauseButton.size + 8
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: blendedColors.colSubtext
                         elide: Text.ElideRight
