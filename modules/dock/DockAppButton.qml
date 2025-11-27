@@ -96,7 +96,6 @@ DockButton {
                 root.buttonHovered = true
                 appListRoot.lastHoveredButton = root
                 appListRoot.buttonHovered = true
-                lastFocused = appToplevel.toplevels.length - 1
             }
             onExited: {
                 root.buttonHovered = false
@@ -133,6 +132,7 @@ DockButton {
             return;
         }
         // Con ventanas: rotar foco entre instancias abiertas
+        if (lastFocused < 0) lastFocused = 0
         lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
         const toplevel = appToplevel.toplevels[lastFocused]
         if (CompositorService.isNiri) {

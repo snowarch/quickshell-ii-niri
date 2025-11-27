@@ -248,8 +248,12 @@ Item {
                                 windowButton.modelData?.close();
                             }
                             onClicked: {
-                                if (CompositorService.isNiri && windowButton.modelData?.niriWindowId) {
-                                    NiriService.focusWindow(windowButton.modelData.niriWindowId)
+                                if (CompositorService.isNiri) {
+                                    if (windowButton.modelData?.niriWindowId) {
+                                        NiriService.focusWindow(windowButton.modelData.niriWindowId)
+                                    } else if (windowButton.modelData?.activate) {
+                                        windowButton.modelData.activate()
+                                    }
                                 } else {
                                     windowButton.modelData?.activate();
                                 }
