@@ -384,6 +384,7 @@ Scope {
                             }
                             
                             IconImage {
+                                id: compactIcon
                                 anchors.centerIn: parent
                                 width: 40
                                 height: 40
@@ -391,6 +392,25 @@ Scope {
                                     AppSearch.guessIcon(modelData.appId || modelData.appName || modelData.title),
                                     "image-missing"
                                 )
+                            }
+                            
+                            Loader {
+                                active: Config.options.altSwitcher && Config.options.altSwitcher.monochromeIcons
+                                anchors.fill: compactIcon
+                                sourceComponent: Item {
+                                    Desaturate {
+                                        id: desaturatedCompactIcon
+                                        visible: false
+                                        anchors.fill: parent
+                                        source: compactIcon
+                                        desaturation: 0.8
+                                    }
+                                    ColorOverlay {
+                                        anchors.fill: desaturatedCompactIcon
+                                        source: desaturatedCompactIcon
+                                        color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.9)
+                                    }
+                                }
                             }
                             
                             Rectangle {
