@@ -502,6 +502,7 @@ Singleton {
                 property int scrimDim: 35
                 property string panelAlignment: "right" // right | center
                 property bool useM3Layout: false
+                property bool compactStyle: false // Compact horizontal icon-only style
                 property bool showOverviewWhileSwitching: false
                 property int autoHideDelayMs: 500
             }

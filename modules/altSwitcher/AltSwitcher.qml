@@ -269,7 +269,7 @@ Scope {
 
             states: [
                 State {
-                    name: "edge"
+                    name: "right"
                     when: !root.centerPanel && !root.compactStyle
                     AnchorChanges {
                         target: panel
@@ -323,10 +323,9 @@ Scope {
                 id: compactBackground
                 visible: root.compactStyle
                 anchors.fill: parent
-                radius: Appearance.rounding.full
-                color: Appearance.colors.colLayer0
-                border.width: 1
-                border.color: Appearance.colors.colLayer0Border
+                radius: Appearance.rounding.large
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                border.width: 0
             }
 
             StyledRectangularShadow {
@@ -349,33 +348,67 @@ Scope {
                 visible: root.compactStyle
                 z: 1
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: 4
                 
                 Repeater {
                     model: ScriptModel { values: root.itemSnapshot }
                     
-                    Rectangle {
+                    Item {
                         required property var modelData
                         required property int index
-                        width: 70
-                        height: 70
-                        radius: Appearance.rounding.normal
-                        color: listView.currentIndex === index ? Appearance.colors.colLayer2Active : "transparent"
+                        width: 64
+                        height: 64
                         
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                        
-                        IconImage {
+                        Rectangle {
+                            id: compactTile
                             anchors.centerIn: parent
-                            width: 48
-                            height: 48
-                            source: Quickshell.iconPath(
-                                AppSearch.guessIcon(modelData.appId || modelData.appName || modelData.title),
-                                "image-missing"
-                            )
+                            width: parent.width
+                            height: parent.height
+                            radius: Appearance.rounding.normal
+                            color: listView.currentIndex === index 
+                                   ? Appearance.m3colors.m3primaryContainer 
+                                   : Appearance.m3colors.m3surfaceContainerHighest
+                            scale: compactMouseArea.pressed ? 0.92 : (compactMouseArea.containsMouse ? 1.05 : 1.0)
+                            
+                            Behavior on color { 
+                                ColorAnimation { 
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
+                                } 
+                            }
+                            Behavior on scale { 
+                                NumberAnimation { 
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
+                                } 
+                            }
+                            
+                            IconImage {
+                                anchors.centerIn: parent
+                                width: 40
+                                height: 40
+                                source: Quickshell.iconPath(
+                                    AppSearch.guessIcon(modelData.appId || modelData.appName || modelData.title),
+                                    "image-missing"
+                                )
+                            }
+                            
+                            Rectangle {
+                                visible: listView.currentIndex === index
+                                anchors.bottom: parent.bottom
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottomMargin: 6
+                                width: 24
+                                height: 3
+                                radius: height / 2
+                                color: Appearance.m3colors.m3primary
+                            }
                         }
                         
                         MouseArea {
+                            id: compactMouseArea
                             anchors.fill: parent
+                            hoverEnabled: true
                             onClicked: {
                                 listView.currentIndex = index
                                 if (modelData && modelData.id !== undefined) {

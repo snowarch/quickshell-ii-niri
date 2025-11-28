@@ -12,7 +12,7 @@
     "enableAnimation": false,
     "enableBlurGlass": false,
     "monochromeIcons": false,
-    "panelAlignment": "edge",
+    "panelAlignment": "right",
     "scrimDim": 0,
     "showOverviewWhileSwitching": true,
     "useMostRecentFirst": true
