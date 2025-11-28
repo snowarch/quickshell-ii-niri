@@ -5,6 +5,7 @@ import qs.modules.common
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.services
 
 /**
  * Simple hyprsunset service with automatic mode.
@@ -80,24 +81,30 @@ Singleton {
     function load() { } // Dummy to force init
 
     function enable() {
+        if (!CompositorService.isHyprland)
+            return;
         root.active = true;
         // console.log("[Hyprsunset] Enabling");
         Quickshell.execDetached(["bash", "-c", `pidof hyprsunset || hyprsunset --temperature ${root.colorTemperature}`]);
     }
 
     function disable() {
+        if (!CompositorService.isHyprland)
+            return;
         root.active = false;
         // console.log("[Hyprsunset] Disabling");
         Quickshell.execDetached(["bash", "-c", `pkill hyprsunset`]);
     }
 
     function fetchState() {
+        if (!CompositorService.isHyprland)
+            return;
         fetchProc.running = true;
     }
 
     Process {
         id: fetchProc
-        running: true
+        running: CompositorService.isHyprland
         command: ["bash", "-c", "hyprctl hyprsunset temperature"]
         stdout: StdioCollector {
             id: stateCollector
@@ -113,6 +120,8 @@ Singleton {
     }
 
     function toggle(active = undefined) {
+        if (!CompositorService.isHyprland)
+            return;
         if (root.manualActive === undefined) {
             root.manualActive = root.active;
             root.manualActiveHour = root.clockHour;
@@ -131,7 +140,7 @@ Singleton {
     Connections {
         target: Config.options.light.night
         function onColorTemperatureChanged() {
-            if (!root.active) return;
+            if (!CompositorService.isHyprland || !root.active) return;
             Hyprland.dispatch(`hyprctl hyprsunset temperature ${Config.options.light.night.colorTemperature}`);
             Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", `${Config.options.light.night.colorTemperature}`]);
         }

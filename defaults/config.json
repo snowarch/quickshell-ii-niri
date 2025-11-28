@@ -8,9 +8,11 @@
     "animationDurationMs": 200,
     "backgroundOpacity": 0.9,
     "blurAmount": 0.4,
+    "compactStyle": false,
     "enableAnimation": false,
     "enableBlurGlass": false,
     "monochromeIcons": false,
+    "panelAlignment": "edge",
     "scrimDim": 0,
     "showOverviewWhileSwitching": true,
     "useMostRecentFirst": true

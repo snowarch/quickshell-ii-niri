@@ -141,7 +141,7 @@ Item {
                 const nextNumber = wsList[nextIndex]
                 // nextNumber is already the Niri idx (1-based) on this output.
                 NiriService.switchToWorkspace(nextNumber)
-            } else {
+            } else if (CompositorService.isHyprland) {
                 if (deltaY < 0)
                     Hyprland.dispatch(`workspace r+1`);
                 else if (deltaY > 0)
@@ -259,7 +259,7 @@ Item {
                     if (CompositorService.isNiri) {
                         // workspaceValue is a 1-based logical slot; pass it directly as Niri idx.
                         NiriService.switchToWorkspace(workspaceValue)
-                    } else {
+                    } else if (CompositorService.isHyprland) {
                         Hyprland.dispatch(`workspace ${workspaceValue}`)
                     }
                 }

@@ -81,6 +81,7 @@ Item {
     // Scroll del mouse para subir/bajar de workspace en Hyprland
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        enabled: CompositorService.isHyprland
         onWheel: (event) => {
             const deltaY = event.angleDelta.y
             if (deltaY === 0)
@@ -177,7 +178,8 @@ Item {
                                 onPressed: {
                                     if (root.draggingTargetWorkspace === -1) {
                                         GlobalStates.overviewOpen = false
-                                        Hyprland.dispatch(`workspace ${workspace.workspaceValue}`)
+                                        if (CompositorService.isHyprland)
+                                            Hyprland.dispatch(`workspace ${workspace.workspaceValue}`)
                                     }
                                 }
                             }
@@ -200,147 +202,149 @@ Item {
                 }
             }
         }
+    }
 
-        Item { // Windows & focused workspace indicator
-            id: windowSpace
-            anchors.centerIn: parent
-            implicitWidth: workspaceColumnLayout.implicitWidth
-            implicitHeight: workspaceColumnLayout.implicitHeight
+    Item { // Windows & focused workspace indicator
+        id: windowSpace
+        anchors.centerIn: parent
+        implicitWidth: workspaceColumnLayout.implicitWidth
+        implicitHeight: workspaceColumnLayout.implicitHeight
 
-            Repeater { // Window repeater
-                model: ScriptModel {
-                    values: {
-                        // console.log(JSON.stringify(ToplevelManager.toplevels.values.map(t => t), null, 2))
-                        return [...ToplevelManager.toplevels.values.filter((toplevel) => {
-                            const address = `0x${toplevel.HyprlandToplevel?.address}`
-                            var win = windowByAddress[address]
-                            const inWorkspaceGroup = (root.workspaceGroup * root.workspacesShown < win?.workspace?.id && win?.workspace?.id <= (root.workspaceGroup + 1) * root.workspacesShown)
-                            return inWorkspaceGroup;
-                        })].reverse()
-                    }
-                }
-                delegate: OverviewWindow {
-                    id: window
-                    required property var modelData
-                    property int monitorId: windowData?.monitor
-                    property var monitor: HyprlandData.monitors.find(m => m.id == monitorId)
-                    property var address: `0x${modelData.HyprlandToplevel.address}`
-                    toplevel: modelData
-                    monitorData: this.monitor
-                    scale: root.scale
-                    widgetMonitor: HyprlandData.monitors.find(m => m.id == root.monitor.id)
-                    windowData: windowByAddress[address]
-
-                    property bool atInitPosition: (initX == x && initY == y)
-
-                    // Offset on the canvas
-                    property int workspaceColIndex: (windowData?.workspace.id - 1) % Config.options.overview.columns
-                    property int workspaceRowIndex: Math.floor((windowData?.workspace.id - 1) % root.workspacesShown / Config.options.overview.columns)
-                    xOffset: (root.workspaceImplicitWidth + workspaceSpacing) * workspaceColIndex
-                    yOffset: (root.workspaceImplicitHeight + workspaceSpacing) * workspaceRowIndex
-                    property real xWithinWorkspaceWidget: Math.max((windowData?.at[0] - (monitor?.x ?? 0) - monitorData?.reserved[0]) * root.scale, 0)
-                    property real yWithinWorkspaceWidget: Math.max((windowData?.at[1] - (monitor?.y ?? 0) - monitorData?.reserved[1]) * root.scale, 0)
-
-                    // Radius
-                    property real minRadius: Appearance.rounding.small
-                    property bool workspaceAtLeft: workspaceColIndex === 0
-                    property bool workspaceAtRight: workspaceColIndex === Config.options.overview.columns - 1
-                    property bool workspaceAtTop: workspaceRowIndex === 0
-                    property bool workspaceAtBottom: workspaceRowIndex === Config.options.overview.rows - 1
-                    property bool workspaceAtTopLeft: (workspaceAtLeft && workspaceAtTop) 
-                    property bool workspaceAtTopRight: (workspaceAtRight && workspaceAtTop) 
-                    property bool workspaceAtBottomLeft: (workspaceAtLeft && workspaceAtBottom) 
-                    property bool workspaceAtBottomRight: (workspaceAtRight && workspaceAtBottom) 
-                    property real distanceFromLeftEdge: xWithinWorkspaceWidget
-                    property real distanceFromRightEdge: root.workspaceImplicitWidth - (xWithinWorkspaceWidget + targetWindowWidth)
-                    property real distanceFromTopEdge: yWithinWorkspaceWidget
-                    property real distanceFromBottomEdge: root.workspaceImplicitHeight - (yWithinWorkspaceWidget + targetWindowHeight)
-                    property real distanceFromTopLeftCorner: Math.max(distanceFromLeftEdge, distanceFromTopEdge)
-                    property real distanceFromTopRightCorner: Math.max(distanceFromRightEdge, distanceFromTopEdge)
-                    property real distanceFromBottomLeftCorner: Math.max(distanceFromLeftEdge, distanceFromBottomEdge)
-                    property real distanceFromBottomRightCorner: Math.max(distanceFromRightEdge, distanceFromBottomEdge)
-                    topLeftRadius: Math.max((workspaceAtTopLeft ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromTopLeftCorner, minRadius)
-                    topRightRadius: Math.max((workspaceAtTopRight ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromTopRightCorner, minRadius)
-                    bottomLeftRadius: Math.max((workspaceAtBottomLeft ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromBottomLeftCorner, minRadius)
-                    bottomRightRadius: Math.max((workspaceAtBottomRight ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromBottomRightCorner, minRadius)
-
-                    Timer {
-                        id: updateWindowPosition
-                        interval: Config.options.hacks.arbitraryRaceConditionDelay
-                        repeat: false
-                        running: false
-                        onTriggered: {
-                            window.x = Math.round(xWithinWorkspaceWidget + xOffset)
-                            window.y = Math.round(yWithinWorkspaceWidget + yOffset)
-                        }
-                    }
-
-                    z: Drag.active ? root.windowDraggingZ : (root.windowZ + windowData?.floating)
-                    Drag.hotSpot.x: width / 2
-                    Drag.hotSpot.y: height / 2
-                    MouseArea {
-                        id: dragArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: hovered = true // For hover color change
-                        onExited: hovered = false // For hover color change
-                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-                        drag.target: parent
-                        onPressed: (mouse) => {
-                            root.draggingFromWorkspace = windowData?.workspace.id
-                            window.pressed = true
-                            window.Drag.active = true
-                            window.Drag.source = window
-                            window.Drag.hotSpot.x = mouse.x
-                            window.Drag.hotSpot.y = mouse.y
-                            // console.log(`[OverviewWindow] Dragging window ${windowData?.address} from position (${window.x}, ${window.y})`)
-                        }
-                        onReleased: {
-                            const targetWorkspace = root.draggingTargetWorkspace
-                            window.pressed = false
-                            window.Drag.active = false
-                            root.draggingFromWorkspace = -1
-                            if (targetWorkspace !== -1 && targetWorkspace !== windowData?.workspace.id) {
-                                Hyprland.dispatch(`movetoworkspacesilent ${targetWorkspace}, address:${window.windowData?.address}`)
-                                updateWindowPosition.restart()
-                            }
-                            else {
-                                if (!window.windowData.floating) {
-                                    updateWindowPosition.restart()
-                                    return
-                                }
-                                const percentageX = Math.round((window.x - xOffset) / root.workspaceImplicitWidth * 100)
-                                const percentageY = Math.round((window.y - yOffset) / root.workspaceImplicitHeight * 100)
-                                Hyprland.dispatch(`movewindowpixel exact ${percentageX}% ${percentageY}%, address:${window.windowData?.address}`)
-                            }
-                        }
-                        onClicked: (event) => {
-                            if (!windowData) return;
-
-                            if (event.button === Qt.LeftButton) {
-                                GlobalStates.overviewOpen = false
-                                Hyprland.dispatch(`focuswindow address:${windowData.address}`)
-                                event.accepted = true
-                            } else if (event.button === Qt.MiddleButton) {
-                                Hyprland.dispatch(`closewindow address:${windowData.address}`)
-                                event.accepted = true
-                            }
-                        }
-
-                        StyledToolTip {
-                            extraVisibleCondition: false
-                            alternativeVisibleCondition: dragArea.containsMouse && !window.Drag.active
-                            text: `${windowData.title}\n[${windowData.class}] ${windowData.xwayland ? "[XWayland] " : ""}`
-                        }
-                    }
+        Repeater { // Window repeater
+            model: ScriptModel {
+                values: {
+                    // console.log(JSON.stringify(ToplevelManager.toplevels.values.map(t => t), null, 2))
+                    return [...ToplevelManager.toplevels.values.filter((toplevel) => {
+                        const address = `0x${toplevel.HyprlandToplevel?.address}`
+                        var win = windowByAddress[address]
+                        const inWorkspaceGroup = (root.workspaceGroup * root.workspacesShown < win?.workspace?.id && win?.workspace?.id <= (root.workspaceGroup + 1) * root.workspacesShown)
+                        return inWorkspaceGroup;
+                    })].reverse()
                 }
             }
+            delegate: OverviewWindow {
+                id: window
+                required property var modelData
+                property int monitorId: windowData?.monitor
+                property var monitor: HyprlandData.monitors.find(m => m.id == monitorId)
+                property var address: `0x${modelData.HyprlandToplevel.address}`
+                toplevel: modelData
+                monitorData: this.monitor
+                scale: root.scale
+                widgetMonitor: HyprlandData.monitors.find(m => m.id == root.monitor.id)
+                windowData: windowByAddress[address]
 
-            Rectangle { // Focused workspace indicator
-                id: focusedWorkspaceIndicator
-                property int activeWorkspaceInGroup: monitor.activeWorkspace?.id - (root.workspaceGroup * root.workspacesShown)
-                property int rowIndex: Math.floor((activeWorkspaceInGroup - 1) / Config.options.overview.columns)
-                property int colIndex: (activeWorkspaceInGroup - 1) % Config.options.overview.columns
+                property bool atInitPosition: (initX == x && initY == y)
+
+                // Offset on the canvas
+                property int workspaceColIndex: (windowData?.workspace.id - 1) % Config.options.overview.columns
+                property int workspaceRowIndex: Math.floor((windowData?.workspace.id - 1) % root.workspacesShown / Config.options.overview.columns)
+                xOffset: (root.workspaceImplicitWidth + workspaceSpacing) * workspaceColIndex
+                yOffset: (root.workspaceImplicitHeight + workspaceSpacing) * workspaceRowIndex
+                property real xWithinWorkspaceWidget: Math.max((windowData?.at[0] - (monitor?.x ?? 0) - monitorData?.reserved[0]) * root.scale, 0)
+                property real yWithinWorkspaceWidget: Math.max((windowData?.at[1] - (monitor?.y ?? 0) - monitorData?.reserved[1]) * root.scale, 0)
+
+                // Radius
+                property real minRadius: Appearance.rounding.small
+                property bool workspaceAtLeft: workspaceColIndex === 0
+                property bool workspaceAtRight: workspaceColIndex === Config.options.overview.columns - 1
+                property bool workspaceAtTop: workspaceRowIndex === 0
+                property bool workspaceAtBottom: workspaceRowIndex === Config.options.overview.rows - 1
+                property bool workspaceAtTopLeft: (workspaceAtLeft && workspaceAtTop) 
+                property bool workspaceAtTopRight: (workspaceAtRight && workspaceAtTop) 
+                property bool workspaceAtBottomLeft: (workspaceAtLeft && workspaceAtBottom) 
+                property bool workspaceAtBottomRight: (workspaceAtRight && workspaceAtBottom) 
+                property real distanceFromLeftEdge: xWithinWorkspaceWidget
+                property real distanceFromRightEdge: root.workspaceImplicitWidth - (xWithinWorkspaceWidget + targetWindowWidth)
+                property real distanceFromTopEdge: yWithinWorkspaceWidget
+                property real distanceFromBottomEdge: root.workspaceImplicitHeight - (yWithinWorkspaceWidget + targetWindowHeight)
+                property real distanceFromTopLeftCorner: Math.max(distanceFromLeftEdge, distanceFromTopEdge)
+                property real distanceFromTopRightCorner: Math.max(distanceFromRightEdge, distanceFromTopEdge)
+                property real distanceFromBottomLeftCorner: Math.max(distanceFromLeftEdge, distanceFromBottomEdge)
+                property real distanceFromBottomRightCorner: Math.max(distanceFromRightEdge, distanceFromBottomEdge)
+                topLeftRadius: Math.max((workspaceAtTopLeft ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromTopLeftCorner, minRadius)
+                topRightRadius: Math.max((workspaceAtTopRight ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromTopRightCorner, minRadius)
+                bottomLeftRadius: Math.max((workspaceAtBottomLeft ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromBottomLeftCorner, minRadius)
+                bottomRightRadius: Math.max((workspaceAtBottomRight ? root.largeWorkspaceRadius : root.smallWorkspaceRadius) - distanceFromBottomRightCorner, minRadius)
+
+                Timer {
+                    id: updateWindowPosition
+                    interval: Config.options.hacks.arbitraryRaceConditionDelay
+                    repeat: false
+                    running: false
+                    onTriggered: {
+                        window.x = Math.round(xWithinWorkspaceWidget + xOffset)
+                        window.y = Math.round(yWithinWorkspaceWidget + yOffset)
+                    }
+                }
+
+                z: Drag.active ? root.windowDraggingZ : (root.windowZ + windowData?.floating)
+                Drag.hotSpot.x: width / 2
+                Drag.hotSpot.y: height / 2
+
+                MouseArea {
+                    id: dragArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: hovered = true // For hover color change
+                    onExited: hovered = false // For hover color change
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    drag.target: parent
+                    onPressed: (mouse) => {
+                        root.draggingFromWorkspace = windowData?.workspace.id
+                        window.pressed = true
+                        window.Drag.active = true
+                        window.Drag.source = window
+                        window.Drag.hotSpot.x = mouse.x
+                        window.Drag.hotSpot.y = mouse.y
+                        // console.log(`[OverviewWindow] Dragging window ${windowData?.address} from position (${window.x}, ${window.y})`)
+                    }
+                    onReleased: {
+                        if (!CompositorService.isHyprland)
+                            return
+                        const targetWorkspace = root.draggingTargetWorkspace
+                        window.pressed = false
+                        window.Drag.active = false
+                        root.draggingFromWorkspace = -1
+                        if (targetWorkspace !== -1 && targetWorkspace !== windowData?.workspace.id) {
+                            Hyprland.dispatch(`movetoworkspacesilent ${targetWorkspace}, address:${window.windowData?.address}`)
+                            updateWindowPosition.restart()
+                        }
+                        else {
+                            if (!window.windowData.floating) {
+                                updateWindowPosition.restart()
+                                return
+                            }
+                            const percentageX = Math.round((window.x - xOffset) / root.workspaceImplicitWidth * 100)
+                            const percentageY = Math.round((window.y - yOffset) / root.workspaceImplicitHeight * 100)
+                            Hyprland.dispatch(`movewindowpixel exact ${percentageX}% ${percentageY}%, address:${window.windowData?.address}`)
+                        }
+                    }
+                    onClicked: (event) => {
+                        if (!windowData || !CompositorService.isHyprland) return;
+
+                        if (event.button === Qt.LeftButton) {
+                            GlobalStates.overviewOpen = false
+                            Hyprland.dispatch(`focuswindow address:${windowData.address}`)
+                            event.accepted = true
+                        } else if (event.button === Qt.MiddleButton) {
+                            Hyprland.dispatch(`closewindow address:${windowData.address}`)
+                            event.accepted = true
+                        }
+                    }
+
+                    StyledToolTip {
+                        extraVisibleCondition: false
+                        alternativeVisibleCondition: dragArea.containsMouse && !window.Drag.active
+                        text: `${windowData.title}\n[${windowData.class}] ${windowData.xwayland ? "[XWayland] " : ""}`
+                    }
+                }
+
+                Rectangle { // Focused workspace indicator
+                    id: focusedWorkspaceIndicator
+                    property int activeWorkspaceInGroup: monitor.activeWorkspace?.id - (root.workspaceGroup * root.workspacesShown)
+                    property int rowIndex: Math.floor((activeWorkspaceInGroup - 1) / Config.options.overview.columns)
+                    property int colIndex: (activeWorkspaceInGroup - 1) % Config.options.overview.columns
 
                 // Pequeño inset para que el borde se alinee mejor con las esquinas redondeadas
                 property real borderInset: 1
@@ -415,5 +419,6 @@ Item {
                 }
             }
         }
+    }
     }
 }

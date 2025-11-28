@@ -71,6 +71,7 @@ Singleton {
     }
     Connections {
         target: Hyprland.toplevels
+        enabled: root.isHyprland
         function onValuesChanged() {
             root._hasRefreshedOnce = false
             root.scheduleSort()
@@ -78,14 +79,17 @@ Singleton {
     }
     Connections {
         target: Hyprland.workspaces
+        enabled: root.isHyprland
         function onValuesChanged() { root.scheduleSort() }
     }
     Connections {
         target: Hyprland
+        enabled: root.isHyprland
         function onFocusedWorkspaceChanged() { root.scheduleSort() }
     }
     Connections {
         target: NiriService
+        enabled: root.isNiri
         function onWindowsChanged() { root.scheduleSort() }
     }
     Component.onCompleted: {

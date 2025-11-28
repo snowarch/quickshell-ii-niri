@@ -211,12 +211,25 @@ switch() {
         "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" &
     fi
 
-    read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
-    cursorposx=$(hyprctl cursorpos -j | jq '.x' 2>/dev/null) || cursorposx=960
-    cursorposx=$(bc <<< "scale=0; ($cursorposx - $screenx) * $scale / 1")
-    cursorposy=$(hyprctl cursorpos -j | jq '.y' 2>/dev/null) || cursorposy=540
-    cursorposy=$(bc <<< "scale=0; ($cursorposy - $screeny) * $scale / 1")
-    cursorposy_inverted=$((screensizey - cursorposy))
+    # Hyprland-specific cursor/monitor math: only run if hyprctl is available.
+    # On Niri or other compositors we fall back to centered defaults to avoid
+    # spamming errors while still producing valid colors.
+    if command -v hyprctl >/dev/null 2>&1; then
+        read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
+        cursorposx=$(hyprctl cursorpos -j | jq '.x' 2>/dev/null) || cursorposx=960
+        cursorposx=$(bc <<< "scale=0; ($cursorposx - $screenx) * $scale / 1")
+        cursorposy=$(hyprctl cursorpos -j | jq '.y' 2>/dev/null) || cursorposy=540
+        cursorposy=$(bc <<< "scale=0; ($cursorposy - $screeny) * $scale / 1")
+        cursorposy_inverted=$((screensizey - cursorposy))
+    else
+        scale=1
+        screenx=0
+        screeny=0
+        screensizey=1080
+        cursorposx=960
+        cursorposy=540
+        cursorposy_inverted=$((screensizey - cursorposy))
+    fi
 
     if [[ "$color_flag" == "1" ]]; then
         matugen_args=(color hex "$color")

@@ -40,6 +40,8 @@ Singleton {
 
     property real screenZoom: 1
     onScreenZoomChanged: {
+        if (!CompositorService.isHyprland)
+            return;
         Quickshell.execDetached(["hyprctl", "keyword", "cursor:zoom_factor", root.screenZoom.toString()]);
     }
     Behavior on screenZoom {

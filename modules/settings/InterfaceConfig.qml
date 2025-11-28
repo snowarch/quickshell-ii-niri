@@ -275,7 +275,23 @@ ContentPage {
         ContentSubsection {
             title: Translation.tr("Layout & alignment")
 
+            ConfigSwitch {
+                buttonIcon: "view_compact"
+                text: Translation.tr("Compact horizontal style (icons only)")
+                checked: Config.options.altSwitcher && Config.options.altSwitcher.compactStyle
+                onCheckedChanged: {
+                    if (!Config.options.altSwitcher)
+                        Config.options.altSwitcher = ({})
+                    Config.options.altSwitcher.compactStyle = checked;
+                    GlobalStates.altSwitcherOpen = false
+                }
+                StyledToolTip {
+                    text: Translation.tr("Show only app icons in a horizontal row, similar to macOS Spotlight")
+                }
+            }
+
             ConfigSelectionArray {
+                enabled: !Config.options.altSwitcher || !Config.options.altSwitcher.compactStyle
                 currentValue: Config.options.altSwitcher && Config.options.altSwitcher.panelAlignment
                                ? Config.options.altSwitcher.panelAlignment
                                : "right"
@@ -300,6 +316,7 @@ ContentPage {
             }
 
             ConfigSwitch {
+                enabled: !Config.options.altSwitcher || !Config.options.altSwitcher.compactStyle
                 buttonIcon: "styler"
                 text: Translation.tr("Use Material 3 card layout")
                 checked: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout

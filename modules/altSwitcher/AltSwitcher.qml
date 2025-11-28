@@ -24,18 +24,11 @@ Scope {
     property var itemSnapshot: []
     property bool useM3Layout: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
     property bool centerPanel: Config.options.altSwitcher && Config.options.altSwitcher.panelAlignment === "center"
+    property bool compactStyle: Config.options.altSwitcher && Config.options.altSwitcher.compactStyle
     property bool showOverviewWhileSwitching: Config.options.altSwitcher && Config.options.altSwitcher.showOverviewWhileSwitching
     property bool overviewOpenedByAltSwitcher: false
 
-    onCenterPanelChanged: {
-        // Cuando se cambia la alineación (centrado 
-        // vs borde derecho) desde settings, aseguramos
-        // que el panel vuelva a un estado consistente.
-        if (!GlobalStates.altSwitcherOpen) {
-            panelVisible = false
-            panelRightMargin = centerPanel ? 0 : -panelWidth
-        }
-    }
+
 
     onUseM3LayoutChanged: {
         // Al cambiar de layout normal 
@@ -269,34 +262,51 @@ Scope {
 
         Rectangle {
             id: panel
-            width: root.panelWidth
-            radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
-            topLeftRadius: radius
-            bottomLeftRadius: radius
-            topRightRadius: radius
-            bottomRightRadius: radius
+            width: root.compactStyle ? compactRow.implicitWidth + 40 : root.panelWidth
+            height: root.compactStyle ? 100 : undefined
             color: "transparent"
             border.width: 0
 
-            anchors {
-                right: root.centerPanel ? undefined : parent.right
-                rightMargin: root.centerPanel ? 0 : root.panelRightMargin
-                horizontalCenter: root.centerPanel ? parent.horizontalCenter : undefined
-                verticalCenter: parent.verticalCenter
-            }
+            states: [
+                State {
+                    name: "edge"
+                    when: !root.centerPanel && !root.compactStyle
+                    AnchorChanges {
+                        target: panel
+                        anchors.right: parent.right
+                        anchors.horizontalCenter: undefined
+                    }
+                    PropertyChanges {
+                        target: panel
+                        anchors.rightMargin: root.panelRightMargin
+                    }
+                },
+                State {
+                    name: "center"
+                    when: root.centerPanel || root.compactStyle
+                    AnchorChanges {
+                        target: panel
+                        anchors.right: undefined
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    PropertyChanges {
+                        target: panel
+                        anchors.rightMargin: 0
+                    }
+                }
+            ]
+            
+            anchors.verticalCenter: parent.verticalCenter
 
-            implicitHeight: Math.min(contentColumn.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2,
+            implicitHeight: root.compactStyle ? 100 : Math.min(contentColumn.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2,
                                       parent.height - Appearance.sizes.hyprlandGapsOut * 2)
 
             Rectangle {
                 id: panelBackground
+                visible: !root.compactStyle
                 z: 0
                 anchors.fill: parent
-                radius: panel.radius
-                topLeftRadius: panel.topLeftRadius
-                bottomLeftRadius: panel.bottomLeftRadius
-                topRightRadius: panel.topRightRadius
-                bottomRightRadius: panel.bottomRightRadius
+                radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
                 color: {
                     const cfg = Config.options.altSwitcher
                     if (cfg && cfg.useM3Layout)
@@ -309,23 +319,77 @@ Scope {
                 border.color: Appearance.colors.colLayer0Border
             }
 
+            Rectangle {
+                id: compactBackground
+                visible: root.compactStyle
+                anchors.fill: parent
+                radius: Appearance.rounding.full
+                color: Appearance.colors.colLayer0
+                border.width: 1
+                border.color: Appearance.colors.colLayer0Border
+            }
+
             StyledRectangularShadow {
-                target: panelBackground
+                target: root.compactStyle ? compactBackground : panelBackground
             }
 
             MultiEffect {
                 z: 0.5
                 anchors.fill: panelBackground
                 source: panelBackground
-                visible: Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
+                visible: !root.compactStyle && Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
                 blurEnabled: true
                 blur: Config.options.altSwitcher && Config.options.altSwitcher.blurAmount !== undefined ? Config.options.altSwitcher.blurAmount : 0.4
                 blurMax: 64
                 saturation: 1.0
             }
 
+            Row {
+                id: compactRow
+                visible: root.compactStyle
+                z: 1
+                anchors.centerIn: parent
+                spacing: 8
+                
+                Repeater {
+                    model: ScriptModel { values: root.itemSnapshot }
+                    
+                    Rectangle {
+                        required property var modelData
+                        required property int index
+                        width: 70
+                        height: 70
+                        radius: Appearance.rounding.normal
+                        color: listView.currentIndex === index ? Appearance.colors.colLayer2Active : "transparent"
+                        
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        
+                        IconImage {
+                            anchors.centerIn: parent
+                            width: 48
+                            height: 48
+                            source: Quickshell.iconPath(
+                                AppSearch.guessIcon(modelData.appId || modelData.appName || modelData.title),
+                                "image-missing"
+                            )
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                listView.currentIndex = index
+                                if (modelData && modelData.id !== undefined) {
+                                    NiriService.focusWindow(modelData.id)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             ColumnLayout {
                 id: contentColumn
+                visible: !root.compactStyle
                 z: 1
                 anchors.fill: parent
                 anchors.margins: Appearance.sizes.hyprlandGapsOut
@@ -603,7 +667,7 @@ Scope {
     function showPanel() {
         rebuildSnapshot()
         panelVisible = true
-        if (animationsEnabled && !centerPanel) {
+        if (animationsEnabled && !centerPanel && !compactStyle) {
             const dur = currentAnimDuration()
             slideOutAnim.stop()
             root.panelRightMargin = -panelWidth
