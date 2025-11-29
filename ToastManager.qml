@@ -93,7 +93,7 @@ Scope {
             } else {
                 root.addToast(
                     "Niri config reload failed",
-                    error || "",
+                    error || "Run 'niri validate' in terminal for details",
                     "error",
                     true,
                     8000,
