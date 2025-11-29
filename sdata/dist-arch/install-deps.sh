@@ -99,7 +99,6 @@ AUR_PACKAGES=(
   qt6-avif-image-plugin
   
   # System & Tools
-  mission-center
   illogical-impulse-python
 )
 
@@ -116,18 +115,14 @@ if $INSTALL_FONTS; then
     adw-gtk-theme-git
     capitaine-cursors
     whitesur-icon-theme-git
-    hyprpicker
-    songrec
-    xwayland-satellite
     
     # KDE/Qt theming
     darkly
-    colloid-kde-theme-git
   )
 fi
 
 if $INSTALL_AUDIO; then
-  AUR_PACKAGES+=(cava)
+  # cava moved to ii-niri-audio PKGBUILD
 fi
 
 if $INSTALL_TOOLKIT; then

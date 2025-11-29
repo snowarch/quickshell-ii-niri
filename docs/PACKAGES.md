@@ -174,7 +174,7 @@ Not installed by default, but useful.
 
 | Package | Purpose |
 |---------|---------|
-| `cava` | Audio visualizer |
+| `cava` | Audio visualizer (in ii-niri-audio) |
 | `easyeffects` | Audio effects |
 | `warp-cli` | Cloudflare WARP |
 | `ollama` | Local LLM |

@@ -18,6 +18,11 @@ depends=(
   
   # Qt theming
   kvantum
+  # Color picker
+  hyprpicker
+  
+  # Music recognition
+  songrec
 )
 
 # AUR dependencies (installed separately)
@@ -30,5 +35,3 @@ depends=(
 # ttf-twemoji
 # adw-gtk-theme-git
 # capitaine-cursors
-# hyprpicker
-# songrec

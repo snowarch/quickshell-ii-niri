@@ -43,4 +43,9 @@ depends=(
   
   # TUI for setup script
   gum
+  # X11 compatibility
+  xwayland-satellite
+  
+  # System monitor
+  mission-center
 )

@@ -13,7 +13,7 @@ depends=(
   playerctl
   libdbusmenu-gtk3
   pavucontrol
+  # Audio visualizer
+  cava
 )
 
-# Optional AUR
-# cava

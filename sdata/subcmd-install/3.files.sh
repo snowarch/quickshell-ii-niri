@@ -80,8 +80,6 @@ case "${SKIP_QUICKSHELL}" in
     QML_ITEMS=(
       shell.qml
       GlobalStates.qml
-      ReloadPopup.qml
-      NiriConfigPopup.qml
       killDialog.qml
       settings.qml
       welcome.qml
@@ -370,6 +368,29 @@ echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper a
 echo -e "${STY_BLUE}│${STY_RST}"
 echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
 echo ""
+
+# Check for .new files that need manual review
+NEW_FILES=()
+for f in "${XDG_CONFIG_HOME}/niri/config.kdl.new" \
+         "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new" \
+         "${XDG_CONFIG_HOME}/kdeglobals.new"; do
+  if [[ -f "$f" ]]; then
+    NEW_FILES+=("$f")
+  fi
+done
+
+if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
+  echo -e "${STY_YELLOW}${STY_BOLD}┌─ Files to Review${STY_RST}"
+  echo -e "${STY_YELLOW}│${STY_RST}"
+  echo -e "${STY_YELLOW}│${STY_RST}  New defaults saved as .new (your config preserved):"
+  for f in "${NEW_FILES[@]}"; do
+    echo -e "${STY_YELLOW}│${STY_RST}    ${STY_FAINT}${f}${STY_RST}"
+  done
+  echo -e "${STY_YELLOW}│${STY_RST}"
+  echo -e "${STY_YELLOW}│${STY_RST}  Compare with: ${STY_FAINT}diff <file> <file>.new${STY_RST}"
+  echo -e "${STY_YELLOW}└──────────────────────────${STY_RST}"
+  echo ""
+fi
 
 # Show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
