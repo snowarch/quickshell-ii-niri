@@ -124,12 +124,12 @@ Item {
             }
         }
         
-        // Progress bar
+        // Progress bar (centered, shorter)
         Rectangle {
             id: progressBar
             anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.margins: 6
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottomMargin: 6
             height: 3
             radius: 2
             color: root.isError ? Appearance.colors.colError : root.accentColor
@@ -138,7 +138,7 @@ Item {
                 id: progressAnim
                 target: progressBar
                 property: "width"
-                from: card.width - 12
+                from: Math.min(card.width * 0.5, 120)
                 to: 0
                 duration: root.duration
                 onFinished: root.dismissed()
@@ -148,11 +148,11 @@ Item {
         
         Rectangle {
             anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.margins: 6
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottomMargin: 6
             height: 3
             radius: 2
-            width: card.width - 12
+            width: Math.min(card.width * 0.5, 120)
             color: Qt.rgba(0, 0, 0, 0.1)
             z: -1
         }

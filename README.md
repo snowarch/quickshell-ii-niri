@@ -39,6 +39,7 @@ Read these or suffer.
 | [docs/KEYBINDS.md](docs/KEYBINDS.md) | Default keyboard shortcuts |
 | [docs/IPC.md](docs/IPC.md) | All IPC targets for custom keybindings |
 | [docs/SETUP.md](docs/SETUP.md) | How the setup script works, updates, uninstall |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | Known limitations and what doesn't work |
 
 ---
 
