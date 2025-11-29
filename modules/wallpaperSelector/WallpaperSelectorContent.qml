@@ -303,20 +303,29 @@ MouseArea {
                         model: Wallpapers.folderModel
                         onModelChanged: currentIndex = 0
                         delegate: WallpaperDirectoryItem {
-                            required property var modelData
                             required property int index
-                            fileModelData: modelData
+                            required property string filePath
+                            required property string fileName
+                            required property bool fileIsDir
+                            required property url fileUrl
+                            
+                            fileModelData: ({
+                                filePath: filePath,
+                                fileName: fileName,
+                                fileIsDir: fileIsDir,
+                                fileUrl: fileUrl
+                            })
                             width: grid.cellWidth
                             height: grid.cellHeight
-                            colBackground: (index === grid?.currentIndex || containsMouse) ? Appearance.colors.colPrimary : (fileModelData.filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colSecondaryContainer : ColorUtils.transparentize(Appearance.colors.colPrimaryContainer)
-                            colText: (index === grid.currentIndex || containsMouse) ? Appearance.colors.colOnPrimary : (fileModelData.filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colOnLayer0
+                            colBackground: (index === grid?.currentIndex || containsMouse) ? Appearance.colors.colPrimary : (filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colSecondaryContainer : ColorUtils.transparentize(Appearance.colors.colPrimaryContainer)
+                            colText: (index === grid.currentIndex || containsMouse) ? Appearance.colors.colOnPrimary : (filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colOnLayer0
 
                             onEntered: {
                                 grid.currentIndex = index;
                             }
                             
                             onActivated: {
-                                root.selectWallpaperPath(fileModelData.filePath);
+                                root.selectWallpaperPath(filePath);
                             }
                         }
 

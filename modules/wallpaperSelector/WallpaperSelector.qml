@@ -27,34 +27,46 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.namespace: "quickshell:wallpaperSelector"
             WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
             color: "transparent"
 
-            anchors.top: true
-            margins {
-                top: Config?.options.bar.vertical ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.barHeight + Appearance.sizes.hyprlandGapsOut
+            anchors {
+                top: true
+                left: true
+                right: true
+                bottom: true
             }
 
-            mask: Region {
-                item: content
-            }
-
-            implicitHeight: Appearance.sizes.wallpaperSelectorHeight
-            implicitWidth: Appearance.sizes.wallpaperSelectorWidth
-
-            CompositorFocusGrab { // Click outside to close
+            CompositorFocusGrab { // Click outside to close (Hyprland)
                 id: grab
                 windows: [ panelWindow ]
-                active: wallpaperSelectorLoader.active
+                active: CompositorService.isHyprland && wallpaperSelectorLoader.active
                 onCleared: () => {
                     if (!active) GlobalStates.wallpaperSelectorOpen = false;
+                }
+            }
+
+            // Click outside to close (all compositors)
+            MouseArea {
+                anchors.fill: parent
+                onClicked: mouse => {
+                    const localPos = mapToItem(content, mouse.x, mouse.y)
+                    if (localPos.x < 0 || localPos.x > content.width
+                            || localPos.y < 0 || localPos.y > content.height) {
+                        GlobalStates.wallpaperSelectorOpen = false;
+                    }
                 }
             }
 
             WallpaperSelectorContent {
                 id: content
                 anchors {
-                    fill: parent
+                    top: parent.top
+                    horizontalCenter: parent.horizontalCenter
+                    topMargin: Config?.options.bar.vertical ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.barHeight + Appearance.sizes.hyprlandGapsOut
                 }
+                implicitHeight: Appearance.sizes.wallpaperSelectorHeight
+                implicitWidth: Appearance.sizes.wallpaperSelectorWidth
                 // Subtle scale + fade when opening the wallpaper selector
                 transformOrigin: Item.Top
                 scale: GlobalStates.wallpaperSelectorOpen ? 1.0 : 0.97
@@ -73,6 +85,10 @@ Scope {
         if (Config.options.wallpaperSelector.useSystemFileDialog) {
             Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode);
             return;
+        }
+        // Reset selection target to main wallpaper when toggling via keybind/IPC
+        if (!GlobalStates.wallpaperSelectorOpen) {
+            Config.options.wallpaperSelector.selectionTarget = "main";
         }
         GlobalStates.wallpaperSelectorOpen = !GlobalStates.wallpaperSelectorOpen
     }

@@ -1,63 +1,124 @@
 import "periodic_table.js" as PTable
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import qs.services
+import qs.modules.common
+import qs.modules.common.widgets
 
-Item {
+StyledFlickable {
     id: root
     readonly property var elements: PTable.elements
     readonly property var series: PTable.series
-    property real spacing: 6
-    implicitWidth: mainLayout.implicitWidth
-    implicitHeight: mainLayout.implicitHeight
+    property real tileSpacing: Appearance.sizes.spacingSmall
 
-    Column {
-        id: mainLayout
-        anchors.centerIn: parent
-        spacing: root.spacing
+    clip: true
+    contentHeight: contentColumn.implicitHeight + 40
 
-        Repeater { // Main table rows
-            model: root.elements
-            
-            delegate: Row { // Table cells
-                id: tableRow
-                spacing: root.spacing
-                required property var modelData
-                
-                Repeater {
-                    model: tableRow.modelData
-                    delegate: ElementTile {
-                        required property var modelData
-                        element: modelData
-                    }
+    ColumnLayout {
+        id: contentColumn
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+            margins: 16
+        }
+        spacing: 12
 
-                }
+        // Header
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            MaterialSymbol {
+                text: "experiment"
+                iconSize: Appearance.font.pixelSize.huge
+                color: Appearance.colors.colPrimary
             }
-            
+
+            StyledText {
+                text: Translation.tr("Periodic Table of Elements")
+                font.pixelSize: Appearance.font.pixelSize.large
+                color: Appearance.colors.colOnLayer1
+            }
+
+            Item { Layout.fillWidth: true }
         }
 
-        Item {
-            id: gap
-            implicitHeight: 20
-        }
+        // Table container
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: tableColumn.implicitHeight + 32
+            radius: Appearance.rounding.normal
+            color: Appearance.colors.colLayer1
 
-        Repeater { // Main table rows
-            model: root.series
-            
-            delegate: Row { // Table cells
-                id: seriesTableRow
-                spacing: root.spacing
-                required property var modelData
-                
+            Column {
+                id: tableColumn
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                    margins: 16
+                }
+                spacing: root.tileSpacing
+
+                // Main table rows
                 Repeater {
-                    model: seriesTableRow.modelData
-                    delegate: ElementTile {
-                        required property var modelData
-                        element: modelData
-                    }
+                    model: root.elements
 
+                    delegate: Row {
+                        id: tableRow
+                        spacing: root.tileSpacing
+                        required property var modelData
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        Repeater {
+                            model: tableRow.modelData
+                            delegate: ElementTile {
+                                required property var modelData
+                                element: modelData
+                            }
+                        }
+                    }
+                }
+
+                // Gap between main table and series
+                Item {
+                    width: 1
+                    height: Appearance.sizes.spacingLarge
+                }
+
+                // Lanthanides and Actinides series
+                Repeater {
+                    model: root.series
+
+                    delegate: Row {
+                        id: seriesTableRow
+                        spacing: root.tileSpacing
+                        required property var modelData
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        Repeater {
+                            model: seriesTableRow.modelData
+                            delegate: ElementTile {
+                                required property var modelData
+                                element: modelData
+                            }
+                        }
+                    }
+                }
+
+                // Gap before legend
+                Item {
+                    width: 1
+                    height: Appearance.sizes.spacingMedium
+                }
+
+                // Legend showing element categories with colors
+                CheatsheetElementLegend {
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
-            
         }
     }
-    
 }

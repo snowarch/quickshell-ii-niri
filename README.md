@@ -70,6 +70,7 @@ These come configured by default:
 | `Super+Shift+X` | Region OCR |
 | `Ctrl+Alt+T` | Wallpaper picker |
 | `Super+/` | Keyboard shortcuts cheatsheet |
+| `Super+,` | Settings |
 
 Full list in [docs/KEYBINDS.md](docs/KEYBINDS.md).
 
@@ -95,6 +96,7 @@ Main targets:
 | `session` | `toggle` |
 | `lock` | `activate` |
 | `cheatsheet` | `toggle` |
+| `settings` | `open` |
 | `sidebarLeft` | `toggle` |
 | `sidebarRight` | `toggle` |
 | `wallpaperSelector` | `toggle` |

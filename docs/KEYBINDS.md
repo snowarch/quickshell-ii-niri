@@ -15,6 +15,7 @@ These are the default keybinds shipped in `dots/.config/niri/config.kdl`. Custom
 | `Alt+Shift+Tab` | ii window switcher (previous) |
 | `Super+V` | Clipboard history |
 | `Super+/` | Cheatsheet |
+| `Super+,` | Settings |
 | `Super+Alt+L` | Lock screen |
 | `Ctrl+Alt+T` | Wallpaper selector |
 
@@ -38,6 +39,7 @@ These are the default keybinds shipped in `dots/.config/niri/config.kdl`. Custom
 | Key | Action |
 |-----|--------|
 | `Super+Q` | Close window |
+| `Super+D` | Maximize column |
 | `Super+F` | Toggle fullscreen |
 | `Super+A` | Toggle floating |
 

@@ -1,2 +1,16 @@
+# Editor/IDE
 .ii-backup.patch
 .amazonq
+.kiro
+.vscode
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Build artifacts
+*.qmlc
+*.jsc

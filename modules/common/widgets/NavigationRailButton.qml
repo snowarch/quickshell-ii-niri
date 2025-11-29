@@ -8,7 +8,7 @@ import QtQuick.Layouts
 TabButton {
     id: root
 
-    property bool toggled: TabBar.tabBar.currentIndex === TabBar.index
+    property bool toggled: TabBar.tabBar?.currentIndex === TabBar.index
     property string buttonIcon
     property real buttonIconRotation: 0
     property string buttonText

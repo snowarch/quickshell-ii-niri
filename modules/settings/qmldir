@@ -1,0 +1,4 @@
+module qs.modules.settings
+QuickWallpaperItem 1.0 QuickWallpaperItem.qml
+ThemePresetCard 1.0 ThemePresetCard.qml
+ColorPickerRow 1.0 ColorPickerRow.qml

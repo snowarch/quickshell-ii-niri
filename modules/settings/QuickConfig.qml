@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
@@ -295,81 +296,44 @@ ContentPage {
                 GridView {
                     id: wallpaperGrid
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 220
+                    Layout.preferredHeight: 320
                     model: Wallpapers.folderModel
-                    cellWidth: 140
+                    cellWidth: 120
                     cellHeight: 80
                     interactive: true
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
+                    property int currentHoverIndex: -1
+                    ScrollBar.vertical: StyledScrollBar {}
 
-                    delegate: Rectangle {
+                    delegate: Item {
+                        required property int index
                         required property bool fileIsDir
                         required property string filePath
+                        required property string fileName
                         required property url fileUrl
 
                         width: wallpaperGrid.cellWidth
                         height: wallpaperGrid.cellHeight
-                        radius: Appearance.rounding.small
-                        color: fileIsDir
-                               ? ColorUtils.transparentize(Appearance.colors.colLayer1, 0.5)
-                               : ColorUtils.transparentize(Appearance.colors.colLayer1, 0.2)
-                        border.width: !fileIsDir && filePath === Config.options.background.wallpaperPath ? 2 : 0
-                        border.color: Appearance.colors.colPrimary
 
-                        StyledImage {
+                        QuickWallpaperItem {
                             anchors.fill: parent
-                            visible: !fileIsDir
-                            source: fileUrl
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            cache: true
-                            sourceSize.width: width
-                            sourceSize.height: height
-                        }
+                            fileModelData: ({
+                                filePath: parent.filePath,
+                                fileName: parent.fileName,
+                                fileIsDir: parent.fileIsDir,
+                                fileUrl: parent.fileUrl
+                            })
+                            isSelected: !parent.fileIsDir && parent.filePath === Config.options.background.wallpaperPath
+                            isHovered: parent.index === wallpaperGrid.currentHoverIndex
 
-                        MaterialSymbol {
-                            anchors.top: parent.top
-                            anchors.right: parent.right
-                            anchors.margins: 4
-                            visible: !fileIsDir && filePath === Config.options.background.wallpaperPath
-                            text: "check_circle"
-                            iconSize: Appearance.font.pixelSize.normal
-                            color: Appearance.colors.colPrimary
-                        }
-
-                        Column {
-                            anchors.fill: parent
-                            anchors.margins: 6
-                            spacing: 4
-                            visible: fileIsDir
-
-                            RowLayout {
-                                spacing: 4
-                                MaterialSymbol {
-                                    visible: fileIsDir
-                                    text: "folder"
-                                    iconSize: Appearance.font.pixelSize.small
-                                    color: Appearance.colors.colOnLayer0
-                                }
-                                StyledText {
-                                    visible: fileIsDir
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    font.pixelSize: Appearance.font.pixelSize.smaller
-                                    text: FileUtils.fileNameForPath(filePath)
-                                    color: Appearance.colors.colOnLayer0
-                                }
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                if (fileIsDir) {
-                                    Wallpapers.setDirectory(filePath);
+                            onEntered: wallpaperGrid.currentHoverIndex = parent.index
+                            onExited: if (wallpaperGrid.currentHoverIndex === parent.index) wallpaperGrid.currentHoverIndex = -1
+                            onActivated: {
+                                if (parent.fileIsDir) {
+                                    Wallpapers.setDirectory(parent.filePath);
                                 } else {
-                                    Wallpapers.select(filePath);
+                                    Wallpapers.select(parent.filePath);
                                 }
                             }
                         }

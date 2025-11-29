@@ -7,24 +7,22 @@
 
 prefer-no-csd
 
-    // Background blur for Quickshell session and lock
-    layer-rule {
-        match namespace="^quickshell:(session|lock)$"
-        block-out-from "screen-capture"
-        blur
-    }
+hotkey-overlay {
+    skip-at-startup
+}
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 // Outputs (example - disabled by default)
 // Run `niri msg outputs` inside a niri session to see connector names and modes.
 // Then edit and uncomment this block to pin a specific monitor layout.
-/-output "eDP-1" {
+
+// -output "eDP-1" {
     // mode "1920x1080@60"
     // scale 1
     // transform "normal"
     // position x=0 y=0
-}
+// }
 
 // ============================================================================
 // INPUT
@@ -52,43 +50,49 @@ input {
 // ============================================================================
 
 layout {
-    gaps 20
+    gaps 25
     background-color "transparent"
     center-focused-column "never"
     
     preset-column-widths {
         proportion 0.33333
         proportion 0.5
+        proportion 0.66667
     }
-
-    // You can change the default width of the new windows.
+    
     default-column-width { 
         proportion 0.5
     }
     
     border {
         off
+        width 4
+        active-color   "#707070"
+        inactive-color "#d0d0d0"
+        urgent-color   "#cc4444"
     }
     
     focus-ring {
         off
+        width 1
+        active-color   "#808080"
+        inactive-color "#505050"
     }
     
     shadow {
-        // Uncomment `on` to enable shadows and tweak the look with the options below.
-        // on
-
-        // Softness controls the shadow blur radius.
+       // off
         softness 30
-
-        // Spread expands the shadow.
         spread 5
-
-        // Offset moves the shadow relative to the window.
         offset x=0 y=5
-
-        // Shadow color and opacity.
         color "#0007"
+    }
+    
+    struts { }
+}
+
+gestures {
+    hot-corners {
+        // off
     }
 }
 
@@ -160,6 +164,9 @@ environment {
     ELECTRON_OZONE_PLATFORM_HINT "auto"
     QT_QPA_PLATFORMTHEME "gtk3"
     QT_QPA_PLATFORMTHEME_QT6 "gtk3"
+    
+    // Quickshell Python virtual environment
+    ILLOGICAL_IMPULSE_VIRTUAL_ENV "$HOME/.local/state/quickshell/.venv"
 }
 
 // ============================================================================
@@ -186,15 +193,15 @@ binds {
     
     // ii Overlay
     Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
+
+    // ii Overview (daemon)
+    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }
     
     // ii Clipboard
     Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
     
     // ii Lock screen
     Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }
-    
-    // Screen off
-    Mod+Shift+O allow-when-locked=true { action "power-off-monitors"; }
     
     // ii Region tools
     Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }
@@ -204,7 +211,10 @@ binds {
     // ii Wallpaper selector
     Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }
     
-    // ii Cheatsheet (keyboard shortcuts reference)
+    // ii Settings
+    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }
+    
+    // ii Cheatsheet
     Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }
     
     // Applications (change "foot" to your preferred terminal)
@@ -214,9 +224,10 @@ binds {
     
     // Window management
     Mod+Q repeat=false { close-window; }
+    Mod+D { maximize-column; }
     Mod+F { fullscreen-window; }
     Mod+A { toggle-window-floating; }
-    
+
     // Focus
     Mod+Left { focus-column-left; }
     Mod+Right { focus-column-right; }
@@ -263,4 +274,10 @@ binds {
     XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
     XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+}
+
+layer-rule {
+    match namespace="dms:blurwallpaper"
+    place-within-backdrop true
+    opacity 1.0
 }

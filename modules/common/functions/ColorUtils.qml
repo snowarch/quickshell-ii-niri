@@ -124,4 +124,47 @@ Singleton {
         var a = Math.max(0, Math.min(1, alpha));
         return Qt.rgba(c.r, c.g, c.b, a);
     }
+
+    /**
+     * Returns black or white depending on which provides better contrast with the input color.
+     * Uses relative luminance calculation per WCAG guidelines.
+     *
+     * @param {string} color - The background color (any Qt.color-compatible string).
+     * @returns {Qt.rgba} Either white or black for optimal contrast.
+     */
+    function contrastColor(color) {
+        var c = Qt.color(color);
+        // Calculate relative luminance using sRGB formula
+        var r = c.r <= 0.03928 ? c.r / 12.92 : Math.pow((c.r + 0.055) / 1.055, 2.4);
+        var g = c.g <= 0.03928 ? c.g / 12.92 : Math.pow((c.g + 0.055) / 1.055, 2.4);
+        var b = c.b <= 0.03928 ? c.b / 12.92 : Math.pow((c.b + 0.055) / 1.055, 2.4);
+        var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminance > 0.179 ? Qt.rgba(0, 0, 0, 1) : Qt.rgba(1, 1, 1, 1);
+    }
+
+    /**
+     * Lightens a color by a given amount.
+     *
+     * @param {string} color - The color (any Qt.color-compatible string).
+     * @param {number} amount - The amount to lighten (0-1).
+     * @returns {Qt.rgba} The resulting lighter color.
+     */
+    function lighten(color, amount = 0.1) {
+        var c = Qt.color(color);
+        var newL = Math.min(1, c.hslLightness + amount);
+        return Qt.hsla(c.hslHue, c.hslSaturation, newL, c.a);
+    }
+
+    /**
+     * Darkens a color by a given amount.
+     *
+     * @param {string} color - The color (any Qt.color-compatible string).
+     * @param {number} amount - The amount to darken (0-1).
+     * @returns {Qt.rgba} The resulting darker color.
+     */
+    function darken(color, amount = 0.1) {
+        var c = Qt.color(color);
+        var newL = Math.max(0, c.hslLightness - amount);
+        return Qt.hsla(c.hslHue, c.hslSaturation, newL, c.a);
+    }
 }

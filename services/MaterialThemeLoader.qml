@@ -9,16 +9,28 @@ import Quickshell.Io
 /**
  * Automatically reloads generated material colors.
  * It is necessary to run reapplyTheme() on startup because Singletons are lazily loaded.
+ * 
+ * When a manual theme is selected (Config.options.appearance.theme !== "auto"),
+ * this loader will not apply wallpaper colors, allowing the manual theme to remain active.
  */
 Singleton {
     id: root
     property string filePath: Directories.generatedMaterialThemePath
+
+    // Check if auto theme is selected (reads directly from Config to avoid circular dependency with ThemeService)
+    readonly property bool isAutoTheme: (Config.options?.appearance?.theme ?? "auto") === "auto"
 
     function reapplyTheme() {
         themeFileView.reload()
     }
 
     function applyColors(fileContent) {
+        // Only apply wallpaper colors when auto theme is selected
+        // When a manual theme is active, ThemePresets handles the colors
+        if (!root.isAutoTheme) {
+            return;
+        }
+
         const json = JSON.parse(fileContent)
         for (const key in json) {
             if (json.hasOwnProperty(key)) {

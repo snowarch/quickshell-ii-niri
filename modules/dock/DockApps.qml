@@ -111,8 +111,8 @@ Item {
     }
     
     Connections {
-        target: ToplevelManager
-        function onToplevelsChanged() {
+        target: ToplevelManager.toplevels
+        function onValuesChanged() {
             root.rebuildDockItems()
         }
     }

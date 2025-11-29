@@ -123,8 +123,8 @@ StyledOverlayWidget {
 
         Process { // Descarga ligera de carátula a caché
             id: coverArtDownloader
-            property string targetFile: artUrl
-            property string artFilePath: musicContent.artFilePath
+            property string targetFile: artUrl ?? ""
+            property string artFilePath: musicContent.artFilePath ?? ""
             command: [
                 "bash",
                 "-c",
@@ -202,7 +202,7 @@ StyledOverlayWidget {
 
                     StyledProgressBar {
                         Layout.fillWidth: true
-                        wavy: activePlayer?.isPlaying
+                        wavy: activePlayer?.isPlaying ?? false
                         highlightColor: Appearance.colors.colPrimary
                         trackColor: Appearance.colors.colSecondaryContainer
                         value: (activePlayer && activePlayer.length > 0)

@@ -25,9 +25,11 @@ Item {
         scale = 1
     }
     Behavior on scale {
-        animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this, {
-            "duration": Config.options.overlay.animationDurationMs ?? Appearance.animation.elementMoveEnter.duration
-        })
+        NumberAnimation {
+            duration: Config.options?.overlay?.animationDurationMs ?? Appearance.animation.elementMoveEnter.duration
+            easing.type: Appearance.animation.elementMoveEnter.type
+            easing.bezierCurve: Appearance.animation.elementMoveEnter.bezierCurve
+        }
     }
 
     Rectangle {

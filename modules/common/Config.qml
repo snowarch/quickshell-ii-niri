@@ -72,6 +72,8 @@ Singleton {
             if (error == FileViewError.FileNotFound) {
                 writeAdapter();
             }
+            // Set ready even on failure so UI doesn't stay blank
+            root.ready = true;
         }
 
         JsonAdapter {
@@ -101,7 +103,64 @@ Singleton {
             }
 
             property JsonObject appearance: JsonObject {
+                property string theme: "auto" // Theme preset ID: "auto" for wallpaper-based, or preset name like "gruvbox-dark", "catppuccin-mocha", "custom", etc.
                 property bool extraBackgroundTint: true
+                property JsonObject customTheme: JsonObject {
+                    property bool darkmode: true
+                    property string m3background: "#282828"
+                    property string m3onBackground: "#ebdbb2"
+                    property string m3surface: "#282828"
+                    property string m3surfaceDim: "#1d2021"
+                    property string m3surfaceBright: "#3c3836"
+                    property string m3surfaceContainerLowest: "#1d2021"
+                    property string m3surfaceContainerLow: "#282828"
+                    property string m3surfaceContainer: "#32302f"
+                    property string m3surfaceContainerHigh: "#3c3836"
+                    property string m3surfaceContainerHighest: "#504945"
+                    property string m3onSurface: "#ebdbb2"
+                    property string m3surfaceVariant: "#504945"
+                    property string m3onSurfaceVariant: "#d5c4a1"
+                    property string m3inverseSurface: "#ebdbb2"
+                    property string m3inverseOnSurface: "#282828"
+                    property string m3outline: "#928374"
+                    property string m3outlineVariant: "#665c54"
+                    property string m3shadow: "#000000"
+                    property string m3scrim: "#000000"
+                    property string m3surfaceTint: "#fe8019"
+                    property string m3primary: "#fe8019"
+                    property string m3onPrimary: "#1d2021"
+                    property string m3primaryContainer: "#af3a03"
+                    property string m3onPrimaryContainer: "#fbd5a8"
+                    property string m3inversePrimary: "#d65d0e"
+                    property string m3secondary: "#b8bb26"
+                    property string m3onSecondary: "#1d2021"
+                    property string m3secondaryContainer: "#79740e"
+                    property string m3onSecondaryContainer: "#d5c4a1"
+                    property string m3tertiary: "#83a598"
+                    property string m3onTertiary: "#1d2021"
+                    property string m3tertiaryContainer: "#427b58"
+                    property string m3onTertiaryContainer: "#d5c4a1"
+                    property string m3error: "#fb4934"
+                    property string m3onError: "#1d2021"
+                    property string m3errorContainer: "#cc241d"
+                    property string m3onErrorContainer: "#fbd5a8"
+                    property string m3primaryFixed: "#fabd2f"
+                    property string m3primaryFixedDim: "#d79921"
+                    property string m3onPrimaryFixed: "#1d2021"
+                    property string m3onPrimaryFixedVariant: "#3c3836"
+                    property string m3secondaryFixed: "#b8bb26"
+                    property string m3secondaryFixedDim: "#98971a"
+                    property string m3onSecondaryFixed: "#1d2021"
+                    property string m3onSecondaryFixedVariant: "#3c3836"
+                    property string m3tertiaryFixed: "#8ec07c"
+                    property string m3tertiaryFixedDim: "#689d6a"
+                    property string m3onTertiaryFixed: "#1d2021"
+                    property string m3onTertiaryFixedVariant: "#3c3836"
+                    property string m3success: "#b8bb26"
+                    property string m3onSuccess: "#1d2021"
+                    property string m3successContainer: "#79740e"
+                    property string m3onSuccessContainer: "#d5c4a1"
+                }
                 property int fakeScreenRounding: 2 // 0: None | 1: Always | 2: When not fullscreen
                 property JsonObject transparency: JsonObject {
                     property bool enable: false

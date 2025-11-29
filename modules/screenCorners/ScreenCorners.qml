@@ -24,7 +24,7 @@ Scope {
         property var screen: QsWindow.window?.screen
         property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
         property bool fullscreen
-        visible: (Config.options.appearance.fakeScreenRounding === 1 || (Config.options.appearance.fakeScreenRounding === 2 && !fullscreen))
+        visible: ((Config?.options?.appearance?.fakeScreenRounding ?? 0) === 1 || ((Config?.options?.appearance?.fakeScreenRounding ?? 0) === 2 && !fullscreen))
         property var corner
 
         exclusionMode: ExclusionMode.Ignore

@@ -46,6 +46,11 @@ ApplicationWindow {
             component: "modules/settings/BackgroundConfig.qml"
         },
         {
+            name: Translation.tr("Themes"),
+            icon: "palette",
+            component: "modules/settings/ThemesConfig.qml"
+        },
+        {
             name: Translation.tr("Interface"),
             icon: "bottom_app_bar",
             component: "modules/settings/InterfaceConfig.qml"
@@ -215,74 +220,92 @@ ApplicationWindow {
             keywords: ["weather", "widget", "background"]
         },
 
-        // Interface
+        // Themes
         {
             pageIndex: 4,
             pageName: pages[4].name,
+            section: Translation.tr("Theme Presets"),
+            label: Translation.tr("Theme Presets"),
+            description: Translation.tr("Predefined color themes like Gruvbox, Catppuccin, Nord, Dracula"),
+            keywords: ["theme", "preset", "gruvbox", "catppuccin", "nord", "dracula", "material", "colors", "palette"]
+        },
+        {
+            pageIndex: 4,
+            pageName: pages[4].name,
+            section: Translation.tr("Auto Theme"),
+            label: Translation.tr("Auto Theme"),
+            description: Translation.tr("Automatic colors from wallpaper"),
+            keywords: ["auto", "wallpaper", "dynamic", "colors", "matugen"]
+        },
+
+        // Interface
+        {
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Crosshair overlay"),
             label: Translation.tr("Crosshair overlay"),
             description: Translation.tr("In-game crosshair overlay"),
             keywords: ["crosshair", "overlay", "aim"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Dock"),
             label: Translation.tr("Dock"),
             description: Translation.tr("Dock position and behaviour"),
             keywords: ["dock", "position", "pinned", "hover"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Lock screen"),
             label: Translation.tr("Lock screen"),
             description: Translation.tr("Lock screen behaviour and style"),
             keywords: ["lock", "screen", "hyprlock", "blur"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Notifications"),
             label: Translation.tr("Notifications"),
             description: Translation.tr("Notification timeouts and popup position"),
             keywords: ["notifications", "timeout", "popup", "position"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Region selector (screen snipping/Google Lens)"),
             label: Translation.tr("Region selector (screen snipping/Google Lens)"),
             description: Translation.tr("Screen snipping target regions and Lens behaviour"),
             keywords: ["region", "selector", "snip", "lens", "screenshot"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Sidebars"),
             label: Translation.tr("Sidebars"),
             description: Translation.tr("Sidebar toggles, sliders and corner open"),
             keywords: ["sidebar", "quick toggles", "sliders", "corner"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("On-screen display"),
             label: Translation.tr("On-screen display"),
             description: Translation.tr("OSD timeout"),
             keywords: ["osd", "volume", "brightness", "timeout"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Overview"),
             label: Translation.tr("Overview"),
             description: Translation.tr("Overview scale, rows and columns"),
             keywords: ["overview", "grid", "rows", "columns"]
         },
         {
-            pageIndex: 4,
-            pageName: pages[4].name,
+            pageIndex: 5,
+            pageName: pages[5].name,
             section: Translation.tr("Wallpaper selector"),
             label: Translation.tr("Wallpaper selector"),
             description: Translation.tr("Wallpaper picker behaviour"),
@@ -291,48 +314,48 @@ ApplicationWindow {
 
         // Services
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("AI"),
             label: Translation.tr("AI"),
             description: Translation.tr("System prompt for sidebar AI"),
             keywords: ["ai", "prompt", "system", "sidebar"]
         },
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("Music Recognition"),
             label: Translation.tr("Music Recognition"),
             description: Translation.tr("Song recognition timeout and interval"),
             keywords: ["music", "recognition", "song", "timeout"]
         },
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("Networking"),
             label: Translation.tr("Networking"),
             description: Translation.tr("Custom user agent string"),
             keywords: ["network", "user agent", "http"]
         },
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("Resources"),
             label: Translation.tr("Resources"),
             description: Translation.tr("Polling interval for resource monitor"),
             keywords: ["resources", "cpu", "memory", "interval"]
         },
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("Search"),
             label: Translation.tr("Search"),
             description: Translation.tr("Prefix configuration and engines"),
             keywords: ["search", "prefix", "engine", "web"]
         },
         {
-            pageIndex: 5,
-            pageName: pages[5].name,
+            pageIndex: 6,
+            pageName: pages[6].name,
             section: Translation.tr("Weather"),
             label: Translation.tr("Weather"),
             description: Translation.tr("Weather units, GPS and city"),
@@ -341,8 +364,8 @@ ApplicationWindow {
 
         // Advanced
         {
-            pageIndex: 6,
-            pageName: pages[6].name,
+            pageIndex: 7,
+            pageName: pages[7].name,
             section: Translation.tr("Color generation"),
             label: Translation.tr("Color generation"),
             description: Translation.tr("Wallpaper-based color theming"),
@@ -351,8 +374,8 @@ ApplicationWindow {
 
         // Shortcuts
         {
-            pageIndex: 7,
-            pageName: pages[7].name,
+            pageIndex: 8,
+            pageName: pages[8].name,
             section: Translation.tr("Keyboard Shortcuts"),
             label: Translation.tr("Keyboard Shortcuts"),
             description: Translation.tr("Niri and ii keybindings reference"),

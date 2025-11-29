@@ -5,152 +5,159 @@ import qs.modules.common
 import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 
-Item {
+StyledFlickable {
     id: root
-    // Use NiriKeybinds when on Niri, HyprlandKeybinds otherwise
+    
     readonly property var keybinds: CompositorService.isNiri ? NiriKeybinds.keybinds : HyprlandKeybinds.keybinds
-    property real spacing: 20
-    property real titleSpacing: 7
-    property real padding: 4
-    implicitWidth: row.implicitWidth + padding * 2
-    implicitHeight: row.implicitHeight + padding * 2
-
+    readonly property var categories: keybinds?.children ?? []
+    property string searchText: ""
+    
+    readonly property var allKeybinds: {
+        let result = []
+        for (let cat of categories) {
+            const kbs = cat.children?.[0]?.keybinds ?? []
+            for (let kb of kbs) {
+                let item = Object.assign({}, kb)
+                item.category = cat.name
+                result.push(item)
+            }
+        }
+        return result
+    }
+    
+    readonly property var filteredKeybinds: {
+        if (!searchText || searchText.trim().length === 0) return allKeybinds
+        const q = searchText.toLowerCase().trim()
+        return allKeybinds.filter(kb =>
+            kb.key?.toLowerCase().includes(q) ||
+            kb.mods?.some(m => m.toLowerCase().includes(q)) ||
+            kb.comment?.toLowerCase().includes(q) ||
+            kb.category?.toLowerCase().includes(q)
+        )
+    }
+    
+    readonly property bool hasResults: filteredKeybinds.length > 0
+    
     property var keyBlacklist: ["Super_L"]
     property var keySubstitutions: ({
-        "Super": "󰖳",
-        "mouse_up": "Scroll ↓",    // ikr, weird
-        "mouse_down": "Scroll ↑",  // trust me bro
-        "mouse:272": "LMB",
-        "mouse:273": "RMB",
-        "mouse:275": "MouseBack",
-        "Slash": "/",
-        "Hash": "#",
-        "Return": "Enter",
-        // "Shift": "",
+        "Super": "󰖳", "mouse_up": "Scroll ↓", "mouse_down": "Scroll ↑",
+        "mouse:272": "LMB", "mouse:273": "RMB", "mouse:275": "MouseBack",
+        "Slash": "/", "Hash": "#", "Return": "Enter",
     })
+    
+    clip: true
+    contentHeight: contentColumn.implicitHeight + 40
 
-    Row { // Keybind columns
-        id: row
-        spacing: root.spacing
+    Shortcut {
+        sequences: [StandardKey.Find]
+        onActivated: searchField.forceActiveFocus()
+    }
+
+    ColumnLayout {
+        id: contentColumn
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+            margins: 16
+        }
+        spacing: 12
         
-        Repeater {
-            model: keybinds.children
+        // Header row
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
             
-            delegate: Column { // Keybind sections
-                spacing: root.spacing
-                required property var modelData
-                anchors.top: row.top
-
-                Repeater {
-                    model: modelData.children
-
-                    delegate: Item { // Section with real keybinds
-                        id: keybindSection
-                        required property var modelData
-                        implicitWidth: sectionColumn.implicitWidth
-                        implicitHeight: sectionColumn.implicitHeight
-
-                        Column {
-                            id: sectionColumn
-                            anchors.centerIn: parent
-                            spacing: root.titleSpacing
-                            
-                            StyledText {
-                                id: sectionTitle
-                                font {
-                                    family: Appearance.font.family.title
-                                    pixelSize: Appearance.font.pixelSize.title
-                                    variableAxes: Appearance.font.variableAxes.title
-                                }
-                                color: Appearance.colors.colOnLayer0
-                                text: keybindSection.modelData.name
-                            }
-
-                            GridLayout {
-                                id: keybindGrid
-                                columns: 2
-                                columnSpacing: 4
-                                rowSpacing: 4
-
-                                Repeater {
-                                    model: {
-                                        var result = [];
-                                        for (var i = 0; i < keybindSection.modelData.keybinds.length; i++) {
-                                            const keybind = keybindSection.modelData.keybinds[i];
-                                            result.push({
-                                                "type": "keys",
-                                                "mods": keybind.mods,
-                                                "key": keybind.key,
-                                            });
-                                            result.push({
-                                                "type": "comment",
-                                                "comment": keybind.comment,
-                                            });
-                                        }
-                                        return result;
-                                    }
-                                    delegate: Item {
-                                        required property var modelData
-                                        implicitWidth: keybindLoader.implicitWidth
-                                        implicitHeight: keybindLoader.implicitHeight
-
-                                        Loader {
-                                            id: keybindLoader
-                                            sourceComponent: (modelData.type === "keys") ? keysComponent : commentComponent
-                                        }
-
-                                        Component {
-                                            id: keysComponent
-                                            Row {
-                                                spacing: 4
-                                                Repeater {
-                                                    model: modelData.mods
-                                                    delegate: KeyboardKey {
-                                                        required property var modelData
-                                                        key: keySubstitutions[modelData] || modelData
-                                                    }
-                                                }
-                                                StyledText {
-                                                    id: keybindPlus
-                                                    visible: !keyBlacklist.includes(modelData.key) && modelData.mods.length > 0
-                                                    text: "+"
-                                                }
-                                                KeyboardKey {
-                                                    id: keybindKey
-                                                    visible: !keyBlacklist.includes(modelData.key)
-                                                    key: keySubstitutions[modelData.key] || modelData.key
-                                                    color: Appearance.colors.colOnLayer0
-                                                }
-                                            }
-                                        }
-
-                                        Component {
-                                            id: commentComponent
-                                            Item {
-                                                id: commentItem
-                                                implicitWidth: commentText.implicitWidth + 8 * 2
-                                                implicitHeight: commentText.implicitHeight
-
-                                                StyledText {
-                                                    id: commentText
-                                                    anchors.centerIn: parent
-                                                    font.pixelSize: Appearance.font.pixelSize.smaller
-                                                    text: modelData.comment
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
+            MaterialSymbol {
+                text: "keyboard"
+                iconSize: Appearance.font.pixelSize.huge
+                color: Appearance.colors.colPrimary
+            }
+            
+            StyledText {
+                text: Translation.tr("Keybinds") + ` (${root.filteredKeybinds.length})`
+                font.pixelSize: Appearance.font.pixelSize.large
+                color: Appearance.colors.colOnLayer1
+            }
+            
+            Item { Layout.fillWidth: true }
+            
+            ToolbarTextField {
+                id: searchField
+                Layout.preferredWidth: 250
+                implicitHeight: 36
+                text: root.searchText
+                placeholderText: Translation.tr("Search (Ctrl+F)...")
+                onTextChanged: root.searchText = text
+                Keys.onEscapePressed: event => {
+                    if (text.length > 0) {
+                        text = ""
+                        event.accepted = true
                     }
-
                 }
             }
             
+            RippleButton {
+                implicitWidth: 32
+                implicitHeight: 32
+                buttonRadius: Appearance.rounding.full
+                visible: searchField.text.length > 0
+                onClicked: searchField.text = ""
+                contentItem: MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: "backspace"
+                    iconSize: 18
+                }
+            }
+        }
+        
+        // No results message
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 200
+            radius: Appearance.rounding.normal
+            color: Appearance.colors.colLayer1
+            visible: !root.hasResults && root.searchText.length > 0
+
+            CheatsheetNoResults {
+                anchors.centerIn: parent
+                onClearSearchRequested: searchField.text = ""
+            }
+        }
+        
+        // Keybinds list
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: keybindsColumn.implicitHeight + 16
+            radius: Appearance.rounding.normal
+            color: Appearance.colors.colLayer1
+            visible: root.hasResults
+
+            Column {
+                id: keybindsColumn
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                    margins: 8
+                }
+                
+                Repeater {
+                    model: root.filteredKeybinds
+                    
+                    delegate: CheatsheetKeybindRow {
+                        required property var modelData
+                        required property int index
+                        width: keybindsColumn.width
+                        keybindData: modelData
+                        keyBlacklist: root.keyBlacklist
+                        keySubstitutions: root.keySubstitutions
+                        showDivider: index < root.filteredKeybinds.length - 1
+                    }
+                }
+            }
         }
     }
-    
 }

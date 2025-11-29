@@ -34,9 +34,24 @@ import "modules/clipboard" as ClipboardModule
 import QtQuick
 import QtQuick.Window
 import Quickshell
+import Quickshell.Io
 import qs.services
 
 ShellRoot {
+    // IPC handler for opening settings
+    IpcHandler {
+        target: "settings"
+        function open(): void {
+            console.log("[Shell] Opening settings from:", settingsProcess.command)
+            settingsProcess.running = true
+        }
+    }
+    
+    Process {
+        id: settingsProcess
+        command: ["qs", "-n", "-p", Quickshell.shellPath("settings.qml")]
+        onExited: (code, status) => console.log("[Shell] Settings process exited with code:", code)
+    }
     // Enable/disable modules here. False = not loaded at all, so rest assured
     // no unnecessary stuff will take up memory if you decide to only use, say, the overview.
     property bool enableBar: true
@@ -63,12 +78,22 @@ ShellRoot {
 
     // Force initialization of some singletons
     Component.onCompleted: {
-        MaterialThemeLoader.reapplyTheme()
-        Hyprsunset.load()
-        FirstRunExperience.load()
-        ConflictKiller.load()
-        Cliphist.refresh()
-        Wallpapers.load()
+        console.log("[Shell] Initializing singletons");
+        Hyprsunset.load();
+        FirstRunExperience.load();
+        ConflictKiller.load();
+        Cliphist.refresh();
+        Wallpapers.load();
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) {
+                console.log("[Shell] Config ready, applying theme");
+                ThemeService.applyCurrentTheme();
+            }
+        }
     }
 
     LazyLoader { active: enableBar && Config.ready && !Config.options.bar.vertical; component: Bar {} }

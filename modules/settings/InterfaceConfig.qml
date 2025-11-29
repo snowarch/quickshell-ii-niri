@@ -268,7 +268,6 @@ ContentPage {
                 if (!Config.options.altSwitcher)
                     Config.options.altSwitcher = ({})
                 Config.options.altSwitcher.showOverviewWhileSwitching = checked;
-                GlobalStates.altSwitcherOpen = false
             }
         }
 
@@ -283,7 +282,6 @@ ContentPage {
                     if (!Config.options.altSwitcher)
                         Config.options.altSwitcher = ({})
                     Config.options.altSwitcher.compactStyle = checked;
-                    GlobalStates.altSwitcherOpen = false
                 }
                 StyledToolTip {
                     text: Translation.tr("Show only app icons in a horizontal row, similar to macOS Spotlight")
@@ -299,7 +297,6 @@ ContentPage {
                     if (!Config.options.altSwitcher)
                         Config.options.altSwitcher = ({})
                     Config.options.altSwitcher.panelAlignment = newValue;
-                    GlobalStates.altSwitcherOpen = false
                 }
                 options: [
                     {
@@ -324,7 +321,6 @@ ContentPage {
                     if (!Config.options.altSwitcher)
                         Config.options.altSwitcher = ({})
                     Config.options.altSwitcher.useM3Layout = checked;
-                    GlobalStates.altSwitcherOpen = false
                 }
             }
         }

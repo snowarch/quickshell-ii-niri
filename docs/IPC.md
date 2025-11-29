@@ -141,6 +141,20 @@ bind "Super+Slash" { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }
 
 ---
 
+### settings
+
+Open the settings window.
+
+| Function | Description |
+|----------|-------------|
+| `open` | Open settings window |
+
+```kdl
+bind "Super+Comma" { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }
+```
+
+---
+
 ### sidebarLeft
 
 Left sidebar (AI chat, apps).
