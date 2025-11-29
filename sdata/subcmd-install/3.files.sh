@@ -390,7 +390,7 @@ echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}1.${STY_RST} Log out and select ${
 echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}2.${STY_RST} ii will start automatically with your session"
 echo -e "${STY_CYAN}│${STY_RST}"
 echo -e "${STY_CYAN}│${STY_RST}  Or reload now if already in Niri:"
-echo -e "${STY_CYAN}│${STY_RST}  ${STY_FAINT}$ niri msg action reload-config${STY_RST}"
+echo -e "${STY_CYAN}│${STY_RST}  ${STY_FAINT}$ niri msg action load-config-file${STY_RST}"
 echo -e "${STY_CYAN}│${STY_RST}"
 echo -e "${STY_CYAN}└──────────────────────────────${STY_RST}"
 echo ""

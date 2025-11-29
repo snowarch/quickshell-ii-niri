@@ -278,7 +278,7 @@ Item {
                     if (CompositorService.isHyprland) {
                         Hyprland.dispatch("reload");
                     } else if (CompositorService.isNiri) {
-                        Quickshell.execDetached(["niri", "msg", "action", "reload-config"]);
+                        Quickshell.execDetached(["niri", "msg", "action", "load-config-file"]);
                     }
                     Quickshell.reload(true);
                 }

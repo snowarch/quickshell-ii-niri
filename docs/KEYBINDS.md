@@ -119,7 +119,7 @@ binds {
 Then reload Niri so it actually notices:
 
 ```bash
-niri msg action reload-config
+niri msg action load-config-file
 ```
 
 If your keybind doesn't work, you probably forgot to reload. Don't worry, we've all been there.

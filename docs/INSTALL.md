@@ -21,7 +21,7 @@ Add `-y` if you don't want to answer questions:
 When it's done:
 
 ```bash
-niri msg action reload-config
+niri msg action load-config-file
 ```
 
 Log out and back in, or just restart Niri. Done.
@@ -77,7 +77,7 @@ spawn-at-startup "qs" "-c" "ii"
 ### 5. Restart Niri
 
 ```bash
-niri msg action reload-config
+niri msg action load-config-file
 ```
 
 Or log out and back in.
