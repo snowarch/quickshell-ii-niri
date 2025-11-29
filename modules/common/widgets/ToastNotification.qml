@@ -28,9 +28,9 @@ Item {
         width: contentLayout.implicitWidth + 32
         height: contentLayout.implicitHeight + 20
         radius: Appearance.rounding.normal
-        color: root.isError ? Appearance.colors.colErrorContainer : Appearance.colors.colLayer1
+        color: Appearance.colors.colLayer1
         border.width: 1
-        border.color: root.isError ? Appearance.colors.colError : root.accentColor
+        border.color: root.isError ? Appearance.colors.colError : Appearance.colors.colOutlineVariant
         
         MouseArea {
             id: mouseArea
@@ -49,7 +49,7 @@ Item {
             MaterialSymbol {
                 text: root.icon
                 iconSize: 20
-                color: root.isError ? Appearance.colors.colOnErrorContainer : Appearance.colors.colOnLayer1
+                color: root.isError ? Appearance.colors.colError : Appearance.colors.colOnLayer1
             }
             
             // Content
@@ -61,20 +61,15 @@ Item {
                     text: root.title
                     font.pixelSize: Appearance.font.pixelSize.normal
                     font.weight: Font.Medium
-                    color: root.isError ? Appearance.colors.colOnErrorContainer : Appearance.colors.colOnLayer1
+                    color: Appearance.colors.colOnLayer1
                 }
                 
                 StyledText {
                     visible: root.message !== ""
                     text: root.message.length > 100 ? root.message.substring(0, 100) + "..." : root.message
                     font.pixelSize: Appearance.font.pixelSize.smaller
-                    font.family: root.isError ? "JetBrains Mono" : Appearance.font.family.main
-                    color: Qt.rgba(
-                        root.isError ? Appearance.m3colors.m3onErrorContainer.r : Appearance.m3colors.m3onSurface.r,
-                        root.isError ? Appearance.m3colors.m3onErrorContainer.g : Appearance.m3colors.m3onSurface.g,
-                        root.isError ? Appearance.m3colors.m3onErrorContainer.b : Appearance.m3colors.m3onSurface.b,
-                        0.8
-                    )
+                    font.family: "JetBrains Mono"
+                    color: Appearance.colors.colSubtext
                     wrapMode: Text.WordWrap
                     Layout.maximumWidth: 350
                 }
@@ -89,6 +84,7 @@ Item {
                 colBackground: "transparent"
                 colBackgroundHover: Qt.rgba(0, 0, 0, 0.1)
                 onClicked: {
+                    console.log("[Toast] Copying to clipboard:", root.message.substring(0, 50))
                     Quickshell.clipboardText = root.message
                     root.copied = true
                     copyResetTimer.restart()
@@ -98,7 +94,7 @@ Item {
                     anchors.centerIn: parent
                     text: root.copied ? "check" : "content_copy"
                     iconSize: 16
-                    color: Appearance.colors.colOnErrorContainer
+                    color: Appearance.colors.colOnLayer1
                 }
                 
                 StyledToolTip {
@@ -119,7 +115,7 @@ Item {
                     anchors.centerIn: parent
                     text: "close"
                     iconSize: 16
-                    color: root.isError ? Appearance.colors.colOnErrorContainer : Appearance.colors.colOnLayer1
+                    color: Appearance.colors.colOnLayer1
                 }
             }
         }
@@ -132,7 +128,7 @@ Item {
             anchors.bottomMargin: 6
             height: 3
             radius: 2
-            color: root.isError ? Appearance.colors.colError : root.accentColor
+            color: root.isError ? Appearance.colors.colError : Appearance.colors.colPrimary
             
             PropertyAnimation {
                 id: progressAnim
