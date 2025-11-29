@@ -24,6 +24,7 @@ A shell. Bar at the top, sidebars on the sides, overlays that pop up when you pr
 - **Region tools** - screenshots, screen recording, OCR, reverse image search
 - **Wallpaper stuff** - picker, matugen colors, video wallpaper support
 - **Settings** - GUI config with search, so you don't have to edit JSON like a caveman
+- **Themes** - Gruvbox, Catppuccin, Nord, Dracula, and more. Or let matugen generate colors from your wallpaper
 
 ---
 
@@ -107,17 +108,30 @@ Full reference with examples: [docs/IPC.md](docs/IPC.md)
 
 ---
 
+## Troubleshooting
+
+Something broke? Shocking.
+
+```bash
+# Check the logs
+qs log -c ii
+
+# Restart ii without restarting Niri
+qs kill -c ii && qs -c ii
+
+# Nuclear option: reload everything
+niri msg action load-config-file
+```
+
+If you're still stuck, the logs usually tell you what's missing. Usually.
+
+---
+
 ## Fair warning
 
 This is my daily driver. It works. Most of the time. I break things when I'm bored.
 
-If something explodes, check the logs:
-
-```bash
-qs log -c ii
-```
-
-If you want something stable and polished, check out end-4's original ii for Hyprland instead.
+If you want something stable and polished, check out end-4's original ii for Hyprland instead. This fork is for people who like living dangerously on Niri.
 
 ---
 
