@@ -1,3 +1,4 @@
+import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -29,18 +30,23 @@ Button {
     // Allow consumers (e.g. Wallhaven) to opt-out of hover tooltips
     property bool enableTooltip: true
 
-    property bool showActions: false
+    property bool showActions: GlobalStates.activeBooruImageMenu === root
     
-    // Close menu when clicking outside or when another menu opens
-    onShowActionsChanged: {
-        if (showActions) {
-            // Request focus to detect when we lose it
-            root.forceActiveFocus()
+    function openMenu() {
+        GlobalStates.activeBooruImageMenu = root
+    }
+    
+    function closeMenu() {
+        if (GlobalStates.activeBooruImageMenu === root) {
+            GlobalStates.activeBooruImageMenu = null
         }
     }
-    onActiveFocusChanged: {
-        if (!activeFocus && showActions) {
-            showActions = false
+    
+    function toggleMenu() {
+        if (showActions) {
+            closeMenu()
+        } else {
+            openMenu()
         }
     }
     
@@ -104,7 +110,7 @@ Button {
             hoverEnabled: false
             onClicked: (mouse) => {
                 if (mouse.button === Qt.RightButton) {
-                    root.showActions = !root.showActions
+                    root.toggleMenu()
                     mouse.accepted = true
                 }
             }
@@ -132,7 +138,7 @@ Button {
             }
 
             onClicked: {
-                root.showActions = !root.showActions
+                root.toggleMenu()
             }
         }
 
@@ -179,7 +185,7 @@ Button {
                             Layout.fillWidth: true
                             buttonText: Translation.tr("Open file link")
                             onClicked: {
-                                root.showActions = false
+                                root.closeMenu()
                                 if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
                                 Qt.openUrlExternally(root.imageData.file_url)
                                 if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
@@ -192,7 +198,7 @@ Button {
                             buttonText: Translation.tr("Go to source (%1)").arg(StringUtils.getDomain(root.imageData.source))
                             enabled: root.imageData.source && root.imageData.source.length > 0
                             onClicked: {
-                                root.showActions = false
+                                root.closeMenu()
                                 if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
                                 Qt.openUrlExternally(root.imageData.source)
                                 if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
@@ -203,7 +209,7 @@ Button {
                             Layout.fillWidth: true
                             buttonText: Translation.tr("Download")
                             onClicked: {
-                                root.showActions = false;
+                                root.closeMenu()
                                 const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
                                 const localPath = `${targetPath}/${root.fileName}`;
                                 Quickshell.execDetached(["bash", "-c", 
@@ -217,7 +223,7 @@ Button {
                             Layout.fillWidth: true
                             buttonText: Translation.tr("Set as wallpaper")
                             onClicked: {
-                                root.showActions = false;
+                                root.closeMenu()
                                 const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
                                 const localPath = `${targetPath}/${root.fileName}`;
                                 const mode = Appearance.m3colors.darkmode ? "dark" : "light";

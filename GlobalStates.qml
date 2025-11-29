@@ -30,6 +30,7 @@ Singleton {
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
+    property var activeBooruImageMenu: null  // Track which BooruImage has its menu open
 
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {
