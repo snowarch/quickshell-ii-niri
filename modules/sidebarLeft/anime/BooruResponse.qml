@@ -24,6 +24,7 @@ Rectangle {
 
     property real availableWidth: parent.width
     property real rowTooShortThreshold: 190
+    property real rowMaxHeight: 350  // Cap height for single vertical images
     property real imageSpacing: 5
     property real responsePadding: 5
 
@@ -201,7 +202,7 @@ Rectangle {
                         // If we couldn't add any image (shouldn't happen), add at least one
                         if (j === i) {
                             row.images.push(responseList[i]);
-                            row.height = availableImageWidth / responseList[i].aspect_ratio;
+                            row.height = Math.min(rowMaxHeight, availableImageWidth / responseList[i].aspect_ratio);
                             rows.push(row);
                             i++;
                         } else {
@@ -212,7 +213,7 @@ Rectangle {
                             let imagesInRow = j - i;
                             let totalSpacing = root.imageSpacing * (imagesInRow - 1);
                             let rowAvailableWidth = availableImageWidth - totalSpacing;
-                            row.height = rowAvailableWidth / combinedAspect;
+                            row.height = Math.min(rowMaxHeight, rowAvailableWidth / combinedAspect);
                             rows.push(row);
                             i = j;
                         }
@@ -225,6 +226,7 @@ Rectangle {
                 required property var modelData
                 property var rowHeight: modelData.height
                 spacing: root.imageSpacing
+                Layout.alignment: Qt.AlignHCenter
 
                 Repeater {
                     model: modelData.images
