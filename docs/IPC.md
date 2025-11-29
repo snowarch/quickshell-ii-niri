@@ -1,24 +1,30 @@
 # IPC Reference
 
-ii exposes IPC targets that you can call from Niri keybinds or scripts. The syntax is:
+ii exposes IPC targets you can call from Niri keybinds, scripts, or your terminal when you're feeling fancy.
+
+From terminal (for testing, or showing off):
 
 ```bash
 qs -c ii ipc call <target> <function>
 ```
 
-Or in Niri config:
+In Niri config (for actual keybinds):
 
 ```kdl
 bind "Key" { spawn "qs" "-c" "ii" "ipc" "call" "<target>" "<function>"; }
 ```
 
+Yes, it's verbose. No, there's no shorter way. Welcome to IPC.
+
 ---
 
 ## Available Targets
 
+Everything ii can do, exposed for your scripting pleasure.
+
 ### overview
 
-Toggle the workspace overview panel.
+Toggle the workspace overview panel. The one with all your windows looking tiny and organized.
 
 | Function | Description |
 |----------|-------------|
@@ -32,7 +38,7 @@ bind "Mod+Space" { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }
 
 ### overlay
 
-The central overlay with search, quick actions, and widgets.
+The central overlay. Search, quick actions, widgets. The thing that pops up and makes you feel productive.
 
 | Function | Description |
 |----------|-------------|
@@ -46,7 +52,7 @@ bind "Super+G" { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }
 
 ### clipboard
 
-Clipboard history panel (cliphist-based).
+Clipboard history panel. Because Ctrl+V only remembers one thing, and that's not enough for power users.
 
 | Function | Description |
 |----------|-------------|
@@ -62,7 +68,7 @@ bind "Super+V" { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }
 
 ### altSwitcher
 
-Alt+Tab window switcher.
+Alt+Tab window switcher. Works across workspaces, unlike some other implementations we won't name.
 
 | Function | Description |
 |----------|-------------|
@@ -81,7 +87,7 @@ bind "Alt+Shift+Tab" { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous
 
 ### region
 
-Region selection tools for screenshots, OCR, and recording.
+Region selection tools. Screenshots, OCR, recording. Draw a box, get stuff done.
 
 | Function | Description |
 |----------|-------------|
@@ -101,7 +107,7 @@ bind "Super+Shift+A" { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }
 
 ### session
 
-Power/session menu (logout, suspend, reboot, shutdown).
+Power menu. Logout, suspend, reboot, shutdown. The "I'm done for today" buttons.
 
 | Function | Description |
 |----------|-------------|
@@ -115,7 +121,7 @@ bind "Super+Shift+E" { spawn "qs" "-c" "ii" "ipc" "call" "session" "toggle"; }
 
 ### lock
 
-Lock screen.
+Lock screen. For when you need to pretend you're working.
 
 | Function | Description |
 |----------|-------------|
@@ -129,7 +135,7 @@ bind "Super+Alt+L" allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "l
 
 ### cheatsheet
 
-Keyboard shortcuts reference.
+Keyboard shortcuts reference. For when you forget what you just configured five minutes ago.
 
 | Function | Description |
 |----------|-------------|
@@ -143,7 +149,7 @@ bind "Super+Slash" { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }
 
 ### settings
 
-Open the settings window.
+Open the settings window. GUI config so you don't have to edit JSON like it's 2005.
 
 | Function | Description |
 |----------|-------------|
@@ -221,7 +227,7 @@ On-screen keyboard.
 
 ### crosshair
 
-Gaming crosshair overlay.
+Gaming crosshair overlay. For when the game doesn't give you one and you need that competitive edge.
 
 | Function | Description |
 |----------|-------------|
@@ -231,7 +237,7 @@ Gaming crosshair overlay.
 
 ### zoom
 
-Screen zoom (accessibility).
+Screen zoom. Accessibility feature, or for reading tiny text without squinting.
 
 | Function | Description |
 |----------|-------------|
@@ -276,7 +282,7 @@ On-screen volume indicator.
 
 ### cliphistService
 
-Clipboard history service.
+Clipboard history service. The backend that makes clipboard panel work. You probably don't need to call this directly.
 
 | Function | Description |
 |----------|-------------|

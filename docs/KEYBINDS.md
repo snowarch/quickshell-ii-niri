@@ -1,6 +1,8 @@
 # Default Keybinds
 
-These are the default keybinds shipped in `dots/.config/niri/config.kdl`. Customize them to your liking.
+These are the default keybinds shipped with ii. They live in `~/.config/niri/config.kdl` after install.
+
+Change them. Break them. Make them yours. We won't judge.
 
 ---
 
@@ -105,7 +107,7 @@ These are the default keybinds shipped in `dots/.config/niri/config.kdl`. Custom
 
 Edit `~/.config/niri/config.kdl` to change keybinds. See [IPC.md](IPC.md) for all available ii targets you can bind.
 
-Example:
+Example (because you're definitely going to ask):
 
 ```kdl
 binds {
@@ -114,8 +116,10 @@ binds {
 }
 ```
 
-Reload Niri config after changes:
+Then reload Niri so it actually notices:
 
 ```bash
 niri msg action reload-config
 ```
+
+If your keybind doesn't work, you probably forgot to reload. Don't worry, we've all been there.
