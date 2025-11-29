@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Qt5Compat.GraphicalEffects
 import qs.modules.common
 
@@ -85,9 +86,14 @@ Item {
                 colBackgroundHover: Qt.rgba(0, 0, 0, 0.1)
                 onClicked: {
                     console.log("[Toast] Copying to clipboard:", root.message.substring(0, 50))
-                    Quickshell.clipboardText = root.message
+                    copyProcess.running = true
                     root.copied = true
                     copyResetTimer.restart()
+                }
+                
+                Process {
+                    id: copyProcess
+                    command: ["wl-copy", root.message]
                 }
                 
                 contentItem: MaterialSymbol {
