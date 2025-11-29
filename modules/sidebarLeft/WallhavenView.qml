@@ -224,8 +224,9 @@ Item {
                     previewDownloadPath: root.previewDownloadPath
                     downloadPath: root.downloadPath
                     nsfwPath: root.nsfwPath
-                    // Use the same layout tuning as Anime/Booru for consistent rows
-                    rowTooShortThreshold: 190
+                    // Wallhaven images are larger wallpapers - use tighter layout
+                    rowTooShortThreshold: 120
+                    rowMaxHeight: 280
                     imageSpacing: 5
                     responsePadding: 5
                 }
