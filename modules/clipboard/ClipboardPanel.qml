@@ -223,10 +223,29 @@ Scope {
             anchors.centerIn: parent
             width: panelWidth
             height: Math.min(contentColumn.implicitHeight, panelMaxHeight)
-            color: Appearance.colors.colLayer0
+            color: Appearance.colors.colLayer1
             border.width: 1
-            border.color: Appearance.colors.colLayer0Border
+            border.color: Appearance.colors.colOutlineVariant
             radius: Appearance.rounding.screenRounding
+            
+            // Entry animation
+            opacity: GlobalStates.clipboardOpen ? 1 : 0
+            scale: GlobalStates.clipboardOpen ? 1 : 0.95
+            
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Appearance.animation.elementMoveFast.duration
+                    easing.type: Appearance.animation.elementMoveFast.type
+                    easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                }
+            }
+            Behavior on scale {
+                NumberAnimation {
+                    duration: Appearance.animation.elementMoveFast.duration
+                    easing.type: Appearance.animation.elementMoveFast.type
+                    easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                }
+            }
 
             ColumnLayout {
                 id: contentColumn
@@ -310,7 +329,7 @@ Scope {
                     // Keep a sensible minimum height so single-result lists don't visually collapse
                     implicitHeight: Math.min(480, Math.max(160, listView.contentHeight + 20))
                     radius: Appearance.rounding.normal
-                    color: Appearance.colors.colLayer1
+                    color: Appearance.colors.colLayer2
                     clip: true
 
                     ListView {
@@ -399,31 +418,29 @@ Scope {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: root.showKeyboardHints ? 56 : 0
+                    Layout.preferredHeight: root.showKeyboardHints ? hintsContent.implicitHeight + 16 : 0
+                    clip: true
 
                     Behavior on Layout.preferredHeight {
-                        NumberAnimation {
-                            duration: Appearance.animation.duration.shortDuration
-                            easing.type: Appearance.animationCurves.standardEasing
-                        }
+                        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
                     }
 
                     Rectangle {
-                        anchors.fill: parent
+                        id: hintsContent
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        implicitHeight: hintsColumn.implicitHeight + 16
                         radius: Appearance.rounding.normal
-                        color: ColorUtils.transparentize(Appearance.colors.colLayer1, 0.15)
-                        border.color: Appearance.colors.colPrimary
-                        border.width: 1
+                        color: Appearance.colors.colPrimaryContainer
                         opacity: root.showKeyboardHints ? 1 : 0
 
                         Behavior on opacity {
-                            NumberAnimation {
-                                duration: Appearance.animation.duration.shortDuration
-                                easing.type: Appearance.animationCurves.standardEasing
-                            }
+                            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
                         }
 
                         ColumnLayout {
+                            id: hintsColumn
                             anchors.fill: parent
                             anchors.margins: 8
                             spacing: 2
@@ -432,15 +449,15 @@ Scope {
                                 Layout.fillWidth: true
                                 text: Translation.tr("↑/↓, J/K: Navigate • Enter: Paste")
                                 font.pixelSize: Appearance.font.pixelSize.smaller
-                                color: Appearance.m3colors.m3onSurface
+                                color: Appearance.colors.colOnPrimaryContainer
                                 elide: Text.ElideRight
                             }
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: Translation.tr("Ctrl+C: Copy • Del: Delete • Shift+Del: Clear all • Esc: Close • F10: Toggle hints")
+                                text: Translation.tr("Ctrl+C: Copy • Del: Delete • Shift+Del: Clear all • Esc: Close")
                                 font.pixelSize: Appearance.font.pixelSize.smaller
-                                color: Appearance.m3colors.m3onSurface
+                                color: Appearance.colors.colOnPrimaryContainer
                                 elide: Text.ElideRight
                             }
                         }

@@ -28,8 +28,8 @@ RippleButton {
     property bool compactClipboardPreview: entry?.compactClipboardPreview ?? false
     
     visible: root.entryShown
-    property int horizontalMargin: 10
-    property int buttonHorizontalPadding: 10
+    property int horizontalMargin: Appearance.sizes.spacingSmall
+    property int buttonHorizontalPadding: Appearance.sizes.spacingSmall
     property int buttonVerticalPadding: 6
     property bool keyboardDown: false
     property bool isSelected: false
@@ -37,12 +37,12 @@ RippleButton {
 
     implicitHeight: rowLayout.implicitHeight + root.buttonVerticalPadding * 2
     implicitWidth: rowLayout.implicitWidth + root.buttonHorizontalPadding * 2
-    buttonRadius: Appearance.rounding.normal
-    // Darker highlight for hover/selection, stronger only while actively pressed
+    buttonRadius: Appearance.rounding.small
+    // M3 consistent colors: transparent by default, layer3 on hover/select, primaryContainer on press
     colBackground: (root.down || root.keyboardDown) ? Appearance.colors.colPrimaryContainerActive : 
-        ((root.hovered || root.focus || root.isSelected) ? Appearance.colors.colLayer0 : 
-        ColorUtils.transparentize(Appearance.colors.colLayer0, 1))
-    colBackgroundHover: Appearance.colors.colPrimaryContainer
+        ((root.hovered || root.focus || root.isSelected) ? Appearance.colors.colLayer3 : 
+        "transparent")
+    colBackgroundHover: Appearance.colors.colLayer3Hover
     colRipple: Appearance.colors.colPrimaryContainerActive
 
     property string highlightPrefix: `<u><font color="${Appearance.colors.colPrimary}">`
@@ -241,8 +241,10 @@ RippleButton {
         RowLayout {
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: root.buttonVerticalPadding
-            Layout.bottomMargin: -root.buttonVerticalPadding // Why is this necessary? Good question.
+            Layout.bottomMargin: -root.buttonVerticalPadding
             spacing: 4
+            visible: root.hovered || root.focus || root.isSelected
+            
             Repeater {
                 model: (root.entry?.actions ?? []).slice(0, 4)
                 delegate: RippleButton {
@@ -250,30 +252,31 @@ RippleButton {
                     required property var modelData
                     property string iconName: modelData.icon ?? ""
                     property string materialIconName: modelData.materialIcon ?? ""
-                    implicitHeight: 34
-                    implicitWidth: 34
+                    implicitHeight: 32
+                    implicitWidth: 32
+                    buttonRadius: Appearance.rounding.small
 
-                    colBackgroundHover: Appearance.colors.colSecondaryContainerHover
-                    colRipple: Appearance.colors.colSecondaryContainerActive
+                    colBackgroundHover: Appearance.colors.colLayer4Hover
+                    colRipple: Appearance.colors.colLayer4Active
 
                     contentItem: Item {
                         id: actionContentItem
                         anchors.centerIn: parent
                         Loader {
                             anchors.centerIn: parent
-                            active: !(actionButton.iconName !== "") || actionButton.materialIconName
+                            active: actionButton.materialIconName.length > 0
                             sourceComponent: MaterialSymbol {
-                                text: actionButton.materialIconName || "video_settings"
-                                font.pixelSize: Appearance.font.pixelSize.hugeass
+                                text: actionButton.materialIconName
+                                font.pixelSize: Appearance.font.pixelSize.large
                                 color: Appearance.m3colors.m3onSurface
                             }
                         }
                         Loader {
                             anchors.centerIn: parent
-                            active: actionButton.materialIconName.length == 0 && actionButton.iconName && actionButton.iconName !== ""
+                            active: actionButton.materialIconName.length === 0 && actionButton.iconName.length > 0
                             sourceComponent: IconImage {
                                 source: Quickshell.iconPath(actionButton.iconName)
-                                implicitSize: 20
+                                implicitSize: 18
                             }
                         }
                     }
