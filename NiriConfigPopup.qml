@@ -113,17 +113,42 @@ Scope {
                             buttonRadius: Appearance.rounding.small
                             colBackground: "transparent"
                             colBackgroundHover: Qt.rgba(0, 0, 0, 0.1)
-                            onClicked: root.copyError()
+                            onClicked: {
+                                Quickshell.clipboardText = root.errorString
+                                copyButton.copied = true
+                                copyResetTimer.restart()
+                            }
 
                             contentItem: MaterialSymbol {
                                 anchors.centerIn: parent
                                 text: copyButton.copied ? "check" : "content_copy"
                                 iconSize: 16
-                                color: root.failed ? Appearance.colors.colOnErrorContainer : Appearance.colors.colOnLayer1
+                                color: Appearance.colors.colOnErrorContainer
                             }
 
                             StyledToolTip {
                                 text: copyButton.copied ? "Copied!" : "Copy error"
+                            }
+                        }
+
+                        // Close button
+                        RippleButton {
+                            implicitWidth: 28
+                            implicitHeight: 28
+                            buttonRadius: Appearance.rounding.small
+                            colBackground: "transparent"
+                            colBackgroundHover: Qt.rgba(0, 0, 0, 0.1)
+                            onClicked: popupLoader.active = false
+
+                            contentItem: MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "close"
+                                iconSize: 16
+                                color: root.failed ? Appearance.colors.colOnErrorContainer : Appearance.colors.colOnLayer1
+                            }
+
+                            StyledToolTip {
+                                text: "Dismiss"
                             }
                         }
                     }
@@ -205,7 +230,7 @@ Scope {
                         property: "width"
                         from: rect.width - bar.anchors.margins * 2
                         to: 0
-                        duration: failed ? 20000 : 2500
+                        duration: failed ? 8000 : 1500
                         onFinished: popupLoader.active = false
                         paused: mouseArea.containsMouse || errorFlickable.moving
                     }
