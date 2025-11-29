@@ -32,17 +32,6 @@ Item {
         border.width: 1
         border.color: root.isError ? Appearance.colors.colError : root.accentColor
         
-        // Left accent bar
-        Rectangle {
-            width: 4
-            height: parent.height - 16
-            anchors.left: parent.left
-            anchors.leftMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
-            radius: 2
-            color: root.isError ? Appearance.colors.colError : root.accentColor
-        }
-        
         MouseArea {
             id: mouseArea
             anchors.fill: parent
