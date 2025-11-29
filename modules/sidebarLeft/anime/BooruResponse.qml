@@ -27,10 +27,12 @@ Rectangle {
     property real rowMaxHeight: 350  // Cap height for single vertical images
     property real imageSpacing: 5
     property real responsePadding: 5
+    property bool cleanLayout: false  // When true: no background, no padding, just images
+    property bool showPagingButtons: true  // Show next/clear buttons at bottom
 
     anchors.left: parent?.left
     anchors.right: parent?.right
-    implicitHeight: columnLayout.implicitHeight + root.responsePadding * 2
+    implicitHeight: columnLayout.implicitHeight + (cleanLayout ? 0 : root.responsePadding * 2)
 
     Component.onCompleted: {
         // Break property bind to prevent aggressive updates
@@ -52,8 +54,8 @@ Rectangle {
         }
     }
 
-    radius: Appearance.rounding.normal
-    color: Appearance.colors.colLayer1
+    radius: cleanLayout ? 0 : Appearance.rounding.normal
+    color: cleanLayout ? "transparent" : Appearance.colors.colLayer1
 
     ColumnLayout {
         id: columnLayout
@@ -61,10 +63,11 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: responsePadding
+        anchors.margins: cleanLayout ? 0 : responsePadding
         spacing: root.imageSpacing
 
         RowLayout { // Header
+            visible: !cleanLayout
             Rectangle { // Provider name
                 id: providerNameWrapper
                 color: Appearance.colors.colSecondaryContainer
@@ -103,7 +106,7 @@ Rectangle {
 
         StyledFlickable { // Tag strip
             id: tagsFlickable
-            visible: root.responseData.tags.length > 0
+            visible: !cleanLayout && root.responseData.tags.length > 0
             Layout.alignment: Qt.AlignLeft
             Layout.fillWidth: true
             implicitHeight: tagRowLayout.implicitHeight
@@ -147,7 +150,7 @@ Rectangle {
         StyledText { // Message
             id: messageText
             Layout.fillWidth: true
-            visible: root.responseData.message.length > 0
+            visible: !cleanLayout && root.responseData.message.length > 0
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer1
             text: root.responseData.message
@@ -169,7 +172,9 @@ Rectangle {
                     let rows = [];
                     const responseList = root.responseData.images;
                     const minRowHeight = rowTooShortThreshold;
-                    const availableImageWidth = availableWidth - root.imageSpacing - (responsePadding * 2);
+                    // For clean layout, use full width; otherwise subtract padding
+                    const paddingOffset = root.cleanLayout ? 0 : (responsePadding * 2);
+                    const availableImageWidth = availableWidth - paddingOffset;
 
                     while (i < responseList.length) {
                         let row = {
@@ -234,7 +239,9 @@ Rectangle {
                         required property var modelData
                         imageData: modelData
                         rowHeight: imageRow.rowHeight
-                        imageRadius: imageRow.modelData.images.length == 1 ? 50 : Appearance.rounding.normal
+                        // Clean layout: no radius, no background. Normal: 50 for single image, normal rounding for multiple
+                        imageRadius: root.cleanLayout ? Appearance.rounding.small : (imageRow.modelData.images.length == 1 ? 50 : Appearance.rounding.normal)
+                        showBackground: !root.cleanLayout
                         // Disable hover tooltips for Wallhaven provider to avoid empty bubbles
                         enableTooltip: root.responseData.provider !== "wallhaven"
                         // Download manually to reduce redundant requests or make sure downloading works
@@ -251,7 +258,7 @@ Rectangle {
             id: pagingButtonsRow
             Layout.alignment: Qt.AlignRight
             spacing: 6
-            visible: root.responseData.page != "" && root.responseData.page > 0
+            visible: root.showPagingButtons && root.responseData.page != "" && root.responseData.page > 0
 
             RippleButton { // Next page button
                 id: button

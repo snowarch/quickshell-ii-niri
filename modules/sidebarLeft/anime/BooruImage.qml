@@ -13,6 +13,7 @@ import Quickshell.Hyprland
 
 Button {
     id: root
+    z: showActions ? 100 : 0  // Bring to front when menu is open
     property var imageData
     property var rowHeight
     property bool manualDownload: false
@@ -23,11 +24,26 @@ Button {
     property string filePath: `${root.previewDownloadPath}/${root.fileName}`
     property int maxTagStringLineLength: 50
     property real imageRadius: Appearance.rounding.small
+    property bool showBackground: true  // When false, no background rectangle behind image
 
     // Allow consumers (e.g. Wallhaven) to opt-out of hover tooltips
     property bool enableTooltip: true
 
     property bool showActions: false
+    
+    // Close menu when clicking outside or when another menu opens
+    onShowActionsChanged: {
+        if (showActions) {
+            // Request focus to detect when we lose it
+            root.forceActiveFocus()
+        }
+    }
+    onActiveFocusChanged: {
+        if (!activeFocus && showActions) {
+            showActions = false
+        }
+    }
+    
     Process {
         id: downloadProcess
         running: false
@@ -56,7 +72,7 @@ Button {
         implicitWidth: root.rowHeight * modelData.aspect_ratio
         implicitHeight: root.rowHeight
         radius: imageRadius
-        color: Appearance.colors.colLayer2
+        color: root.showBackground ? Appearance.colors.colLayer2 : "transparent"
     }
 
     contentItem: Item {

@@ -224,11 +224,13 @@ Item {
                     previewDownloadPath: root.previewDownloadPath
                     downloadPath: root.downloadPath
                     nsfwPath: root.nsfwPath
-                    // Wallhaven images are larger wallpapers - use tighter layout
-                    rowTooShortThreshold: 120
-                    rowMaxHeight: 280
-                    imageSpacing: 5
-                    responsePadding: 5
+                    // Clean layout - no card background, just images
+                    cleanLayout: true
+                    showPagingButtons: true
+                    rowTooShortThreshold: 140
+                    rowMaxHeight: 300
+                    imageSpacing: 4
+                    responsePadding: 0
                 }
 
                 onDragEnded: {
