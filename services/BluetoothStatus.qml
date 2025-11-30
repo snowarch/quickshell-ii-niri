@@ -7,7 +7,7 @@ import Quickshell.Io
 import QtQuick
 
 /**
- * Network service with nmcli.
+ * Bluetooth status service.
  */
 Singleton {
     id: root

@@ -9,7 +9,6 @@ import QtQuick.Layouts
 import Quickshell.Io
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 WindowDialog {
     id: root

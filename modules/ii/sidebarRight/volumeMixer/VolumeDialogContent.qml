@@ -3,6 +3,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Pipewire
@@ -13,67 +14,140 @@ ColumnLayout {
     readonly property list<var> appPwNodes: isSink ? Audio.outputAppNodes : Audio.inputAppNodes
     readonly property list<var> devices: isSink ? Audio.outputDevices : Audio.inputDevices
     readonly property bool hasApps: appPwNodes.length > 0
-    spacing: 16
+    readonly property var currentDevice: isSink ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource
+    spacing: Appearance.sizes.spacingMedium
 
-    DialogSectionListView {
+    // Device selector at top
+    RippleButton {
+        id: deviceButton
+        Layout.fillWidth: true
+        implicitHeight: 48
+        
+        colBackground: Appearance.colors.colLayer2
+        colBackgroundHover: Appearance.colors.colLayer2Hover
+        colRipple: Appearance.colors.colLayer2Active
+        buttonRadius: Appearance.rounding.small
+
+        contentItem: RowLayout {
+            anchors {
+                fill: parent
+                leftMargin: Appearance.sizes.spacingMedium
+                rightMargin: Appearance.sizes.spacingMedium
+            }
+            spacing: Appearance.sizes.spacingMedium
+
+            MaterialSymbol {
+                text: root.isSink ? "speaker" : "mic"
+                iconSize: Appearance.font.pixelSize.huge
+                color: Appearance.colors.colPrimary
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                text: Audio.friendlyDeviceName(root.currentDevice) || (root.isSink ? "Select output..." : "Select input...")
+                font.pixelSize: Appearance.font.pixelSize.small
+                elide: Text.ElideRight
+            }
+
+            MaterialSymbol {
+                text: devicePopup.visible ? "expand_less" : "expand_more"
+                iconSize: Appearance.font.pixelSize.normal
+                color: Appearance.colors.colSubtext
+            }
+        }
+
+        onClicked: devicePopup.visible ? devicePopup.close() : devicePopup.open()
+    }
+
+    Popup {
+        id: devicePopup
+        y: deviceButton.y + deviceButton.height + 4
+        width: deviceButton.width
+        height: Math.min(250, deviceList.contentHeight + 16)
+        padding: Appearance.sizes.spacingSmall
+
+        background: Rectangle {
+            color: Appearance.colors.colLayer3
+            radius: Appearance.rounding.normal
+            border.width: 1
+            border.color: Appearance.colors.colOutlineVariant
+        }
+
+        ListView {
+            id: deviceList
+            anchors.fill: parent
+            clip: true
+            spacing: 4
+            model: root.devices
+
+            delegate: RippleButton {
+                required property var modelData
+                required property int index
+                width: deviceList.width
+                implicitHeight: 44
+
+                property bool isSelected: modelData.id === root.currentDevice?.id
+
+                colBackground: isSelected ? Appearance.colors.colPrimaryContainer : "transparent"
+                colBackgroundHover: Appearance.colors.colLayer2Hover
+                colRipple: Appearance.colors.colLayer2Active
+                buttonRadius: Appearance.rounding.small
+
+                contentItem: RowLayout {
+                    anchors {
+                        fill: parent
+                        leftMargin: Appearance.sizes.spacingMedium
+                        rightMargin: Appearance.sizes.spacingMedium
+                    }
+                    spacing: Appearance.sizes.spacingSmall
+
+                    MaterialSymbol {
+                        text: isSelected ? "check" : (root.isSink ? "speaker" : "mic")
+                        iconSize: Appearance.font.pixelSize.normal
+                        color: isSelected ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Audio.friendlyDeviceName(modelData)
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        elide: Text.ElideRight
+                        color: isSelected ? Appearance.colors.colOnPrimaryContainer : Appearance.m3colors.m3onSurface
+                    }
+                }
+
+                onClicked: {
+                    if (root.isSink) Audio.setDefaultSink(modelData)
+                    else Audio.setDefaultSource(modelData)
+                    devicePopup.close()
+                }
+            }
+        }
+    }
+
+    // Apps list
+    StyledListView {
         Layout.fillHeight: true
-        topMargin: 14
+        Layout.fillWidth: true
+        clip: true
+        spacing: Appearance.sizes.spacingSmall
 
         model: ScriptModel {
             values: root.appPwNodes
         }
         delegate: VolumeMixerEntry {
-            anchors {
-                left: parent?.left
-                right: parent?.right
-            }
+            width: ListView.view.width
             required property var modelData
             node: modelData
         }
-    }
 
-    StyledComboBox {
-        id: deviceSelector
-        Layout.fillHeight: false
-        Layout.fillWidth: true
-        Layout.bottomMargin: 6
-        model: root.devices.map(node => Audio.friendlyDeviceName(node))
-        currentIndex: root.devices.findIndex(item => {
-            if (root.isSink) {
-                return item.id === Pipewire.defaultAudioSink?.id
-            } else {
-                return item.id === Pipewire.defaultAudioSource?.id
-            }
-        })
-        onActivated: (index) => {
-            print(index)
-            const item = root.devices[index]
-            if (root.isSink) {
-                Audio.setDefaultSink(item)
-            } else {
-                Audio.setDefaultSource(item)
-            }
+        // Empty state
+        StyledText {
+            anchors.centerIn: parent
+            visible: root.appPwNodes.length === 0
+            text: root.isSink ? Translation.tr("No apps playing audio") : Translation.tr("No apps using microphone")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.small
         }
-    }
-
-    component DialogSectionListView: StyledListView {
-        Layout.fillWidth: true
-        Layout.topMargin: -22
-        Layout.bottomMargin: -16
-        Layout.leftMargin: -Appearance.rounding.large
-        Layout.rightMargin: -Appearance.rounding.large
-        topMargin: 12
-        bottomMargin: 12
-        leftMargin: 20
-        rightMargin: 20
-
-        clip: true
-        spacing: 4
-        animateAppearance: false
-    }
-
-    Component {
-        id: listElementComp
-        ListElement {}
     }
 }

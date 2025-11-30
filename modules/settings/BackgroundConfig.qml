@@ -155,6 +155,16 @@ ContentPage {
             }
 
             ConfigSwitch {
+                visible: Config.options.background.backdrop.enable
+                buttonIcon: "visibility_off"
+                text: Translation.tr("Hide main wallpaper (show only backdrop)")
+                checked: Config.options.background.backdrop.hideWallpaper
+                onCheckedChanged: {
+                    Config.options.background.backdrop.hideWallpaper = checked;
+                }
+            }
+
+            ConfigSwitch {
                 buttonIcon: "link"
                 text: Translation.tr("Use main wallpaper")
                 checked: Config.options.background.backdrop.useMainWallpaper

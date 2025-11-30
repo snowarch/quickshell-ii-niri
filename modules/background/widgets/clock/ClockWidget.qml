@@ -77,7 +77,7 @@ AbstractBackgroundWidget {
                 spacing: 6
 
                 ClockText {
-                    font.pixelSize: 90
+                    font.pixelSize: Math.round(90 * Appearance.fontSizeScale)
                     text: DateTime.time
                 }
                 ClockText {

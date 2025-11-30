@@ -67,6 +67,7 @@ MaterialShape { // App icon
                 id: notifImage
                 anchors.fill: parent
                 readonly property int size: parent.width
+                visible: status !== Image.Error
 
                 source: root.image
                 fillMode: Image.PreserveAspectCrop
@@ -78,6 +79,7 @@ MaterialShape { // App icon
                 height: size
                 sourceSize.width: size
                 sourceSize.height: size
+                onStatusChanged: if (status === Image.Error) notifImageLoader.active = false
 
                 layer.enabled: true
                 layer.effect: OpacityMask {

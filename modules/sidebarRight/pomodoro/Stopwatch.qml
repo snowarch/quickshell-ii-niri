@@ -52,7 +52,7 @@ Item {
             spacing: 0
             StyledText {
                 // Layout.preferredWidth: elapsedIndicator.width * 0.6 // Prevent shakiness
-                font.pixelSize: 40
+                font.pixelSize: Math.round(40 * Appearance.fontSizeScale)
                 color: Appearance.m3colors.m3onSurface
                 text: {
                     let totalSeconds = Math.floor(TimerService.stopwatchTime) / 100
@@ -63,7 +63,7 @@ Item {
             }
             StyledText {
                 Layout.fillWidth: true
-                font.pixelSize: 40
+                font.pixelSize: Math.round(40 * Appearance.fontSizeScale)
                 color: Appearance.colors.colSubtext
                 text: {
                     return `:<sub>${(Math.floor(TimerService.stopwatchTime) % 100).toString().padStart(2, '0')}</sub>`

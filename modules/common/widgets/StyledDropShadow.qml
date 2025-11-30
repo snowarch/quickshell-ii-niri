@@ -4,9 +4,10 @@ import qs.modules.common
 
 DropShadow {
     required property var target
+    visible: Appearance.effectsEnabled
     source: target
     anchors.fill: source
-    radius: 8
+    radius: Appearance.effectsEnabled ? 8 : 0
     samples: radius * 2 + 1
     color: Appearance.colors.colShadow
     transparentBorder: true

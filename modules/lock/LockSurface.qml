@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell.Services.UPower
+import Quickshell.Services.Mpris
 import qs
 import qs.services
 import qs.modules.common
@@ -41,6 +42,7 @@ MouseArea {
 
     // Clock (center)
     Loader {
+        id: clockLoader
         active: Config.options.lock.centerClock
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -100
@@ -49,7 +51,7 @@ MouseArea {
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: Qt.formatTime(new Date(), "hh:mm")
-                font.pixelSize: 120
+                font.pixelSize: Math.round(120 * Appearance.fontSizeScale)
                 font.weight: Font.Bold
                 color: Appearance.colors.colOnSurface
                 style: Text.Outline
@@ -58,11 +60,70 @@ MouseArea {
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: Qt.formatDate(new Date(), "dddd, d MMMM")
-                font.pixelSize: 32
+                font.pixelSize: Math.round(32 * Appearance.fontSizeScale)
                 color: Appearance.colors.colOnSurface
                 style: Text.Outline
                 styleColor: Appearance.colors.colSurface
             }
+        }
+    }
+
+    // Media player widget
+    Toolbar {
+        id: mediaIsland
+        visible: MprisController.activePlayer !== null
+        anchors {
+            horizontalCenter: parent.horizontalCenter
+            top: clockLoader.bottom
+            topMargin: Appearance.sizes.spacingLarge
+        }
+        scale: root.toolbarScale
+        opacity: root.toolbarOpacity
+
+        readonly property MprisPlayer player: MprisController.activePlayer
+
+        ToolbarButton {
+            implicitWidth: height
+            onClicked: mediaIsland.player?.previous()
+            contentItem: MaterialSymbol {
+                anchors.centerIn: parent
+                text: "skip_previous"
+                iconSize: Appearance.font.pixelSize.large
+                color: Appearance.colors.colOnSurfaceVariant
+            }
+        }
+
+        ToolbarButton {
+            implicitWidth: height
+            toggled: mediaIsland.player?.isPlaying ?? false
+            onClicked: mediaIsland.player?.togglePlaying()
+            contentItem: MaterialSymbol {
+                anchors.centerIn: parent
+                text: mediaIsland.player?.isPlaying ? "pause" : "play_arrow"
+                iconSize: Appearance.font.pixelSize.huge
+                color: parent.toggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurfaceVariant
+            }
+        }
+
+        ToolbarButton {
+            implicitWidth: height
+            onClicked: mediaIsland.player?.next()
+            contentItem: MaterialSymbol {
+                anchors.centerIn: parent
+                text: "skip_next"
+                iconSize: Appearance.font.pixelSize.large
+                color: Appearance.colors.colOnSurfaceVariant
+            }
+        }
+
+        StyledText {
+            Layout.leftMargin: 4
+            Layout.rightMargin: Appearance.sizes.spacingMedium
+            Layout.alignment: Qt.AlignVCenter
+            text: StringUtils.cleanMusicTitle(mediaIsland.player?.trackTitle) + (mediaIsland.player?.trackArtist ? " • " + mediaIsland.player.trackArtist : "")
+            color: Appearance.colors.colOnSurfaceVariant
+            elide: Text.ElideRight
+            Layout.maximumWidth: 300
         }
     }
     
@@ -81,7 +142,7 @@ MouseArea {
             }
             StyledText {
                 text: Translation.tr("Locked")
-                font.pixelSize: 24
+                font.pixelSize: Appearance.font.pixelSize.hugeass
                 color: Appearance.colors.colOnSurface
             }
         }

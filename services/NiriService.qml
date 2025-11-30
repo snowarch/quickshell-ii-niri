@@ -33,11 +33,6 @@ Singleton {
     property var mruWindowIds: []
     property var activeWindow: null  // Currently focused window object
 
-    // Cached per-workspace preview images (ya no se usan, mantenido por compatibilidad)
-    property var workspacePreviews: ({})
-    // Último timestamp de captura por workspace id (ms desde epoch, sin uso actual)
-    property var workspaceLastSnapshot: ({})
-
     property bool inOverview: false
 
     property int currentKeyboardLayoutIndex: 0
@@ -69,17 +64,6 @@ Singleton {
                     console.warn("NiriService: Failed to parse event:", line, e)
                 }
             }
-        }
-    }
-
-    // Proceso de screenshots (desactivado; mantenido vacío para compatibilidad)
-    Process {
-        id: workspaceSnapshotProc
-        property string workspaceId: ""
-        property string targetPath: ""
-        onExited: (exitCode, exitStatus) => {
-            workspaceId = ""
-            targetPath = ""
         }
     }
 
@@ -678,6 +662,341 @@ Singleton {
                             }
                         }
                     })
+    }
+
+    // ========== WORKSPACE NAVIGATION ==========
+    function focusWorkspaceUp() {
+        return send({ "Action": { "FocusWorkspaceUp": {} } })
+    }
+    function focusWorkspaceDown() {
+        return send({ "Action": { "FocusWorkspaceDown": {} } })
+    }
+    function focusWorkspacePrevious() {
+        return send({ "Action": { "FocusWorkspacePrevious": {} } })
+    }
+
+    // ========== COLUMN/WINDOW FOCUS ==========
+    function focusColumnLeft() {
+        return send({ "Action": { "FocusColumnLeft": {} } })
+    }
+    function focusColumnRight() {
+        return send({ "Action": { "FocusColumnRight": {} } })
+    }
+    function focusColumnFirst() {
+        return send({ "Action": { "FocusColumnFirst": {} } })
+    }
+    function focusColumnLast() {
+        return send({ "Action": { "FocusColumnLast": {} } })
+    }
+    function focusColumn(index) {
+        return send({ "Action": { "FocusColumn": { "index": index } } })
+    }
+    function focusWindowUp() {
+        return send({ "Action": { "FocusWindowUp": {} } })
+    }
+    function focusWindowDown() {
+        return send({ "Action": { "FocusWindowDown": {} } })
+    }
+    function focusWindowTop() {
+        return send({ "Action": { "FocusWindowTop": {} } })
+    }
+    function focusWindowBottom() {
+        return send({ "Action": { "FocusWindowBottom": {} } })
+    }
+    function focusWindowPrevious() {
+        return send({ "Action": { "FocusWindowPrevious": {} } })
+    }
+    function focusWindowInColumn(index) {
+        return send({ "Action": { "FocusWindowInColumn": { "index": index } } })
+    }
+
+    // ========== COLUMN MOVEMENT ==========
+    function moveColumnLeft() {
+        return send({ "Action": { "MoveColumnLeft": {} } })
+    }
+    function moveColumnRight() {
+        return send({ "Action": { "MoveColumnRight": {} } })
+    }
+    function moveColumnToFirst() {
+        return send({ "Action": { "MoveColumnToFirst": {} } })
+    }
+    function moveColumnToLast() {
+        return send({ "Action": { "MoveColumnToLast": {} } })
+    }
+    function moveColumnToIndex(index) {
+        return send({ "Action": { "MoveColumnToIndex": { "index": index } } })
+    }
+    function moveColumnToWorkspaceUp() {
+        return send({ "Action": { "MoveColumnToWorkspaceUp": {} } })
+    }
+    function moveColumnToWorkspaceDown() {
+        return send({ "Action": { "MoveColumnToWorkspaceDown": {} } })
+    }
+    function moveColumnToWorkspace(index) {
+        return send({ "Action": { "MoveColumnToWorkspace": { "reference": { "Index": index } } } })
+    }
+
+    // ========== WINDOW MOVEMENT ==========
+    function moveWindowUp() {
+        return send({ "Action": { "MoveWindowUp": {} } })
+    }
+    function moveWindowDown() {
+        return send({ "Action": { "MoveWindowDown": {} } })
+    }
+    function moveWindowToWorkspaceUp() {
+        return send({ "Action": { "MoveWindowToWorkspaceUp": {} } })
+    }
+    function moveWindowToWorkspaceDown() {
+        return send({ "Action": { "MoveWindowToWorkspaceDown": {} } })
+    }
+    function swapWindowLeft() {
+        return send({ "Action": { "SwapWindowLeft": {} } })
+    }
+    function swapWindowRight() {
+        return send({ "Action": { "SwapWindowRight": {} } })
+    }
+
+    // ========== WINDOW STATE ==========
+    function fullscreenWindow() {
+        return send({ "Action": { "FullscreenWindow": {} } })
+    }
+    function toggleWindowedFullscreen() {
+        return send({ "Action": { "ToggleWindowedFullscreen": {} } })
+    }
+    function toggleWindowFloating() {
+        return send({ "Action": { "ToggleWindowFloating": {} } })
+    }
+    function moveWindowToFloating() {
+        return send({ "Action": { "MoveWindowToFloating": {} } })
+    }
+    function moveWindowToTiling() {
+        return send({ "Action": { "MoveWindowToTiling": {} } })
+    }
+    function focusFloating() {
+        return send({ "Action": { "FocusFloating": {} } })
+    }
+    function focusTiling() {
+        return send({ "Action": { "FocusTiling": {} } })
+    }
+    function switchFocusBetweenFloatingAndTiling() {
+        return send({ "Action": { "SwitchFocusBetweenFloatingAndTiling": {} } })
+    }
+
+    // ========== COLUMN STATE ==========
+    function maximizeColumn() {
+        return send({ "Action": { "MaximizeColumn": {} } })
+    }
+    function centerColumn() {
+        return send({ "Action": { "CenterColumn": {} } })
+    }
+    function centerWindow() {
+        return send({ "Action": { "CenterWindow": {} } })
+    }
+    function centerVisibleColumns() {
+        return send({ "Action": { "CenterVisibleColumns": {} } })
+    }
+    function expandColumnToAvailableWidth() {
+        return send({ "Action": { "ExpandColumnToAvailableWidth": {} } })
+    }
+    function toggleColumnTabbedDisplay() {
+        return send({ "Action": { "ToggleColumnTabbedDisplay": {} } })
+    }
+    function consumeWindowIntoColumn() {
+        return send({ "Action": { "ConsumeWindowIntoColumn": {} } })
+    }
+    function expelWindowFromColumn() {
+        return send({ "Action": { "ExpelWindowFromColumn": {} } })
+    }
+    function consumeOrExpelWindowLeft() {
+        return send({ "Action": { "ConsumeOrExpelWindowLeft": {} } })
+    }
+    function consumeOrExpelWindowRight() {
+        return send({ "Action": { "ConsumeOrExpelWindowRight": {} } })
+    }
+
+    // ========== SIZING ==========
+    function setColumnWidth(change) {
+        return send({ "Action": { "SetColumnWidth": change } })
+    }
+    function setWindowHeight(change) {
+        return send({ "Action": { "SetWindowHeight": change } })
+    }
+    function setWindowWidth(change) {
+        return send({ "Action": { "SetWindowWidth": change } })
+    }
+    function resetWindowHeight() {
+        return send({ "Action": { "ResetWindowHeight": {} } })
+    }
+    function switchPresetColumnWidth() {
+        return send({ "Action": { "SwitchPresetColumnWidth": {} } })
+    }
+    function switchPresetColumnWidthBack() {
+        return send({ "Action": { "SwitchPresetColumnWidthBack": {} } })
+    }
+    function switchPresetWindowHeight() {
+        return send({ "Action": { "SwitchPresetWindowHeight": {} } })
+    }
+    function switchPresetWindowHeightBack() {
+        return send({ "Action": { "SwitchPresetWindowHeightBack": {} } })
+    }
+    function maximizeWindowToEdges() {
+        return send({ "Action": { "MaximizeWindowToEdges": {} } })
+    }
+
+    // ========== MONITOR FOCUS ==========
+    function focusMonitorLeft() {
+        return send({ "Action": { "FocusMonitorLeft": {} } })
+    }
+    function focusMonitorRight() {
+        return send({ "Action": { "FocusMonitorRight": {} } })
+    }
+    function focusMonitorUp() {
+        return send({ "Action": { "FocusMonitorUp": {} } })
+    }
+    function focusMonitorDown() {
+        return send({ "Action": { "FocusMonitorDown": {} } })
+    }
+    function focusMonitorPrevious() {
+        return send({ "Action": { "FocusMonitorPrevious": {} } })
+    }
+    function focusMonitorNext() {
+        return send({ "Action": { "FocusMonitorNext": {} } })
+    }
+    function focusMonitor(name) {
+        return send({ "Action": { "FocusMonitor": { "output": name } } })
+    }
+
+    // ========== MOVE TO MONITOR ==========
+    function moveWindowToMonitorLeft() {
+        return send({ "Action": { "MoveWindowToMonitorLeft": {} } })
+    }
+    function moveWindowToMonitorRight() {
+        return send({ "Action": { "MoveWindowToMonitorRight": {} } })
+    }
+    function moveWindowToMonitorUp() {
+        return send({ "Action": { "MoveWindowToMonitorUp": {} } })
+    }
+    function moveWindowToMonitorDown() {
+        return send({ "Action": { "MoveWindowToMonitorDown": {} } })
+    }
+    function moveWindowToMonitor(name) {
+        return send({ "Action": { "MoveWindowToMonitor": { "output": name } } })
+    }
+    function moveColumnToMonitorLeft() {
+        return send({ "Action": { "MoveColumnToMonitorLeft": {} } })
+    }
+    function moveColumnToMonitorRight() {
+        return send({ "Action": { "MoveColumnToMonitorRight": {} } })
+    }
+    function moveColumnToMonitor(name) {
+        return send({ "Action": { "MoveColumnToMonitor": { "output": name } } })
+    }
+
+    // ========== WORKSPACE MANAGEMENT ==========
+    function moveWorkspaceUp() {
+        return send({ "Action": { "MoveWorkspaceUp": {} } })
+    }
+    function moveWorkspaceDown() {
+        return send({ "Action": { "MoveWorkspaceDown": {} } })
+    }
+    function moveWorkspaceToIndex(index) {
+        return send({ "Action": { "MoveWorkspaceToIndex": { "index": index } } })
+    }
+    function moveWorkspaceToMonitor(name) {
+        return send({ "Action": { "MoveWorkspaceToMonitor": { "output": name } } })
+    }
+    function setWorkspaceName(name) {
+        return send({ "Action": { "SetWorkspaceName": { "name": name } } })
+    }
+    function unsetWorkspaceName() {
+        return send({ "Action": { "UnsetWorkspaceName": {} } })
+    }
+
+    // ========== OVERVIEW ==========
+    function openOverview() {
+        return send({ "Action": { "OpenOverview": {} } })
+    }
+    function closeOverview() {
+        return send({ "Action": { "CloseOverview": {} } })
+    }
+
+    // ========== SCREENSHOTS ==========
+    function screenshot() {
+        return send({ "Action": { "Screenshot": {} } })
+    }
+    function screenshotScreen() {
+        return send({ "Action": { "ScreenshotScreen": {} } })
+    }
+    function screenshotWindow() {
+        return send({ "Action": { "ScreenshotWindow": {} } })
+    }
+
+    // ========== SPAWN ==========
+    function spawn(args) {
+        return send({ "Action": { "Spawn": { "command": args } } })
+    }
+    function spawnSh(command) {
+        return send({ "Action": { "SpawnSh": { "command": command } } })
+    }
+
+    // ========== KEYBOARD ==========
+    function switchLayout() {
+        return send({ "Action": { "SwitchLayout": { "layout": "Next" } } })
+    }
+    function switchLayoutPrevious() {
+        return send({ "Action": { "SwitchLayout": { "layout": "Prev" } } })
+    }
+    function switchLayoutByName(name) {
+        return send({ "Action": { "SwitchLayout": { "layout": { "Name": name } } } })
+    }
+
+    // ========== MISC ==========
+    function showHotkeyOverlay() {
+        return send({ "Action": { "ShowHotkeyOverlay": {} } })
+    }
+    function doScreenTransition() {
+        return send({ "Action": { "DoScreenTransition": {} } })
+    }
+    function loadConfigFile() {
+        return send({ "Action": { "LoadConfigFile": {} } })
+    }
+    function toggleKeyboardShortcutsInhibit() {
+        return send({ "Action": { "ToggleKeyboardShortcutsInhibit": {} } })
+    }
+    function toggleWindowRuleOpacity() {
+        return send({ "Action": { "ToggleWindowRuleOpacity": {} } })
+    }
+    function setWindowUrgent(id, urgent) {
+        return send({ "Action": { "SetWindowUrgent": { "id": id, "urgent": urgent } } })
+    }
+    function toggleWindowUrgent(id) {
+        return send({ "Action": { "ToggleWindowUrgent": { "id": id } } })
+    }
+
+    // ========== COMBINED ACTIONS (convenience) ==========
+    function focusColumnOrMonitorLeft() {
+        return send({ "Action": { "FocusColumnOrMonitorLeft": {} } })
+    }
+    function focusColumnOrMonitorRight() {
+        return send({ "Action": { "FocusColumnOrMonitorRight": {} } })
+    }
+    function focusWindowOrMonitorUp() {
+        return send({ "Action": { "FocusWindowOrMonitorUp": {} } })
+    }
+    function focusWindowOrMonitorDown() {
+        return send({ "Action": { "FocusWindowOrMonitorDown": {} } })
+    }
+    function focusWindowOrWorkspaceUp() {
+        return send({ "Action": { "FocusWindowOrWorkspaceUp": {} } })
+    }
+    function focusWindowOrWorkspaceDown() {
+        return send({ "Action": { "FocusWindowOrWorkspaceDown": {} } })
+    }
+    function moveColumnLeftOrToMonitorLeft() {
+        return send({ "Action": { "MoveColumnLeftOrToMonitorLeft": {} } })
+    }
+    function moveColumnRightOrToMonitorRight() {
+        return send({ "Action": { "MoveColumnRightOrToMonitorRight": {} } })
     }
 
     function getCurrentOutputWorkspaceNumbers() {

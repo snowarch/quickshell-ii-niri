@@ -21,10 +21,12 @@ Singleton {
     }
 
     function suspend() {
-        // Lock screen first, wait for it to engage, then suspend
-        lock();
-        // Use systemd-logind for proper session-aware suspend
-        Quickshell.execDetached(["bash", "-c", "sleep 0.5 && systemctl suspend -i"]);
+        if (Config.options?.idle?.lockBeforeSleep !== false) {
+            lock()
+            Quickshell.execDetached(["bash", "-c", "sleep 0.5 && systemctl suspend -i"])
+        } else {
+            Quickshell.execDetached(["systemctl", "suspend", "-i"])
+        }
     }
 
     function logout() {
@@ -42,7 +44,8 @@ Singleton {
     }
 
     function hibernate() {
-        Quickshell.execDetached(["bash", "-c", `systemctl hibernate || loginctl hibernate`]);
+        lock();
+        Quickshell.execDetached(["bash", "-c", `sleep 0.5 && (systemctl hibernate || loginctl hibernate)`]);
     }
 
     function poweroff() {

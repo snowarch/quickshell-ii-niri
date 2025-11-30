@@ -133,7 +133,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottomMargin: 6
             height: 3
-            radius: 2
+            radius: Appearance.rounding.unsharpen
             color: root.isError ? Appearance.colors.colError : Appearance.colors.colPrimary
             
             PropertyAnimation {
@@ -153,7 +153,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottomMargin: 6
             height: 3
-            radius: 2
+            radius: Appearance.rounding.unsharpen
             width: Math.min(card.width * 0.5, 120)
             color: Qt.rgba(0, 0, 0, 0.1)
             z: -1
@@ -172,8 +172,8 @@ Item {
     layer.effect: DropShadow {
         horizontalOffset: 0
         verticalOffset: 4
-        radius: 12
+        radius: Appearance.rounding.small
         samples: 25
-        color: "#30000000"
+        color: Appearance.colors.colShadow
     }
 }

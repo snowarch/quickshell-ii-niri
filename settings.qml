@@ -71,6 +71,11 @@ ApplicationWindow {
             component: "modules/settings/CheatsheetConfig.qml"
         },
         {
+            name: Translation.tr("Modules"),
+            icon: "extension",
+            component: "modules/settings/ModulesConfig.qml"
+        },
+        {
             name: Translation.tr("About"),
             icon: "info",
             component: "modules/settings/About.qml"
@@ -658,7 +663,7 @@ ApplicationWindow {
 
                             Behavior on opacity {
                                 NumberAnimation {
-                                    duration: 180
+                                    duration: Appearance.animation.elementMoveFast.duration
                                     easing.type: Appearance.animation.elementMoveEnter.type
                                     easing.bezierCurve: Appearance.animationCurves.emphasizedLastHalf
                                 }

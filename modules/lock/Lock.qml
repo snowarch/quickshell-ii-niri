@@ -112,6 +112,8 @@ Scope {
     }
 
     // Blur layer hack (Hyprland only)
+    // This pushes windows off-screen to create a blur effect behind the lock screen.
+    // On Niri, use layer-rule { blur; } in config.kdl for the "quickshell:lock" namespace instead.
     Variants {
         model: Quickshell.screens
         delegate: Scope {

@@ -118,7 +118,7 @@ Region tools dependencies.
 
 ## Input Toolkit (`ii-niri-toolkit`)
 
-Input simulation and hardware control.
+Input simulation, hardware control, and idle management.
 
 | Package | Purpose |
 |---------|---------|
@@ -130,6 +130,7 @@ Input simulation and hardware control.
 | `brightnessctl` | Backlight control |
 | `ddcutil` | DDC/CI for monitors |
 | `geoclue` | Geolocation |
+| `swayidle` | Idle management (screen off, lock, suspend) |
 
 ---
 

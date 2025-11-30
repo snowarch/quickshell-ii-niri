@@ -5,7 +5,6 @@ import qs.services
 import qs.modules.common.functions
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
 
 RippleButton {
     id: root

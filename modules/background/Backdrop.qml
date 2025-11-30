@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import qs
 import qs.modules.common
 import QtQuick
 import QtQuick.Effects
@@ -30,8 +31,8 @@ Variants {
         Item {
             id: content
             anchors.fill: parent
+            clip: true
 
-            // Source wallpaper: use main wallpaper when requested, otherwise prefer custom backdrop path
             property string source: Config.options.background.backdrop.useMainWallpaper
                                       ? Config.options.background.wallpaperPath
                                       : (Config.options.background.backdrop.wallpaperPath
@@ -55,27 +56,25 @@ Variants {
                 visible: content.source !== "" && !content.isColorSource
             }
 
-            // Blur + color adjustments
             MultiEffect {
                 anchors.fill: parent
                 source: wallpaper
-                blurEnabled: Config.options.background.backdrop.enable
+                blurEnabled: Appearance.effectsEnabled
+                             && Config.options.background.backdrop.enable
                              && Config.options.background.backdrop.blurRadius > 0
                              && !Config.options.performance.lowPower
                 blur: Config.options.background.backdrop.blurRadius / 100.0
                 blurMax: 64
-                saturation: Config.options.background.backdrop.saturation
+                saturation: Appearance.effectsEnabled ? Config.options.background.backdrop.saturation : 0
                 contrast: Config.options.background.backdrop.contrast
             }
 
-            // Dim overlay
             Rectangle {
                 anchors.fill: parent
                 color: "black"
                 opacity: Math.max(0, Math.min(1, Config.options.background.backdrop.dim / 100.0))
             }
 
-            // Vignette overlay (simple gradient approximation)
             Item {
                 anchors.fill: parent
                 visible: Config.options.background.backdrop.vignetteEnabled

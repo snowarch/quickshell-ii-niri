@@ -68,7 +68,8 @@
       "vignetteEnabled": false,
       "vignetteIntensity": 1,
       "vignetteRadius": 0.7,
-      "wallpaperPath": "~/.config/quickshell/ii/assets/wallpapers/qs-niri.jpg"
+      "wallpaperPath": "~/.config/quickshell/ii/assets/wallpapers/qs-niri.jpg",
+      "hideWallpaper": false
     },
     "effects": {
       "blurRadius": 22,
@@ -537,5 +538,18 @@
       "linkKeywords": [],
       "networkNameKeywords": []
     }
+  },
+  "idle": {
+    "screenOffTimeout": 300,
+    "lockTimeout": 600,
+    "suspendTimeout": 0,
+    "lockBeforeSleep": true
+  },
+  "gameMode": {
+    "autoDetect": true,
+    "disableAnimations": true,
+    "disableEffects": true,
+    "disableNiriAnimations": true,
+    "checkInterval": 2000
   }
 }

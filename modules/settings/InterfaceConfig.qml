@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -786,13 +787,43 @@ ContentPage {
             }
         }
 
-        MaterialTextField {
+        RowLayout {
             Layout.fillWidth: true
-            placeholderText: Translation.tr("Wallhaven API key (optional)")
-            text: Config.options.sidebar.wallhaven.apiKey
-            echoMode: TextInput.Password
-            onTextChanged: {
-                Config.options.sidebar.wallhaven.apiKey = text;
+            Layout.leftMargin: 8
+            Layout.rightMargin: 8
+            spacing: 10
+            
+            MaterialSymbol {
+                text: "key"
+                iconSize: Appearance.font.pixelSize.larger
+                color: Appearance.colors.colOnSecondaryContainer
+            }
+            StyledText {
+                text: Translation.tr("API key")
+                font.pixelSize: Appearance.font.pixelSize.small
+                color: Appearance.colors.colOnSecondaryContainer
+            }
+            TextField {
+                Layout.fillWidth: false
+                implicitWidth: 120
+                implicitHeight: 28
+                placeholderText: "••••••"
+                text: Config.options.sidebar.wallhaven.apiKey
+                echoMode: TextInput.Password
+                font.pixelSize: Appearance.font.pixelSize.smallest
+                font.family: Appearance.font.family.main
+                color: Appearance.colors.colOnSecondaryContainer
+                placeholderTextColor: Appearance.colors.colSubtext
+                background: Rectangle {
+                    radius: Appearance.rounding.small
+                    color: Appearance.colors.colLayer2
+                    border.width: parent.activeFocus ? 1 : 0
+                    border.color: Appearance.m3colors.m3primary
+                }
+                leftPadding: 8
+                rightPadding: 8
+                verticalAlignment: TextInput.AlignVCenter
+                onTextChanged: Config.options.sidebar.wallhaven.apiKey = text
             }
         }
 

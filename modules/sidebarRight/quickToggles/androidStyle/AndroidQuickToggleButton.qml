@@ -14,6 +14,7 @@ GroupButton {
     required property string buttonIcon
     required property string name
     required property var mainAction
+    property var altAction: null
     property string statusText: toggled ? Translation.tr("Active") : Translation.tr("Inactive")
 
     required property real baseCellWidth

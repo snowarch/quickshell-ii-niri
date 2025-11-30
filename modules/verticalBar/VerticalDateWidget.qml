@@ -45,7 +45,7 @@ Item { // Full hitbox
                 top: parent.top
                 left: parent.left
             }
-            font.pixelSize: 13
+            font.pixelSize: Appearance.font.pixelSize.smallie
             color: Appearance.colors.colOnLayer1
             text: dayOfMonth
         }
@@ -56,7 +56,7 @@ Item { // Full hitbox
                 bottom: parent.bottom
                 right: parent.right
             }
-            font.pixelSize: 13
+            font.pixelSize: Appearance.font.pixelSize.smallie
             color: Appearance.colors.colOnLayer1
             text: monthOfYear
         }

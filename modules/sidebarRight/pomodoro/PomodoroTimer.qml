@@ -39,7 +39,7 @@ Item {
                         let seconds = Math.floor(TimerService.pomodoroSecondsLeft % 60).toString().padStart(2, '0');
                         return `${minutes}:${seconds}`;
                     }
-                    font.pixelSize: 40
+                    font.pixelSize: Math.round(40 * Appearance.fontSizeScale)
                     color: Appearance.m3colors.m3onSurface
                 }
                 StyledText {

@@ -13,7 +13,10 @@ import Quickshell.Hyprland
 Scope {
     id: root
     property string protectionMessage: ""
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
+    property bool initialized: false
+    property var focusedScreen: CompositorService.isNiri
+        ? Quickshell.screens.find(s => s.name === NiriService.currentOutput) ?? Quickshell.screens[0]
+        : Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
 
     property string currentIndicator: "volume"
     property var indicators: [
@@ -28,8 +31,16 @@ Scope {
     ]
 
     function triggerOsd() {
+        if (!initialized) return;
         GlobalStates.osdVolumeOpen = true;
         osdTimeout.restart();
+    }
+
+    Timer {
+        id: initDelay
+        interval: 1500
+        running: true
+        onTriggered: root.initialized = true
     }
 
     Timer {

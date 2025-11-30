@@ -21,8 +21,10 @@ Scope {
             id: root
             required property var modelData
             property string searchingText: ""
-            readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-            property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
+            readonly property HyprlandMonitor monitor: CompositorService.isHyprland ? Hyprland.monitorFor(root.screen) : null
+            property bool monitorIsFocused: CompositorService.isHyprland 
+                ? (Hyprland.focusedMonitor?.id == monitor?.id)
+                : (NiriService.currentOutput === root.screen?.name)
             screen: modelData
             visible: GlobalStates.overviewOpen
 

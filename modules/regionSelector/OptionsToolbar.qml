@@ -11,7 +11,6 @@ import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-// import Quickshell.Hyprland // Not needed for Niri
 
 // Options toolbar
 Toolbar {

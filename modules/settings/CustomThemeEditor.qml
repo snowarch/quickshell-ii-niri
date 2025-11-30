@@ -190,7 +190,7 @@ ColumnLayout {
                 Rectangle {
                     implicitWidth: segmentRow.implicitWidth + 8
                     implicitHeight: 32
-                    radius: 16
+                    radius: Appearance.rounding.normal
                     color: Appearance.colors.colLayer2
 
                     RowLayout {
@@ -306,13 +306,13 @@ ColumnLayout {
                                 required property int index
                                 width: 18
                                 height: 18
-                                radius: 4
+                                radius: Appearance.rounding.unsharpen
                                 color: index === 0 ? Appearance.m3colors.m3primary : Appearance.m3colors.m3surfaceContainer
                                 
                                 StyledText {
                                     anchors.centerIn: parent
                                     text: (index + 1).toString()
-                                    font.pixelSize: 10
+                                    font.pixelSize: Appearance.font.pixelSize.smallest
                                     color: index === 0 ? Appearance.m3colors.m3onPrimary : Appearance.m3colors.m3onSurface
                                 }
                             }
@@ -323,7 +323,7 @@ ColumnLayout {
                         // Clock
                         StyledText {
                             text: "12:34"
-                            font.pixelSize: 11
+                            font.pixelSize: Appearance.font.pixelSize.smaller
                             color: Appearance.m3colors.m3onSurface
                         }
 
@@ -351,7 +351,7 @@ ColumnLayout {
                     Rectangle {
                         Layout.preferredWidth: 80
                         Layout.fillHeight: true
-                        radius: 6
+                        radius: Appearance.rounding.unsharpenmore
                         color: Appearance.m3colors.m3surfaceContainerLow
 
                         ColumnLayout {
@@ -366,7 +366,7 @@ ColumnLayout {
                                     required property string modelData
                                     Layout.fillWidth: true
                                     implicitHeight: 22
-                                    radius: 4
+                                    radius: Appearance.rounding.unsharpen
                                     color: index === 0 ? Appearance.m3colors.m3secondaryContainer : "transparent"
 
                                     RowLayout {
@@ -387,7 +387,7 @@ ColumnLayout {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 6
+                        radius: Appearance.rounding.unsharpenmore
                         color: Appearance.m3colors.m3surfaceContainer
 
                         ColumnLayout {
@@ -399,7 +399,7 @@ ColumnLayout {
                             Rectangle {
                                 Layout.fillWidth: true
                                 implicitHeight: 12
-                                radius: 2
+                                radius: Appearance.rounding.unsharpen
                                 color: Appearance.m3colors.m3onSurface
                                 opacity: 0.8
                                 Layout.rightMargin: parent.width * 0.4
@@ -409,7 +409,7 @@ ColumnLayout {
                             Rectangle {
                                 Layout.fillWidth: true
                                 implicitHeight: 8
-                                radius: 2
+                                radius: Appearance.rounding.unsharpen
                                 color: Appearance.m3colors.m3onSurfaceVariant
                                 opacity: 0.5
                                 Layout.rightMargin: parent.width * 0.2
@@ -425,13 +425,13 @@ ColumnLayout {
                                 Rectangle {
                                     implicitWidth: 50
                                     implicitHeight: 20
-                                    radius: 10
+                                    radius: Appearance.rounding.verysmall
                                     color: Appearance.m3colors.m3primary
 
                                     StyledText {
                                         anchors.centerIn: parent
                                         text: "OK"
-                                        font.pixelSize: 9
+                                        font.pixelSize: Appearance.font.pixelSize.smallest
                                         color: Appearance.m3colors.m3onPrimary
                                     }
                                 }
@@ -439,13 +439,13 @@ ColumnLayout {
                                 Rectangle {
                                     implicitWidth: 50
                                     implicitHeight: 20
-                                    radius: 10
+                                    radius: Appearance.rounding.verysmall
                                     color: Appearance.m3colors.m3secondaryContainer
 
                                     StyledText {
                                         anchors.centerIn: parent
                                         text: "Cancel"
-                                        font.pixelSize: 9
+                                        font.pixelSize: Appearance.font.pixelSize.smallest
                                         color: Appearance.m3colors.m3onSecondaryContainer
                                     }
                                 }
@@ -476,7 +476,7 @@ ColumnLayout {
                         required property var modelData
                         Layout.fillWidth: true
                         implicitHeight: 24
-                        radius: 4
+                        radius: Appearance.rounding.unsharpen
                         color: Appearance.m3colors[modelData.color] ?? "#888"
 
                         StyledText {
@@ -913,7 +913,7 @@ ColumnLayout {
                     visible: root.saveStatus !== ""
                     implicitWidth: statusRow.implicitWidth + 12
                     implicitHeight: 24
-                    radius: 12
+                    radius: Appearance.rounding.small
                     color: root.saveStatus === "saved" ? Appearance.colors.colSuccessContainer 
                          : root.saveStatus === "error" ? Appearance.colors.colErrorContainer
                          : Appearance.colors.colLayer2
@@ -1029,7 +1029,7 @@ ColumnLayout {
                         required property string modelData
                         implicitWidth: themeChipRow.implicitWidth + 16
                         implicitHeight: 32
-                        radius: 16
+                        radius: Appearance.rounding.normal
                         color: Appearance.colors.colSecondaryContainer
 
                         RowLayout {
@@ -1052,7 +1052,7 @@ ColumnLayout {
                             Rectangle {
                                 width: 20
                                 height: 20
-                                radius: 10
+                                radius: Appearance.rounding.verysmall
                                 color: Appearance.colors.colOnSecondaryContainer
                                 opacity: deleteArea.containsMouse ? 1 : 0.3
 
@@ -1164,7 +1164,7 @@ ColumnLayout {
                 Rectangle {
                     width: 28
                     height: 28
-                    radius: 14
+                    radius: Appearance.rounding.small
                     color: Appearance.m3colors.m3surfaceContainer
 
                     MaterialSymbol {
@@ -1223,7 +1223,7 @@ ColumnLayout {
                         StyledText {
                             anchors.centerIn: parent
                             text: modelData.label
-                            font.pixelSize: 8
+                            font.pixelSize: Appearance.font.pixelSize.smallest
                             color: ColorUtils.contrastColor(parent.color)
                         }
                     }
@@ -1314,7 +1314,7 @@ ColumnLayout {
                 Rectangle {
                     width: 28
                     height: 28
-                    radius: 14
+                    radius: Appearance.rounding.small
                     color: Config.options.appearance.customTheme?.[paletteCard.accentKey] ?? "#888"
 
                     MaterialSymbol {
@@ -1341,7 +1341,7 @@ ColumnLayout {
                         required property var modelData
                         width: 16
                         height: 16
-                        radius: 4
+                        radius: Appearance.rounding.unsharpen
                         color: Config.options.appearance.customTheme?.[modelData.key] ?? "#888"
                         border.width: 1
                         border.color: Appearance.colors.colOutlineVariant

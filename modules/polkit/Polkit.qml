@@ -6,7 +6,6 @@ import qs.modules.common.functions
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 Scope {
     id: root

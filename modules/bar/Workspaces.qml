@@ -16,7 +16,7 @@ Item {
     id: root
     property bool vertical: false
     property bool borderless: Config.options.bar.borderless
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
+    readonly property HyprlandMonitor monitor: CompositorService.isHyprland ? Hyprland.monitorFor(root.QsWindow.window?.screen) : null
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
     readonly property var wsConfig: Config.options?.bar.workspaces ?? {}
     
@@ -154,8 +154,9 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.BackButton
+        enabled: CompositorService.isHyprland // Niri doesn't have special workspaces
         onPressed: (event) => {
-            if (event.button === Qt.BackButton && CompositorService.isHyprland) {
+            if (event.button === Qt.BackButton) {
                 Hyprland.dispatch(`togglespecialworkspace`);
             } 
         }

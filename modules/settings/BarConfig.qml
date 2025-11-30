@@ -76,7 +76,6 @@ ContentPage {
         }
     }
 
-
     ContentSection {
         icon: "spoke"
         title: Translation.tr("Positioning")

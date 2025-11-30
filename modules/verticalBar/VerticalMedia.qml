@@ -15,6 +15,7 @@ MouseArea {
     property bool borderless: Config.options.bar.borderless
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
+    property bool volumePopupVisible: false
 
     Layout.fillHeight: true
     implicitHeight: mediaCircProg.implicitHeight
@@ -25,6 +26,12 @@ MouseArea {
         interval: Config.options.resources.updateInterval
         repeat: true
         onTriggered: activePlayer.positionChanged()
+    }
+
+    Timer {
+        id: volumeHideTimer
+        interval: 1000
+        onTriggered: root.volumePopupVisible = false
     }
 
     acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
@@ -39,6 +46,14 @@ MouseArea {
         } else if (event.button === Qt.LeftButton) {
             GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
         }
+    }
+    onWheel: (event) => {
+        if (!activePlayer?.volumeSupported) return
+        const step = 0.05
+        if (event.angleDelta.y > 0) activePlayer.volume = Math.min(1, activePlayer.volume + step)
+        else if (event.angleDelta.y < 0) activePlayer.volume = Math.max(0, activePlayer.volume - step)
+        root.volumePopupVisible = true
+        volumeHideTimer.restart()
     }
 
     ClippedFilledCircularProgress {
@@ -66,39 +81,23 @@ MouseArea {
         }
     }
 
+    // Volume popup (shows on hover or scroll)
     Bar.StyledPopup {
         hoverTarget: root
-        active: GlobalStates.mediaControlsOpen ? false : root.containsMouse
+        active: (root.volumePopupVisible || root.containsMouse) && !GlobalStates.mediaControlsOpen
 
-        Column {
+        Row {
             anchors.centerIn: parent
             spacing: 4
-
-            Row {
-                spacing: 4
-
-                MaterialSymbol {
-                    anchors.verticalCenter: parent.verticalCenter
-                    fill: 0
-                    font.weight: Font.Medium
-                    text: "music_note"
-                    iconSize: Appearance.font.pixelSize.large
-                    color: Appearance.colors.colOnSurfaceVariant
-                }
-
-                StyledText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Media"
-                    font {
-                        weight: Font.Medium
-                        pixelSize: Appearance.font.pixelSize.normal
-                    }
-                    color: Appearance.colors.colOnSurfaceVariant
-                }
+            MaterialSymbol {
+                text: (activePlayer?.volume ?? 0) === 0 ? "volume_off" : "volume_up"
+                iconSize: Appearance.font.pixelSize.small
+                color: Appearance.m3colors.m3onSurface
             }
-
             StyledText {
-                text: `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}`
+                text: Math.round((activePlayer?.volume ?? 0) * 100) + "%"
+                font.pixelSize: Appearance.font.pixelSize.smaller
+                color: Appearance.m3colors.m3onSurface
             }
         }
     }

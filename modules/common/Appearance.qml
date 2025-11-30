@@ -1,8 +1,10 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import qs.modules.common.functions
-pragma Singleton
-pragma ComponentBehavior: Bound
+import qs.services
 
 Singleton {
     id: root
@@ -37,6 +39,23 @@ Singleton {
     }
     property real backgroundTransparency: Config?.options?.appearance?.transparency?.enable ? Config?.options?.appearance?.transparency?.automatic ? autoBackgroundTransparency : (Config?.options?.appearance?.transparency?.backgroundTransparency ?? 0) : 0
     property real contentTransparency: Config?.options?.appearance?.transparency?.enable ? Config?.options?.appearance?.transparency?.automatic ? autoContentTransparency : (Config?.options?.appearance?.transparency?.contentTransparency ?? 0) : 0
+
+    // GameMode integration - disable effects/animations when fullscreen detected
+    property bool _gameModeActive: GameMode.active
+    property bool _gameModeDisablesEffects: _gameModeActive && (Config.options?.gameMode?.disableEffects ?? true)
+    property bool _gameModeDisablesAnimations: _gameModeActive && (Config.options?.gameMode?.disableAnimations ?? true)
+
+    // Master switches for effects and animations
+    property bool effectsEnabled: !Config.options?.performance?.lowPower && !_gameModeDisablesEffects
+    property bool animationsEnabled: !_gameModeDisablesAnimations
+
+    onEffectsEnabledChanged: console.log("[Appearance] effectsEnabled:", effectsEnabled, "gameModeActive:", _gameModeActive)
+    onAnimationsEnabledChanged: console.log("[Appearance] animationsEnabled:", animationsEnabled)
+
+    // Helper for calculating effective animation duration
+    function calcEffectiveDuration(baseDuration) {
+        return animationsEnabled ? baseDuration : 0
+    }
 
     m3colors: QtObject {
         property bool darkmode: true
@@ -202,55 +221,49 @@ Singleton {
         property int windowRounding: 18
     }
 
+    // Typography scale factor from config
+    property real fontSizeScale: Config.options?.appearance?.typography?.sizeScale ?? 1.0
+
     font: QtObject {
         property QtObject family: QtObject {
-            property string main: "Roboto Flex"
+            property string main: Config.options?.appearance?.typography?.mainFont ?? "Roboto Flex"
             property string numbers: "Rubik"
-            property string title: "Gabarito"
+            property string title: Config.options?.appearance?.typography?.titleFont ?? "Gabarito"
             property string iconMaterial: "Material Symbols Rounded"
             property string iconNerd: "JetBrains Mono NF"
-            property string monospace: "JetBrains Mono NF"
+            property string monospace: Config.options?.appearance?.typography?.monospaceFont ?? "JetBrains Mono NF"
             property string reading: "Readex Pro"
             property string expressive: "Space Grotesk"
         }
         property QtObject variableAxes: QtObject {
             // Roboto Flex is customized to feel geometric, unserious yet not overly kiddy
             property var main: ({
-                "YTUC": 716, // Uppercase height (Raised from 712 to be more distinguishable from lowercase)
-                "YTFI": 716, // Figure (numbers) height (Lowered from 738 to match uppercase)
-                "YTAS": 716, // Ascender height (Lowered from 750 to match uppercase)
-                "YTLC": 490, // Lowercase height (Lowered from 514 to be more distinguishable from uppercase)
-                "XTRA": 488, // Counter width (Raised from 468 to be less condensed, less serious)
-                "wdth": 105, // Width (Space out a tiny bit for readability)
-                "GRAD": 175, // Grade (Increased so the 6 and 9 don't look weak)
-                "wght": 300, // Weight (Lowered to compensate for increased grade)
+                "YTUC": 716,
+                "YTFI": 716,
+                "YTAS": 716,
+                "YTLC": 490,
+                "XTRA": 488,
+                "wdth": Config.options?.appearance?.typography?.variableAxes?.wdth ?? 105,
+                "GRAD": Config.options?.appearance?.typography?.variableAxes?.grad ?? 175,
+                "wght": Config.options?.appearance?.typography?.variableAxes?.wght ?? 300,
             })
-            // Rubik simply needs regular weight to override that of the main font where necessary
             property var numbers: ({
                 "wght": 400,
             })
-            // Slightly bold weight for title
             property var title: ({
-                // "YTUC": 716, // Uppercase height (Raised from 712 to be more distinguishable from lowercase)
-                // "YTFI": 716, // Figure (numbers) height (Lowered from 738 to match uppercase)
-                // "YTAS": 716, // Ascender height (Lowered from 750 to match uppercase)
-                // "YTLC": 490, // Lowercase height (Lowered from 514 to be more distinguishable from uppercase)
-                // "XTRA": 490, // Counter width (Raised from 468 to be less condensed, less serious)
-                // "wdth": 110, // Width (Space out a tiny bit for readability)
-                // "GRAD": 150, // Grade (Increased so the 6 and 9 don't look weak)
-                "wght": 900, // Weight (Lowered to compensate for increased grade)
+                "wght": 900,
             })
         }
         property QtObject pixelSize: QtObject {
-            property int smallest: 10
-            property int smaller: 12
-            property int smallie: 13
-            property int small: 15
-            property int normal: 16
-            property int large: 17
-            property int larger: 19
-            property int huge: 22
-            property int hugeass: 23
+            property int smallest: Math.round(10 * root.fontSizeScale)
+            property int smaller: Math.round(12 * root.fontSizeScale)
+            property int smallie: Math.round(13 * root.fontSizeScale)
+            property int small: Math.round(15 * root.fontSizeScale)
+            property int normal: Math.round(16 * root.fontSizeScale)
+            property int large: Math.round(17 * root.fontSizeScale)
+            property int larger: Math.round(19 * root.fontSizeScale)
+            property int huge: Math.round(22 * root.fontSizeScale)
+            property int hugeass: Math.round(23 * root.fontSizeScale)
             property int title: huge
         }
     }
@@ -276,7 +289,7 @@ Singleton {
 
     animation: QtObject {
         property QtObject elementMove: QtObject {
-            property int duration: animationCurves.expressiveDefaultSpatialDuration
+            property int duration: root.calcEffectiveDuration(animationCurves.expressiveDefaultSpatialDuration)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.expressiveDefaultSpatial
             property int velocity: 650
@@ -290,7 +303,7 @@ Singleton {
         }
 
         property QtObject elementMoveEnter: QtObject {
-            property int duration: 400
+            property int duration: root.calcEffectiveDuration(400)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.emphasizedDecel
             property int velocity: 650
@@ -304,7 +317,7 @@ Singleton {
         }
 
         property QtObject elementMoveExit: QtObject {
-            property int duration: 200
+            property int duration: root.calcEffectiveDuration(200)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.emphasizedAccel
             property int velocity: 650
@@ -318,7 +331,7 @@ Singleton {
         }
 
         property QtObject elementMoveFast: QtObject {
-            property int duration: animationCurves.expressiveEffectsDuration
+            property int duration: root.calcEffectiveDuration(animationCurves.expressiveEffectsDuration)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.expressiveEffects
             property int velocity: 850
@@ -335,7 +348,7 @@ Singleton {
         }
 
         property QtObject elementResize: QtObject {
-            property int duration: 300
+            property int duration: root.calcEffectiveDuration(300)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.emphasized
             property int velocity: 650
@@ -349,7 +362,7 @@ Singleton {
         }
 
         property QtObject clickBounce: QtObject {
-            property int duration: 400
+            property int duration: root.calcEffectiveDuration(400)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.expressiveDefaultSpatial
             property int velocity: 850
@@ -361,13 +374,13 @@ Singleton {
         }
         
         property QtObject scroll: QtObject {
-            property int duration: 200
+            property int duration: root.calcEffectiveDuration(200)
             property int type: Easing.BezierSpline
             property list<real> bezierCurve: animationCurves.standardDecel
         }
 
         property QtObject menuDecel: QtObject {
-            property int duration: 350
+            property int duration: root.calcEffectiveDuration(350)
             property int type: Easing.OutExpo
         }
     }

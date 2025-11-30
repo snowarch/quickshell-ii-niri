@@ -1,3 +1,6 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+
 import qs.modules.common
 import qs.modules.common.models
 import qs.modules.common.functions
@@ -5,8 +8,6 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
-pragma Singleton
-pragma ComponentBehavior: Bound
 
 /**
  * Provides a list of wallpapers and an "apply" action that calls the existing

@@ -25,7 +25,7 @@ Item {
         StyledText {
             anchors.centerIn: parent
             text: Math.round(root.value * 100)
-            font.pixelSize: 12
+            font.pixelSize: Appearance.font.pixelSize.smaller
             font.weight: Font.Medium
         }
     }

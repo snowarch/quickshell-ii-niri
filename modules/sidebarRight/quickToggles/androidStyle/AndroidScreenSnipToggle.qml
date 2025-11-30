@@ -4,7 +4,6 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 
 AndroidQuickToggleButton {
     id: root

@@ -15,4 +15,7 @@ depends=(
   brightnessctl
   ddcutil
   geoclue
+  
+  # Idle management
+  swayidle
 )

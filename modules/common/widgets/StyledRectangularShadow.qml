@@ -4,6 +4,7 @@ import qs.modules.common
 
 RectangularShadow {
     required property var target
+    visible: Appearance.effectsEnabled
     anchors.fill: target
     radius: target.radius
     blur: 0.9 * Appearance.sizes.elevationMargin

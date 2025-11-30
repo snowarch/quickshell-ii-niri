@@ -188,6 +188,21 @@ Singleton {
                 property bool lowPower: false
             }
 
+            property JsonObject idle: JsonObject {
+                property int screenOffTimeout: 300 // seconds, 0 = disabled
+                property int lockTimeout: 600 // seconds, 0 = disabled
+                property int suspendTimeout: 0 // seconds, 0 = disabled
+                property bool lockBeforeSleep: true
+            }
+
+            property JsonObject gameMode: JsonObject {
+                property bool autoDetect: true
+                property bool disableAnimations: true
+                property bool disableEffects: true
+                property bool disableNiriAnimations: true
+                property int checkInterval: 2000 // ms
+            }
+
             property JsonObject audio: JsonObject {
                 // Values in %
                 property JsonObject protection: JsonObject {
@@ -259,6 +274,7 @@ Singleton {
                 }
                 property JsonObject backdrop: JsonObject {
                     property bool enable: false
+                    property bool hideWallpaper: false
                     property bool useMainWallpaper: true
                     property string wallpaperPath: ""
                     property int blurRadius: 32

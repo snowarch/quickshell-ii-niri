@@ -1,11 +1,12 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+
 import qs.modules.common
 import qs.services
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-pragma Singleton
-pragma ComponentBehavior: Bound
 
 Singleton {
     id: root
@@ -29,6 +30,7 @@ Singleton {
     property bool superDown: false
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
+    property bool cheatsheetOpen: false
     property bool workspaceShowNumbers: false
     property var activeBooruImageMenu: null  // Track which BooruImage has its menu open
 
@@ -41,6 +43,8 @@ Singleton {
 
     property real screenZoom: 1
     onScreenZoomChanged: {
+        // Niri doesn't have native zoom support like Hyprland's cursor:zoom_factor
+        // The IPC handler still works but zoom is Hyprland-only for now
         if (!CompositorService.isHyprland)
             return;
         Quickshell.execDetached(["hyprctl", "keyword", "cursor:zoom_factor", root.screenZoom.toString()]);
@@ -67,11 +71,11 @@ Singleton {
     IpcHandler {
 		target: "zoom"
 
-		function zoomIn() {
+		function zoomIn(): void {
             screenZoom = Math.min(screenZoom + 0.4, 3.0)
         }
 
-        function zoomOut() {
+        function zoomOut(): void {
             screenZoom = Math.max(screenZoom - 0.4, 1)
         } 
 	}

@@ -10,6 +10,105 @@ ContentPage {
     settingsPageName: Translation.tr("Services")
 
     ContentSection {
+        icon: "bedtime"
+        title: Translation.tr("Idle & Sleep")
+
+        ConfigSpinBox {
+            icon: "monitor"
+            text: Translation.tr("Screen off") + ` (${value > 0 ? Math.floor(value/60) + "m " + (value%60) + "s" : Translation.tr("disabled")})`
+            value: Config.options.idle.screenOffTimeout
+            from: 0
+            to: 3600
+            stepSize: 30
+            onValueChanged: Config.options.idle.screenOffTimeout = value
+        }
+
+        ConfigSpinBox {
+            icon: "lock"
+            text: Translation.tr("Lock screen") + ` (${value > 0 ? Math.floor(value/60) + "m" : Translation.tr("disabled")})`
+            value: Config.options.idle.lockTimeout
+            from: 0
+            to: 3600
+            stepSize: 60
+            onValueChanged: Config.options.idle.lockTimeout = value
+        }
+
+        ConfigSpinBox {
+            icon: "dark_mode"
+            text: Translation.tr("Suspend") + ` (${value > 0 ? Math.floor(value/60) + "m" : Translation.tr("disabled")})`
+            value: Config.options.idle.suspendTimeout
+            from: 0
+            to: 7200
+            stepSize: 60
+            onValueChanged: Config.options.idle.suspendTimeout = value
+        }
+
+        ConfigSwitch {
+            buttonIcon: "lock_clock"
+            text: Translation.tr("Lock before sleep")
+            checked: Config.options.idle.lockBeforeSleep
+            onCheckedChanged: Config.options.idle.lockBeforeSleep = checked
+        }
+
+        ConfigSwitch {
+            buttonIcon: "coffee"
+            text: Translation.tr("Keep awake (caffeine)")
+            checked: Idle.inhibit
+            onCheckedChanged: {
+                if (checked !== Idle.inhibit) Idle.toggleInhibit()
+            }
+        }
+    }
+
+    ContentSection {
+        icon: "screen_lock_portrait"
+        title: Translation.tr("Lockscreen")
+
+        ConfigSwitch {
+            buttonIcon: "blur_on"
+            text: Translation.tr("Enable blur")
+            checked: Config.options.lock.blur.enable
+            onCheckedChanged: Config.options.lock.blur.enable = checked
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.lock.blur.enable
+            icon: "blur_circular"
+            text: Translation.tr("Blur radius")
+            value: Config.options.lock.blur.radius
+            from: 0
+            to: 200
+            stepSize: 10
+            onValueChanged: Config.options.lock.blur.radius = value
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.lock.blur.enable
+            icon: "zoom_out_map"
+            text: Translation.tr("Extra zoom") + ` (${value}%)`
+            value: Config.options.lock.blur.extraZoom * 100
+            from: 100
+            to: 150
+            stepSize: 5
+            onValueChanged: Config.options.lock.blur.extraZoom = value / 100
+        }
+
+        ConfigSwitch {
+            buttonIcon: "schedule"
+            text: Translation.tr("Center clock")
+            checked: Config.options.lock.centerClock
+            onCheckedChanged: Config.options.lock.centerClock = checked
+        }
+
+        ConfigSwitch {
+            buttonIcon: "text_fields"
+            text: Translation.tr("Show 'Locked' text")
+            checked: Config.options.lock.showLockedText
+            onCheckedChanged: Config.options.lock.showLockedText = checked
+        }
+    }
+
+    ContentSection {
         icon: "neurology"
         title: Translation.tr("AI")
 

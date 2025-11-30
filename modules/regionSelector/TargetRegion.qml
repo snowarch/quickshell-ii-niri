@@ -27,7 +27,7 @@ Rectangle {
     color: fillColor
     border.color: borderColor
     border.width: targeted ? 4 : 2
-    radius: 4
+    radius: Appearance.rounding.unsharpen
 
     visible: hasValidGeometry && opacity > 0
     Behavior on opacity {
@@ -50,7 +50,7 @@ Rectangle {
         sourceComponent: Rectangle {
             property real verticalPadding: 5
             property real horizontalPadding: 10
-            radius: 10
+            radius: Appearance.rounding.verysmall
             color: root.colBackground
             border.width: 1
             border.color: Appearance.m3colors.m3outlineVariant

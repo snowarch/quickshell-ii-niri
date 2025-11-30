@@ -115,7 +115,7 @@ Rectangle {
                         visible: width <= image.width
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "visibility_off"
-                        font.pixelSize: 28
+                        font.pixelSize: Appearance.font.pixelSize.huge
                     }
                     StyledText {
                         visible: width <= image.width

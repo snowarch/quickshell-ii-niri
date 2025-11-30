@@ -203,7 +203,7 @@ Variants {
             // Wallpaper
             StyledImage {
                 id: wallpaper
-                visible: opacity > 0 && !blurLoader.active
+                visible: opacity > 0 && !blurLoader.active && !Config.options.background.backdrop.hideWallpaper
                 // Mantener la opacidad en 1 cuando está listo para que el blur
                 // tenga siempre una fuente completa. El efecto dinámico se
                 // controla solo a través de la opacidad del blur overlay.
