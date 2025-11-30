@@ -2,6 +2,8 @@
 
 A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to work on a different compositor.
 
+> **Almost everything is configurable.** Modules can be toggled on/off, colors adapt to your wallpaper (or pick a theme), animations respect your preferences, and if something annoys you there's probably a setting for it. Check Settings (`Super+,`) before rage-quitting.
+
 | Overview | Sidebars |
 |:---|:---|
 | ![Overview](https://github.com/user-attachments/assets/9faaad0e-a665-4747-9428-ea94756e1f0f) | ![Sidebars](https://github.com/user-attachments/assets/21e43f3e-d6d9-4625-8210-642f9c05509b) |
@@ -25,6 +27,8 @@ A shell. Bar at the top, sidebars on the sides, overlays that pop up when you pr
 - **Wallpaper stuff** - picker, matugen colors, video wallpaper support
 - **Settings** - GUI config with search, so you don't have to edit JSON like a caveman
 - **Themes** - Gruvbox, Catppuccin, Nord, Dracula, and more. Or let matugen generate colors from your wallpaper
+- **GameMode** - detects fullscreen apps and kills the fancy effects so your games don't stutter. Toggle it manually if auto-detect isn't cutting it
+- **Idle management** - screen off, lock, suspend. All configurable, all managed through swayidle so you don't have to think about it
 
 ---
 
@@ -104,6 +108,7 @@ Main targets:
 | `wallpaperSelector` | `toggle` |
 | `mpris` | `playPause`, `next`, `previous` |
 | `brightness` | `increment`, `decrement` |
+| `gamemode` | `toggle`, `activate`, `deactivate`, `status` |
 
 Full reference with examples: [docs/IPC.md](docs/IPC.md)
 

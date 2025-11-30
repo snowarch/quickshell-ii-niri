@@ -287,3 +287,20 @@ Clipboard history service. The backend that makes clipboard panel work. You prob
 | Function | Description |
 |----------|-------------|
 | `update` | Refresh clipboard history |
+
+---
+
+### gamemode
+
+Performance mode for gaming. Auto-detects fullscreen apps and disables animations/effects. Can also be toggled manually for those stubborn games that don't go fullscreen properly.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Toggle gamemode on/off |
+| `activate` | Force enable gamemode |
+| `deactivate` | Force disable gamemode |
+| `status` | Print current status to logs |
+
+```kdl
+bind "Super+F12" { spawn "qs" "-c" "ii" "ipc" "call" "gamemode" "toggle"; }
+```
