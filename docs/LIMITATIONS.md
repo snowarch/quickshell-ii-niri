@@ -1,6 +1,6 @@
 # Known Limitations
 
-Things that don't work, work partially, or might bite you. Read this before filing a bug report.
+Things that don't work, work weirdly, or will bite you when you least expect it. Read this before filing a bug report - I promise half your questions are answered here.
 
 ---
 
@@ -190,11 +190,11 @@ ii is built for **Niri**. Some features were inherited from the original Hyprlan
 
 ## Reporting Issues
 
-Before reporting:
+Before opening an issue and making me read your bug report:
 
-1. Check `qs log -c ii` for errors
-2. Verify the feature isn't listed as a known limitation above
+1. Check `qs log -c ii` for errors - the answer is usually right there
+2. Verify the feature isn't listed as a known limitation above - yes, you have to actually read this page
 3. Test with a fresh config (`mv ~/.config/illogical-impulse/config.json ~/.config/illogical-impulse/config.json.bak`)
 4. Include your Niri version (`niri --version`) and Quickshell version (`qs --version`)
 
-If it's still broken after all that, congratulations, you found a real bug.
+If it's still broken after all that, congratulations - you found a real bug. Gold star for you.

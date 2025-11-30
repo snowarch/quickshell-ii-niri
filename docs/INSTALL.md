@@ -30,7 +30,7 @@ Log out and back in, or just restart Niri. Done.
 
 ## The Hard Way (Manual)
 
-For when you're not on Arch, or you enjoy suffering.
+For when you're not on Arch, or you enjoy pain.
 
 ### 1. Get dependencies
 
@@ -92,16 +92,16 @@ Check the logs:
 qs log -c ii
 ```
 
-You should see:
-- Bar at the top
-- Background/wallpaper
+If everything went well, you should see:
+- Bar at the top (the thing with the clock)
+- Background/wallpaper (hopefully not a black screen)
 - `Mod+Tab` opens the Niri overview (native)
-- `Mod+Space` (`Super+Space`) toggles the ii overview (no extra daemon required)
+- `Mod+Space` (`Super+Space`) toggles the ii overview
 - `Alt+Tab` cycles windows using ii's switcher
 - `Super+V` opens the clipboard panel
 - `Super+Shift+S` takes a region screenshot
 
-If something's broken, the logs will probably tell you which package is missing.
+If something's broken, the logs will probably tell you which package is missing. Probably.
 
 ---
 

@@ -119,20 +119,21 @@ git pull
 
 ## Uninstalling
 
-There's no uninstall command. To remove ii:
+No uninstall command because I'm not your mom. If you want out:
 
-1. Remove from Niri startup:
+1. Stop ii from starting with Niri:
    ```kdl
    // Comment out or delete this line in ~/.config/niri/config.kdl
    // spawn-at-startup "qs" "-c" "ii"
    ```
 
-2. Delete the config:
+2. Nuke the config:
    ```bash
    rm -rf ~/.config/quickshell/ii
+   rm -rf ~/.config/illogical-impulse  # runtime config + state
    ```
 
-3. Optionally remove packages installed by the script (check `sdata/dist-arch/` for the list)
+3. Optionally remove the packages (check `sdata/dist-arch/` for the full list, or just leave them - they're not hurting anyone)
 
 ---
 
