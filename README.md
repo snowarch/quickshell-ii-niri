@@ -2,7 +2,7 @@
 
 A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to work on a different compositor.
 
-> **Almost everything is configurable.** Modules can be toggled on/off, colors adapt to your wallpaper (or pick a theme), animations respect your preferences, and if something annoys you there's probably a setting for it. Check Settings (`Super+,`) before rage-quitting.
+> **Heads up:** almost everything here is configurable. Modules, colors, fonts, animations - if something bugs you, there's probably a toggle for it. Hit `Super+,` for settings before you rage-quit.
 
 | Overview | Sidebars |
 |:---|:---|
@@ -19,16 +19,16 @@ A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to wor
 A shell. Bar at the top, sidebars on the sides, overlays that pop up when you press keys. The usual.
 
 - **Bar** - clock, workspaces, tray, the stuff you expect
-- **Sidebars** - left one has AI chat and apps, right one has toggles and a notepad
+- **Sidebars** - left one has AI chat and wallpaper browser, right one has quick toggles and a notepad
 - **Overview** - workspace grid, adapted for Niri's scrolling model
 - **Alt+Tab** - window switcher that actually works across workspaces
 - **Clipboard** - history panel with search (needs cliphist)
 - **Region tools** - screenshots, screen recording, OCR, reverse image search
-- **Wallpaper stuff** - picker, matugen colors, video wallpaper support
+- **Wallpaper** - picker, video support, and matugen pulls colors from whatever you set
+- **Theming** - presets like Gruvbox and Catppuccin, or build your own with the custom theme editor. Fonts are customizable too
 - **Settings** - GUI config with search, so you don't have to edit JSON like a caveman
-- **Themes** - Gruvbox, Catppuccin, Nord, Dracula, and more. Or let matugen generate colors from your wallpaper
-- **GameMode** - detects fullscreen apps and kills the fancy effects so your games don't stutter. Toggle it manually if auto-detect isn't cutting it
-- **Idle management** - screen off, lock, suspend. All configurable, all managed through swayidle so you don't have to think about it
+- **GameMode** - fullscreen app? Effects go bye-bye. Your games won't stutter
+- **Idle** - screen off, lock, suspend timeouts. swayidle handles it, you configure it
 
 ---
 
@@ -82,9 +82,9 @@ Full list in [docs/KEYBINDS.md](docs/KEYBINDS.md).
 
 ---
 
-## IPC (for custom bindings)
+## IPC (for nerds who want custom bindings)
 
-ii exposes IPC targets you can bind to keys. The syntax:
+ii exposes IPC targets you can bind to whatever keys you want. Syntax:
 
 ```kdl
 bind "Key" { spawn "qs" "-c" "ii" "ipc" "call" "<target>" "<function>"; }
