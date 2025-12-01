@@ -122,7 +122,7 @@ if $INSTALL_FONTS; then
 fi
 
 if $INSTALL_AUDIO; then
-  # cava moved to ii-niri-audio PKGBUILD
+  : # cava moved to ii-niri-audio PKGBUILD
 fi
 
 if $INSTALL_TOOLKIT; then
