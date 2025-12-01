@@ -67,31 +67,28 @@ Item { // Bar content region
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
 
+        // ScrollHint as overlay - doesn't affect layout
+        ScrollHint {
+            id: leftScrollHint
+            reveal: barLeftSideMouseArea.hovered
+            icon: "light_mode"
+            tooltipText: Translation.tr("Scroll to change brightness")
+            side: "left"
+            anchors.left: parent.left
+            anchors.leftMargin: Appearance.rounding.screenRounding
+            anchors.verticalCenter: parent.verticalCenter
+            z: 1
+        }
+
         RowLayout {
             id: leftSectionRowLayout
             anchors.fill: parent
             spacing: 10
 
-            // Space for ScrollHint
-            Item {
-                Layout.preferredWidth: leftScrollHint.implicitWidth
-                Layout.fillHeight: true
-                Layout.leftMargin: Appearance.rounding.screenRounding
-
-                ScrollHint {
-                    id: leftScrollHint
-                    reveal: barLeftSideMouseArea.hovered
-                    icon: "light_mode"
-                    tooltipText: Translation.tr("Scroll to change brightness")
-                    side: "left"
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-
             LeftSidebarButton { // Left sidebar button
                 visible: Config.options.bar.modules.leftSidebarButton
                 Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: Appearance.rounding.screenRounding
                 colBackground: barLeftSideMouseArea.hovered ? Appearance.colors.colLayer1Hover : ColorUtils.transparentize(Appearance.colors.colLayer1Hover, 1)
             }
 
@@ -213,34 +210,31 @@ Item { // Bar content region
             }
         }
 
+        // ScrollHint as overlay - doesn't affect layout
+        ScrollHint {
+            id: rightScrollHint
+            reveal: barRightSideMouseArea.hovered
+            icon: "volume_up"
+            tooltipText: Translation.tr("Scroll to change volume")
+            side: "right"
+            anchors.right: parent.right
+            anchors.rightMargin: Appearance.rounding.screenRounding
+            anchors.verticalCenter: parent.verticalCenter
+            z: 1
+        }
+
         RowLayout {
             id: rightSectionRowLayout
             anchors.fill: parent
             spacing: 5
             layoutDirection: Qt.RightToLeft
 
-            // Space for ScrollHint
-            Item {
-                Layout.preferredWidth: rightScrollHint.implicitWidth
-                Layout.fillHeight: true
-                Layout.rightMargin: Appearance.rounding.screenRounding
-
-                ScrollHint {
-                    id: rightScrollHint
-                    reveal: barRightSideMouseArea.hovered
-                    icon: "volume_up"
-                    tooltipText: Translation.tr("Scroll to change volume")
-                    side: "right"
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-
             RippleButton { // Right sidebar button
                 id: rightSidebarButton
                 visible: Config.options.bar.modules.rightSidebarButton
 
                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: false
 
                 implicitWidth: indicatorsRowLayout.implicitWidth + 10 * 2
