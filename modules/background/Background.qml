@@ -65,6 +65,11 @@ Variants {
         property real movableXSpace: ((wallpaperWidth / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.width) / 2
         property real movableYSpace: ((wallpaperHeight / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.height) / 2
         readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
+        
+        // Backdrop mode: when hideWallpaper is true, main wallpaper and its effects are disabled
+        // Only the Backdrop layer (separate component) is shown
+        readonly property bool backdropActive: Config.options?.background?.backdrop?.hideWallpaper ?? false
+        
         // Colors
         property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
         property color dominantColor: Appearance.colors.colPrimary // Default, to be changed
@@ -185,10 +190,13 @@ Variants {
                     bgRoot.wallpaperWidth = width;
                     bgRoot.wallpaperHeight = height;
 
-                    // Base scale to fill screen
-                    const baseScale = Math.max(screenWidth / width, screenHeight / height);
-                    // Apply preferred zoom on top for parallax effect
-                    bgRoot.effectiveWallpaperScale = baseScale * bgRoot.preferredWallpaperScale;
+                    if (width <= screenWidth || height <= screenHeight) {
+                        // Undersized/perfectly sized wallpapers
+                        bgRoot.effectiveWallpaperScale = Math.max(screenWidth / width, screenHeight / height);
+                    } else {
+                        // Oversized = can be zoomed for parallax, yay
+                        bgRoot.effectiveWallpaperScale = Math.min(bgRoot.preferredWallpaperScale, width / screenWidth, height / screenHeight);
+                    }
                 }
             }
         }
@@ -200,7 +208,7 @@ Variants {
             // Wallpaper
             StyledImage {
                 id: wallpaper
-                visible: opacity > 0 && !blurLoader.active && !Config.options.background.backdrop.hideWallpaper
+                visible: opacity > 0 && !blurLoader.active && !bgRoot.backdropActive
                 // Mantener la opacidad en 1 cuando está listo para que el blur
                 // tenga siempre una fuente completa. El efecto dinámico se
                 // controla solo a través de la opacidad del blur overlay.
@@ -226,10 +234,8 @@ Variants {
                             : (bgRoot.monitor?.activeWorkspace?.id ?? 1);
                         result = ((wsId - lower) / range);
                     }
-                    // Sidebar parallax always affects X axis
                     if (Config.options.background.parallax.enableSidebar) {
-                        const sidebarOffset = 0.15 * (GlobalStates.sidebarRightOpen ? 1 : 0) - 0.15 * (GlobalStates.sidebarLeftOpen ? 1 : 0);
-                        result += sidebarOffset;
+                        result += (0.15 * GlobalStates.sidebarRightOpen - 0.15 * GlobalStates.sidebarLeftOpen);
                     }
                     return result;
                 }
@@ -273,11 +279,12 @@ Variants {
             Loader {
                 id: blurAlwaysLoader
                 z: 1
-                // Disable when lock blur is active so lock state owns the effect
-                active: Config.options.background.effects.enableBlur
-                        && Appearance.effectsEnabled
-                        && Config.options.background.effects.blurRadius > 0
+                // Disable when lock blur is active, backdrop mode, or low power
+                active: Config.options?.background?.effects?.enableBlur
+                        && !Config.options?.performance?.lowPower
+                        && (Config.options?.background?.effects?.blurRadius ?? 0) > 0
                         && !blurLoader.active
+                        && !bgRoot.backdropActive
                 anchors.fill: wallpaper
                 sourceComponent: Item {
                     anchors.fill: parent
@@ -322,11 +329,15 @@ Variants {
             }
 
             // Dimming overlay (covers the whole background regardless of wallpaper/blur scaling)
+            // Disabled when backdrop mode is active (backdrop has its own dim)
             Rectangle {
                 id: dimOverlay
                 anchors.fill: parent
+                visible: !bgRoot.backdropActive
                 // Use alpha in color instead of relying on opacity to avoid composition quirks
                 color: {
+                    if (bgRoot.backdropActive) return "transparent";
+                    
                     const baseV = Config?.options?.background?.effects?.dim;
                     const dynV = Config?.options?.background?.effects?.dynamicDim;
                     const baseN = Number(baseV);
@@ -345,7 +356,6 @@ Variants {
                 }
                 z: 10
                 opacity: 1
-                visible: true
                 Behavior on color {
                     ColorAnimation { duration: 220 }
                 }

@@ -309,6 +309,31 @@ ApplicationWindow {
                             }
                         }
                     }
+
+                    ContentSubsection {
+                        title: Translation.tr("Wallpaper mode")
+
+                        ConfigSelectionArray {
+                            currentValue: Config.options?.background?.backdrop?.hideWallpaper ? 1 : 0
+                            onSelected: newValue => {
+                                if (!Config.options.background) Config.options.background = ({});
+                                if (!Config.options.background.backdrop) Config.options.background.backdrop = ({});
+                                Config.options.background.backdrop.hideWallpaper = (newValue === 1);
+                            }
+                            options: [
+                                {
+                                    displayName: Translation.tr("Normal"),
+                                    icon: "image",
+                                    value: 0
+                                },
+                                {
+                                    displayName: Translation.tr("Backdrop only"),
+                                    icon: "blur_on",
+                                    value: 1
+                                }
+                            ]
+                        }
+                    }
                 }
 
                 ContentSection {
