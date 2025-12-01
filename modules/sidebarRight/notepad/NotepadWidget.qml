@@ -49,28 +49,44 @@ Item {
             color: Appearance.colors.colLayer0
             border.width: 1
             border.color: Appearance.colors.colLayer0Border
+            clip: true
 
-            TextArea {
-                id: textArea
+            ScrollView {
+                id: scrollView
                 anchors.fill: parent
                 anchors.margins: 8
-                wrapMode: TextArea.Wrap
-                color: Appearance.colors.colOnLayer0
-                placeholderText: Translation.tr("Write your notes here...")
-                placeholderTextColor: Appearance.m3colors.m3outline
-                text: Notepad.text
-                selectByMouse: true
-                activeFocusOnTab: true
+                ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                Keys.onPressed: (event) => {
-                    if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_S) {
-                        Notepad.setTextValue(textArea.text)
-                        event.accepted = true
+                TextArea {
+                    id: textArea
+                    width: scrollView.availableWidth
+                    wrapMode: TextArea.Wrap
+                    color: Appearance.colors.colOnLayer0
+                    placeholderText: Translation.tr("Write your notes here...")
+                    placeholderTextColor: Appearance.m3colors.m3outline
+                    text: Notepad.text
+                    selectByMouse: true
+                    activeFocusOnTab: true
+                    background: null
+
+                    Keys.onPressed: (event) => {
+                        if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_S) {
+                            Notepad.setTextValue(textArea.text)
+                            event.accepted = true
+                        }
                     }
-                }
 
-                onTextChanged: {
-                    saveTimer.restart()
+                    onTextChanged: {
+                        saveTimer.restart()
+                    }
+
+                    onCursorRectangleChanged: {
+                        scrollView.ScrollBar.vertical.position = Math.max(0, Math.min(
+                            (cursorRectangle.y - scrollView.height / 2) / contentHeight,
+                            1 - scrollView.height / contentHeight
+                        ))
+                    }
                 }
             }
         }

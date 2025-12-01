@@ -6,7 +6,7 @@ import qs.modules.common.widgets
 
 ContentPage {
     forceWidth: true
-    settingsPageIndex: 5
+    settingsPageIndex: 6
     settingsPageName: Translation.tr("Services")
 
     ContentSection {
@@ -57,54 +57,6 @@ ContentPage {
             onCheckedChanged: {
                 if (checked !== Idle.inhibit) Idle.toggleInhibit()
             }
-        }
-    }
-
-    ContentSection {
-        icon: "screen_lock_portrait"
-        title: Translation.tr("Lockscreen")
-
-        ConfigSwitch {
-            buttonIcon: "blur_on"
-            text: Translation.tr("Enable blur")
-            checked: Config.options.lock.blur.enable
-            onCheckedChanged: Config.options.lock.blur.enable = checked
-        }
-
-        ConfigSpinBox {
-            enabled: Config.options.lock.blur.enable
-            icon: "blur_circular"
-            text: Translation.tr("Blur radius")
-            value: Config.options.lock.blur.radius
-            from: 0
-            to: 200
-            stepSize: 10
-            onValueChanged: Config.options.lock.blur.radius = value
-        }
-
-        ConfigSpinBox {
-            enabled: Config.options.lock.blur.enable
-            icon: "zoom_out_map"
-            text: Translation.tr("Extra zoom") + ` (${value}%)`
-            value: Config.options.lock.blur.extraZoom * 100
-            from: 100
-            to: 150
-            stepSize: 5
-            onValueChanged: Config.options.lock.blur.extraZoom = value / 100
-        }
-
-        ConfigSwitch {
-            buttonIcon: "schedule"
-            text: Translation.tr("Center clock")
-            checked: Config.options.lock.centerClock
-            onCheckedChanged: Config.options.lock.centerClock = checked
-        }
-
-        ConfigSwitch {
-            buttonIcon: "text_fields"
-            text: Translation.tr("Show 'Locked' text")
-            checked: Config.options.lock.showLockedText
-            onCheckedChanged: Config.options.lock.showLockedText = checked
         }
     }
 

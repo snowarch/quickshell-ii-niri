@@ -1,7 +1,7 @@
 {
   "ai": {
     "extraModels": [],
-    "systemPrompt": "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text.\n\n## Context (ignore when irrelevant)\n- You are a helpful sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response\n- **Bold** text to **highlight keywords**\n- Use h2 headers with emojis (e.g. `## 🐧 Linux`)\n- Bullet points preferred over long paragraphs\n",
+    "systemPrompt": "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text.\n\n## Context (ignore when irrelevant)\n- You are a helpful sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response\n- **Bold** text to **highlight keywords**\n- Use h2 headers with emojis (e.g. `## \ud83d\udc27 Linux`)\n- Bullet points preferred over long paragraphs\n",
     "tool": "functions"
   },
   "altSwitcher": {
@@ -500,6 +500,11 @@
     "translator": {
       "delay": 300,
       "enable": true
+    },
+    "wallhaven": {
+      "enable": false,
+      "limit": 24,
+      "apiKey": ""
     }
   },
   "sounds": {
@@ -551,5 +556,28 @@
     "disableEffects": true,
     "disableNiriAnimations": true,
     "checkInterval": 2000
+  },
+  "modules": {
+    "bar": true,
+    "background": true,
+    "cheatsheet": true,
+    "crosshair": false,
+    "dock": true,
+    "lock": true,
+    "mediaControls": true,
+    "notificationPopup": true,
+    "onScreenDisplay": true,
+    "onScreenKeyboard": true,
+    "overview": true,
+    "overlay": true,
+    "polkit": true,
+    "regionSelector": true,
+    "reloadPopup": true,
+    "screenCorners": true,
+    "sessionScreen": true,
+    "sidebarLeft": true,
+    "sidebarRight": true,
+    "verticalBar": true,
+    "wallpaperSelector": true
   }
 }

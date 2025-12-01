@@ -16,6 +16,7 @@ import Quickshell.Io
 Singleton {
     id: root
     property string filePath: Directories.generatedMaterialThemePath
+    property bool ready: false
 
     // Check if auto theme is selected (reads directly from Config to avoid circular dependency with ThemeService)
     readonly property bool isAutoTheme: (Config.options?.appearance?.theme ?? "auto") === "auto"
@@ -80,6 +81,7 @@ Singleton {
         onLoadedChanged: {
             const fileContent = themeFileView.text()
             root.applyColors(fileContent)
+            root.ready = true
         }
         onLoadFailed: root.resetFilePathNextTime();
     }

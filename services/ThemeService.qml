@@ -8,6 +8,7 @@ import qs.services
 Singleton {
     id: root
 
+    property bool ready: false
     readonly property string currentTheme: Config.options?.appearance?.theme ?? "auto"
     readonly property bool isAutoTheme: currentTheme === "auto"
 
@@ -42,5 +43,6 @@ Singleton {
             console.log("[ThemeService] Applying manual theme:", currentTheme);
             ThemePresets.applyPreset(currentTheme);
         }
+        root.ready = true;
     }
 }

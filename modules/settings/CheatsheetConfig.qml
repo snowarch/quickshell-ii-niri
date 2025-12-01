@@ -6,7 +6,7 @@ import qs.modules.common.widgets
 
 ContentPage {
     forceWidth: true
-    settingsPageIndex: 7
+    settingsPageIndex: 8
     settingsPageName: Translation.tr("Shortcuts")
 
     ContentSection {
@@ -96,7 +96,7 @@ ContentPage {
                 anchors.centerIn: parent
                 text: keys
                 font.pixelSize: Appearance.font.pixelSize.small
-                font.family: "monospace"
+                font.family: Appearance.font.family.monospace
                 color: Appearance.colors.colOnLayer1
             }
         }

@@ -182,6 +182,17 @@ Singleton {
                 property JsonObject palette: JsonObject {
                     property string type: "auto" // Allowed: auto, scheme-content, scheme-expressive, scheme-fidelity, scheme-fruit-salad, scheme-monochrome, scheme-neutral, scheme-rainbow, scheme-tonal-spot
                 }
+                property JsonObject typography: JsonObject {
+                    property string mainFont: "Roboto Flex"
+                    property string titleFont: "Gabarito"
+                    property string monospaceFont: "JetBrains Mono NF"
+                    property real sizeScale: 1.0
+                    property JsonObject variableAxes: JsonObject {
+                        property int wght: 300
+                        property int wdth: 105
+                        property int grad: 175
+                    }
+                }
             }
 
             property JsonObject performance: JsonObject {
@@ -193,6 +204,32 @@ Singleton {
                 property int lockTimeout: 600 // seconds, 0 = disabled
                 property int suspendTimeout: 0 // seconds, 0 = disabled
                 property bool lockBeforeSleep: true
+            }
+
+            property JsonObject modules: JsonObject {
+                property bool altSwitcher: true
+                property bool bar: true
+                property bool background: true
+                property bool cheatsheet: true
+                property bool clipboard: true
+                property bool crosshair: false
+                property bool dock: true
+                property bool lock: true
+                property bool mediaControls: true
+                property bool notificationPopup: true
+                property bool onScreenDisplay: true
+                property bool onScreenKeyboard: true
+                property bool overview: true
+                property bool overlay: true
+                property bool polkit: true
+                property bool regionSelector: true
+                property bool reloadPopup: true
+                property bool screenCorners: true
+                property bool sessionScreen: true
+                property bool sidebarLeft: true
+                property bool sidebarRight: true
+                property bool verticalBar: true
+                property bool wallpaperSelector: true
             }
 
             property JsonObject gameMode: JsonObject {

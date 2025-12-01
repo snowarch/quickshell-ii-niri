@@ -300,9 +300,6 @@ ContentPage {
                     Config.options.bar.utilButtons.showScreenRecord = checked;
                 }
             }
-        }
-        ConfigRow {
-            uniform: true
             ConfigSwitch {
                 buttonIcon: "edit_note"
                 text: Translation.tr("Notepad")

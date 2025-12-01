@@ -293,50 +293,74 @@ ContentPage {
                     }
                 }
 
-                GridView {
-                    id: wallpaperGrid
+                Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 320
-                    model: Wallpapers.folderModel
-                    cellWidth: 120
-                    cellHeight: 80
-                    interactive: true
-                    boundsBehavior: Flickable.StopAtBounds
+                    radius: Appearance.rounding.normal
+                    color: Appearance.colors.colLayer0
+                    border.width: 1
+                    border.color: Appearance.colors.colLayer0Border
                     clip: true
-                    property int currentHoverIndex: -1
-                    ScrollBar.vertical: StyledScrollBar {}
 
-                    delegate: Item {
-                        required property int index
-                        required property bool fileIsDir
-                        required property string filePath
-                        required property string fileName
-                        required property url fileUrl
+                    GridView {
+                        id: wallpaperGrid
+                        anchors.fill: parent
+                        anchors.margins: Appearance.sizes.spacingSmall
+                        model: Wallpapers.folderModel
+                        
+                        // Responsive cell sizing - fill available width
+                        property int minCellWidth: 110
+                        property int columns: Math.max(1, Math.floor(width / minCellWidth))
+                        cellWidth: width / columns
+                        cellHeight: cellWidth * 0.67  // 3:2 aspect ratio
+                        
+                        interactive: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        cacheBuffer: cellHeight * 2
+                        property int currentHoverIndex: -1
+                        ScrollBar.vertical: StyledScrollBar {}
 
-                        width: wallpaperGrid.cellWidth
-                        height: wallpaperGrid.cellHeight
+                        delegate: Item {
+                            id: delegateItem
+                            required property int index
+                            required property bool fileIsDir
+                            required property string filePath
+                            required property string fileName
+                            required property url fileUrl
 
-                        QuickWallpaperItem {
-                            anchors.fill: parent
-                            fileModelData: ({
-                                filePath: parent.filePath,
-                                fileName: parent.fileName,
-                                fileIsDir: parent.fileIsDir,
-                                fileUrl: parent.fileUrl
-                            })
-                            isSelected: !parent.fileIsDir && parent.filePath === Config.options.background.wallpaperPath
-                            isHovered: parent.index === wallpaperGrid.currentHoverIndex
+                            width: wallpaperGrid.cellWidth
+                            height: wallpaperGrid.cellHeight
 
-                            onEntered: wallpaperGrid.currentHoverIndex = parent.index
-                            onExited: if (wallpaperGrid.currentHoverIndex === parent.index) wallpaperGrid.currentHoverIndex = -1
-                            onActivated: {
-                                if (parent.fileIsDir) {
-                                    Wallpapers.setDirectory(parent.filePath);
-                                } else {
-                                    Wallpapers.select(parent.filePath);
+                            QuickWallpaperItem {
+                                anchors.fill: parent
+                                fileModelData: ({
+                                    filePath: delegateItem.filePath,
+                                    fileName: delegateItem.fileName,
+                                    fileIsDir: delegateItem.fileIsDir,
+                                    fileUrl: delegateItem.fileUrl
+                                })
+                                isSelected: !delegateItem.fileIsDir && delegateItem.filePath === Config.options.background.wallpaperPath
+                                isHovered: delegateItem.index === wallpaperGrid.currentHoverIndex
+
+                                onEntered: wallpaperGrid.currentHoverIndex = delegateItem.index
+                                onExited: if (wallpaperGrid.currentHoverIndex === delegateItem.index) wallpaperGrid.currentHoverIndex = -1
+                                onActivated: {
+                                    if (delegateItem.fileIsDir) {
+                                        Wallpapers.setDirectory(delegateItem.filePath);
+                                    } else {
+                                        Wallpapers.select(delegateItem.filePath);
+                                    }
                                 }
                             }
                         }
+                    }
+
+                    // Empty state
+                    PagePlaceholder {
+                        shown: Wallpapers.folderModel.count === 0
+                        icon: "image"
+                        description: Translation.tr("No images found")
+                        shape: MaterialShape.Shape.Cookie7Sided
                     }
                 }
             }
@@ -441,36 +465,49 @@ ContentPage {
         }
     }
 
-    NoticeBox {
-        Layout.fillWidth: true
-        text: Translation.tr('Not all options are available in this app. You should also check the config file by hitting the "Config file" button on the topleft corner or opening %1 manually.').arg(Directories.shellConfigPath)
+    // Quick Actions
+    ContentSection {
+        icon: "bolt"
+        title: Translation.tr("Quick Actions")
 
-        Item {
+        RowLayout {
             Layout.fillWidth: true
-        }
-        RippleButtonWithIcon {
-            id: copyPathButton
-            property bool justCopied: false
-            Layout.fillWidth: false
-            buttonRadius: Appearance.rounding.small
-            materialIcon: justCopied ? "check" : "content_copy"
-            mainText: justCopied ? Translation.tr("Path copied") : Translation.tr("Copy path")
-            onClicked: {
-                copyPathButton.justCopied = true
-                Quickshell.clipboardText = FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse/config.json`);
-                revertTextTimer.restart();
-            }
-            colBackground: ColorUtils.transparentize(Appearance.colors.colPrimaryContainer)
-            colBackgroundHover: Appearance.colors.colPrimaryContainerHover
-            colRipple: Appearance.colors.colPrimaryContainerActive
+            spacing: Appearance.sizes.spacingSmall
 
-            Timer {
-                id: revertTextTimer
-                interval: 1500
-                onTriggered: {
-                    copyPathButton.justCopied = false
-                }
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                buttonRadius: Appearance.rounding.small
+                materialIcon: "refresh"
+                mainText: Translation.tr("Reload shell")
+                onClicked: Quickshell.execDetached(["bash", "-c", "qs kill -c ii; sleep 0.3; qs -c ii &"])
+            }
+
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                buttonRadius: Appearance.rounding.small
+                materialIcon: "terminal"
+                mainText: Translation.tr("Open config")
+                onClicked: Qt.openUrlExternally(`${Directories.config}/illogical-impulse/config.json`)
+            }
+
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                buttonRadius: Appearance.rounding.small
+                materialIcon: "keyboard"
+                mainText: Translation.tr("Shortcuts")
+                onClicked: Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "cheatsheet", "toggle"])
             }
         }
+    }
+
+    // Subtle footer
+    StyledText {
+        Layout.fillWidth: true
+        Layout.topMargin: Appearance.sizes.spacingSmall
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: Appearance.font.pixelSize.smaller
+        color: Appearance.colors.colSubtext
+        opacity: 0.6
+        text: Translation.tr("More options in other tabs • Config: %1").arg(FileUtils.trimFileProtocol(Directories.shellConfigPath))
     }
 }

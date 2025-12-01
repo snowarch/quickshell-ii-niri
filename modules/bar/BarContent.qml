@@ -67,29 +67,36 @@ Item { // Bar content region
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
 
-        // Visual content
-        ScrollHint {
-            reveal: barLeftSideMouseArea.hovered
-            icon: "light_mode"
-            tooltipText: Translation.tr("Scroll to change brightness")
-            side: "left"
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
         RowLayout {
             id: leftSectionRowLayout
             anchors.fill: parent
             spacing: 10
 
-            LeftSidebarButton { // Left sidebar button
-                Layout.alignment: Qt.AlignVCenter
+            // Space for ScrollHint
+            Item {
+                Layout.preferredWidth: leftScrollHint.implicitWidth
+                Layout.fillHeight: true
                 Layout.leftMargin: Appearance.rounding.screenRounding
+
+                ScrollHint {
+                    id: leftScrollHint
+                    reveal: barLeftSideMouseArea.hovered
+                    icon: "light_mode"
+                    tooltipText: Translation.tr("Scroll to change brightness")
+                    side: "left"
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
+            LeftSidebarButton { // Left sidebar button
+                visible: Config.options.bar.modules.leftSidebarButton
+                Layout.alignment: Qt.AlignVCenter
                 colBackground: barLeftSideMouseArea.hovered ? Appearance.colors.colLayer1Hover : ColorUtils.transparentize(Appearance.colors.colLayer1Hover, 1)
             }
 
             ActiveWindow {
-                visible: root.useShortenedForm === 0
+                visible: Config.options.bar.modules.activeWindow && root.useShortenedForm === 0
                 Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -206,27 +213,34 @@ Item { // Bar content region
             }
         }
 
-        // Visual content
-        ScrollHint {
-            reveal: barRightSideMouseArea.hovered
-            icon: "volume_up"
-            tooltipText: Translation.tr("Scroll to change volume")
-            side: "right"
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
         RowLayout {
             id: rightSectionRowLayout
             anchors.fill: parent
             spacing: 5
             layoutDirection: Qt.RightToLeft
 
+            // Space for ScrollHint
+            Item {
+                Layout.preferredWidth: rightScrollHint.implicitWidth
+                Layout.fillHeight: true
+                Layout.rightMargin: Appearance.rounding.screenRounding
+
+                ScrollHint {
+                    id: rightScrollHint
+                    reveal: barRightSideMouseArea.hovered
+                    icon: "volume_up"
+                    tooltipText: Translation.tr("Scroll to change volume")
+                    side: "right"
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
             RippleButton { // Right sidebar button
                 id: rightSidebarButton
+                visible: Config.options.bar.modules.rightSidebarButton
 
                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: false
 
                 implicitWidth: indicatorsRowLayout.implicitWidth + 10 * 2
@@ -316,7 +330,7 @@ Item { // Bar content region
             }
 
             SysTray {
-                visible: root.useShortenedForm === 0
+                visible: Config.options.bar.modules.sysTray && root.useShortenedForm === 0
                 Layout.fillWidth: false
                 Layout.fillHeight: true
                 invertSide: Config?.options.bar.bottom
@@ -330,7 +344,7 @@ Item { // Bar content region
             // Weather
             Loader {
                 Layout.leftMargin: 4
-                active: Config.options.bar.weather.enable
+                active: Config.options.bar.modules.weather && Config.options.bar.weather.enable
 
                 sourceComponent: BarGroup {
                     WeatherBar {}

@@ -82,6 +82,7 @@ ApplicationWindow {
         }
     ]
     property int currentPage: 0
+    property bool uiReady: Config.ready && ThemeService.ready
 
     // Global settings search
     property string settingsSearchText: ""
@@ -420,15 +421,22 @@ ApplicationWindow {
     title: "illogical-impulse Settings"
 
     Component.onCompleted: {
-        MaterialThemeLoader.reapplyTheme()
         Config.readWriteDelay = 0 // Settings app always only sets one var at a time so delay isn't needed
+    }
+
+    // Apply theme when Config is ready
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) ThemeService.applyCurrentTheme()
+        }
     }
 
     minimumWidth: 750
     minimumHeight: 500
     width: 1100
     height: 750
-    color: Appearance.m3colors.m3background
+    color: root.uiReady ? Appearance.m3colors.m3background : "transparent"
 
     Shortcut {
         sequences: [StandardKey.Find]
@@ -440,6 +448,9 @@ ApplicationWindow {
             fill: parent
             margins: contentPadding
         }
+        visible: root.uiReady
+        opacity: visible ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 150 } }
 
         Keys.onPressed: (event) => {
             if (event.modifiers === Qt.ControlModifier) {

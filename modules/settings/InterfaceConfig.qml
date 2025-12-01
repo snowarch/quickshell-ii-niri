@@ -7,7 +7,7 @@ import qs.modules.common.widgets
 
 ContentPage {
     forceWidth: true
-    settingsPageIndex: 4
+    settingsPageIndex: 5
     settingsPageName: Translation.tr("Interface")
 
     ContentSection {
@@ -769,8 +769,9 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "image"
             text: Translation.tr('Enable Wallhaven sidebar')
-            checked: Config.options.sidebar.wallhaven.enable
+            checked: Config.options.sidebar?.wallhaven?.enable ?? false
             onCheckedChanged: {
+                if (!Config.options.sidebar.wallhaven) Config.options.sidebar.wallhaven = ({})
                 Config.options.sidebar.wallhaven.enable = checked;
             }
         }
@@ -778,21 +779,17 @@ ContentPage {
         ConfigSpinBox {
             icon: "format_list_numbered"
             text: Translation.tr("Wallhaven results per page")
-            value: Config.options.sidebar.wallhaven.limit
+            value: Config.options.sidebar?.wallhaven?.limit ?? 24
             from: 12
             to: 72
             stepSize: 4
             onValueChanged: {
+                if (!Config.options.sidebar.wallhaven) Config.options.sidebar.wallhaven = ({})
                 Config.options.sidebar.wallhaven.limit = value;
             }
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 8
-            Layout.rightMargin: 8
-            spacing: 10
-            
+        ConfigRow {
             MaterialSymbol {
                 text: "key"
                 iconSize: Appearance.font.pixelSize.larger
@@ -803,27 +800,15 @@ ContentPage {
                 font.pixelSize: Appearance.font.pixelSize.small
                 color: Appearance.colors.colOnSecondaryContainer
             }
-            TextField {
-                Layout.fillWidth: false
-                implicitWidth: 120
-                implicitHeight: 28
+            MaterialTextField {
+                Layout.preferredWidth: 180
                 placeholderText: "••••••"
-                text: Config.options.sidebar.wallhaven.apiKey
+                text: Config.options.sidebar?.wallhaven?.apiKey ?? ""
                 echoMode: TextInput.Password
-                font.pixelSize: Appearance.font.pixelSize.smallest
-                font.family: Appearance.font.family.main
-                color: Appearance.colors.colOnSecondaryContainer
-                placeholderTextColor: Appearance.colors.colSubtext
-                background: Rectangle {
-                    radius: Appearance.rounding.small
-                    color: Appearance.colors.colLayer2
-                    border.width: parent.activeFocus ? 1 : 0
-                    border.color: Appearance.m3colors.m3primary
+                onTextChanged: {
+                    if (!Config.options.sidebar.wallhaven) Config.options.sidebar.wallhaven = ({})
+                    Config.options.sidebar.wallhaven.apiKey = text
                 }
-                leftPadding: 8
-                rightPadding: 8
-                verticalAlignment: TextInput.AlignVCenter
-                onTextChanged: Config.options.sidebar.wallhaven.apiKey = text
             }
         }
 
@@ -933,7 +918,7 @@ ContentPage {
                     text: Translation.tr("When this is off you'll have to click")
                 }
             }
-            Row {
+            ConfigRow {
                 ConfigSwitch {
                     enabled: !Config.options.sidebar.cornerOpen.clickless
                     text: Translation.tr("Force hover open at absolute corner")
@@ -956,15 +941,8 @@ ContentPage {
                     onValueChanged: {
                         Config.options.sidebar.cornerOpen.clicklessCornerVerticalOffset = value;
                     }
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.NoButton
-                        StyledToolTip {
-                            extraVisibleCondition: mouseArea.containsMouse
-                            text: Translation.tr("Why this is cool:\nFor non-0 values, it won't trigger when you reach the\nscreen corner along the horizontal edge, but it will when\nyou do along the vertical edge")
-                        }
+                    StyledToolTip {
+                        text: Translation.tr("Why this is cool:\nFor non-0 values, it won't trigger when you reach the\nscreen corner along the horizontal edge, but it will when\nyou do along the vertical edge")
                     }
                 }
             }

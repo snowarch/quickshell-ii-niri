@@ -79,7 +79,7 @@ Item {
             color: Appearance.colors.colLayer2
             radius: Appearance.rounding.normal
             border.width: 1
-            border.color: Appearance.colors.colLayer2Border
+            border.color: Appearance.colors.colLayer2Hover ?? Appearance.m3colors.m3outlineVariant
         }
 
         ColumnLayout {

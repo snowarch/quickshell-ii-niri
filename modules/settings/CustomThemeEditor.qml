@@ -626,7 +626,7 @@ ColumnLayout {
                         id: exportTextArea
                         readOnly: true
                         text: JSON.stringify(Config.options.appearance.customTheme, null, 2)
-                        font.family: "monospace"
+                        font.family: Appearance.font.family.monospace
                         font.pixelSize: Appearance.font.pixelSize.smallest
                         color: Appearance.colors.colOnLayer2
                         wrapMode: TextArea.Wrap
@@ -750,7 +750,7 @@ ColumnLayout {
                     TextArea {
                         id: importTextArea
                         placeholderText: Translation.tr("Paste theme JSON here...")
-                        font.family: "monospace"
+                        font.family: Appearance.font.family.monospace
                         font.pixelSize: Appearance.font.pixelSize.smallest
                         color: Appearance.colors.colOnLayer2
                         wrapMode: TextArea.Wrap
@@ -904,7 +904,7 @@ ColumnLayout {
                         text: "~/.config/illogical-impulse/themes/"
                         font.pixelSize: Appearance.font.pixelSize.smallest
                         color: Appearance.colors.colSubtext
-                        font.family: "monospace"
+                        font.family: Appearance.font.family.monospace
                     }
                 }
 

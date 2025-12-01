@@ -67,10 +67,11 @@ MouseArea {
                     generateThumbnail: true
                     sourcePath: fileModelData.filePath
                     cache: true
+                    asynchronous: true
                     fillMode: Image.PreserveAspectCrop
                     clip: true
-                    sourceSize.width: imageContainer.width
-                    sourceSize.height: imageContainer.height
+                    sourceSize.width: 256  // Use standard thumbnail size
+                    sourceSize.height: 256
 
                     Connections {
                         target: Wallpapers

@@ -44,7 +44,7 @@ RowLayout {
         Layout.fillWidth: true
         text: root.currentColor.toString().toUpperCase().substring(0, 7)
         font.pixelSize: Appearance.font.pixelSize.smallest
-        font.family: "monospace"
+        font.family: Appearance.font.family.monospace
         color: Appearance.colors.colSubtext
     }
 

@@ -8,6 +8,7 @@ import QtQuick.Layouts
 
 Item {
     id: root
+    clip: true
 
     NotificationListView { // Scrollable window
         id: listview

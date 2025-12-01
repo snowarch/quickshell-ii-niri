@@ -1,0 +1,4 @@
+module qs.modules.sidebarRight.pomodoro
+PomodoroTimer 1.0 PomodoroTimer.qml
+PomodoroWidget 1.0 PomodoroWidget.qml
+Stopwatch 1.0 Stopwatch.qml

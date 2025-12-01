@@ -20,31 +20,24 @@ Scope {
 
         WlrLayershell.namespace: "quickshell:notificationPopup"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         exclusiveZone: 0
 
         anchors {
             top: true
             right: true
-            bottom: true
-        }
-
-        mask: Region {
-            item: listview.contentItem
         }
 
         color: "transparent"
         implicitWidth: Appearance.sizes.notificationPopupWidth
+        implicitHeight: Math.min(listview.contentHeight + 8, screen?.height * 0.8 ?? 600)
 
         NotificationListView {
             id: listview
             anchors {
-                top: parent.top
-                bottom: parent.bottom
-                right: parent.right
-                rightMargin: 4
-                topMargin: 4
+                fill: parent
+                margins: 4
             }
-            implicitWidth: parent.width - Appearance.sizes.elevationMargin * 2
             popup: true
         }
     }

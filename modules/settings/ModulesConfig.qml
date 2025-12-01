@@ -75,9 +75,11 @@ ContentPage {
                 }
 
                 onClicked: {
+                    Config.options.modules.altSwitcher = true
                     Config.options.modules.bar = true
                     Config.options.modules.background = true
                     Config.options.modules.cheatsheet = true
+                    Config.options.modules.clipboard = true
                     Config.options.modules.crosshair = false
                     Config.options.modules.dock = true
                     Config.options.modules.lock = true
@@ -108,7 +110,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "toolbar"
             text: Translation.tr("Bar")
-            checked: Config.options?.modules?.bar ?? true
+            checked: Config.options.modules.bar
             onCheckedChanged: Config.options.modules.bar = checked
             StyledToolTip { text: Translation.tr("Top/bottom bar with clock, workspaces, tray") }
         }
@@ -116,7 +118,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "wallpaper"
             text: Translation.tr("Background")
-            checked: Config.options?.modules?.background ?? true
+            checked: Config.options.modules.background
             onCheckedChanged: Config.options.modules.background = checked
             StyledToolTip { text: Translation.tr("Wallpaper and background widgets") }
         }
@@ -124,7 +126,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "overview_key"
             text: Translation.tr("Overview")
-            checked: Config.options?.modules?.overview ?? true
+            checked: Config.options.modules.overview
             onCheckedChanged: Config.options.modules.overview = checked
             StyledToolTip { text: Translation.tr("Workspace overview grid") }
         }
@@ -132,7 +134,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "layers"
             text: Translation.tr("Overlay")
-            checked: Config.options?.modules?.overlay ?? true
+            checked: Config.options.modules.overlay
             onCheckedChanged: Config.options.modules.overlay = checked
             StyledToolTip { text: Translation.tr("Search overlay and widgets") }
         }
@@ -145,7 +147,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "left_panel_open"
             text: Translation.tr("Left Sidebar")
-            checked: Config.options?.modules?.sidebarLeft ?? true
+            checked: Config.options.modules.sidebarLeft
             onCheckedChanged: Config.options.modules.sidebarLeft = checked
             StyledToolTip { text: Translation.tr("AI chat, translator, wallpaper browser") }
         }
@@ -153,7 +155,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "right_panel_open"
             text: Translation.tr("Right Sidebar")
-            checked: Config.options?.modules?.sidebarRight ?? true
+            checked: Config.options.modules.sidebarRight
             onCheckedChanged: Config.options.modules.sidebarRight = checked
             StyledToolTip { text: Translation.tr("Quick settings, calendar, notepad") }
         }
@@ -166,14 +168,14 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "notifications"
             text: Translation.tr("Notification Popup")
-            checked: Config.options?.modules?.notificationPopup ?? true
+            checked: Config.options.modules.notificationPopup
             onCheckedChanged: Config.options.modules.notificationPopup = checked
         }
 
         ConfigSwitch {
             buttonIcon: "tune"
             text: Translation.tr("On-Screen Display")
-            checked: Config.options?.modules?.onScreenDisplay ?? true
+            checked: Config.options.modules.onScreenDisplay
             onCheckedChanged: Config.options.modules.onScreenDisplay = checked
             StyledToolTip { text: Translation.tr("Volume/brightness indicators") }
         }
@@ -181,7 +183,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "play_circle"
             text: Translation.tr("Media Controls")
-            checked: Config.options?.modules?.mediaControls ?? true
+            checked: Config.options.modules.mediaControls
             onCheckedChanged: Config.options.modules.mediaControls = checked
         }
     }
@@ -193,7 +195,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "screenshot_frame"
             text: Translation.tr("Region Selector")
-            checked: Config.options?.modules?.regionSelector ?? true
+            checked: Config.options.modules.regionSelector
             onCheckedChanged: Config.options.modules.regionSelector = checked
             StyledToolTip { text: Translation.tr("Screenshot, OCR, screen recording") }
         }
@@ -201,14 +203,14 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "wallpaper_slideshow"
             text: Translation.tr("Wallpaper Selector")
-            checked: Config.options?.modules?.wallpaperSelector ?? true
+            checked: Config.options.modules.wallpaperSelector
             onCheckedChanged: Config.options.modules.wallpaperSelector = checked
         }
 
         ConfigSwitch {
             buttonIcon: "keyboard"
             text: Translation.tr("Keyboard Shortcuts")
-            checked: Config.options?.modules?.cheatsheet ?? true
+            checked: Config.options.modules.cheatsheet
             onCheckedChanged: Config.options.modules.cheatsheet = checked
             StyledToolTip { text: Translation.tr("Keybindings cheatsheet overlay") }
         }
@@ -216,7 +218,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "power_settings_new"
             text: Translation.tr("Session Screen")
-            checked: Config.options?.modules?.sessionScreen ?? true
+            checked: Config.options.modules.sessionScreen
             onCheckedChanged: Config.options.modules.sessionScreen = checked
             StyledToolTip { text: Translation.tr("Lock, logout, suspend, reboot, shutdown") }
         }
@@ -224,7 +226,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "lock"
             text: Translation.tr("Lock Screen")
-            checked: Config.options?.modules?.lock ?? true
+            checked: Config.options.modules.lock
             onCheckedChanged: Config.options.modules.lock = checked
         }
     }
@@ -236,7 +238,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "call_to_action"
             text: Translation.tr("Dock")
-            checked: Config.options?.modules?.dock ?? true
+            checked: Config.options.modules.dock
             onCheckedChanged: Config.options.modules.dock = checked
             StyledToolTip { text: Translation.tr("Bottom dock with pinned apps") }
         }
@@ -244,7 +246,7 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "point_scan"
             text: Translation.tr("Crosshair")
-            checked: Config.options?.modules?.crosshair ?? false
+            checked: Config.options.modules.crosshair
             onCheckedChanged: Config.options.modules.crosshair = checked
             StyledToolTip { text: Translation.tr("Gaming crosshair overlay") }
         }
@@ -252,14 +254,14 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "keyboard"
             text: Translation.tr("On-Screen Keyboard")
-            checked: Config.options?.modules?.onScreenKeyboard ?? true
+            checked: Config.options.modules.onScreenKeyboard
             onCheckedChanged: Config.options.modules.onScreenKeyboard = checked
         }
 
         ConfigSwitch {
             buttonIcon: "security"
             text: Translation.tr("Polkit Agent")
-            checked: Config.options?.modules?.polkit ?? true
+            checked: Config.options.modules.polkit
             onCheckedChanged: Config.options.modules.polkit = checked
             StyledToolTip { text: Translation.tr("Authentication dialogs for sudo, etc.") }
         }
@@ -267,9 +269,25 @@ ContentPage {
         ConfigSwitch {
             buttonIcon: "rounded_corner"
             text: Translation.tr("Screen Corners")
-            checked: Config.options?.modules?.screenCorners ?? true
+            checked: Config.options.modules.screenCorners
             onCheckedChanged: Config.options.modules.screenCorners = checked
             StyledToolTip { text: Translation.tr("Rounded screen corner overlays") }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "swap_horiz"
+            text: Translation.tr("Alt-Tab Switcher")
+            checked: Config.options.modules.altSwitcher
+            onCheckedChanged: Config.options.modules.altSwitcher = checked
+            StyledToolTip { text: Translation.tr("Custom window switcher") }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "content_paste"
+            text: Translation.tr("Clipboard Manager")
+            checked: Config.options.modules.clipboard
+            onCheckedChanged: Config.options.modules.clipboard = checked
+            StyledToolTip { text: Translation.tr("Clipboard history panel") }
         }
     }
 }
