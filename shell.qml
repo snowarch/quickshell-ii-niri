@@ -56,6 +56,7 @@ ShellRoot {
     // False = not loaded at all, so rest assured no unnecessary stuff will take up memory.
     // Force Idle singleton instantiation (lazy singletons need a reference)
     property var _idleService: Idle
+    property var _gameModeService: GameMode
     
     property bool enableBar: Config.options?.modules?.bar ?? true
     property bool enableBackground: Config.options?.modules?.background ?? true

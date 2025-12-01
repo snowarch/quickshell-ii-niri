@@ -18,9 +18,10 @@ Item {
     DropShadow {
         source: quoteBox 
         anchors.fill: quoteBox
+        visible: Appearance.effectsEnabled
         horizontalOffset: 0
         verticalOffset: 2
-        radius: Appearance.rounding.small
+        radius: Appearance.effectsEnabled ? Appearance.rounding.small : 0
         samples: radius * 2 + 1
         color: Appearance.colors.colShadow
         transparentBorder: true

@@ -124,7 +124,7 @@ Item { // Player instance
             antialiasing: true
             asynchronous: true
 
-            layer.enabled: true
+            layer.enabled: Appearance.effectsEnabled
             layer.effect: StyledBlurEffect {
                 source: blurredArt
             }

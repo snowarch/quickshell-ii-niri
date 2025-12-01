@@ -185,13 +185,10 @@ Variants {
                     bgRoot.wallpaperWidth = width;
                     bgRoot.wallpaperHeight = height;
 
-                    if (width <= screenWidth || height <= screenHeight) {
-                        // Undersized/perfectly sized wallpapers
-                        bgRoot.effectiveWallpaperScale = Math.max(screenWidth / width, screenHeight / height);
-                    } else {
-                        // Oversized = can be zoomed for parallax, yay
-                        bgRoot.effectiveWallpaperScale = Math.min(bgRoot.preferredWallpaperScale, width / screenWidth, height / screenHeight);
-                    }
+                    // Base scale to fill screen
+                    const baseScale = Math.max(screenWidth / width, screenHeight / height);
+                    // Apply preferred zoom on top for parallax effect
+                    bgRoot.effectiveWallpaperScale = baseScale * bgRoot.preferredWallpaperScale;
                 }
             }
         }
@@ -229,8 +226,10 @@ Variants {
                             : (bgRoot.monitor?.activeWorkspace?.id ?? 1);
                         result = ((wsId - lower) / range);
                     }
+                    // Sidebar parallax always affects X axis
                     if (Config.options.background.parallax.enableSidebar) {
-                        result += (0.15 * GlobalStates.sidebarRightOpen - 0.15 * GlobalStates.sidebarLeftOpen);
+                        const sidebarOffset = 0.15 * (GlobalStates.sidebarRightOpen ? 1 : 0) - 0.15 * (GlobalStates.sidebarLeftOpen ? 1 : 0);
+                        result += sidebarOffset;
                     }
                     return result;
                 }
@@ -276,7 +275,7 @@ Variants {
                 z: 1
                 // Disable when lock blur is active so lock state owns the effect
                 active: Config.options.background.effects.enableBlur
-                        && !Config.options.performance.lowPower
+                        && Appearance.effectsEnabled
                         && Config.options.background.effects.blurRadius > 0
                         && !blurLoader.active
                 anchors.fill: wallpaper

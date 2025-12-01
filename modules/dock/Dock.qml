@@ -108,7 +108,8 @@ Scope { // Scope
                             source: dockVisualBackground
                             visible: !Config.options.dock.showBackground
                                      && Config.options.dock.enableBlurGlass
-                            blurEnabled: visible && !Config.options.performance.lowPower
+                                     && Appearance.effectsEnabled
+                            blurEnabled: visible
                             blur: 0.4
                             blurMax: 64
                             saturation: 1.0

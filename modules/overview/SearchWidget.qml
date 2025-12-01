@@ -269,6 +269,13 @@ Item { // Wrapper
                 KeyNavigation.up: searchBar
                 highlightMoveDuration: 100
 
+                Behavior on implicitHeight {
+                    NumberAnimation {
+                        duration: 150
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
                 onFocusChanged: {
                     if (focus)
                         appResults.currentIndex = 1;

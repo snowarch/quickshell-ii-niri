@@ -41,7 +41,7 @@ Singleton {
     property real contentTransparency: Config?.options?.appearance?.transparency?.enable ? Config?.options?.appearance?.transparency?.automatic ? autoContentTransparency : (Config?.options?.appearance?.transparency?.contentTransparency ?? 0) : 0
 
     // GameMode integration - disable effects/animations when fullscreen detected
-    property bool _gameModeActive: GameMode.active
+    property bool _gameModeActive: GameMode?.active ?? false
     property bool _gameModeDisablesEffects: _gameModeActive && (Config.options?.gameMode?.disableEffects ?? true)
     property bool _gameModeDisablesAnimations: _gameModeActive && (Config.options?.gameMode?.disableAnimations ?? true)
 

@@ -62,12 +62,12 @@ Canvas { // Visualizer
         ctx.fill();
     }
 
-    layer.enabled: true
+    layer.enabled: Appearance.effectsEnabled
     layer.effect: MultiEffect { // Blur a bit to obscure away the points
         source: root
         saturation: 0.2
-        blurEnabled: true
+        blurEnabled: Appearance.effectsEnabled
         blurMax: 7
-        blur: 1
+        blur: Appearance.effectsEnabled ? 1 : 0
     }
 }

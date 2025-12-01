@@ -279,15 +279,16 @@ Item {
                             FastBlur {
                                 anchors.fill: parent
                                 source: workspaceWallpaperSource
+                                visible: Appearance.effectsEnabled
                                 radius: {
                                     const ov = Config.options.overview
-                                    if (!ov || ov.backgroundBlurEnable === false || Config.options.performance.lowPower)
+                                    if (!ov || ov.backgroundBlurEnable === false || !Appearance.effectsEnabled)
                                         return 0
                                     const r = (ov.backgroundBlurRadius !== undefined) ? ov.backgroundBlurRadius : 22
                                     return r * root.scale
                                 }
                                 transparentBorder: true
-                                layer.enabled: true
+                                layer.enabled: Appearance.effectsEnabled
                                 layer.effect: OpacityMask {
                                     maskSource: Rectangle {
                                         width: workspace.width

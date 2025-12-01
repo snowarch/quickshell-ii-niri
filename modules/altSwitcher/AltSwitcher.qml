@@ -336,7 +336,7 @@ Scope {
                 z: 0.5
                 anchors.fill: panelBackground
                 source: panelBackground
-                visible: !root.compactStyle && Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && !Config.options.performance.lowPower && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
+                visible: !root.compactStyle && Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && Appearance.effectsEnabled && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
                 blurEnabled: true
                 blur: Config.options.altSwitcher && Config.options.altSwitcher.blurAmount !== undefined ? Config.options.altSwitcher.blurAmount : 0.4
                 blurMax: 64

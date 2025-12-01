@@ -118,11 +118,11 @@ Scope {
                 id: blurEffect
                 anchors.fill: parent
                 source: wallpaperSource
-                blurEnabled: true
-                blur: 1.0
+                blurEnabled: Appearance.effectsEnabled
+                blur: Appearance.effectsEnabled ? 1.0 : 0
                 blurMax: 64
                 blurMultiplier: 1.0
-                saturation: 0.2
+                saturation: Appearance.effectsEnabled ? 0.2 : 0
                 opacity: root.cheatsheetOpen ? 1 : 0
                 
                 Behavior on opacity {

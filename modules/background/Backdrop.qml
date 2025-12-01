@@ -62,7 +62,6 @@ Variants {
                 blurEnabled: Appearance.effectsEnabled
                              && Config.options.background.backdrop.enable
                              && Config.options.background.backdrop.blurRadius > 0
-                             && !Config.options.performance.lowPower
                 blur: Config.options.background.backdrop.blurRadius / 100.0
                 blurMax: 64
                 saturation: Appearance.effectsEnabled ? Config.options.background.backdrop.saturation : 0

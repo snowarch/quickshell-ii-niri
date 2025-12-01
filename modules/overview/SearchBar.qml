@@ -74,7 +74,7 @@ RowLayout {
             id: searchWidthBehavior
             enabled: root.animateWidth
             NumberAnimation {
-                duration: Appearance.animation.elementMoveFast.duration
+                duration: 150
                 easing.type: Easing.OutCubic
             }
         }

@@ -168,7 +168,7 @@ Item {
         onTriggered: root.copied = false
     }
     
-    layer.enabled: true
+    layer.enabled: Appearance.effectsEnabled
     layer.effect: DropShadow {
         horizontalOffset: 0
         verticalOffset: 4
