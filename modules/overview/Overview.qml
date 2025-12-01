@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import Qt.labs.synchronizer
 import QtQuick
 import QtQuick.Controls
@@ -52,7 +53,7 @@ Scope {
                     const v = (ov && ov.scrimDim !== undefined) ? ov.scrimDim : 35
                     const clamped = Math.max(0, Math.min(100, v))
                     const a = clamped / 100
-                    return Qt.rgba(0, 0, 0, a)
+                    return ColorUtils.transparentize(Appearance.m3colors.m3background, 1 - a)
                 }
                 opacity: GlobalStates.overviewOpen ? 1 : 0
                 visible: opacity > 0.001

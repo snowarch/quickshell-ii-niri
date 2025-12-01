@@ -67,15 +67,14 @@ Item { // Bar content region
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
 
-        // ScrollHint as overlay - doesn't affect layout
+        // ScrollHint as overlay - at the inner edge of the margin space
         ScrollHint {
             id: leftScrollHint
             reveal: barLeftSideMouseArea.hovered
             icon: "light_mode"
             tooltipText: Translation.tr("Scroll to change brightness")
             side: "left"
-            anchors.left: parent.left
-            anchors.leftMargin: Appearance.rounding.screenRounding
+            x: Appearance.rounding.screenRounding - implicitWidth - Appearance.sizes.spacingSmall
             anchors.verticalCenter: parent.verticalCenter
             z: 1
         }
@@ -210,15 +209,14 @@ Item { // Bar content region
             }
         }
 
-        // ScrollHint as overlay - doesn't affect layout
+        // ScrollHint as overlay - at the inner edge of the margin space
         ScrollHint {
             id: rightScrollHint
             reveal: barRightSideMouseArea.hovered
             icon: "volume_up"
             tooltipText: Translation.tr("Scroll to change volume")
             side: "right"
-            anchors.right: parent.right
-            anchors.rightMargin: Appearance.rounding.screenRounding
+            x: parent.width - Appearance.rounding.screenRounding + Appearance.sizes.spacingSmall
             anchors.verticalCenter: parent.verticalCenter
             z: 1
         }

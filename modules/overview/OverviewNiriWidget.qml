@@ -310,7 +310,7 @@ Item {
                                     const v = base + delta
                                     const clamped = Math.max(0, Math.min(100, v))
                                     const a = clamped / 100
-                                    return Qt.rgba(0, 0, 0, a)
+                                    return ColorUtils.transparentize(Appearance.m3colors.m3background, 1 - a)
                                 }
                                 topLeftRadius: workspace.topLeftRadius
                                 topRightRadius: workspace.topRightRadius
