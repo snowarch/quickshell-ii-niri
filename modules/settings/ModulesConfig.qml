@@ -289,5 +289,13 @@ ContentPage {
             onCheckedChanged: Config.options.modules.clipboard = checked
             StyledToolTip { text: Translation.tr("Clipboard history panel") }
         }
+
+        ConfigSwitch {
+            buttonIcon: "refresh"
+            text: Translation.tr("Reload Popup")
+            checked: Config.options.modules.reloadPopup
+            onCheckedChanged: Config.options.modules.reloadPopup = checked
+            StyledToolTip { text: Translation.tr("Show popup when shell reloads (blocks input until dismissed)") }
+        }
     }
 }
