@@ -78,6 +78,16 @@ Singleton {
 
         JsonAdapter {
             id: configOptionsJsonAdapter
+            
+            // Panel system
+            property list<string> enabledPanels: [
+                "iiBar", "iiBackground", "iiCheatsheet", "iiDock", "iiLock", "iiMediaControls", 
+                "iiNotificationPopup", "iiOnScreenDisplay", "iiOnScreenKeyboard", "iiOverlay", 
+                "iiOverview", "iiPolkit", "iiRegionSelector", "iiScreenCorners", "iiSessionScreen", 
+                "iiSidebarLeft", "iiSidebarRight", "iiVerticalBar", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
+            ]
+            property string panelFamily: "ii" // "ii" or "waffle"
+            
             property JsonObject policies: JsonObject {
                 property int ai: 1 // 0: No | 1: Yes | 2: Local
                 property int weeb: 1 // 0: No | 1: Open | 2: Closet
@@ -764,6 +774,78 @@ Singleton {
                 property int arbitraryRaceConditionDelay: 20 // milliseconds
             }
 
+            property JsonObject tray: JsonObject {
+                property bool monochromeIcons: true
+                property bool showItemId: false
+                property bool invertPinnedItems: true
+                property list<string> pinnedItems: [ ]
+                property bool filterPassive: true
+            }
+            property JsonObject updates: JsonObject {
+                property int checkInterval: 120
+                property int adviseUpdateThreshold: 75
+                property int stronglyAdviseUpdateThreshold: 200
+            }
+            property JsonObject waffles: JsonObject {
+                property JsonObject tweaks: JsonObject {
+                    property bool smootherMenuAnimations: true
+                    property bool switchHandlePositionFix: true
+                }
+                property JsonObject background: JsonObject {
+                    property string wallpaperPath: "" // Empty = use main wallpaper
+                    property bool useMainWallpaper: true
+                    property JsonObject effects: JsonObject {
+                        property bool enableBlur: false
+                        property int blurRadius: 32
+                        property int blurStatic: 0
+                        property int dim: 0
+                        property int dynamicDim: 0
+                    }
+                    property JsonObject backdrop: JsonObject {
+                        property bool enable: false
+                        property bool hideWallpaper: false
+                        property bool useMainWallpaper: true
+                        property string wallpaperPath: ""
+                        property int blurRadius: 32
+                        property int dim: 35
+                        property real saturation: 1.0
+                        property real contrast: 1.0
+                        property bool vignetteEnabled: false
+                        property real vignetteIntensity: 0.5
+                        property real vignetteRadius: 0.7
+                    }
+                }
+                property JsonObject bar: JsonObject {
+                    property bool bottom: true
+                    property bool leftAlignApps: false
+                    property bool monochromeIcons: false
+                    property bool tintTrayIcons: false
+                }
+                property JsonObject actionCenter: JsonObject {
+                    property list<string> toggles: [ "network", "bluetooth", "easyEffects", "powerProfile", "idleInhibitor", "nightLight", "darkMode", "antiFlashbang", "cloudflareWarp", "mic", "musicRecognition", "notifications", "onScreenKeyboard", "gameMode", "screenSnip", "colorPicker" ]
+                }
+                property JsonObject calendar: JsonObject {
+                    property bool force2CharDayOfWeek: true
+                    property string locale: ""
+                }
+                property JsonObject theming: JsonObject {
+                    property bool useMaterialColors: false // Use Material ii colors instead of W11 grey
+                }
+                property JsonObject behavior: JsonObject {
+                    property bool allowMultiplePanels: false // Allow multiple panels open at once (for screenshots)
+                }
+                property JsonObject startMenu: JsonObject {
+                    property string sizePreset: "normal" // compact, normal, large, wide
+                }
+                property JsonObject widgetsPanel: JsonObject {
+                    property bool showDateTime: true
+                    property bool showWeather: true
+                    property bool showSystem: true
+                    property bool showMedia: true
+                    property bool showQuickActions: true
+                    property bool weatherHideLocation: false // Privacy: hide city name
+                }
+            }
             property JsonObject workSafety: JsonObject {
                 property JsonObject enable: JsonObject {
                     property bool wallpaper: false

@@ -27,6 +27,36 @@ Variants {
 
         required property var modelData
 
+        // Determine which config to use based on panel family
+        readonly property bool isWaffleMode: Config.options?.panelFamily === "waffle"
+        
+        // Helper to get the effective background config (Material ii or Waffle)
+        readonly property var bgConfig: {
+            if (isWaffleMode && Config.options?.waffles?.background) {
+                // For Waffle: check if using main wallpaper or custom
+                const waffleBg = Config.options.waffles.background;
+                if (waffleBg.useMainWallpaper) {
+                    // Use main wallpaper path but Waffle effects
+                    return {
+                        wallpaperPath: Config.options.background.wallpaperPath,
+                        thumbnailPath: Config.options.background.thumbnailPath,
+                        effects: waffleBg.effects,
+                        backdrop: waffleBg.backdrop,
+                        parallax: Config.options.background.parallax // Share parallax settings
+                    };
+                }
+                return {
+                    wallpaperPath: waffleBg.wallpaperPath || Config.options.background.wallpaperPath,
+                    thumbnailPath: Config.options.background.thumbnailPath,
+                    effects: waffleBg.effects,
+                    backdrop: waffleBg.backdrop,
+                    parallax: Config.options.background.parallax
+                };
+            }
+            // Default: Material ii config
+            return Config.options.background;
+        }
+
         // Hide when fullscreen
         property list<HyprlandWorkspace> workspacesForMonitor: CompositorService.isHyprland ? Hyprland.workspaces.values.filter(workspace => workspace.monitor && workspace.monitor.name == monitor.name) : []
         property var activeWorkspaceWithFullscreen: workspacesForMonitor.filter(workspace => ((workspace.toplevels.values.filter(window => window.wayland?.fullscreen)[0] != undefined) && workspace.active))[0]
@@ -68,7 +98,7 @@ Variants {
         
         // Backdrop mode: when hideWallpaper is true, main wallpaper and its effects are disabled
         // Only the Backdrop layer (separate component) is shown
-        readonly property bool backdropActive: Config.options?.background?.backdrop?.hideWallpaper ?? false
+        readonly property bool backdropActive: bgConfig?.backdrop?.hideWallpaper ?? false
         
         // Colors
         property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
@@ -131,10 +161,11 @@ Variants {
         // Progreso de blur: combina un blur estático base (blurStatic) con el componente dinámico
         // ligado a ventanas en el workspace actual.
         property real blurProgress: {
-            if (!(Config.options.background.effects.enableBlur && Config.options.background.effects.blurRadius > 0))
+            const effects = bgConfig?.effects;
+            if (!(effects?.enableBlur && (effects?.blurRadius ?? 0) > 0))
                 return 0;
 
-            const rawBase = Number(Config.options.background.effects.blurStatic);
+            const rawBase = Number(effects?.blurStatic ?? 0);
             const base = Number.isFinite(rawBase)
                     ? Math.max(0, Math.min(100, rawBase))
                     : 0;
@@ -280,22 +311,22 @@ Variants {
                 id: blurAlwaysLoader
                 z: 1
                 // Disable when lock blur is active, backdrop mode, or low power
-                active: Config.options?.background?.effects?.enableBlur
+                active: bgRoot.bgConfig?.effects?.enableBlur
                         && !Config.options?.performance?.lowPower
-                        && (Config.options?.background?.effects?.blurRadius ?? 0) > 0
+                        && (bgRoot.bgConfig?.effects?.blurRadius ?? 0) > 0
                         && !blurLoader.active
                         && !bgRoot.backdropActive
                 anchors.fill: wallpaper
                 sourceComponent: Item {
                     anchors.fill: parent
                     opacity: bgRoot.wallpaperIsVideo
-                              ? bgRoot.blurProgress * Math.max(0, Math.min(1, Config.options.background.effects.videoBlurStrength / 100))
+                              ? bgRoot.blurProgress * Math.max(0, Math.min(1, bgRoot.bgConfig?.effects?.videoBlurStrength ?? 50) / 100)
                               : bgRoot.blurProgress
 
                     GaussianBlur {
                         anchors.fill: parent
                         source: wallpaper
-                        radius: Config.options.background.effects.blurRadius
+                        radius: bgRoot.bgConfig?.effects?.blurRadius ?? 32
                         samples: radius * 2 + 1
                     }
                 }
@@ -333,13 +364,13 @@ Variants {
             Rectangle {
                 id: dimOverlay
                 anchors.fill: parent
+                // Hide completely when backdrop is active - backdrop has its own dim layer
                 visible: !bgRoot.backdropActive
-                // Use alpha in color instead of relying on opacity to avoid composition quirks
+                z: 10
                 color: {
-                    if (bgRoot.backdropActive) return "transparent";
-                    
-                    const baseV = Config?.options?.background?.effects?.dim;
-                    const dynV = Config?.options?.background?.effects?.dynamicDim;
+                    const effects = bgRoot.bgConfig?.effects;
+                    const baseV = effects?.dim;
+                    const dynV = effects?.dynamicDim;
                     const baseN = Number(baseV);
                     const dynN = Number(dynV);
                     const baseSafe = Number.isFinite(baseN) ? baseN : 0;
@@ -354,8 +385,6 @@ Variants {
                     const a = total / 100;
                     return Qt.rgba(0, 0, 0, a);
                 }
-                z: 10
-                opacity: 1
                 Behavior on color {
                     ColorAnimation { duration: 220 }
                 }
@@ -364,18 +393,22 @@ Variants {
             WidgetCanvas {
                 id: widgetCanvas
                 z: 20
+                // When backdrop mode is active (hideWallpaper), widgets anchor to parent instead of wallpaper
+                // This allows widgets to work even when the main wallpaper is hidden
                 anchors {
-                    left: wallpaper.left
-                    right: wallpaper.right
-                    top: wallpaper.top
-                    bottom: wallpaper.bottom
+                    left: bgRoot.backdropActive ? parent.left : wallpaper.left
+                    right: bgRoot.backdropActive ? parent.right : wallpaper.right
+                    top: bgRoot.backdropActive ? parent.top : wallpaper.top
+                    bottom: bgRoot.backdropActive ? parent.bottom : wallpaper.bottom
                     readonly property real parallaxFactor: Config.options.background.parallax.widgetsFactor
                     leftMargin: {
+                        if (bgRoot.backdropActive) return 0;
                         const xOnWallpaper = bgRoot.movableXSpace;
                         const extraMove = (wallpaper.effectiveValueX * 2 * bgRoot.movableXSpace) * (parallaxFactor - 1);
                         return xOnWallpaper - extraMove;
                     }
                     topMargin: {
+                        if (bgRoot.backdropActive) return 0;
                         const yOnWallpaper = bgRoot.movableYSpace;
                         const extraMove = (wallpaper.effectiveValueY * 2 * bgRoot.movableYSpace) * (parallaxFactor - 1);
                         return yOnWallpaper - extraMove;
@@ -387,11 +420,12 @@ Variants {
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                     }
                 }
-                width: wallpaper.width
-                height: wallpaper.height
+                width: bgRoot.backdropActive ? parent.width : wallpaper.width
+                height: bgRoot.backdropActive ? parent.height : wallpaper.height
                 states: State {
                     name: "centered"
-                    when: GlobalStates.screenLocked || bgRoot.wallpaperSafetyTriggered
+                    // Also center widgets when in backdrop-only mode
+                    when: GlobalStates.screenLocked || bgRoot.wallpaperSafetyTriggered || bgRoot.backdropActive
                     PropertyChanges {
                         target: widgetCanvas
                         width: parent.width
@@ -404,8 +438,6 @@ Variants {
                             right: undefined
                             top: undefined
                             bottom: undefined
-                            // horizontalCenter: parent.horizontalCenter
-                            // verticalCenter: parent.verticalCenter
                         }
                     }
                 }

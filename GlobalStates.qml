@@ -30,9 +30,53 @@ Singleton {
     property bool superDown: false
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
+    // Selection targets: "main", "backdrop", "waffle", "waffle-backdrop"
+    property string wallpaperSelectionTarget: "main"
+    onWallpaperSelectorOpenChanged: {
+        // Reset selection target when selector closes without selection
+        if (!wallpaperSelectorOpen) {
+            wallpaperSelectionTarget = "main";
+        }
+    }
     property bool cheatsheetOpen: false
     property bool workspaceShowNumbers: false
     property var activeBooruImageMenu: null  // Track which BooruImage has its menu open
+    // Waffle-specific states
+    property bool searchOpen: false
+    property bool waffleActionCenterOpen: false
+    property bool waffleNotificationCenterOpen: false
+    property bool waffleWidgetsOpen: false
+
+    // Close other waffle popups when one opens (unless allowMultiplePanels is enabled)
+    property bool _allowMultiple: Config.options?.waffles?.behavior?.allowMultiplePanels ?? false
+    onSearchOpenChanged: {
+        if (searchOpen && !_allowMultiple) {
+            waffleActionCenterOpen = false
+            waffleNotificationCenterOpen = false
+            waffleWidgetsOpen = false
+        }
+    }
+    onWaffleActionCenterOpenChanged: {
+        if (waffleActionCenterOpen && !_allowMultiple) {
+            searchOpen = false
+            waffleNotificationCenterOpen = false
+            waffleWidgetsOpen = false
+        }
+    }
+    onWaffleNotificationCenterOpenChanged: {
+        if (waffleNotificationCenterOpen && !_allowMultiple) {
+            searchOpen = false
+            waffleActionCenterOpen = false
+            waffleWidgetsOpen = false
+        }
+    }
+    onWaffleWidgetsOpenChanged: {
+        if (waffleWidgetsOpen && !_allowMultiple) {
+            searchOpen = false
+            waffleActionCenterOpen = false
+            waffleNotificationCenterOpen = false
+        }
+    }
 
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {

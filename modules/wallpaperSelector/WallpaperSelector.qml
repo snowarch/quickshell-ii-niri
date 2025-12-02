@@ -86,10 +86,6 @@ Scope {
             Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode);
             return;
         }
-        // Reset selection target to main wallpaper when toggling via keybind/IPC
-        if (!GlobalStates.wallpaperSelectorOpen) {
-            Config.options.wallpaperSelector.selectionTarget = "main";
-        }
         GlobalStates.wallpaperSelectorOpen = !GlobalStates.wallpaperSelectorOpen
     }
 

@@ -104,6 +104,96 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "style"
+        title: Translation.tr("Panel Style")
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Choose between different panel styles. Changes require shell restart.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.smaller
+            wrapMode: Text.WordWrap
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            RippleButton {
+                Layout.fillWidth: true
+                implicitHeight: 64
+                buttonRadius: Appearance.rounding.small
+                colBackground: Config.options.panelFamily === "ii" ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer1
+                colBackgroundHover: Config.options.panelFamily === "ii" ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer1Hover
+                colRipple: Config.options.panelFamily === "ii" ? Appearance.colors.colPrimaryContainerActive : Appearance.colors.colLayer1Active
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 4
+                    MaterialSymbol {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "dashboard"
+                        iconSize: Appearance.font.pixelSize.larger
+                        color: Config.options.panelFamily === "ii" ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
+                    }
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "Material (ii)"
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Config.options.panelFamily === "ii" ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
+                    }
+                }
+
+                onClicked: {
+                    Config.options.panelFamily = "ii"
+                    Config.options.enabledPanels = [
+                        "iiBar", "iiBackground", "iiBackdrop", "iiCheatsheet", "iiDock", "iiLock", 
+                        "iiMediaControls", "iiNotificationPopup", "iiOnScreenDisplay", "iiOnScreenKeyboard", 
+                        "iiOverlay", "iiOverview", "iiPolkit", "iiRegionSelector", "iiScreenCorners", 
+                        "iiSessionScreen", "iiSidebarLeft", "iiSidebarRight", "iiVerticalBar", 
+                        "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
+                    ]
+                }
+            }
+
+            RippleButton {
+                Layout.fillWidth: true
+                implicitHeight: 64
+                buttonRadius: Appearance.rounding.small
+                colBackground: Config.options.panelFamily === "waffle" ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer1
+                colBackgroundHover: Config.options.panelFamily === "waffle" ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer1Hover
+                colRipple: Config.options.panelFamily === "waffle" ? Appearance.colors.colPrimaryContainerActive : Appearance.colors.colLayer1Active
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 4
+                    MaterialSymbol {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "window"
+                        iconSize: Appearance.font.pixelSize.larger
+                        color: Config.options.panelFamily === "waffle" ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
+                    }
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "Windows 11 (waffle)"
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Config.options.panelFamily === "waffle" ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
+                    }
+                }
+
+                onClicked: {
+                    Config.options.panelFamily = "waffle"
+                    Config.options.enabledPanels = [
+                        "wBar", "wBackground", "wStartMenu", "wActionCenter", "wNotificationCenter", "wOnScreenDisplay",
+                        "iiCheatsheet", "iiLock", "iiOnScreenKeyboard", "iiOverlay", "iiPolkit", 
+                        "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
+                    ]
+                }
+            }
+        }
+    }
+
+    ContentSection {
         icon: "dashboard"
         title: Translation.tr("Core Modules")
 

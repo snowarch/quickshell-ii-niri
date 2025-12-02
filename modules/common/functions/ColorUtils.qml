@@ -167,4 +167,9 @@ Singleton {
         var newL = Math.max(0, c.hslLightness - amount);
         return Qt.hsla(c.hslHue, c.hslSaturation, newL, c.a);
     }
+
+    function isDark(color) {
+        var c = Qt.color(color);
+        return c.hslLightness < 0.5;
+    }
 }

@@ -1,7 +1,6 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.functions
-import "notification_utils.js" as NotificationUtils
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -22,7 +21,7 @@ MouseArea { // Notification group area
     property real padding: 10
     implicitHeight: background.implicitHeight
 
-    property real dragConfirmThreshold: 70 // Drag further to discard notification
+    property real dragConfirmThreshold: 40 // Drag to discard notification
     property real dismissOvershoot: 20 // Account for gaps and bouncy animations
     property var qmlParent: root?.parent?.parent // There's something between this and the parent ListView
     property var parentDragIndex: qmlParent?.dragIndex
@@ -43,12 +42,10 @@ MouseArea { // Notification group area
     hoverEnabled: true
     onContainsMouseChanged: {
         if (!root.popup) return;
-        if (root.containsMouse) {
-            root.notifications.forEach(notif => {
-                Notifications.cancelTimeout(notif.notificationId);
-            });
-        }
-        // Don't immediately hide on mouse leave - let the timer handle it naturally
+        if (root.containsMouse) root.notifications.forEach(notif => {
+            Notifications.cancelTimeout(notif.notificationId);
+        });
+        // Don't restart timeout on mouse leave - let them stay visible
     }
 
     SequentialAnimation { // Drag finish animation
@@ -74,8 +71,6 @@ MouseArea { // Notification group area
     }
 
     function toggleExpanded() {
-        if (expanded) implicitHeightAnim.enabled = true;
-        else implicitHeightAnim.enabled = false;
         root.expanded = !root.expanded;
     }
 
@@ -139,13 +134,13 @@ MouseArea { // Notification group area
         }
         
         clip: true
-        implicitHeight: expanded ? 
+        implicitHeight: root.expanded ? 
             row.implicitHeight + padding * 2 :
-            row.implicitHeight + padding * 2
+            Math.min(80, row.implicitHeight + padding * 2)
 
         Behavior on implicitHeight {
             id: implicitHeightAnim
-            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            NumberAnimation { duration: 10; easing.type: Easing.OutCubic }
         }
 
         RowLayout { // Left column for icon, right column for content
@@ -160,8 +155,8 @@ MouseArea { // Notification group area
                 Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: false
                 image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
-                appIcon: notificationGroup?.appIcon
-                summary: notificationGroup?.notifications[root.notificationCount - 1]?.summary
+                appIcon: root.notificationGroup?.appIcon
+                summary: root.notificationGroup?.notifications[root.notificationCount - 1]?.summary
                 urgency: root.notifications.some(n => n.urgency === NotificationUrgency.Critical.toString()) ? 
                     NotificationUrgency.Critical : NotificationUrgency.Normal
             }
@@ -223,10 +218,6 @@ MouseArea { // Notification group area
                         fontSize: topRow.fontSize
                         onClicked: { root.toggleExpanded() }
                         altAction: () => { root.toggleExpanded() }
-
-                        StyledToolTip {
-                            text: Translation.tr("Tip: right-clicking a group\nalso expands it")
-                        }
                     }
                 }
 

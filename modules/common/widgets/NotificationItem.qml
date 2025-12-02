@@ -17,7 +17,7 @@ Item { // Notification item area
     property real padding: onlyNotification ? 0 : 8
     property real summaryElideRatio: 0.85
 
-    property real dragConfirmThreshold: 70 // Drag further to discard notification
+    property real dragConfirmThreshold: 70 // Drag to discard notification
     property real dismissOvershoot: notificationIcon.implicitWidth + 20 // Account for gaps and bouncy animations
     property var qmlParent: root?.parent?.parent // There's something between this and the parent ListView
     property var parentDragIndex: qmlParent?.dragIndex ?? -1
@@ -29,28 +29,6 @@ Item { // Notification item area
         dragIndexDiff == 2 ? (parentDragDistance * 0.1) : 0
 
     implicitHeight: background.implicitHeight
-
-    function processNotificationBody(body, appName) {
-        let processedBody = body
-        
-        // Clean Chromium-based browsers notifications - remove first line
-        if (appName) {
-            const lowerApp = appName.toLowerCase()
-            const chromiumBrowsers = [
-                "brave", "chrome", "chromium", "vivaldi", "opera", "microsoft edge"
-            ]
-
-            if (chromiumBrowsers.some(name => lowerApp.includes(name))) {
-                const lines = body.split('\n\n')
-
-                if (lines.length > 1 && lines[0].startsWith('<a')) {
-                    processedBody = lines.slice(1).join('\n\n')
-                }
-            }
-        }
-        
-        return processedBody
-    }
 
     function destroyWithAnimation(left = false) {
         root.qmlParent.resetDrag()
@@ -154,7 +132,7 @@ Item { // Notification item area
 
         implicitHeight: expanded ? (contentColumn.implicitHeight + padding * 2) : summaryRow.implicitHeight
         Behavior on implicitHeight {
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            NumberAnimation { duration: 10; easing.type: Easing.OutCubic }
         }
 
         ColumnLayout { // Content column
@@ -195,12 +173,13 @@ Item { // Notification item area
                     maximumLineCount: 1
                     textFormat: Text.StyledText
                     text: {
-                        return processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>")
+                        return NotificationUtils.processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>")
                     }
                 }
             }
 
             ColumnLayout { // Expanded content
+                id: expandedContentColumn
                 Layout.fillWidth: true
                 opacity: root.expanded ? 1 : 0
                 visible: opacity > 0
@@ -217,8 +196,8 @@ Item { // Notification item area
                     elide: Text.ElideRight
                     textFormat: Text.RichText
                     text: {
-                        return `<style>img{max-width:${300 /* binding to notificationBodyText.width would cause a binding loop */}px;}</style>` + 
-                            `${processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>")}`
+                        return `<style>img{max-width:${expandedContentColumn.width}px;}</style>` + 
+                            `${NotificationUtils.processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>")}`
                     }
 
                     onLinkActivated: (link) => {
@@ -292,6 +271,7 @@ Item { // Notification item area
                                 id: actionRepeater
                                 model: notificationObject.actions
                                 NotificationActionButton {
+                                    required property var modelData
                                     Layout.fillWidth: true
                                     buttonText: modelData.text
                                     urgency: notificationObject.urgency

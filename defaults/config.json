@@ -1,7 +1,7 @@
 {
   "ai": {
     "extraModels": [],
-    "systemPrompt": "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text.\n\n## Context (ignore when irrelevant)\n- You are a helpful sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response\n- **Bold** text to **highlight keywords**\n- Use h2 headers with emojis (e.g. `## \ud83d\udc27 Linux`)\n- Bullet points preferred over long paragraphs\n",
+    "systemPrompt": "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text.\n\n## Context (ignore when irrelevant)\n- You are a helpful sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response\n- **Bold** text to **highlight keywords**\n- Use h2 headers with emojis (e.g. `## 🐧 Linux`)\n- Bullet points preferred over long paragraphs\n",
     "tool": "functions"
   },
   "altSwitcher": {
@@ -579,5 +579,119 @@
     "sidebarRight": true,
     "verticalBar": true,
     "wallpaperSelector": true
-  }
+  },
+  "tray": {
+    "monochromeIcons": true,
+    "showItemId": false,
+    "invertPinnedItems": true,
+    "pinnedItems": [],
+    "filterPassive": true
+  },
+  "updates": {
+    "checkInterval": 120,
+    "adviseUpdateThreshold": 75,
+    "stronglyAdviseUpdateThreshold": 200
+  },
+  "waffles": {
+    "tweaks": {
+      "smootherMenuAnimations": true,
+      "switchHandlePositionFix": true
+    },
+    "background": {
+      "wallpaperPath": "",
+      "useMainWallpaper": true,
+      "effects": {
+        "enableBlur": false,
+        "blurRadius": 32,
+        "blurStatic": 0,
+        "dim": 0,
+        "dynamicDim": 0
+      },
+      "backdrop": {
+        "enable": false,
+        "hideWallpaper": false,
+        "useMainWallpaper": true,
+        "wallpaperPath": "",
+        "blurRadius": 32,
+        "dim": 35,
+        "saturation": 1.0,
+        "contrast": 1.0,
+        "vignetteEnabled": false,
+        "vignetteIntensity": 0.5,
+        "vignetteRadius": 0.7
+      }
+    },
+    "bar": {
+      "bottom": true,
+      "leftAlignApps": false,
+      "monochromeIcons": false,
+      "tintTrayIcons": false
+    },
+    "actionCenter": {
+      "toggles": [
+        "network",
+        "bluetooth",
+        "easyEffects",
+        "powerProfile",
+        "idleInhibitor",
+        "nightLight",
+        "darkMode",
+        "antiFlashbang",
+        "cloudflareWarp",
+        "mic",
+        "musicRecognition",
+        "notifications",
+        "onScreenKeyboard",
+        "gameMode",
+        "screenSnip",
+        "colorPicker"
+      ]
+    },
+    "calendar": {
+      "force2CharDayOfWeek": true,
+      "locale": ""
+    },
+    "theming": {
+      "useMaterialColors": false
+    },
+    "behavior": {
+      "allowMultiplePanels": false
+    },
+    "startMenu": {
+      "sizePreset": "normal"
+    },
+    "widgetsPanel": {
+      "showDateTime": true,
+      "showWeather": true,
+      "showSystem": true,
+      "showMedia": true,
+      "showQuickActions": true,
+      "weatherHideLocation": false
+    }
+  },
+  "panelFamily": "ii",
+  "enabledPanels": [
+    "iiBar",
+    "iiBackground",
+    "iiBackdrop",
+    "iiCheatsheet",
+    "iiDock",
+    "iiLock",
+    "iiMediaControls",
+    "iiNotificationPopup",
+    "iiOnScreenDisplay",
+    "iiOnScreenKeyboard",
+    "iiOverlay",
+    "iiOverview",
+    "iiPolkit",
+    "iiRegionSelector",
+    "iiScreenCorners",
+    "iiSessionScreen",
+    "iiSidebarLeft",
+    "iiSidebarRight",
+    "iiVerticalBar",
+    "iiWallpaperSelector",
+    "iiAltSwitcher",
+    "iiClipboard"
+  ]
 }

@@ -76,6 +76,11 @@ ApplicationWindow {
             component: "modules/settings/ModulesConfig.qml"
         },
         {
+            name: Translation.tr("Waffle Style"),
+            icon: "window",
+            component: "modules/settings/WaffleConfig.qml"
+        },
+        {
             name: Translation.tr("About"),
             icon: "info",
             component: "modules/settings/About.qml"

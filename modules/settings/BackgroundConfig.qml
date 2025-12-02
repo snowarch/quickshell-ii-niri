@@ -195,8 +195,8 @@ ContentPage {
                     materialIcon: "apps"
                     mainText: Translation.tr("Pick backdrop wallpaper")
                     onClicked: {
-                        Config.options.wallpaperSelector.selectionTarget = "backdrop";
-                        Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+                        GlobalStates.wallpaperSelectionTarget = "backdrop";
+                        GlobalStates.wallpaperSelectorOpen = true;
                     }
                 }
             }

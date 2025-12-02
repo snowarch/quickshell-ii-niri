@@ -1,0 +1,19 @@
+module qs.modules.common.models.quickToggles
+QuickToggleModel 1.0 QuickToggleModel.qml
+AntiFlashbangToggle 1.0 AntiFlashbangToggle.qml
+AudioToggle 1.0 AudioToggle.qml
+BluetoothToggle 1.0 BluetoothToggle.qml
+CloudflareWarpToggle 1.0 CloudflareWarpToggle.qml
+ColorPickerToggle 1.0 ColorPickerToggle.qml
+DarkModeToggle 1.0 DarkModeToggle.qml
+EasyEffectsToggle 1.0 EasyEffectsToggle.qml
+GameModeToggle 1.0 GameModeToggle.qml
+IdleInhibitorToggle 1.0 IdleInhibitorToggle.qml
+MicToggle 1.0 MicToggle.qml
+MusicRecognitionToggle 1.0 MusicRecognitionToggle.qml
+NetworkToggle 1.0 NetworkToggle.qml
+NightLightToggle 1.0 NightLightToggle.qml
+NotificationToggle 1.0 NotificationToggle.qml
+OnScreenKeyboardToggle 1.0 OnScreenKeyboardToggle.qml
+PowerProfilesToggle 1.0 PowerProfilesToggle.qml
+ScreenSnipToggle 1.0 ScreenSnipToggle.qml

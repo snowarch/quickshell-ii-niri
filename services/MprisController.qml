@@ -9,14 +9,35 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import qs.modules.common
 
 /**
  * A service that provides easy access to the active Mpris player.
  */
 Singleton {
 	id: root;
+	
+	// Filter duplicate players (plasma-browser-integration, playerctld, etc.)
+	property list<MprisPlayer> players: Mpris.players.values.filter(player => isRealPlayer(player));
 	property MprisPlayer trackedPlayer: null;
-	property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null;
+	property MprisPlayer activePlayer: trackedPlayer ?? players[0] ?? null;
+	
+	property bool hasPlasmaIntegration: false
+	Process {
+		id: plasmaIntegrationCheckProc
+		running: true
+		command: ["bash", "-c", "command -v plasma-browser-integration-host"]
+		onExited: (exitCode) => { root.hasPlasmaIntegration = (exitCode === 0); }
+	}
+	
+	function isRealPlayer(player) {
+		if (!Config.options?.media?.filterDuplicatePlayers) return true;
+		const name = player.dbusName ?? "";
+		return !(hasPlasmaIntegration && name.startsWith('org.mpris.MediaPlayer2.firefox')) &&
+			   !(hasPlasmaIntegration && name.startsWith('org.mpris.MediaPlayer2.chromium')) &&
+			   !name.startsWith('org.mpris.MediaPlayer2.playerctld') &&
+			   !(name.endsWith('.mpd') && !name.endsWith('MediaPlayer2.mpd'));
+	}
 	signal trackChanged(reverse: bool);
 
 	property bool __reverse: false;

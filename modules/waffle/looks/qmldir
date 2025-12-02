@@ -1,0 +1,36 @@
+module qs.modules.waffle.looks
+singleton Looks 1.0 Looks.qml
+FluentIcon 1.0 FluentIcon.qml
+WButton 1.0 WButton.qml
+WBorderedButton 1.0 WBorderedButton.qml
+WBorderlessButton 1.0 WBorderlessButton.qml
+WSlider 1.0 WSlider.qml
+WSwitch 1.0 WSwitch.qml
+WText 1.0 WText.qml
+WTextInput 1.0 WTextInput.qml
+WToolTip 1.0 WToolTip.qml
+WToolTipContent 1.0 WToolTipContent.qml
+WStackView 1.0 WStackView.qml
+WMenu 1.0 WMenu.qml
+WMenuItem 1.0 WMenuItem.qml
+WPane 1.0 WPane.qml
+WIcons 1.0 WIcons.qml
+WAppIcon 1.0 WAppIcon.qml
+WUserAvatar 1.0 WUserAvatar.qml
+WProgressBar 1.0 WProgressBar.qml
+WIndeterminateProgressBar 1.0 WIndeterminateProgressBar.qml
+WChoiceButton 1.0 WChoiceButton.qml
+WBarAttachedPanelContent 1.0 WBarAttachedPanelContent.qml
+WFadeLoader 1.0 WFadeLoader.qml
+WPanelIconButton 1.0 WPanelIconButton.qml
+WPanelPageColumn 1.0 WPanelPageColumn.qml
+WPanelSeparator 1.0 WPanelSeparator.qml
+WPopupToolTip 1.0 WPopupToolTip.qml
+WRectangularShadow 1.0 WRectangularShadow.qml
+WAmbientShadow 1.0 WAmbientShadow.qml
+WTextWithFixedWidth 1.0 WTextWithFixedWidth.qml
+AcrylicButton 1.0 AcrylicButton.qml
+AcrylicRectangle 1.0 AcrylicRectangle.qml
+BodyRectangle 1.0 BodyRectangle.qml
+FooterRectangle 1.0 FooterRectangle.qml
+FooterMoreButton 1.0 FooterMoreButton.qml

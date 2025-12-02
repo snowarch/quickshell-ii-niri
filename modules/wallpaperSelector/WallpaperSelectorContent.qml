@@ -42,11 +42,32 @@ MouseArea {
 
     function selectWallpaperPath(filePath) {
         if (filePath && filePath.length > 0) {
-            if (Config.options.wallpaperSelector.selectionTarget === "backdrop") {
-                Config.options.background.backdrop.wallpaperPath = filePath;
-            } else {
-                Wallpapers.select(filePath, root.useDarkMode);
+            // Check both GlobalStates (direct call) and Config (IPC call from settings.qml)
+            let target = GlobalStates.wallpaperSelectionTarget;
+            if (target === "main" && Config.options?.wallpaperSelector?.selectionTarget) {
+                target = Config.options.wallpaperSelector.selectionTarget;
             }
+            
+            switch (target) {
+                case "backdrop":
+                    Config.options.background.backdrop.useMainWallpaper = false;
+                    Config.options.background.backdrop.wallpaperPath = filePath;
+                    break;
+                case "waffle":
+                    Config.options.waffles.background.useMainWallpaper = false;
+                    Config.options.waffles.background.wallpaperPath = filePath;
+                    break;
+                case "waffle-backdrop":
+                    Config.options.waffles.background.backdrop.useMainWallpaper = false;
+                    Config.options.waffles.background.backdrop.wallpaperPath = filePath;
+                    break;
+                default: // "main"
+                    Wallpapers.select(filePath, root.useDarkMode);
+                    break;
+            }
+            // Reset both targets
+            GlobalStates.wallpaperSelectionTarget = "main";
+            Config.options.wallpaperSelector.selectionTarget = "main";
             filterField.text = "";
             GlobalStates.wallpaperSelectorOpen = false;
         }
