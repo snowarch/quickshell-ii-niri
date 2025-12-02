@@ -78,7 +78,11 @@ ShellRoot {
     }
 
     // Migrate enabledPanels for users upgrading from older versions
+    property bool _migrationDone: false
     function migrateEnabledPanels() {
+        if (_migrationDone) return;
+        _migrationDone = true;
+        
         const family = Config.options.panelFamily || "ii";
         const panels = Config.options.enabledPanels || [];
         
