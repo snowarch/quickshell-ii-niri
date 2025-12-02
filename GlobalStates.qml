@@ -36,6 +36,11 @@ Singleton {
         // Reset selection target when selector closes without selection
         if (!wallpaperSelectorOpen) {
             wallpaperSelectionTarget = "main";
+            // Also reset Config target if it was set
+            if (Config.options?.wallpaperSelector?.selectionTarget && 
+                Config.options.wallpaperSelector.selectionTarget !== "main") {
+                Config.options.wallpaperSelector.selectionTarget = "main";
+            }
         }
     }
     property bool cheatsheetOpen: false
