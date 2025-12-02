@@ -295,7 +295,15 @@ ContentPage {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 320
+                    // Dynamic height: min 120, max 400, based on content rows
+                    Layout.preferredHeight: {
+                        const itemCount = Wallpapers.folderModel?.count ?? 0
+                        if (itemCount === 0) return 120
+                        const cols = Math.max(1, Math.floor((width - 2 * Appearance.sizes.spacingSmall) / 110))
+                        const rows = Math.ceil(itemCount / cols)
+                        const cellH = ((width - 2 * Appearance.sizes.spacingSmall) / cols) * 0.67
+                        return Math.min(400, Math.max(120, rows * cellH + 2 * Appearance.sizes.spacingSmall))
+                    }
                     radius: Appearance.rounding.normal
                     color: Appearance.colors.colLayer0
                     border.width: 1
@@ -307,18 +315,18 @@ ContentPage {
                         anchors.fill: parent
                         anchors.margins: Appearance.sizes.spacingSmall
                         model: Wallpapers.folderModel
-                        
+
                         // Responsive cell sizing - fill available width
                         property int minCellWidth: 110
                         property int columns: Math.max(1, Math.floor(width / minCellWidth))
                         cellWidth: width / columns
                         cellHeight: cellWidth * 0.67  // 3:2 aspect ratio
-                        
-                        interactive: true
+
+                        interactive: contentHeight > height
                         boundsBehavior: Flickable.StopAtBounds
                         cacheBuffer: cellHeight * 2
                         property int currentHoverIndex: -1
-                        ScrollBar.vertical: StyledScrollBar {}
+                        ScrollBar.vertical: StyledScrollBar { policy: wallpaperGrid.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
 
                         delegate: Item {
                             id: delegateItem

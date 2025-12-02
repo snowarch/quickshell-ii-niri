@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -52,8 +53,8 @@ ContentPage {
             materialIcon: "wallpaper"
             mainText: Translation.tr("Pick main wallpaper")
             onClicked: {
-                Config.options.wallpaperSelector.selectionTarget = "main";
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+                // Open file picker for main wallpaper
+                Quickshell.execDetached([FileUtils.trimFileProtocol(Directories.wallpaperSwitchScriptPath)]);
             }
         }
 
@@ -64,8 +65,21 @@ ContentPage {
             materialIcon: "wallpaper"
             mainText: Translation.tr("Pick Waffle wallpaper")
             onClicked: {
-                Config.options.wallpaperSelector.selectionTarget = "waffle";
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+                // Open file picker and set waffle-specific wallpaper
+                waffleWallpaperPicker.running = true;
+            }
+        }
+
+        Process {
+            id: waffleWallpaperPicker
+            command: ["kdialog", "--getopenfilename", FileUtils.trimFileProtocol(Directories.pictures), "Images (*.jpg *.jpeg *.png *.webp *.avif *.bmp)"]
+            stdout: SplitParser {
+                onRead: data => {
+                    const path = data.trim();
+                    if (path && path.length > 0) {
+                        Config.options.waffles.background.wallpaperPath = path;
+                    }
+                }
             }
         }
 
@@ -177,8 +191,20 @@ ContentPage {
             materialIcon: "wallpaper"
             mainText: Translation.tr("Pick backdrop wallpaper")
             onClicked: {
-                Config.options.wallpaperSelector.selectionTarget = "waffle-backdrop";
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+                waffleBackdropPicker.running = true;
+            }
+        }
+
+        Process {
+            id: waffleBackdropPicker
+            command: ["kdialog", "--getopenfilename", FileUtils.trimFileProtocol(Directories.pictures), "Images (*.jpg *.jpeg *.png *.webp *.avif *.bmp)"]
+            stdout: SplitParser {
+                onRead: data => {
+                    const path = data.trim();
+                    if (path && path.length > 0) {
+                        Config.options.waffles.background.backdrop.wallpaperPath = path;
+                    }
+                }
             }
         }
 
