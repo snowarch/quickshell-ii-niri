@@ -330,6 +330,18 @@ WBarAttachedPanelContent {
                 visible: Config.options.waffles.widgetsPanel.showMedia && MprisController.activePlayer !== null
                 color: "transparent"
 
+                // Scroll to change volume
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+                    onWheel: wheel => {
+                        if (wheel.angleDelta.y > 0)
+                            Audio.incrementVolume()
+                        else if (wheel.angleDelta.y < 0)
+                            Audio.decrementVolume()
+                    }
+                }
+
                 Rectangle {
                     id: mediaContent
                     anchors.fill: parent

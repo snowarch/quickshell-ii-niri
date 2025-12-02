@@ -18,6 +18,18 @@ Rectangle {
 
     readonly property var activePlayer: MprisController.activePlayer
 
+    // Scroll to change volume
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.NoButton
+        onWheel: wheel => {
+            if (wheel.angleDelta.y > 0)
+                Audio.incrementVolume()
+            else if (wheel.angleDelta.y < 0)
+                Audio.decrementVolume()
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.margins: 16
