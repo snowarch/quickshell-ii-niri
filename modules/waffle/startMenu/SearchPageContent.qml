@@ -17,6 +17,24 @@ BodyRectangle {
     implicitWidth: 832
     implicitHeight: Math.min(600, resultsView.contentHeight + 32)
 
+    function navigateUp() {
+        if (resultsView.currentIndex > 0) {
+            resultsView.currentIndex--
+        }
+    }
+
+    function navigateDown() {
+        if (resultsView.currentIndex < resultsView.count - 1) {
+            resultsView.currentIndex++
+        }
+    }
+
+    function activateCurrent() {
+        if (resultsView.currentItem) {
+            resultsView.currentItem.clicked()
+        }
+    }
+
     ListView {
         id: resultsView
         anchors.fill: parent

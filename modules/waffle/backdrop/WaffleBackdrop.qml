@@ -9,8 +9,8 @@ import Quickshell.Wayland
 
 Variants {
     id: root
-    // Only create backdrop windows if enabled (default false to match config.json)
-    model: (Config.options?.waffles?.background?.backdrop?.enable ?? false) ? Quickshell.screens : []
+    // Only create backdrop windows if enabled
+    model: (Config.options?.waffles?.background?.backdrop?.enable ?? true) ? Quickshell.screens : []
 
     PanelWindow {
         id: backdropWindow

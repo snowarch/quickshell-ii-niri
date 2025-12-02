@@ -124,18 +124,6 @@ Full reference with examples: [docs/IPC.md](docs/IPC.md)
 
 ---
 
-## Updating
-
-After `git pull`, run this to sync configs:
-
-```bash
-./setup update
-```
-
-This adds any new config entries and layer-rules your Niri config might be missing. Skip it and things might break in fun and unexpected ways.
-
----
-
 ## Troubleshooting
 
 Something broke? Shocking.

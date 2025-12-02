@@ -15,6 +15,10 @@ FooterRectangle {
     property bool searching: text.length > 0
     property alias text: searchInput.text
 
+    signal navigateUp()
+    signal navigateDown()
+    signal accepted()
+
     function forceActiveFocus() {
         searchInput.forceActiveFocus()
     }
@@ -64,6 +68,23 @@ FooterRectangle {
                 id: searchInput
                 focus: true
                 Layout.fillWidth: true
+
+                Keys.onUpPressed: event => {
+                    root.navigateUp()
+                    event.accepted = true
+                }
+                Keys.onDownPressed: event => {
+                    root.navigateDown()
+                    event.accepted = true
+                }
+                Keys.onReturnPressed: event => {
+                    root.accepted()
+                    event.accepted = true
+                }
+                Keys.onEnterPressed: event => {
+                    root.accepted()
+                    event.accepted = true
+                }
 
                 WText {
                     anchors {

@@ -49,6 +49,22 @@ Item {
                     property alias source: root.searchText
                 }
                 Component.onCompleted: Qt.callLater(() => searchBar.forceActiveFocus())
+                
+                onNavigateUp: {
+                    if (root.searching && pageLoader.item?.navigateUp) {
+                        pageLoader.item.navigateUp()
+                    }
+                }
+                onNavigateDown: {
+                    if (root.searching && pageLoader.item?.navigateDown) {
+                        pageLoader.item.navigateDown()
+                    }
+                }
+                onAccepted: {
+                    if (root.searching && pageLoader.item?.activateCurrent) {
+                        pageLoader.item.activateCurrent()
+                    }
+                }
             }
             
             Loader {
@@ -65,7 +81,10 @@ Item {
 
     Component {
         id: searchPageComponent
-        SearchPageContent { searchText: root.searchText }
+        SearchPageContent { 
+            id: searchPage
+            searchText: root.searchText
+        }
     }
 
     Component {
