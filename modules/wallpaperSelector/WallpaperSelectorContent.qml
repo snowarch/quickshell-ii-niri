@@ -42,11 +42,9 @@ MouseArea {
 
     function selectWallpaperPath(filePath) {
         if (filePath && filePath.length > 0) {
-            // Check both GlobalStates (direct call) and Config (IPC call from settings.qml)
-            let target = GlobalStates.wallpaperSelectionTarget;
-            if (target === "main" && Config.options?.wallpaperSelector?.selectionTarget) {
-                target = Config.options.wallpaperSelector.selectionTarget;
-            }
+            // Check Config first (set by settings.qml via IPC), then GlobalStates
+            const configTarget = Config.options?.wallpaperSelector?.selectionTarget;
+            let target = (configTarget && configTarget !== "main") ? configTarget : GlobalStates.wallpaperSelectionTarget;
             
             switch (target) {
                 case "backdrop":
@@ -65,9 +63,8 @@ MouseArea {
                     Wallpapers.select(filePath, root.useDarkMode);
                     break;
             }
-            // Reset both targets
+            // Reset GlobalStates only (Config resets on its own via defaults)
             GlobalStates.wallpaperSelectionTarget = "main";
-            Config.options.wallpaperSelector.selectionTarget = "main";
             filterField.text = "";
             GlobalStates.wallpaperSelectorOpen = false;
         }
