@@ -86,7 +86,7 @@ RowLayout {
                 }
                 onReleased: {
                     if (!dragArea.drag.active) {
-                        trayButton.click();
+                        trayButton.clicked();
                     } else {
                         if (pinDropArea.containsDrag && pinDropArea.willPin) {
                             // Quickshell would crash if we don't hide this item first. Took me fucking 3 hours to figure out...

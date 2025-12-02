@@ -121,6 +121,32 @@ case "${SKIP_NIRI}" in
       install_file__auto_backup "dots/.config/niri/config.kdl" "${XDG_CONFIG_HOME}/niri/config.kdl"
       log_success "Niri config installed (dots)"
     fi
+    
+    # Migrate: Add layer-rules for backdrop if missing (required for Niri overview)
+    NIRI_CONFIG="${XDG_CONFIG_HOME}/niri/config.kdl"
+    if [[ -f "$NIRI_CONFIG" ]]; then
+      if ! grep -q "quickshell:iiBackdrop" "$NIRI_CONFIG" 2>/dev/null; then
+        echo -e "${STY_CYAN}Adding backdrop layer-rules to Niri config...${STY_RST}"
+        cat >> "$NIRI_CONFIG" << 'BACKDROP_RULES'
+
+// ============================================================================
+// Layer rules added by ii setup (required for backdrop in Niri overview)
+// ============================================================================
+layer-rule {
+    match namespace="quickshell:iiBackdrop"
+    place-within-backdrop true
+    opacity 1.0
+}
+
+layer-rule {
+    match namespace="quickshell:wBackdrop"
+    place-within-backdrop true
+    opacity 1.0
+}
+BACKDROP_RULES
+        log_success "Backdrop layer-rules added to Niri config"
+      fi
+    fi
     ;;
 esac
 

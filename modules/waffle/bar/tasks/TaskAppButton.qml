@@ -60,13 +60,50 @@ AppButton {
         root.hoverPreviewRequested()
     }
 
+    // Count of minimized windows for this app
+    readonly property int minimizedCount: MinimizedWindows.countMinimizedForApp(appEntry.appId)
+    readonly property bool hasMinimized: minimizedCount > 0
+
+    // Helper to find Niri windows for this app
+    function findAppWindows() {
+        const appId = root.appEntry.appId.toLowerCase();
+        return NiriService.windows.filter(w => {
+            const wAppId = (w.app_id ?? "").toLowerCase();
+            return wAppId === appId || wAppId.includes(appId) || appId.includes(wAppId);
+        });
+    }
+
+    // Track if this app was active (focused) - use the toplevel activated state
+    // which is more reliable than checking NiriService during click
+    readonly property bool wasActive: root.active
+
     onClicked: {
-        root.hoverTimer.stop() // Prevents preview showing up when clicking to focus
-        if (root.multiple) {
-            root.hoverPreviewRequested()
-        } else if (root.appEntry.toplevels.length === 1) {
-            root.appEntry.toplevels[0].activate()
-        } else {
+        root.hoverTimer.stop()
+        
+        const appWindows = findAppWindows();
+        const isAppFocused = root.wasActive;
+        
+        // Case 1: App is focused -> minimize it (move down)
+        if (isAppFocused && appWindows.length > 0) {
+            const windowToMinimize = appWindows.find(w => w.is_focused) || appWindows[0];
+            MinimizedWindows.minimize(windowToMinimize.id);
+            return;
+        }
+        
+        // Case 2: App has minimized windows -> restore the latest
+        if (root.hasMinimized) {
+            MinimizedWindows.restoreLatestForApp(root.appEntry.appId);
+            return;
+        }
+        
+        // Case 3: App has visible windows but not focused -> focus it
+        if (appWindows.length > 0) {
+            NiriService.focusWindow(appWindows[0].id);
+            return;
+        }
+        
+        // Case 4: App not running -> launch it
+        if (root.desktopEntry) {
             root.desktopEntry.execute()
         }
     }
@@ -86,7 +123,7 @@ AppButton {
     // Smart indicator: W11 style pills showing window count and which is focused
     Row {
         id: indicatorRow
-        visible: root.hasWindows
+        visible: root.hasWindows || root.hasMinimized
         anchors {
             horizontalCenter: root.background.horizontalCenter
             bottom: root.background.bottom
@@ -94,6 +131,7 @@ AppButton {
         }
         spacing: 2
 
+        // Active windows
         Repeater {
             model: Math.min(appEntry.toplevels.length, 5)
             delegate: Rectangle {
@@ -111,6 +149,18 @@ AppButton {
                 Behavior on color {
                     animation: Looks.transition.color.createObject(this)
                 }
+            }
+        }
+        
+        // Minimized windows (dimmed indicator)
+        Repeater {
+            model: Math.min(root.minimizedCount, 3)
+            delegate: Rectangle {
+                implicitWidth: 4
+                implicitHeight: 3
+                radius: height / 2
+                color: Looks.colors.fg2
+                opacity: 0.5
             }
         }
 
@@ -153,15 +203,34 @@ AppButton {
                     TaskbarApps.togglePin(root.appEntry.appId);
                 }
             },
-            ...(root.appEntry.toplevels.length > 0 ? [{
-                iconName: "dismiss",
-                text: root.multiple ? Translation.tr("Close all windows") : Translation.tr("Close window"),
-                action: () => {
-                    for (let toplevel of root.appEntry.toplevels) {
-                        toplevel.close();
+            // Move down option (only for running apps)
+            ...(root.appEntry.toplevels.length > 0 ? [
+                {
+                    iconName: "caret-down",
+                    text: root.multiple ? Translation.tr("Move all down") : Translation.tr("Move down"),
+                    action: () => {
+                        // Find Niri windows matching this app
+                        const appId = root.appEntry.appId.toLowerCase();
+                        const niriWindows = NiriService.windows.filter(w => {
+                            const wAppId = (w.app_id ?? "").toLowerCase();
+                            return wAppId === appId || wAppId.includes(appId) || appId.includes(wAppId);
+                        });
+                        
+                        for (const niriWin of niriWindows) {
+                            MinimizedWindows.minimize(niriWin.id);
+                        }
+                    }
+                },
+                {
+                    iconName: "dismiss",
+                    text: root.multiple ? Translation.tr("Close all windows") : Translation.tr("Close window"),
+                    action: () => {
+                        for (let toplevel of root.appEntry.toplevels) {
+                            toplevel.close();
+                        }
                     }
                 }
-            }] : []),
+            ] : []),
         ]
     }
 }

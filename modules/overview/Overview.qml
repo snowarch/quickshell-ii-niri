@@ -304,13 +304,26 @@ Scope {
         target: "overview"
 
         function toggle() {
-            GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+            // In Waffle mode, open Start Menu instead
+            if (Config.options?.panelFamily === "waffle") {
+                GlobalStates.searchOpen = !GlobalStates.searchOpen;
+            } else {
+                GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
+            }
         }
         function close() {
-            GlobalStates.overviewOpen = false;
+            if (Config.options?.panelFamily === "waffle") {
+                GlobalStates.searchOpen = false;
+            } else {
+                GlobalStates.overviewOpen = false;
+            }
         }
         function open() {
-            GlobalStates.overviewOpen = true;
+            if (Config.options?.panelFamily === "waffle") {
+                GlobalStates.searchOpen = true;
+            } else {
+                GlobalStates.overviewOpen = true;
+            }
         }
         function toggleReleaseInterrupt() {
             GlobalStates.superReleaseMightTrigger = false;

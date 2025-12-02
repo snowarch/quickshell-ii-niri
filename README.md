@@ -30,6 +30,16 @@ A shell. Bar at the top, sidebars on the sides, overlays that pop up when you pr
 - **GameMode** - fullscreen app? Effects go bye-bye. Your games won't stutter
 - **Idle** - screen off, lock, suspend timeouts. swayidle handles it, you configure it
 
+### Two flavors, one shell
+
+Can't decide on a look? Good news, you don't have to.
+
+- **Material ii** - The OG. Floating bar, sidebars, that Material Design aesthetic.
+- **Waffle** - Taskbar at the bottom, action center, tray overflow. For the "I kinda miss Windows" crowd.
+
+Mix them, match them, run both at once idc.
+ Settings → Modules, go nuts.
+
 ---
 
 ## Documentation
@@ -143,6 +153,6 @@ If you want something stable and polished, check out end-4's original ii for Hyp
 
 ## Credits
 
-- [**end-4 – illogical-impulse for Hyprland**](https://github.com/end-4/dots-hyprland)
+- [**end-4**](https://github.com/end-4/dots-hyprland) –  illogical-impulse for Hyprland
 - [**Quickshell**](https://quickshell.outfoxxed.me/) – the framework that makes this possible
 - [**Niri**](https://github.com/YaLTeR/niri) – the compositor that doesn't crash

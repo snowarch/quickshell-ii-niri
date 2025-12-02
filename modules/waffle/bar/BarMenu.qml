@@ -16,6 +16,10 @@ BarPopup {
     ]
     readonly property bool hasIcons: model.some(item => item.iconName !== undefined && item.iconName !== "")
     padding: 2
+    
+    // Context menus should close on focus lost (click outside), not on hover lost
+    closeOnFocusLost: true
+    closeOnHoverLost: false
 
     contentItem: ColumnLayout {
         anchors.centerIn: parent

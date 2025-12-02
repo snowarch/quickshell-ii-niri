@@ -592,69 +592,70 @@ ApplicationWindow {
                 Behavior on implicitWidth {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
                 }
-                NavigationRail { // Window content with navigation rail and content pane
-                    id: navRail
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                    }
-                    spacing: 10
-                    expanded: root.width > 900
+                Flickable {
+                    id: navRailFlickable
+                    anchors.fill: parent
+                    contentWidth: navRail.width
+                    contentHeight: navRail.implicitHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
                     
-                    NavigationRailExpandButton {
-                        focus: root.visible
-                    }
-
-                    FloatingActionButton {
-                        id: fab
-                        property bool justCopied: false
-                        iconText: justCopied ? "check" : "edit"
-                        buttonText: justCopied ? Translation.tr("Path copied") : Translation.tr("Config file")
-                        expanded: navRail.expanded
-                        downAction: () => {
-                            Qt.openUrlExternally(`${Directories.config}/illogical-impulse/config.json`);
-                        }
-                        altAction: () => {
-                            Quickshell.clipboardText = CF.FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse/config.json`);
-                            fab.justCopied = true;
-                            revertTextTimer.restart()
+                    NavigationRail {
+                        id: navRail
+                        width: navRailWrapper.implicitWidth
+                        spacing: 10
+                        expanded: root.width > 900
+                        
+                        NavigationRailExpandButton {
+                            focus: root.visible
                         }
 
-                        Timer {
-                            id: revertTextTimer
-                            interval: 1500
-                            onTriggered: {
-                                fab.justCopied = false;
+                        FloatingActionButton {
+                            id: fab
+                            property bool justCopied: false
+                            iconText: justCopied ? "check" : "edit"
+                            buttonText: justCopied ? Translation.tr("Path copied") : Translation.tr("Config file")
+                            expanded: navRail.expanded
+                            downAction: () => {
+                                Qt.openUrlExternally(`${Directories.config}/illogical-impulse/config.json`);
+                            }
+                            altAction: () => {
+                                Quickshell.clipboardText = CF.FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse/config.json`);
+                                fab.justCopied = true;
+                                revertTextTimer.restart()
+                            }
+
+                            Timer {
+                                id: revertTextTimer
+                                interval: 1500
+                                onTriggered: {
+                                    fab.justCopied = false;
+                                }
+                            }
+
+                            StyledToolTip {
+                                text: Translation.tr("Open the shell config file\nAlternatively right-click to copy path")
                             }
                         }
 
-                        StyledToolTip {
-                            text: Translation.tr("Open the shell config file\nAlternatively right-click to copy path")
-                        }
-                    }
-
-                    NavigationRailTabArray {
-                        currentIndex: root.currentPage
-                        expanded: navRail.expanded
-                        Repeater {
-                            model: root.pages
-                            NavigationRailButton {
-                                required property var index
-                                required property var modelData
-                                toggled: root.currentPage === index
-                                onPressed: root.currentPage = index;
-                                expanded: navRail.expanded
-                                buttonIcon: modelData.icon
-                                buttonIconRotation: modelData.iconRotation || 0
-                                buttonText: modelData.name
-                                showToggledHighlight: false
+                        NavigationRailTabArray {
+                            currentIndex: root.currentPage
+                            expanded: navRail.expanded
+                            Repeater {
+                                model: root.pages
+                                NavigationRailButton {
+                                    required property var index
+                                    required property var modelData
+                                    toggled: root.currentPage === index
+                                    onPressed: root.currentPage = index;
+                                    expanded: navRail.expanded
+                                    buttonIcon: modelData.icon
+                                    buttonIconRotation: modelData.iconRotation || 0
+                                    buttonText: modelData.name
+                                    showToggledHighlight: false
+                                }
                             }
                         }
-                    }
-
-                    Item {
-                        Layout.fillHeight: true
                     }
                 }
             }

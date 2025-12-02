@@ -30,11 +30,52 @@ BarIconButton {
     }
 
     onClicked: {
+        // Try to focus existing window matching this tray item (Niri only)
+        if (CompositorService.isNiri) {
+            const itemId = (item.id ?? "").toLowerCase();
+            const title = (item.title ?? "").toLowerCase();
+            
+            // Known app_id mappings
+            const knownMappings = {
+                "spotify": ["spotify"],
+                "discord": ["discord", "vesktop", "armcord"],
+                "steam": ["steam"],
+                "slack": ["slack"],
+                "telegram": ["telegram", "org.telegram", "kotatogram"],
+                "signal": ["signal"],
+                "chrome": ["chrome", "chromium", "google-chrome"],
+                "firefox": ["firefox", "librewolf"],
+            };
+            
+            let searchPatterns = [itemId, title].filter(s => s.length >= 3);
+            for (const [key, patterns] of Object.entries(knownMappings)) {
+                if (itemId.includes(key) || title.includes(key)) {
+                    searchPatterns = searchPatterns.concat(patterns);
+                }
+            }
+            
+            const window = NiriService.windows.find(w => {
+                const appId = (w.app_id ?? "").toLowerCase();
+                const windowTitle = (w.title ?? "").toLowerCase();
+                for (const pattern of searchPatterns) {
+                    if (appId === pattern || appId.includes(pattern) || windowTitle.includes(pattern))
+                        return true;
+                }
+                return false;
+            });
+            
+            if (window) {
+                NiriService.focusWindow(window.id);
+                return;
+            }
+        }
+        
+        // No window found - activate tray item (opens app or shows its menu)
         item.activate();
     }
 
     altAction: () => {
-        if (item.hasMenu) menu.open()
+        if (item.hasMenu) menu.active = true
     }
 
     // Tinted icon (same style as WAppIcon)
@@ -103,15 +144,9 @@ BarIconButton {
         }
     }
 
-    QsMenuAnchor {
+    WaffleTrayMenu {
         id: menu
-        menu: root.item.menu
-        anchor {
-            adjustment: PopupAdjustment.ResizeY | PopupAdjustment.SlideX
-            item: root
-            gravity: root.barAtBottom ? Edges.Top : Edges.Bottom
-            edges: root.barAtBottom ? Edges.Top : Edges.Bottom
-        }
+        trayItemMenuHandle: root.item.menu
     }
 
     BarToolTip {

@@ -128,6 +128,12 @@ ii is built for **Niri**. Some features were inherited from the original Hyprlan
 - **App ID matching**: ii matches windows by `app_id`. Some apps (especially Electron apps) have weird or missing app IDs, causing icon mismatches.
 - **Quickshell windows**: All ii windows have `app_id: "org.quickshell"`. This is correct, not a bug.
 
+### Backdrop & Wallpaper
+
+- **Separate configs**: Material ii and Waffle have independent backdrop/wallpaper settings. If you enable both families, each manages its own background layer.
+- **Niri layer rules required**: The backdrop uses Niri's `place-within-backdrop` layer rule. If your wallpaper doesn't show in overview, check that your `config.kdl` has the layer rules for `quickshell:iiBackdrop` and `quickshell:wBackdrop`.
+- **Migration is automatic**: Switching between families auto-migrates your `enabledPanels` config. You shouldn't need to touch it manually.
+
 ---
 
 ## Lock Screen

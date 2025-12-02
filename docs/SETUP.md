@@ -89,6 +89,23 @@ If you run the installer again:
 2. Your current config is **not** touched
 3. You can diff and merge the `.new` files yourself
 
+### Niri Layer Rules Migration
+
+The installer automatically adds required layer rules to your existing `config.kdl` if they're missing. These rules are needed for the backdrop to show correctly in Niri's overview:
+
+```kdl
+layer-rule {
+    match namespace="^quickshell:iiBackdrop$"
+    place-within-backdrop true
+}
+layer-rule {
+    match namespace="^quickshell:wBackdrop$"
+    place-within-backdrop true
+}
+```
+
+If you already have these rules, the installer leaves them alone. No duplicates, no drama.
+
 This means:
 
 - **Your `config.kdl` is safe** - updates won't overwrite it

@@ -188,16 +188,15 @@ ContentPage {
                 }
             }
 
-            ConfigRow {
-                uniform: true
-                RippleButtonWithIcon {
-                    buttonRadius: Appearance.rounding.full
-                    materialIcon: "apps"
-                    mainText: Translation.tr("Pick backdrop wallpaper")
-                    onClicked: {
-                        GlobalStates.wallpaperSelectionTarget = "backdrop";
-                        GlobalStates.wallpaperSelectorOpen = true;
-                    }
+            RippleButtonWithIcon {
+                visible: !Config.options.background.backdrop.useMainWallpaper
+                Layout.fillWidth: true
+                buttonRadius: Appearance.rounding.small
+                materialIcon: "wallpaper"
+                mainText: Translation.tr("Pick backdrop wallpaper")
+                onClicked: {
+                    Config.options.wallpaperSelector.selectionTarget = "backdrop";
+                    Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
                 }
             }
 

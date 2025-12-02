@@ -276,8 +276,15 @@ binds {
     XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
 }
 
+// Layer rules for ii backdrop visibility during Niri overview
 layer-rule {
-    match namespace="dms:blurwallpaper"
+    match namespace="quickshell:iiBackdrop"
+    place-within-backdrop true
+    opacity 1.0
+}
+
+layer-rule {
+    match namespace="quickshell:wBackdrop"
     place-within-backdrop true
     opacity 1.0
 }

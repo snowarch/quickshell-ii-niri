@@ -320,7 +320,7 @@ Singleton {
                     property int dynamicDim: 0 // Extra dim when there are windows on the current workspace (0-100)
                 }
                 property JsonObject backdrop: JsonObject {
-                    property bool enable: false
+                    property bool enable: true
                     property bool hideWallpaper: false
                     property bool useMainWallpaper: true
                     property string wallpaperPath: ""

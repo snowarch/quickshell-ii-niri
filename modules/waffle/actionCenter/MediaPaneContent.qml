@@ -18,6 +18,47 @@ Rectangle {
 
     readonly property var activePlayer: MprisController.activePlayer
 
+    // Volume feedback overlay
+    Rectangle {
+        id: volumeOverlay
+        anchors.centerIn: parent
+        width: 80
+        height: 80
+        radius: Looks.radius.medium
+        color: ColorUtils.transparentize(Looks.colors.bg0, 0.15)
+        opacity: 0
+        visible: opacity > 0
+        z: 100
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 4
+
+            FluentIcon {
+                Layout.alignment: Qt.AlignHCenter
+                icon: root.activePlayer?.volume > 0 ? "speaker" : "speaker-mute"
+                implicitSize: 24
+            }
+
+            WText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Math.round((root.activePlayer?.volume ?? 0) * 100) + "%"
+                font.pixelSize: Looks.font.pixelSize.normal
+                font.weight: Font.DemiBold
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: 150 }
+        }
+
+        Timer {
+            id: volumeHideTimer
+            interval: 1000
+            onTriggered: volumeOverlay.opacity = 0
+        }
+    }
+
     // Scroll to change player volume
     MouseArea {
         anchors.fill: parent
@@ -29,6 +70,10 @@ Rectangle {
                 root.activePlayer.volume = Math.min(1, root.activePlayer.volume + step)
             else if (wheel.angleDelta.y < 0)
                 root.activePlayer.volume = Math.max(0, root.activePlayer.volume - step)
+            
+            // Show volume feedback
+            volumeOverlay.opacity = 1
+            volumeHideTimer.restart()
         }
     }
 

@@ -325,10 +325,52 @@ WBarAttachedPanelContent {
 
             // Media widget (if playing)
             BodyRectangle {
+                id: mediaWidget
                 Layout.fillWidth: true
                 implicitHeight: mediaContent.implicitHeight
                 visible: Config.options.waffles.widgetsPanel.showMedia && MprisController.activePlayer !== null
                 color: "transparent"
+
+                // Volume feedback overlay
+                Rectangle {
+                    id: mediaVolumeOverlay
+                    anchors.centerIn: parent
+                    width: 80
+                    height: 80
+                    radius: Looks.radius.medium
+                    color: ColorUtils.transparentize(Looks.colors.bg0, 0.15)
+                    opacity: 0
+                    visible: opacity > 0
+                    z: 100
+
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        FluentIcon {
+                            Layout.alignment: Qt.AlignHCenter
+                            icon: MprisController.activePlayer?.volume > 0 ? "speaker" : "speaker-mute"
+                            implicitSize: 24
+                        }
+
+                        WText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Math.round((MprisController.activePlayer?.volume ?? 0) * 100) + "%"
+                            font.pixelSize: Looks.font.pixelSize.normal
+                            font.weight: Font.DemiBold
+                        }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 150 }
+                    }
+
+                    Timer {
+                        id: mediaVolumeHideTimer
+                        interval: 1000
+                        onTriggered: mediaVolumeOverlay.opacity = 0
+                    }
+                }
 
                 // Scroll to change player volume
                 MouseArea {
@@ -341,6 +383,10 @@ WBarAttachedPanelContent {
                             MprisController.activePlayer.volume = Math.min(1, MprisController.activePlayer.volume + step)
                         else if (wheel.angleDelta.y < 0)
                             MprisController.activePlayer.volume = Math.max(0, MprisController.activePlayer.volume - step)
+                        
+                        // Show volume feedback
+                        mediaVolumeOverlay.opacity = 1
+                        mediaVolumeHideTimer.restart()
                     }
                 }
 

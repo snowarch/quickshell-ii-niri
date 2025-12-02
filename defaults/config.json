@@ -619,6 +619,23 @@
         "vignetteEnabled": false,
         "vignetteIntensity": 0.5,
         "vignetteRadius": 0.7
+      },
+      "hideWhenFullscreen": true,
+      "parallax": {
+        "enableWorkspace": false,
+        "enableSidebar": false,
+        "workspaceZoom": 1.05,
+        "autoVertical": true,
+        "vertical": false,
+        "widgetsFactor": 0.7
+      },
+      "widgets": {
+        "clock": {
+          "enable": false
+        },
+        "weather": {
+          "enable": false
+        }
       }
     },
     "bar": {

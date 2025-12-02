@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Wayland
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -15,6 +16,8 @@ Loader {
     property real padding: Looks.radius.large - Looks.radius.medium
     property bool noSmoothClosing: !Config.options.waffles.tweaks.smootherMenuAnimations
     property bool closeOnFocusLost: true
+    property bool closeOnHoverLost: true  // Close when mouse leaves both popup and anchor
+    property bool anchorHovered: false  // Set by parent to indicate if anchor button is hovered
     signal focusCleared()
     
     property Item anchorItem: parent
@@ -27,12 +30,13 @@ Loader {
         root.close()
     }
 
-    function grabFocus() { // Doesn't work
-        item.grabFocus();
+    function grabFocus() {
+        if (item) item.grabFocus();
     }
 
     function close() {
-        item.close();
+        if (item) item.close();
+        else root.active = false;
     }
 
     function updateAnchor() {
@@ -46,6 +50,13 @@ Loader {
         visible: true
         Component.onCompleted: {
             openAnim.start();
+            // For Niri: show the click-outside backdrop
+            if (CompositorService.isNiri && root.closeOnFocusLost) {
+                clickOutsideBackdrop.visible = true;
+            }
+        }
+        Component.onDestruction: {
+            clickOutsideBackdrop.visible = false;
         }
 
         anchor {
@@ -57,18 +68,38 @@ Loader {
 
         CompositorFocusGrab {
             id: focusGrab
-            active: true
+            active: root.closeOnFocusLost && CompositorService.isHyprland
             windows: [popupWindow]
             onCleared: root.focusCleared();
         }
+        
+        // Close on Escape key
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                root.close();
+                event.accepted = true;
+            }
+        }
+        
+        // Timer to close when mouse leaves both popup AND anchor
+        // Same pattern as TaskPreview - only runs when conditions are met
+        Timer {
+            id: closeTimer
+            interval: 300
+            running: root.closeOnHoverLost && popupWindow.visible && !popupWindow.popupContainsMouse && !root.anchorHovered
+            onTriggered: {
+                root.close();
+            }
+        }
 
         function close() {
+            clickOutsideBackdrop.visible = false;
             if (root.noSmoothClosing) root.active = false;
             else closeAnim.start();
         }
 
         function grabFocus() {
-            focusGrab.active = true; // Doesn't work
+            focusGrab.active = true;
         }
 
         implicitWidth: realContent.implicitWidth + (root.ambientShadowWidth * 2) + (root.visualMargin * 2)
@@ -102,6 +133,7 @@ Loader {
         }
 
         color: "transparent"
+        
         WAmbientShadow {
             target: realContent
         }
@@ -122,11 +154,43 @@ Loader {
             color: Looks.colors.bg1Base
             radius: Looks.radius.large
 
-            // test
             implicitWidth: root.contentItem.implicitWidth + (root.padding * 2)
             implicitHeight: root.contentItem.implicitHeight + (root.padding * 2)
 
             children: [root.contentItem]
+        }
+        
+        // Hover detection for auto-close - uses HoverHandler which doesn't block events
+        HoverHandler {
+            id: popupHoverHandler
+        }
+        property alias popupHoverArea: popupHoverHandler  // Alias for compatibility
+        // Expose containsMouse for the timer
+        readonly property bool popupContainsMouse: popupHoverHandler.hovered
+        
+        // Fullscreen transparent backdrop for Niri to detect clicks outside
+        // Uses WlrLayer.Top so it's below the popup (Overlay) but above normal windows
+        PanelWindow {
+            id: clickOutsideBackdrop
+            visible: false
+            color: "transparent"
+            exclusiveZone: 0
+            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.namespace: "quickshell:barPopupBackdrop"
+            
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+            
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    root.close();
+                }
+            }
         }
     }
 }

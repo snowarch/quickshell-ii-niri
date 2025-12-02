@@ -45,7 +45,6 @@ ContentPage {
             StyledToolTip { text: Translation.tr("Share wallpaper with Material ii style") }
         }
 
-        // Button to pick main wallpaper (when using main)
         RippleButtonWithIcon {
             visible: Config.options?.waffles?.background?.useMainWallpaper ?? true
             Layout.fillWidth: true
@@ -53,12 +52,11 @@ ContentPage {
             materialIcon: "wallpaper"
             mainText: Translation.tr("Pick main wallpaper")
             onClicked: {
-                // Use system file picker for main wallpaper (same as QuickConfig)
-                Quickshell.execDetached(`${Directories.wallpaperSwitchScriptPath}`);
+                Config.options.wallpaperSelector.selectionTarget = "main";
+                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
             }
         }
 
-        // Button to pick Waffle-specific wallpaper (when NOT using main)
         RippleButtonWithIcon {
             visible: !(Config.options?.waffles?.background?.useMainWallpaper ?? true)
             Layout.fillWidth: true
@@ -69,6 +67,172 @@ ContentPage {
                 Config.options.wallpaperSelector.selectionTarget = "waffle";
                 Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
             }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "fullscreen_exit"
+            text: Translation.tr("Hide when fullscreen")
+            checked: Config.options?.waffles?.background?.hideWhenFullscreen ?? true
+            onCheckedChanged: Config.options.waffles.background.hideWhenFullscreen = checked
+        }
+    }
+
+    ContentSection {
+        visible: root.isWaffleActive
+        icon: "auto_awesome"
+        title: Translation.tr("Wallpaper Effects")
+
+        ConfigSwitch {
+            buttonIcon: "blur_on"
+            text: Translation.tr("Enable blur")
+            checked: Config.options?.waffles?.background?.effects?.enableBlur ?? false
+            onCheckedChanged: Config.options.waffles.background.effects.enableBlur = checked
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.effects?.enableBlur ?? false
+            icon: "blur_medium"
+            text: Translation.tr("Blur radius")
+            from: 0; to: 64; stepSize: 2
+            value: Config.options?.waffles?.background?.effects?.blurRadius ?? 32
+            onValueChanged: Config.options.waffles.background.effects.blurRadius = value
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.effects?.enableBlur ?? false
+            icon: "blur_circular"
+            text: Translation.tr("Static blur (%)")
+            from: 0; to: 100; stepSize: 5
+            value: Config.options?.waffles?.background?.effects?.blurStatic ?? 0
+            onValueChanged: Config.options.waffles.background.effects.blurStatic = value
+            StyledToolTip { text: Translation.tr("Always-on blur percentage. Dynamic blur adds on top when windows are present.") }
+        }
+
+        ConfigSpinBox {
+            icon: "brightness_5"
+            text: Translation.tr("Dim (%)")
+            from: 0; to: 100; stepSize: 5
+            value: Config.options?.waffles?.background?.effects?.dim ?? 0
+            onValueChanged: Config.options.waffles.background.effects.dim = value
+        }
+
+        ConfigSpinBox {
+            icon: "brightness_auto"
+            text: Translation.tr("Dynamic dim (%)")
+            from: 0; to: 100; stepSize: 5
+            value: Config.options?.waffles?.background?.effects?.dynamicDim ?? 0
+            onValueChanged: Config.options.waffles.background.effects.dynamicDim = value
+            StyledToolTip { text: Translation.tr("Extra dim when windows are present on current workspace") }
+        }
+    }
+
+    ContentSection {
+        visible: root.isWaffleActive
+        icon: "layers"
+        title: Translation.tr("Backdrop (Niri Overview)")
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Backdrop is the wallpaper shown during Niri's native overview (Mod+Tab). It's always rendered in the background layer.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
+        }
+
+        ConfigSwitch {
+            buttonIcon: "texture"
+            text: Translation.tr("Enable backdrop layer for overview")
+            checked: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            onCheckedChanged: {
+                Config.options.waffles.background.backdrop.enable = checked;
+            }
+        }
+
+        ConfigSwitch {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            buttonIcon: "visibility_off"
+            text: Translation.tr("Hide main wallpaper (show only backdrop)")
+            checked: Config.options?.waffles?.background?.backdrop?.hideWallpaper ?? false
+            onCheckedChanged: {
+                Config.options.waffles.background.backdrop.hideWallpaper = checked;
+            }
+            StyledToolTip { text: Translation.tr("Hides the desktop wallpaper, showing only the backdrop during Niri's overview") }
+        }
+
+        ConfigSwitch {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            buttonIcon: "link"
+            text: Translation.tr("Use main wallpaper")
+            checked: Config.options?.waffles?.background?.backdrop?.useMainWallpaper ?? true
+            onCheckedChanged: {
+                Config.options.waffles.background.backdrop.useMainWallpaper = checked;
+                if (checked) Config.options.waffles.background.backdrop.wallpaperPath = "";
+            }
+        }
+
+        RippleButtonWithIcon {
+            visible: (Config.options?.waffles?.background?.backdrop?.enable ?? true) && !(Config.options?.waffles?.background?.backdrop?.useMainWallpaper ?? true)
+            Layout.fillWidth: true
+            buttonRadius: Appearance.rounding.small
+            materialIcon: "wallpaper"
+            mainText: Translation.tr("Pick backdrop wallpaper")
+            onClicked: {
+                Config.options.wallpaperSelector.selectionTarget = "waffle-backdrop";
+                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
+            }
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            icon: "blur_on"
+            text: Translation.tr("Blur radius")
+            from: 0; to: 100; stepSize: 5
+            value: Config.options?.waffles?.background?.backdrop?.blurRadius ?? 32
+            onValueChanged: Config.options.waffles.background.backdrop.blurRadius = value
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            icon: "brightness_5"
+            text: Translation.tr("Dim (%)")
+            from: 0; to: 100; stepSize: 5
+            value: Config.options?.waffles?.background?.backdrop?.dim ?? 35
+            onValueChanged: Config.options.waffles.background.backdrop.dim = value
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            icon: "contrast"
+            text: Translation.tr("Saturation")
+            from: 0; to: 200; stepSize: 10
+            value: Math.round((Config.options?.waffles?.background?.backdrop?.saturation ?? 1.0) * 100)
+            onValueChanged: Config.options.waffles.background.backdrop.saturation = value / 100.0
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            icon: "exposure"
+            text: Translation.tr("Contrast")
+            from: 0; to: 200; stepSize: 10
+            value: Math.round((Config.options?.waffles?.background?.backdrop?.contrast ?? 1.0) * 100)
+            onValueChanged: Config.options.waffles.background.backdrop.contrast = value / 100.0
+        }
+
+        ConfigSwitch {
+            visible: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            buttonIcon: "vignette"
+            text: Translation.tr("Vignette")
+            checked: Config.options?.waffles?.background?.backdrop?.vignetteEnabled ?? false
+            onCheckedChanged: Config.options.waffles.background.backdrop.vignetteEnabled = checked
+        }
+
+        ConfigSpinBox {
+            visible: (Config.options?.waffles?.background?.backdrop?.enable ?? true) && (Config.options?.waffles?.background?.backdrop?.vignetteEnabled ?? false)
+            icon: "opacity"
+            text: Translation.tr("Vignette intensity")
+            from: 0; to: 100; stepSize: 5
+            value: Math.round((Config.options?.waffles?.background?.backdrop?.vignetteIntensity ?? 0.5) * 100)
+            onValueChanged: Config.options.waffles.background.backdrop.vignetteIntensity = value / 100.0
         }
     }
 
@@ -96,7 +260,6 @@ ContentPage {
             text: Translation.tr("Tint app icons")
             checked: Config.options?.waffles?.bar?.monochromeIcons ?? false
             onCheckedChanged: Config.options.waffles.bar.monochromeIcons = checked
-            StyledToolTip { text: Translation.tr("Apply accent color tint to taskbar icons") }
         }
 
         ConfigSwitch {
@@ -104,100 +267,6 @@ ContentPage {
             text: Translation.tr("Tint tray icons")
             checked: Config.options?.waffles?.bar?.tintTrayIcons ?? false
             onCheckedChanged: Config.options.waffles.bar.tintTrayIcons = checked
-            StyledToolTip { text: Translation.tr("Apply accent color tint to system tray icons") }
-        }
-    }
-
-    ContentSection {
-        visible: root.isWaffleActive
-        icon: "auto_awesome"
-        title: Translation.tr("Wallpaper Effects")
-
-        ConfigSwitch {
-            buttonIcon: "blur_on"
-            text: Translation.tr("Enable dynamic blur")
-            checked: Config.options?.waffles?.background?.effects?.enableBlur ?? false
-            onCheckedChanged: Config.options.waffles.background.effects.enableBlur = checked
-        }
-
-        ConfigSpinBox {
-            visible: Config.options?.waffles?.background?.effects?.enableBlur ?? false
-            icon: "blur_medium"
-            text: Translation.tr("Blur radius")
-            from: 0; to: 64; stepSize: 2
-            value: Config.options?.waffles?.background?.effects?.blurRadius ?? 32
-            onValueChanged: Config.options.waffles.background.effects.blurRadius = value
-        }
-
-        ConfigSpinBox {
-            icon: "brightness_5"
-            text: Translation.tr("Dim (%)")
-            from: 0; to: 100; stepSize: 5
-            value: Config.options?.waffles?.background?.effects?.dim ?? 0
-            onValueChanged: Config.options.waffles.background.effects.dim = value
-        }
-    }
-
-    ContentSection {
-        visible: root.isWaffleActive
-        icon: "layers"
-        title: Translation.tr("Backdrop")
-
-        ConfigSwitch {
-            buttonIcon: "blur_linear"
-            text: Translation.tr("Enable backdrop")
-            checked: Config.options?.waffles?.background?.backdrop?.enable ?? false
-            onCheckedChanged: Config.options.waffles.background.backdrop.enable = checked
-        }
-
-        ConfigSwitch {
-            visible: Config.options?.waffles?.background?.backdrop?.enable ?? false
-            buttonIcon: "visibility_off"
-            text: Translation.tr("Hide main wallpaper")
-            checked: Config.options?.waffles?.background?.backdrop?.hideWallpaper ?? false
-            onCheckedChanged: Config.options.waffles.background.backdrop.hideWallpaper = checked
-        }
-
-        ConfigSwitch {
-            visible: Config.options?.waffles?.background?.backdrop?.enable ?? false
-            buttonIcon: "link"
-            text: Translation.tr("Use Waffle wallpaper")
-            checked: Config.options?.waffles?.background?.backdrop?.useMainWallpaper ?? true
-            onCheckedChanged: {
-                Config.options.waffles.background.backdrop.useMainWallpaper = checked;
-                if (checked) Config.options.waffles.background.backdrop.wallpaperPath = "";
-            }
-        }
-
-        RippleButtonWithIcon {
-            visible: (Config.options?.waffles?.background?.backdrop?.enable ?? false) 
-                     && !(Config.options?.waffles?.background?.backdrop?.useMainWallpaper ?? true)
-            Layout.fillWidth: true
-            buttonRadius: Appearance.rounding.small
-            materialIcon: "wallpaper"
-            mainText: Translation.tr("Pick backdrop wallpaper")
-            onClicked: {
-                Config.options.wallpaperSelector.selectionTarget = "waffle-backdrop";
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"]);
-            }
-        }
-
-        ConfigSpinBox {
-            visible: Config.options?.waffles?.background?.backdrop?.enable ?? false
-            icon: "blur_on"
-            text: Translation.tr("Blur radius")
-            from: 0; to: 100; stepSize: 5
-            value: Config.options?.waffles?.background?.backdrop?.blurRadius ?? 32
-            onValueChanged: Config.options.waffles.background.backdrop.blurRadius = value
-        }
-
-        ConfigSpinBox {
-            visible: Config.options?.waffles?.background?.backdrop?.enable ?? false
-            icon: "brightness_5"
-            text: Translation.tr("Dim (%)")
-            from: 0; to: 100; stepSize: 5
-            value: Config.options?.waffles?.background?.backdrop?.dim ?? 35
-            onValueChanged: Config.options.waffles.background.backdrop.dim = value
         }
     }
 
@@ -225,7 +294,6 @@ ContentPage {
             text: Translation.tr("Allow multiple panels open")
             checked: Config.options?.waffles?.behavior?.allowMultiplePanels ?? false
             onCheckedChanged: Config.options.waffles.behavior.allowMultiplePanels = checked
-            StyledToolTip { text: Translation.tr("Keep panels open when opening others") }
         }
     }
 
@@ -243,9 +311,7 @@ ContentPage {
                 { displayName: Translation.tr("Wide"), icon: "view_week", value: "wide" }
             ]
             currentValue: Config.options?.waffles?.startMenu?.sizePreset ?? "normal"
-            onSelected: (newValue) => {
-                Config.options.waffles.startMenu.sizePreset = newValue
-            }
+            onSelected: (newValue) => Config.options.waffles.startMenu.sizePreset = newValue
         }
     }
 

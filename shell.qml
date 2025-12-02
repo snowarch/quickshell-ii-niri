@@ -35,6 +35,7 @@ import qs.modules.waffle.notificationCenter
 import qs.modules.waffle.onScreenDisplay as WaffleOSDModule
 import qs.modules.waffle.startMenu
 import qs.modules.waffle.widgets
+import qs.modules.waffle.backdrop as WaffleBackdropModule
 
 import QtQuick
 import Quickshell
@@ -63,11 +64,34 @@ ShellRoot {
             if (Config.ready) {
                 console.log("[Shell] Config ready, applying theme");
                 ThemeService.applyCurrentTheme();
-                // Always sync enabledPanels with current panelFamilies definition
-                const family = Config.options.panelFamily
-                if (root.families.includes(family)) {
-                    Config.options.enabledPanels = root.panelFamilies[family]
+                // Only reset enabledPanels if it's empty or undefined (first run / corrupted config)
+                if (!Config.options.enabledPanels || Config.options.enabledPanels.length === 0) {
+                    const family = Config.options.panelFamily || "ii"
+                    if (root.families.includes(family)) {
+                        Config.options.enabledPanels = root.panelFamilies[family]
+                    }
                 }
+                // Migration: Ensure waffle family has wBackdrop instead of iiBackdrop
+                root.migrateEnabledPanels();
+            }
+        }
+    }
+
+    // Migrate enabledPanels for users upgrading from older versions
+    function migrateEnabledPanels() {
+        const family = Config.options.panelFamily || "ii";
+        const panels = Config.options.enabledPanels || [];
+        
+        if (family === "waffle") {
+            // If waffle family has iiBackdrop but not wBackdrop, migrate
+            const hasIiBackdrop = panels.includes("iiBackdrop");
+            const hasWBackdrop = panels.includes("wBackdrop");
+            
+            if (hasIiBackdrop && !hasWBackdrop) {
+                console.log("[Shell] Migrating enabledPanels: replacing iiBackdrop with wBackdrop for waffle family");
+                const newPanels = panels.filter(p => p !== "iiBackdrop");
+                newPanels.push("wBackdrop");
+                Config.options.enabledPanels = newPanels;
             }
         }
     }
@@ -88,14 +112,7 @@ ShellRoot {
     // ii style (Material)
     PanelLoader { identifier: "iiBar"; extraCondition: !Config.options.bar.vertical; component: Bar {} }
     PanelLoader { identifier: "iiBackground"; component: Background {} }
-    PanelLoader { 
-        identifier: "iiBackdrop"
-        // Load backdrop if enabled in either Material ii or Waffle config
-        extraCondition: (Config.options?.panelFamily === "waffle" 
-            ? (Config.options?.waffles?.background?.backdrop?.enable ?? false)
-            : (Config.options?.background?.backdrop?.enable ?? false))
-        component: Backdrop {} 
-    }
+    PanelLoader { identifier: "iiBackdrop"; extraCondition: Config.options?.background?.backdrop?.enable ?? false; component: Backdrop {} }
     PanelLoader { identifier: "iiCheatsheet"; component: Cheatsheet {} }
     PanelLoader { identifier: "iiCrosshair"; component: Crosshair {} }
     PanelLoader { identifier: "iiDock"; extraCondition: Config.options.dock.enable; component: Dock {} }
@@ -125,6 +142,7 @@ ShellRoot {
     PanelLoader { identifier: "wNotificationCenter"; component: WaffleNotificationCenter {} }
     PanelLoader { identifier: "wOnScreenDisplay"; component: WaffleOSDModule.WaffleOSD {} }
     PanelLoader { identifier: "wWidgets"; component: WaffleWidgets {} }
+    PanelLoader { identifier: "wBackdrop"; extraCondition: Config.options?.waffles?.background?.backdrop?.enable ?? true; component: WaffleBackdropModule.WaffleBackdrop {} }
 
     // Shared (always loaded via ToastManager)
     ToastManager {}
@@ -147,9 +165,9 @@ ShellRoot {
             "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
         ],
         "waffle": [
-            "wBar", "wBackground", "wStartMenu", "wActionCenter", "wNotificationCenter", "wOnScreenDisplay", "wWidgets",
+            "wBar", "wBackground", "wBackdrop", "wStartMenu", "wActionCenter", "wNotificationCenter", "wOnScreenDisplay", "wWidgets",
             // Shared modules that work with waffle
-            "iiBackdrop", "iiCheatsheet", "iiLock", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
+            "iiCheatsheet", "iiLock", "iiNotificationPopup", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
             "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
         ]
     })

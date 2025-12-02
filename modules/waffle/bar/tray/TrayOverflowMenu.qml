@@ -12,7 +12,10 @@ import qs.modules.waffle.bar
 BarPopup {
     id: root
 
+    // Disable both auto-close mechanisms - this menu is controlled by the toggle button
     closeOnFocusLost: false
+    closeOnHoverLost: false
+    
     onFocusCleared: {
         const hasMenuOpen = contentItem.children.some(c => (c.menuOpen));
         if (!hasMenuOpen)
