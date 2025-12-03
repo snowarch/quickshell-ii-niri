@@ -5,11 +5,29 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
+    id: root
     forceWidth: true
     settingsPageIndex: 2
     settingsPageName: Translation.tr("Bar")
 
+    property bool isIiActive: Config.options?.panelFamily !== "waffle"
+
     ContentSection {
+        visible: !root.isIiActive
+        icon: "info"
+        title: Translation.tr("Not Active")
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("These settings only apply when using the Material (ii) panel style. Go to Modules → Panel Style to switch.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
+        }
+    }
+
+    ContentSection {
+        visible: root.isIiActive
         icon: "notifications"
         title: Translation.tr("Notifications")
         ConfigSwitch {
@@ -23,6 +41,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "widgets"
         title: Translation.tr("Bar modules")
         // Edge modules: simple toggles
@@ -77,6 +96,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "spoke"
         title: Translation.tr("Positioning")
 
@@ -207,6 +227,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "shelf_auto_hide"
         title: Translation.tr("Tray")
 
@@ -227,9 +248,19 @@ ContentPage {
                 Config.options.bar.tray.monochromeIcons = checked;
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "bug_report"
+            text: Translation.tr('Show item ID in tooltip')
+            checked: Config.options.bar.tray.showItemId
+            onCheckedChanged: {
+                Config.options.bar.tray.showItemId = checked;
+            }
+        }
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "widgets"
         title: Translation.tr("Utility buttons")
 
@@ -312,6 +343,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "cloud"
         title: Translation.tr("Weather")
         ConfigSwitch {
@@ -325,6 +357,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "workspaces"
         title: Translation.tr("Workspaces")
 

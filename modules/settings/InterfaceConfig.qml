@@ -6,9 +6,12 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
+    id: root
     forceWidth: true
     settingsPageIndex: 5
     settingsPageName: Translation.tr("Interface")
+
+    property bool isIiActive: Config.options?.panelFamily !== "waffle"
 
     ContentSection {
         icon: "point_scan"
@@ -145,8 +148,9 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "keyboard_tab"
-        title: Translation.tr("Alt-Tab switcher")
+        title: Translation.tr("Alt-Tab switcher (Material ii)")
 
         ConfigSwitch {
             buttonIcon: "colors"
@@ -328,6 +332,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "call_to_action"
         title: Translation.tr("Dock")
 
@@ -742,6 +747,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "side_navigation"
         title: Translation.tr("Sidebars")
 
@@ -1027,6 +1033,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "overview_key"
         title: Translation.tr("Overview")
 

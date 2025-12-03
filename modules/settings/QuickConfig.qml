@@ -530,6 +530,32 @@ ContentPage {
                 onClicked: Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "cheatsheet", "toggle"])
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "notifications_active"
+            text: Translation.tr("Show reload toasts")
+            checked: Config.options?.reloadToasts?.enable ?? true
+            onCheckedChanged: {
+                if (!Config.options.reloadToasts) Config.options.reloadToasts = ({})
+                Config.options.reloadToasts.enable = checked
+            }
+            StyledToolTip {
+                text: Translation.tr("Show toast notifications when Quickshell or Niri config reloads.\nErrors are always shown.")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "sports_esports"
+            text: Translation.tr("Hide reload toasts in Game Mode")
+            checked: Config.options?.gameMode?.disableReloadToasts ?? true
+            onCheckedChanged: {
+                if (!Config.options.gameMode) Config.options.gameMode = ({})
+                Config.options.gameMode.disableReloadToasts = checked
+            }
+            StyledToolTip {
+                text: Translation.tr("Automatically suppress reload toasts when Game Mode is active")
+            }
+        }
     }
 
     // Subtle footer

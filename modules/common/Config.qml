@@ -87,6 +87,7 @@ Singleton {
                 "iiSidebarLeft", "iiSidebarRight", "iiVerticalBar", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
             ]
             property string panelFamily: "ii" // "ii" or "waffle"
+            property bool familyTransitionAnimation: true // Show animated overlay when switching families
             
             property JsonObject policies: JsonObject {
                 property int ai: 1 // 0: No | 1: Yes | 2: Local
@@ -247,7 +248,12 @@ Singleton {
                 property bool disableAnimations: true
                 property bool disableEffects: true
                 property bool disableNiriAnimations: true
+                property bool disableReloadToasts: true
                 property int checkInterval: 2000 // ms
+            }
+
+            property JsonObject reloadToasts: JsonObject {
+                property bool enable: true
             }
 
             property JsonObject audio: JsonObject {
@@ -764,6 +770,10 @@ Singleton {
                 property bool useSystemFileDialog: false
                 property string selectionTarget: "main"
             }
+
+            property JsonObject screenRecord: JsonObject {
+                property string savePath: "" // Empty = use XDG Videos or ~/Videos
+            }
             
             property JsonObject windows: JsonObject {
                 property bool showTitlebar: true // Client-side decoration for shell apps
@@ -790,6 +800,17 @@ Singleton {
                 property JsonObject tweaks: JsonObject {
                     property bool smootherMenuAnimations: true
                     property bool switchHandlePositionFix: true
+                }
+                property JsonObject altSwitcher: JsonObject {
+                    property string preset: "thumbnails"
+                    property bool autoHide: true
+                    property int autoHideDelayMs: 500
+                    property bool closeOnFocus: true
+                    property bool useMostRecentFirst: true
+                    property int thumbnailWidth: 280
+                    property int thumbnailHeight: 180
+                    property real scrimOpacity: 0.4
+                    property bool showOverviewWhileSwitching: false
                 }
                 property JsonObject background: JsonObject {
                     property string wallpaperPath: "" // Empty = use main wallpaper

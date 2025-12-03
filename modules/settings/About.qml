@@ -146,7 +146,7 @@ ContentPage {
             ColumnLayout {
                 Layout.alignment: Qt.AlignVCenter
                 StyledText {
-                    text: "some cool name idk"
+                    text: "ii on Niri"
                     font.pixelSize: Appearance.font.pixelSize.title
                 }
                 StyledText {

@@ -6,11 +6,29 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
+    id: root
     forceWidth: true
     settingsPageIndex: 3
     settingsPageName: Translation.tr("Background")
 
+    property bool isIiActive: Config.options?.panelFamily !== "waffle"
+
     ContentSection {
+        visible: !root.isIiActive
+        icon: "info"
+        title: Translation.tr("Waffle Mode")
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("You're using Waffle style. Most background settings are in the Waffle Style page. Only the Backdrop section below applies to both styles.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
+        }
+    }
+
+    ContentSection {
+        visible: root.isIiActive
         icon: "sync_alt"
         title: Translation.tr("Parallax")
 
@@ -56,6 +74,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "wallpaper"
         title: Translation.tr("Wallpaper effects")
 
@@ -293,6 +312,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "clock_loader_40"
         title: Translation.tr("Widget: Clock")
 
@@ -683,6 +703,7 @@ ContentPage {
     }
 
     ContentSection {
+        visible: root.isIiActive
         icon: "weather_mix"
         title: Translation.tr("Widget: Weather")
 
