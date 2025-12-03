@@ -147,6 +147,47 @@ layer-rule {
 BACKDROP_RULES
         log_success "Backdrop layer-rules added to Niri config"
       fi
+      
+      # Migrate: Add missing ii keybinds
+      # Each entry: "search_pattern|keybind_line"
+      II_KEYBINDS=(
+        'ipc" "call" "altSwitcher" "next|    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'
+        'ipc" "call" "altSwitcher" "previous|    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'
+        'ipc" "call" "panelFamily" "cycle|    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'
+        'ipc" "call" "cheatsheet" "toggle|    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'
+        'ipc" "call" "clipboard" "toggle|    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'
+        'ipc" "call" "overlay" "toggle|    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'
+        'ipc" "call" "overview" "toggle|    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'
+        'ipc" "call" "lock" "activate|    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'
+        'ipc" "call" "region" "screenshot|    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'
+        'ipc" "call" "region" "ocr|    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'
+        'ipc" "call" "region" "search|    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'
+        'ipc" "call" "wallpaperSelector" "toggle|    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'
+        'ipc" "call" "settings" "open|    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'
+      )
+      
+      KEYBINDS_ADDED=0
+      for entry in "${II_KEYBINDS[@]}"; do
+        search_pattern="${entry%%|*}"
+        keybind_line="${entry#*|}"
+        
+        if ! grep -qF "$search_pattern" "$NIRI_CONFIG" 2>/dev/null; then
+          # Find the binds { block and add the keybind before the closing }
+          # We'll append to a temp section at the end of binds block
+          if [[ $KEYBINDS_ADDED -eq 0 ]]; then
+            echo -e "${STY_CYAN}Adding missing ii keybinds to Niri config...${STY_RST}"
+            # Add a comment section before the first keybind
+            sed -i '/^binds {/a\    // ii keybinds added by setup' "$NIRI_CONFIG"
+          fi
+          # Insert the keybind after the comment
+          sed -i "/\/\/ ii keybinds added by setup/a\\$keybind_line" "$NIRI_CONFIG"
+          KEYBINDS_ADDED=$((KEYBINDS_ADDED + 1))
+        fi
+      done
+      
+      if [[ $KEYBINDS_ADDED -gt 0 ]]; then
+        log_success "Added $KEYBINDS_ADDED missing ii keybinds to Niri config"
+      fi
     fi
     ;;
 esac
