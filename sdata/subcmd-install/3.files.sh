@@ -536,7 +536,7 @@ echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
 echo ""
 
 if [[ "${IS_UPDATE}" == "true" ]]; then
-  echo -e "${STY_GREEN}Update applied! Restart ii with: ${STY_BOLD}qs kill -c ii && qs -c ii${STY_RST}"
+  echo -e "${STY_GREEN}Done. Hot reload should kick in any second now.${STY_RST}"
 else
   echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
 fi

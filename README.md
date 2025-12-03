@@ -72,7 +72,7 @@ Not on Arch? Check [docs/INSTALL.md](docs/INSTALL.md) for manual steps.
 
 ## Updating
 
-Already installed? Pull the latest and run update:
+Already installed? Pull and sync:
 
 ```bash
 cd quickshell-ii-niri
@@ -80,7 +80,7 @@ git pull
 ./setup update
 ```
 
-This syncs the QML code and configs without touching your customizations. Missing keybinds get added automatically. 
+Syncs QML and configs. Your customizations stay. Missing keybinds get added. Hot reload does the rest.
 
 ---
 
