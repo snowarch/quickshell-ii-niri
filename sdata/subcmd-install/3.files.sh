@@ -422,28 +422,52 @@ fi
 #####################################################################################
 echo ""
 echo ""
-printf "${STY_GREEN}${STY_BOLD}"
-cat << 'EOF'
+
+if [[ "${IS_UPDATE}" == "true" ]]; then
+  # Update-specific output
+  printf "${STY_GREEN}${STY_BOLD}"
+  cat << 'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                    ✓ Update Complete                         ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+EOF
+  printf "${STY_RST}"
+  echo ""
+
+  echo -e "${STY_BLUE}${STY_BOLD}┌─ What was updated${STY_RST}"
+  echo -e "${STY_BLUE}│${STY_RST}"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii synced to ~/.config/quickshell/ii/"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Missing keybinds added to Niri config (if any)"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Config migrations applied"
+  echo -e "${STY_BLUE}│${STY_RST}"
+  echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
+  echo ""
+else
+  # Install output
+  printf "${STY_GREEN}${STY_BOLD}"
+  cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║                  ✓ Installation Complete                     ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
-printf "${STY_RST}"
-echo ""
+  printf "${STY_RST}"
+  echo ""
 
-# Show what was configured
-echo -e "${STY_BLUE}${STY_BOLD}┌─ What was installed${STY_RST}"
-echo -e "${STY_BLUE}│${STY_RST}"
-echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii copied to ~/.config/quickshell/ii/"
-echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Niri config with ii keybindings"
-echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} GTK/Qt theming (Matugen + Kvantum + Darkly)"
-echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Environment variables for ${DETECTED_SHELL:-your shell}"
-echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper and color scheme"
-echo -e "${STY_BLUE}│${STY_RST}"
-echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
-echo ""
+  echo -e "${STY_BLUE}${STY_BOLD}┌─ What was installed${STY_RST}"
+  echo -e "${STY_BLUE}│${STY_RST}"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii copied to ~/.config/quickshell/ii/"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Niri config with ii keybindings"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} GTK/Qt theming (Matugen + Kvantum + Darkly)"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Environment variables for ${DETECTED_SHELL:-your shell}"
+  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper and color scheme"
+  echo -e "${STY_BLUE}│${STY_RST}"
+  echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
+  echo ""
+fi
 
 # Check for .new files that need manual review
 NEW_FILES=()
@@ -492,20 +516,28 @@ echo -e "${STY_CYAN}│${STY_RST}"
 echo -e "${STY_CYAN}└──────────────────────────────${STY_RST}"
 echo ""
 
-# Key shortcuts
-echo -e "${STY_PURPLE}${STY_BOLD}┌─ Key Shortcuts${STY_RST}"
-echo -e "${STY_PURPLE}│${STY_RST}"
-echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+G ${STY_RST}         Overlay (search, widgets)"
-echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Alt+Tab ${STY_RST}         Window switcher"
-echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+V ${STY_RST}         Clipboard history"
-echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Ctrl+Alt+T ${STY_RST}      Wallpaper picker"
-echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+/ ${STY_RST}         Show all shortcuts"
-echo -e "${STY_PURPLE}│${STY_RST}"
-echo -e "${STY_PURPLE}└──────────────────────────────${STY_RST}"
-echo ""
+# Key shortcuts (only show on install, not update)
+if [[ "${IS_UPDATE}" != "true" ]]; then
+  echo -e "${STY_PURPLE}${STY_BOLD}┌─ Key Shortcuts${STY_RST}"
+  echo -e "${STY_PURPLE}│${STY_RST}"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+Space ${STY_RST}     Search / Overview"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+G ${STY_RST}         Overlay (widgets, tools)"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Alt+Tab ${STY_RST}         Window switcher"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+V ${STY_RST}         Clipboard history"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Ctrl+Alt+T ${STY_RST}      Wallpaper picker"
+  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+/ ${STY_RST}         Show all shortcuts"
+  echo -e "${STY_PURPLE}│${STY_RST}"
+  echo -e "${STY_PURPLE}└──────────────────────────────${STY_RST}"
+  echo ""
+fi
 
 echo -e "${STY_FAINT}Backups saved to: ${BACKUP_DIR}${STY_RST}"
 echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
 echo ""
-echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
+
+if [[ "${IS_UPDATE}" == "true" ]]; then
+  echo -e "${STY_GREEN}Update applied! Restart ii with: ${STY_BOLD}qs kill -c ii && qs -c ii${STY_RST}"
+else
+  echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
+fi
 echo ""

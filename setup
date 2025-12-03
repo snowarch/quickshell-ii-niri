@@ -149,6 +149,7 @@ case ${SUBCMD_NAME} in
     # Convenience alias for config/QML sync after git pull
     detect_distro
     pause
+    export IS_UPDATE=true
     if [[ "${SKIP_ALLFILES}" != true ]]; then
       source ${SUBCMD_DIR}/3.files.sh
     fi
