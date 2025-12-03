@@ -20,6 +20,7 @@ Change them. Break them. Make them yours. We won't judge.
 | `Super+,` | Settings |
 | `Super+Alt+L` | Lock screen |
 | `Ctrl+Alt+T` | Wallpaper selector |
+| `Mod+Shift+W` | Cycle panel style (Material ↔ Waffle) |
 
 ---
 

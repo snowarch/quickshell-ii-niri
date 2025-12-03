@@ -304,3 +304,101 @@ Performance mode for gaming. Auto-detects fullscreen apps and disables animation
 ```kdl
 bind "Super+F12" { spawn "qs" "-c" "ii" "ipc" "call" "gamemode" "toggle"; }
 ```
+
+---
+
+### panelFamily
+
+Switch between panel styles. ii supports two visual styles: Material ii (default) and Waffle (Windows 11-like).
+
+| Function | Description |
+|----------|-------------|
+| `cycle` | Cycle to next panel family (ii → waffle → ii) |
+| `set` | Set specific family ("ii" or "waffle") |
+
+```kdl
+bind "Mod+Shift+W" { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }
+```
+
+---
+
+### notifications
+
+Notification management.
+
+| Function | Description |
+|----------|-------------|
+| `test` | Send test notifications |
+| `clearAll` | Dismiss all notifications |
+| `toggleSilent` | Toggle Do Not Disturb mode |
+
+---
+
+### minimize
+
+Window minimization (Niri workaround - moves windows to hidden workspace).
+
+| Function | Description |
+|----------|-------------|
+| `minimize` | Minimize focused window |
+| `restore` | Restore a minimized window by ID |
+
+---
+
+## Waffle-Specific Targets
+
+These targets only work when using the Waffle (Windows 11) panel style.
+
+### search
+
+Waffle start menu / search.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Open/close start menu |
+| `open` | Open start menu |
+| `close` | Close start menu |
+
+---
+
+### wactionCenter
+
+Waffle action center (quick settings).
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Open/close action center |
+
+---
+
+### wnotificationCenter
+
+Waffle notification center.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Open/close notification center |
+
+---
+
+### wwidgets
+
+Waffle widgets panel.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Open/close widgets |
+| `open` | Open widgets |
+| `close` | Close widgets |
+
+---
+
+### wbar
+
+Waffle taskbar visibility.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Show/hide taskbar |
+| `open` | Show taskbar |
+| `close` | Hide taskbar |

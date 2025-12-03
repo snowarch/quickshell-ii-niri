@@ -37,8 +37,7 @@ Can't decide on a look? Good news, you don't have to.
 - **Material ii** - The OG. Floating bar, sidebars, that Material Design aesthetic.
 - **Waffle** - Taskbar at the bottom, action center, tray overflow. For the "I kinda miss Windows" crowd.
 
-Mix them, match them, run both at once idc.
- Settings → Modules, go nuts.
+Press `Mod+Shift+W` to cycle between styles, or go to Settings → Modules to mix and match.
 
 ---
 
@@ -87,6 +86,7 @@ These come configured by default:
 | `Ctrl+Alt+T` | Wallpaper picker |
 | `Super+/` | Keyboard shortcuts cheatsheet |
 | `Super+,` | Settings |
+| `Mod+Shift+W` | Cycle panel style (Material ↔ Waffle) |
 
 Full list in [docs/KEYBINDS.md](docs/KEYBINDS.md).
 
@@ -116,9 +116,11 @@ Main targets:
 | `sidebarLeft` | `toggle` |
 | `sidebarRight` | `toggle` |
 | `wallpaperSelector` | `toggle` |
+| `panelFamily` | `cycle`, `set` |
 | `mpris` | `playPause`, `next`, `previous` |
 | `brightness` | `increment`, `decrement` |
 | `gamemode` | `toggle`, `activate`, `deactivate`, `status` |
+| `notifications` | `test`, `clearAll`, `toggleSilent` |
 
 Full reference with examples: [docs/IPC.md](docs/IPC.md)
 

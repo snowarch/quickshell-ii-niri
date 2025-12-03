@@ -132,6 +132,26 @@ git pull
 - Your existing `config.kdl` / `config.json` are still preserved as described above (new defaults go to `.new`).
 - For the QML code itself (`modules/`, `services/`, etc.), the installer uses `rsync --delete` so you get a clean sync with the repo.
 
+### Getting New Keybinds
+
+When we add new keybinds (like `Mod+Shift+W` for panel style cycling), they go into `defaults/niri/config.kdl`. Since your existing config isn't overwritten, you have two options:
+
+**Option 1: Check the `.new` file**
+```bash
+diff ~/.config/niri/config.kdl ~/.config/niri/config.kdl.new
+```
+Copy any new binds you want into your config.
+
+**Option 2: Add manually**
+Check [docs/KEYBINDS.md](KEYBINDS.md) for the latest keybinds and add them to your `~/.config/niri/config.kdl`:
+
+```kdl
+// Example: Panel style cycling (added in recent update)
+Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }
+```
+
+Then reload: `niri msg action load-config-file`
+
 ---
 
 ## Uninstalling
