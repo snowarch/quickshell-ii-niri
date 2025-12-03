@@ -41,7 +41,6 @@ Item {
             SearchBar {
                 id: searchBar
                 Layout.fillWidth: true
-                Layout.preferredWidth: pageLoader.item?.implicitWidth ?? 300
                 Synchronizer on searching {
                     property alias target: root.searching
                 }
@@ -51,50 +50,57 @@ Item {
                 Component.onCompleted: Qt.callLater(() => searchBar.forceActiveFocus())
                 
                 onNavigateUp: {
-                    if (root.searching && pageLoader.item?.navigateUp) {
-                        pageLoader.item.navigateUp()
+                    if (root.searching && searchPage.navigateUp) {
+                        searchPage.navigateUp()
                     }
                 }
                 onNavigateDown: {
-                    if (root.searching && pageLoader.item?.navigateDown) {
-                        pageLoader.item.navigateDown()
+                    if (root.searching && searchPage.navigateDown) {
+                        searchPage.navigateDown()
                     }
                 }
                 onAccepted: {
-                    if (root.searching && pageLoader.item?.activateCurrent) {
-                        pageLoader.item.activateCurrent()
+                    if (root.searching && searchPage.activateCurrent) {
+                        searchPage.activateCurrent()
                     }
                 }
             }
             
-            Loader {
-                id: pageLoader
+            // Fixed size container - always uses startPage dimensions
+            Item {
+                id: pageContainer
                 Layout.fillWidth: true
-                sourceComponent: {
-                    if (root.searching) return searchPageComponent
-                    if (root.showAllApps) return allAppsComponent
-                    return startPageComponent
+                implicitWidth: startPage.implicitWidth
+                implicitHeight: startPage.implicitHeight
+                clip: true
+
+                // Start page - always loaded, hidden when searching
+                StartPageContent {
+                    id: startPage
+                    anchors.fill: parent
+                    visible: !root.searching && !root.showAllApps
+                    onAllAppsClicked: root.showAllApps = true
+                }
+
+                // Search page - always loaded, shown when searching
+                SearchPageContent {
+                    id: searchPage
+                    anchors.fill: parent
+                    visible: root.searching
+                    searchText: root.searchText
+                }
+
+                // All apps - loaded on demand
+                Loader {
+                    id: allAppsLoader
+                    anchors.fill: parent
+                    active: root.showAllApps
+                    sourceComponent: AllAppsContent {
+                        onBack: root.showAllApps = false
+                    }
                 }
             }
         }
-    }
-
-    Component {
-        id: searchPageComponent
-        SearchPageContent { 
-            id: searchPage
-            searchText: root.searchText
-        }
-    }
-
-    Component {
-        id: startPageComponent
-        StartPageContent { onAllAppsClicked: root.showAllApps = true }
-    }
-
-    Component {
-        id: allAppsComponent
-        AllAppsContent { onBack: root.showAllApps = false }
     }
 
     Keys.onEscapePressed: root.close()

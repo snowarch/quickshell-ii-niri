@@ -40,7 +40,7 @@ Scope {
             exclusiveZone: 0
             WlrLayershell.namespace: "quickshell:wWidgets"
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             color: "transparent"
 
             anchors {
@@ -77,8 +77,8 @@ Scope {
 
     IpcHandler {
         target: "wwidgets"
-        function toggle() { root.toggleOpen() }
-        function close() { GlobalStates.waffleWidgetsOpen = false }
-        function open() { GlobalStates.waffleWidgetsOpen = true }
+        function toggle(): void { root.toggleOpen() }
+        function close(): void { GlobalStates.waffleWidgetsOpen = false }
+        function open(): void { GlobalStates.waffleWidgetsOpen = true }
     }
 }
