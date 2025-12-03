@@ -44,10 +44,10 @@ Singleton {
     // IPC handler for external control
     IpcHandler {
         target: "gamemode"
-        function toggle() { root.toggle() }
-        function activate() { root.activate() }
-        function deactivate() { root.deactivate() }
-        function status() { 
+        function toggle(): void { root.toggle() }
+        function activate(): void { root.activate() }
+        function deactivate(): void { root.deactivate() }
+        function status(): void { 
             console.log("[GameMode] Status - active:", root.active, "manual:", root._manualActive, "auto:", root._autoActive)
         }
     }

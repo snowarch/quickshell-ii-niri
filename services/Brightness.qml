@@ -232,11 +232,11 @@ Singleton {
     IpcHandler {
         target: "brightness"
 
-        function increment() {
+        function increment(): void {
             root.increaseBrightness();
         }
 
-        function decrement() {
+        function decrement(): void {
             root.decreaseBrightness();
         }
     }

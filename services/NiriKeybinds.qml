@@ -32,7 +32,8 @@ Singleton {
                 { mods: ["Super"], key: "Comma", comment: "Settings" },
                 { mods: ["Super"], key: "Slash", comment: "Cheatsheet" },
                 { mods: ["Super", "Alt"], key: "L", comment: "Lock Screen" },
-                { mods: ["Ctrl", "Alt"], key: "T", comment: "Wallpaper Selector" }
+                { mods: ["Ctrl", "Alt"], key: "T", comment: "Wallpaper Selector" },
+                { mods: ["Super", "Shift"], key: "W", comment: "Cycle panel style" }
             ]}]
         },
         {

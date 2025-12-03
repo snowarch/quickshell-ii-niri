@@ -85,7 +85,7 @@ Singleton {
     property var filePath: Directories.notificationsPath
     property list<Notif> list: []
     property var popupList: list.filter((notif) => notif.popup);
-    property bool popupInhibited: (GlobalStates?.sidebarRightOpen ?? false) || silent
+    property bool popupInhibited: (GlobalStates?.sidebarRightOpen ?? false) || (GlobalStates?.waffleNotificationCenterOpen ?? false) || silent
     property var latestTimeForApp: ({})
     Component {
         id: notifComponent
@@ -371,15 +371,15 @@ Singleton {
     IpcHandler {
         target: "notifications"
 
-        function test() {
+        function test(): void {
             root.sendTestNotifications()
         }
 
-        function clearAll() {
+        function clearAll(): void {
             root.discardAllNotifications()
         }
 
-        function toggleSilent() {
+        function toggleSilent(): void {
             root.silent = !root.silent
         }
     }

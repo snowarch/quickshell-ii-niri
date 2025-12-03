@@ -22,7 +22,8 @@ Singleton {
         return node ? (node.nickname || node.description || Translation.tr("Unknown")) : Translation.tr("Unknown");
     }
     function appNodeDisplayName(node) {
-        return (node.properties["application.name"] || node.description || node.name)
+        if (!node) return Translation.tr("Unknown");
+        return (node.properties?.["application.name"] || node.description || node.name || Translation.tr("Unknown"))
     }
 
     // Lists
@@ -87,6 +88,7 @@ Singleton {
         property real lastVolume: 0
         function onVolumeChanged() {
             if (!Config.options.audio.protection.enable) return;
+            if (!sink?.audio) return;
             const newVolume = sink.audio.volume;
             // when resuming from suspend, we should not write volume to avoid pipewire volume reset issues
             if (isNaN(newVolume) || newVolume === undefined || newVolume === null) {
