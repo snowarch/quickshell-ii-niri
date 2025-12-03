@@ -21,6 +21,7 @@ Scope {
     property int totalCount: 0
     property bool showKeyboardHints: false
     property string lastCopiedEntry: ""
+    property bool showClearConfirmation: false
 
     function formatCliphistName(entry) {
         let cleaned = StringUtils.cleanCliphistEntry(entry)
@@ -83,8 +84,17 @@ Scope {
     }
 
     function clearAll() {
+        if (!showClearConfirmation) {
+            showClearConfirmation = true
+            return
+        }
         Cliphist.wipe()
+        showClearConfirmation = false
         GlobalStates.clipboardOpen = false
+    }
+
+    function cancelClear() {
+        showClearConfirmation = false
     }
 
     function refresh() {
@@ -94,6 +104,7 @@ Scope {
 
     Component.onCompleted: {
         refresh()
+        updateFilteredModel()
     }
 
     Connections {
@@ -113,6 +124,7 @@ Scope {
             if (GlobalStates.clipboardOpen) {
                 root.refresh()
                 root.searchText = ""
+                root.showClearConfirmation = false
                 Qt.callLater(() => searchField.forceActiveFocus())
             }
         }
@@ -300,22 +312,50 @@ Scope {
                         }
                     }
 
+                    // Normal state: delete button
                     IconToolbarButton {
+                        visible: !root.showClearConfirmation
                         implicitWidth: height
-                        onClicked: {
-                            root.clearAll()
-                        }
+                        onClicked: root.clearAll()
                         text: "delete"
                         StyledToolTip {
                             text: Translation.tr("Clear all")
                         }
                     }
 
+                    // Confirmation state
+                    StyledText {
+                        visible: root.showClearConfirmation
+                        text: Translation.tr("Clear all?")
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colError
+                    }
+
                     IconToolbarButton {
+                        visible: root.showClearConfirmation
                         implicitWidth: height
-                        onClicked: {
-                            GlobalStates.clipboardOpen = false
+                        onClicked: root.clearAll()
+                        text: "check"
+                        StyledToolTip {
+                            text: Translation.tr("Confirm")
                         }
+                    }
+
+                    IconToolbarButton {
+                        visible: root.showClearConfirmation
+                        implicitWidth: height
+                        onClicked: root.cancelClear()
+                        text: "close"
+                        StyledToolTip {
+                            text: Translation.tr("Cancel")
+                        }
+                    }
+
+                    // Close button (always visible when not confirming)
+                    IconToolbarButton {
+                        visible: !root.showClearConfirmation
+                        implicitWidth: height
+                        onClicked: GlobalStates.clipboardOpen = false
                         text: "close"
                         StyledToolTip {
                             text: Translation.tr("Close")
