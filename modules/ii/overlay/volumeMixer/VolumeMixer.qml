@@ -118,7 +118,7 @@ StyledOverlayWidget {
             running: activePlayer?.playbackState == MprisPlaybackState.Playing
             interval: Config.options.resources.updateInterval
             repeat: true
-            onTriggered: activePlayer.positionChanged()
+            onTriggered: activePlayer?.positionChanged()
         }
 
         Process { // Descarga ligera de carátula a caché

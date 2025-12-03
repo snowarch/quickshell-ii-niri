@@ -120,13 +120,13 @@ Scope {
 
     IpcHandler {
         target: "clipboard"
-        function open() {
+        function open(): void {
             root.open()
         }
-        function close() {
+        function close(): void {
             root.close()
         }
-        function toggle() {
+        function toggle(): void {
             root.toggle()
         }
     }

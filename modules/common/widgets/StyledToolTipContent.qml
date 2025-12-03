@@ -22,30 +22,32 @@ Item {
             bottom: root.bottom
             horizontalCenter: root.horizontalCenter
         }
-        color: Appearance?.colors.colTooltip ?? "#3C4043"
-        radius: Appearance?.rounding.verysmall ?? 7
+        color: Appearance.colors.colLayer3
+        radius: Appearance.rounding.verysmall
+        border.width: 1
+        border.color: Appearance.colors.colLayer3Hover
         opacity: shown ? 1 : 0
         implicitWidth: shown ? (tooltipTextObject.implicitWidth + 2 * root.horizontalPadding) : 0
         implicitHeight: shown ? (tooltipTextObject.implicitHeight + 2 * root.verticalPadding) : 0
         clip: true
 
         Behavior on implicitWidth {
-            animation: Appearance?.animation.elementMoveFast.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
         Behavior on implicitHeight {
-            animation: Appearance?.animation.elementMoveFast.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
         Behavior on opacity {
-            animation: Appearance?.animation.elementMoveFast.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
 
         StyledText {
             id: tooltipTextObject
             anchors.centerIn: parent
             text: root.text
-            font.pixelSize: Appearance?.font.pixelSize.smaller ?? 14
+            font.pixelSize: Appearance.font.pixelSize.smaller
             font.hintingPreference: Font.PreferNoHinting // Prevent shaky text
-            color: Appearance?.colors.colOnTooltip ?? "#FFFFFF"
+            color: Appearance.colors.colOnLayer3
             wrapMode: Text.Wrap
         }
     }   

@@ -77,19 +77,19 @@ Scope {
     IpcHandler {
         target: "region"
 
-        function screenshot() {
+        function screenshot(): void {
             root.screenshot()
         }
-        function search() {
+        function search(): void {
             root.search()
         }
-        function ocr() {
+        function ocr(): void {
             root.ocr()
         }
-        function record() {
+        function record(): void {
             root.record()
         }
-        function recordWithSound() {
+        function recordWithSound(): void {
             root.recordWithSound()
         }
     }

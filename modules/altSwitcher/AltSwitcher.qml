@@ -792,32 +792,36 @@ Scope {
 
 
 
+    // Only handle IPC when Material ii family is active
+    property bool isActive: Config.options?.panelFamily !== "waffle"
+
     IpcHandler {
         target: "altSwitcher"
+        enabled: root.isActive
 
-        function open() {
+        function open(): void {
             ensureOpen()
             autoHideTimer.restart()
         }
 
-        function close() {
+        function close(): void {
             GlobalStates.altSwitcherOpen = false
         }
 
-        function toggle() {
+        function toggle(): void {
             GlobalStates.altSwitcherOpen = !GlobalStates.altSwitcherOpen
             if (GlobalStates.altSwitcherOpen)
                 autoHideTimer.restart()
         }
 
-        function next() {
+        function next(): void {
             ensureOpen()
             nextItem()
             activateCurrent()
             autoHideTimer.restart()
         }
 
-        function previous() {
+        function previous(): void {
             ensureOpen()
             previousItem()
             activateCurrent()

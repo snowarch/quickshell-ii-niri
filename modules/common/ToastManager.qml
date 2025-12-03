@@ -46,11 +46,16 @@ Scope {
         }
     }
     
+    // Check if reload toasts should be shown
+    readonly property bool reloadToastsEnabled: (Config.options?.reloadToasts?.enable ?? true) 
+        && !(GameMode.active && (Config.options?.gameMode?.disableReloadToasts ?? true))
+
     // Quickshell reload signals
     Connections {
         target: Quickshell
         
         function onReloadCompleted() {
+            if (!root.reloadToastsEnabled) return
             root.addToast(
                 "Quickshell reloaded",
                 "",
@@ -63,6 +68,7 @@ Scope {
         }
         
         function onReloadFailed(error) {
+            // Always show errors
             root.addToast(
                 "Quickshell reload failed",
                 error,
@@ -81,6 +87,7 @@ Scope {
         
         function onConfigLoadFinished(ok, error) {
             if (ok) {
+                if (!root.reloadToastsEnabled) return
                 root.addToast(
                     "Niri config reloaded",
                     "",
@@ -91,6 +98,7 @@ Scope {
                     Appearance.colors.colTertiary
                 )
             } else {
+                // Always show errors
                 root.addToast(
                     "Niri config reload failed",
                     error || "Run 'niri validate' in terminal for details",

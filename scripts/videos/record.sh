@@ -14,12 +14,25 @@ getactivemonitor() {
     fi
 }
 
-xdgvideo="$(xdg-user-dir VIDEOS)"
-if [[ $xdgvideo = "$HOME" ]]; then
-  unset xdgvideo
+# Try to get save path from config, fallback to XDG Videos
+CONFIG_FILE="$HOME/.config/illogical-impulse/config.json"
+SAVE_PATH=""
+if [[ -f "$CONFIG_FILE" ]] && command -v jq >/dev/null 2>&1; then
+    SAVE_PATH=$(jq -r '.screenRecord.savePath // empty' "$CONFIG_FILE" 2>/dev/null)
 fi
-mkdir -p "${xdgvideo:-$HOME/Videos}"
-cd "${xdgvideo:-$HOME/Videos}" || exit
+
+# Fallback to XDG Videos if config path is empty
+if [[ -z "$SAVE_PATH" ]]; then
+    xdgvideo="$(xdg-user-dir VIDEOS)"
+    if [[ $xdgvideo = "$HOME" ]]; then
+        SAVE_PATH="$HOME/Videos"
+    else
+        SAVE_PATH="$xdgvideo"
+    fi
+fi
+
+mkdir -p "$SAVE_PATH"
+cd "$SAVE_PATH" || exit
 
 # parse --region <value> without modifying $@ so other flags like --fullscreen still work
 ARGS=("$@")

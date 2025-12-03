@@ -303,7 +303,7 @@ Scope {
     IpcHandler {
         target: "overview"
 
-        function toggle() {
+        function toggle(): void {
             // In Waffle mode, open Start Menu instead
             if (Config.options?.panelFamily === "waffle") {
                 GlobalStates.searchOpen = !GlobalStates.searchOpen;
@@ -311,24 +311,24 @@ Scope {
                 GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
             }
         }
-        function close() {
+        function close(): void {
             if (Config.options?.panelFamily === "waffle") {
                 GlobalStates.searchOpen = false;
             } else {
                 GlobalStates.overviewOpen = false;
             }
         }
-        function open() {
+        function open(): void {
             if (Config.options?.panelFamily === "waffle") {
                 GlobalStates.searchOpen = true;
             } else {
                 GlobalStates.overviewOpen = true;
             }
         }
-        function toggleReleaseInterrupt() {
+        function toggleReleaseInterrupt(): void {
             GlobalStates.superReleaseMightTrigger = false;
         }
-        function clipboardToggle() {
+        function clipboardToggle(): void {
             overviewScope.toggleClipboard();
         }
     }
