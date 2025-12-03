@@ -144,7 +144,7 @@ Scope {
     IpcHandler {
         target: "osd"
 
-        function trigger() {
+        function trigger(): void {
             root.trigger();
         }
     }

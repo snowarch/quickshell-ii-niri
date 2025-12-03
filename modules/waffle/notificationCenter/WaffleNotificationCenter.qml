@@ -76,6 +76,6 @@ Scope {
 
     IpcHandler {
         target: "wnotificationCenter"
-        function toggle() { root.toggleOpen() }
+        function toggle(): void { root.toggleOpen() }
     }
 }

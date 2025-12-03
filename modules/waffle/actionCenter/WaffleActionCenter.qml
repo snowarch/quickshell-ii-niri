@@ -76,6 +76,6 @@ Scope {
 
     IpcHandler {
         target: "wactionCenter"
-        function toggle() { root.toggleOpen() }
+        function toggle(): void { root.toggleOpen() }
     }
 }

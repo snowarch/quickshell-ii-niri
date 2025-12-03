@@ -40,7 +40,7 @@ Scope {
             exclusiveZone: 0
             WlrLayershell.namespace: "quickshell:wStartMenu"
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             color: "transparent"
 
             // Adaptive minimum size based on preset
@@ -78,8 +78,8 @@ Scope {
 
     IpcHandler {
         target: "search"
-        function toggle() { GlobalStates.searchOpen = !GlobalStates.searchOpen }
-        function close() { GlobalStates.searchOpen = false }
-        function open() { GlobalStates.searchOpen = true }
+        function toggle(): void { GlobalStates.searchOpen = !GlobalStates.searchOpen }
+        function close(): void { GlobalStates.searchOpen = false }
+        function open(): void { GlobalStates.searchOpen = true }
     }
 }

@@ -54,7 +54,10 @@ BarButton {
 
     contentItem: Item {
         id: contentItem
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: (root.leftInset - root.rightInset) / 2
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: (root.topInset - root.bottomInset) / 2
 
         implicitHeight: iconWidget.implicitHeight
         implicitWidth: iconWidget.implicitWidth

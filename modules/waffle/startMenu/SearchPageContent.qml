@@ -14,8 +14,7 @@ BodyRectangle {
 
     required property string searchText
 
-    implicitWidth: 832
-    implicitHeight: Math.min(600, resultsView.contentHeight + 32)
+    // Size inherited from parent container
 
     function navigateUp() {
         if (resultsView.currentIndex > 0) {

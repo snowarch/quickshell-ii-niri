@@ -28,7 +28,6 @@ FooterRectangle {
     focus: true
     color: searching ? Looks.colors.bgPanelBody : Looks.colors.bgPanelFooter
 
-    implicitWidth: 832 // TODO: Make sizes naturally inferred
     implicitHeight: 63
 
     Rectangle {
