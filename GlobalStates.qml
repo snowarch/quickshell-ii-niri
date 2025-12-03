@@ -52,6 +52,7 @@ Singleton {
     property bool waffleNotificationCenterOpen: false
     property bool waffleWidgetsOpen: false
     property bool waffleAltSwitcherOpen: false
+    property bool waffleClipboardOpen: false
 
     // Panel family transition animation state
     property bool familyTransitionActive: false
@@ -64,6 +65,7 @@ Singleton {
             waffleActionCenterOpen = false
             waffleNotificationCenterOpen = false
             waffleWidgetsOpen = false
+            waffleClipboardOpen = false
         }
     }
     onWaffleActionCenterOpenChanged: {
@@ -71,6 +73,7 @@ Singleton {
             searchOpen = false
             waffleNotificationCenterOpen = false
             waffleWidgetsOpen = false
+            waffleClipboardOpen = false
         }
     }
     onWaffleNotificationCenterOpenChanged: {
@@ -79,6 +82,7 @@ Singleton {
                 searchOpen = false
                 waffleActionCenterOpen = false
                 waffleWidgetsOpen = false
+                waffleClipboardOpen = false
             }
             // Mark notifications as read when opening notification center
             Notifications.timeoutAll();
@@ -90,6 +94,15 @@ Singleton {
             searchOpen = false
             waffleActionCenterOpen = false
             waffleNotificationCenterOpen = false
+            waffleClipboardOpen = false
+        }
+    }
+    onWaffleClipboardOpenChanged: {
+        if (waffleClipboardOpen && !_allowMultiple) {
+            searchOpen = false
+            waffleActionCenterOpen = false
+            waffleNotificationCenterOpen = false
+            waffleWidgetsOpen = false
         }
     }
 

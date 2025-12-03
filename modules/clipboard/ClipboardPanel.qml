@@ -132,6 +132,7 @@ Scope {
 
     IpcHandler {
         target: "clipboard"
+        enabled: Config.options?.panelFamily !== "waffle"
         function open(): void {
             root.open()
         }

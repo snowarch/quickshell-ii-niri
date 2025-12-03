@@ -32,6 +32,7 @@ import qs.modules.waffle.actionCenter
 import qs.modules.waffle.altSwitcher as WaffleAltSwitcherModule
 import qs.modules.waffle.background as WaffleBackgroundModule
 import qs.modules.waffle.bar as WaffleBarModule
+import qs.modules.waffle.clipboard as WaffleClipboardModule
 import qs.modules.waffle.notificationCenter
 import qs.modules.waffle.onScreenDisplay as WaffleOSDModule
 import qs.modules.waffle.startMenu
@@ -149,6 +150,8 @@ ShellRoot {
     PanelLoader { identifier: "wOnScreenDisplay"; component: WaffleOSDModule.WaffleOSD {} }
     PanelLoader { identifier: "wWidgets"; component: WaffleWidgets {} }
     PanelLoader { identifier: "wBackdrop"; extraCondition: Config.options?.waffles?.background?.backdrop?.enable ?? true; component: WaffleBackdropModule.WaffleBackdrop {} }
+    // Waffle Clipboard - handles IPC when panelFamily === "waffle"
+    LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleClipboardModule.WaffleClipboard {} }
     // Waffle AltSwitcher - handles IPC when panelFamily === "waffle"
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleAltSwitcherModule.WaffleAltSwitcher {} }
 
