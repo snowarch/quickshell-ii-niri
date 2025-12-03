@@ -10,10 +10,11 @@ Item {
     property int currentTab: 0
     property var tabButtonList: [
         {"name": Translation.tr("Pomodoro"), "icon": "search_activity"},
+        {"name": Translation.tr("Timer"), "icon": "hourglass_empty"},
         {"name": Translation.tr("Stopwatch"), "icon": "timer"}
     ]
 
-    // These are keybinds for stopwatch and pomodoro
+    // These are keybinds for stopwatch, timer and pomodoro
     Keys.onPressed: (event) => {
         if ((event.key === Qt.Key_PageDown || event.key === Qt.Key_PageUp) && event.modifiers === Qt.NoModifier) { // Switch tabs
             if (event.key === Qt.Key_PageDown) {
@@ -25,6 +26,8 @@ Item {
         } else if (event.key === Qt.Key_Space || event.key === Qt.Key_S) { // Pause/resume with Space or S
             if (currentTab === 0) {
                 TimerService.togglePomodoro()
+            } else if (currentTab === 1) {
+                TimerService.toggleCountdown()
             } else {
                 TimerService.toggleStopwatch()
             }
@@ -32,6 +35,8 @@ Item {
         } else if (event.key === Qt.Key_R) { // Reset with R
             if (currentTab === 0) {
                 TimerService.resetPomodoro()
+            } else if (currentTab === 1) {
+                TimerService.resetCountdown()
             } else {
                 TimerService.stopwatchReset()
             }
@@ -137,6 +142,7 @@ Item {
 
             // Tabs
             PomodoroTimer {}
+            CountdownTimer {}
             Stopwatch {}
         }
     }
