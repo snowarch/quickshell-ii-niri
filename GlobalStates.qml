@@ -51,6 +51,11 @@ Singleton {
     property bool waffleActionCenterOpen: false
     property bool waffleNotificationCenterOpen: false
     property bool waffleWidgetsOpen: false
+    property bool waffleAltSwitcherOpen: false
+
+    // Panel family transition animation state
+    property bool familyTransitionActive: false
+    property string familyTransitionDirection: "left" // "left" = current exits left, new enters from right
 
     // Close other waffle popups when one opens (unless allowMultiplePanels is enabled)
     property bool _allowMultiple: Config.options?.waffles?.behavior?.allowMultiplePanels ?? false
@@ -69,10 +74,15 @@ Singleton {
         }
     }
     onWaffleNotificationCenterOpenChanged: {
-        if (waffleNotificationCenterOpen && !_allowMultiple) {
-            searchOpen = false
-            waffleActionCenterOpen = false
-            waffleWidgetsOpen = false
+        if (waffleNotificationCenterOpen) {
+            if (!_allowMultiple) {
+                searchOpen = false
+                waffleActionCenterOpen = false
+                waffleWidgetsOpen = false
+            }
+            // Mark notifications as read when opening notification center
+            Notifications.timeoutAll();
+            Notifications.markAllRead();
         }
     }
     onWaffleWidgetsOpenChanged: {

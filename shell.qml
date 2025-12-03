@@ -29,6 +29,7 @@ import qs.modules.ii.overlay
 import "modules/clipboard" as ClipboardModule
 
 import qs.modules.waffle.actionCenter
+import qs.modules.waffle.altSwitcher as WaffleAltSwitcherModule
 import qs.modules.waffle.background as WaffleBackgroundModule
 import qs.modules.waffle.bar as WaffleBarModule
 import qs.modules.waffle.notificationCenter
@@ -135,7 +136,8 @@ ShellRoot {
     PanelLoader { identifier: "iiSidebarRight"; component: SidebarRight {} }
     PanelLoader { identifier: "iiVerticalBar"; extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
     PanelLoader { identifier: "iiWallpaperSelector"; component: WallpaperSelector {} }
-    PanelLoader { identifier: "iiAltSwitcher"; component: AltSwitcher {} }
+    // Material ii AltSwitcher - handles IPC when panelFamily !== "waffle"
+    LazyLoader { active: Config.ready; component: AltSwitcher {} }
     PanelLoader { identifier: "iiClipboard"; component: ClipboardModule.ClipboardPanel {} }
 
     // Waffle style (Windows 11)
@@ -147,6 +149,8 @@ ShellRoot {
     PanelLoader { identifier: "wOnScreenDisplay"; component: WaffleOSDModule.WaffleOSD {} }
     PanelLoader { identifier: "wWidgets"; component: WaffleWidgets {} }
     PanelLoader { identifier: "wBackdrop"; extraCondition: Config.options?.waffles?.background?.backdrop?.enable ?? true; component: WaffleBackdropModule.WaffleBackdrop {} }
+    // Waffle AltSwitcher - handles IPC when panelFamily === "waffle"
+    LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleAltSwitcherModule.WaffleAltSwitcher {} }
 
     // Shared (always loaded via ToastManager)
     ToastManager {}
@@ -159,6 +163,8 @@ ShellRoot {
     }
 
     // === Panel Families ===
+    // Note: iiAltSwitcher is always loaded (not in families) as it acts as IPC router
+    // for the unified "altSwitcher" target, redirecting to wAltSwitcher when waffle is active
     property list<string> families: ["ii", "waffle"]
     property var panelFamilies: ({
         "ii": [
@@ -166,28 +172,73 @@ ShellRoot {
             "iiMediaControls", "iiNotificationPopup", "iiOnScreenDisplay", "iiOnScreenKeyboard", 
             "iiOverlay", "iiOverview", "iiPolkit", "iiRegionSelector", "iiScreenCorners", 
             "iiSessionScreen", "iiSidebarLeft", "iiSidebarRight", "iiVerticalBar", 
-            "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
+            "iiWallpaperSelector", "iiClipboard"
         ],
         "waffle": [
             "wBar", "wBackground", "wBackdrop", "wStartMenu", "wActionCenter", "wNotificationCenter", "wOnScreenDisplay", "wWidgets",
             // Shared modules that work with waffle
+            // Note: wAltSwitcher is always loaded when waffle is active (not in this list)
             "iiCheatsheet", "iiLock", "iiNotificationPopup", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
-            "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
+            "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiClipboard"
         ]
     })
+
+    // === Panel Family Transition ===
+    property string _pendingFamily: ""
+    property bool _transitionInProgress: false
 
     function cyclePanelFamily() {
         const currentIndex = families.indexOf(Config.options.panelFamily)
         const nextIndex = (currentIndex + 1) % families.length
-        Config.options.panelFamily = families[nextIndex]
-        Config.options.enabledPanels = panelFamilies[Config.options.panelFamily]
+        const nextFamily = families[nextIndex]
+        
+        // Determine direction: ii -> waffle = left, waffle -> ii = right
+        const direction = nextIndex > currentIndex ? "left" : "right"
+        root.startFamilyTransition(nextFamily, direction)
     }
 
     function setPanelFamily(family: string) {
-        if (families.includes(family)) {
-            Config.options.panelFamily = family
-            Config.options.enabledPanels = panelFamilies[family]
+        if (families.includes(family) && family !== Config.options.panelFamily) {
+            const currentIndex = families.indexOf(Config.options.panelFamily)
+            const nextIndex = families.indexOf(family)
+            const direction = nextIndex > currentIndex ? "left" : "right"
+            root.startFamilyTransition(family, direction)
         }
+    }
+
+    function startFamilyTransition(targetFamily: string, direction: string) {
+        if (_transitionInProgress) return
+        
+        // If animation is disabled, switch instantly
+        if (!(Config.options?.familyTransitionAnimation ?? true)) {
+            Config.options.panelFamily = targetFamily
+            Config.options.enabledPanels = panelFamilies[targetFamily]
+            return
+        }
+        
+        _transitionInProgress = true
+        _pendingFamily = targetFamily
+        GlobalStates.familyTransitionDirection = direction
+        GlobalStates.familyTransitionActive = true
+    }
+
+    function applyPendingFamily() {
+        if (_pendingFamily && families.includes(_pendingFamily)) {
+            Config.options.panelFamily = _pendingFamily
+            Config.options.enabledPanels = panelFamilies[_pendingFamily]
+        }
+        _pendingFamily = ""
+    }
+
+    function finishFamilyTransition() {
+        _transitionInProgress = false
+        GlobalStates.familyTransitionActive = false
+    }
+
+    // Family transition overlay
+    FamilyTransitionOverlay {
+        onExitComplete: root.applyPendingFamily()
+        onEnterComplete: root.finishFamilyTransition()
     }
 
     IpcHandler {

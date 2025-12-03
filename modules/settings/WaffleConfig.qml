@@ -298,6 +298,27 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "swap_horiz"
+        title: Translation.tr("Family Transition")
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Settings for switching between Material ii and Waffle panel styles.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
+        }
+
+        ConfigSwitch {
+            buttonIcon: "animation"
+            text: Translation.tr("Animated transition")
+            checked: Config.options?.familyTransitionAnimation ?? true
+            onCheckedChanged: Config.options.familyTransitionAnimation = checked
+            StyledToolTip { text: Translation.tr("Show a smooth animated overlay when switching between panel families") }
+        }
+    }
+
+    ContentSection {
         visible: root.isWaffleActive
         icon: "grid_view"
         title: Translation.tr("Start Menu")
@@ -345,6 +366,106 @@ ContentPage {
             text: Translation.tr("Force 2-character day of week")
             checked: Config.options?.waffles?.calendar?.force2CharDayOfWeek ?? true
             onCheckedChanged: Config.options.waffles.calendar.force2CharDayOfWeek = checked
+        }
+    }
+
+    ContentSection {
+        visible: root.isWaffleActive
+        icon: "swap_horiz"
+        title: Translation.tr("Alt+Tab Switcher")
+
+        ConfigSelectionArray {
+            options: [
+                { displayName: Translation.tr("Thumbnails"), icon: "grid_view", value: "thumbnails" },
+                { displayName: Translation.tr("Cards"), icon: "view_carousel", value: "cards" },
+                { displayName: Translation.tr("Compact"), icon: "view_module", value: "compact" },
+                { displayName: Translation.tr("List"), icon: "view_list", value: "list" },
+                { displayName: Translation.tr("None (no UI)"), icon: "visibility_off", value: "none" }
+            ]
+            currentValue: Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails"
+            onSelected: (newValue) => Config.options.waffles.altSwitcher.preset = newValue
+        }
+
+        ConfigSwitch {
+            buttonIcon: "bolt"
+            text: Translation.tr("Quick switch (Alt+Tab once to switch)")
+            checked: Config.options?.waffles?.altSwitcher?.quickSwitch ?? true
+            onCheckedChanged: Config.options.waffles.altSwitcher.quickSwitch = checked
+            StyledToolTip { text: Translation.tr("Single Alt+Tab switches to previous window without showing the switcher") }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "timer"
+            text: Translation.tr("Auto-hide after delay")
+            checked: Config.options?.waffles?.altSwitcher?.autoHide ?? true
+            onCheckedChanged: Config.options.waffles.altSwitcher.autoHide = checked
+        }
+
+        ConfigSpinBox {
+            visible: Config.options?.waffles?.altSwitcher?.autoHide ?? true
+            icon: "hourglass_empty"
+            text: Translation.tr("Auto-hide delay (ms)")
+            from: 100; to: 5000; stepSize: 100
+            value: Config.options?.waffles?.altSwitcher?.autoHideDelayMs ?? 500
+            onValueChanged: Config.options.waffles.altSwitcher.autoHideDelayMs = value
+        }
+
+        ConfigSwitch {
+            buttonIcon: "close"
+            text: Translation.tr("Close on window focus")
+            checked: Config.options?.waffles?.altSwitcher?.closeOnFocus ?? true
+            onCheckedChanged: Config.options.waffles.altSwitcher.closeOnFocus = checked
+        }
+
+        ConfigSwitch {
+            buttonIcon: "history"
+            text: Translation.tr("Most recent first")
+            checked: Config.options?.waffles?.altSwitcher?.useMostRecentFirst ?? true
+            onCheckedChanged: Config.options.waffles.altSwitcher.useMostRecentFirst = checked
+        }
+
+        ConfigSpinBox {
+            visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "thumbnails"
+            icon: "width"
+            text: Translation.tr("Thumbnail width")
+            from: 150; to: 500; stepSize: 20
+            value: Config.options?.waffles?.altSwitcher?.thumbnailWidth ?? 280
+            onValueChanged: Config.options.waffles.altSwitcher.thumbnailWidth = value
+        }
+
+        ConfigSpinBox {
+            visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "thumbnails"
+            icon: "height"
+            text: Translation.tr("Thumbnail height")
+            from: 100; to: 400; stepSize: 20
+            value: Config.options?.waffles?.altSwitcher?.thumbnailHeight ?? 180
+            onValueChanged: Config.options.waffles.altSwitcher.thumbnailHeight = value
+        }
+
+        // List width option disabled - WPane doesn't support dynamic width properly
+        // ConfigSpinBox {
+        //     visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "list"
+        //     icon: "width"
+        //     text: Translation.tr("List width")
+        //     from: 350; to: 800; stepSize: 25
+        //     value: Config.options?.waffles?.altSwitcher?.listWidth ?? 500
+        //     onValueChanged: Config.options.waffles.altSwitcher.listWidth = value
+        // }
+
+        ConfigSpinBox {
+            icon: "opacity"
+            text: Translation.tr("Scrim opacity")
+            from: 0; to: 100; stepSize: 5
+            value: Math.round((Config.options?.waffles?.altSwitcher?.scrimOpacity ?? 0.4) * 100)
+            onValueChanged: Config.options.waffles.altSwitcher.scrimOpacity = value / 100.0
+        }
+
+        ConfigSwitch {
+            buttonIcon: "grid_view"
+            text: Translation.tr("Show Niri overview while switching")
+            checked: Config.options?.waffles?.altSwitcher?.showOverviewWhileSwitching ?? false
+            onCheckedChanged: Config.options.waffles.altSwitcher.showOverviewWhileSwitching = checked
+            StyledToolTip { text: Translation.tr("Opens Niri's native overview alongside the switcher for window previews") }
         }
     }
 

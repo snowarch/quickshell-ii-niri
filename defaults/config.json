@@ -529,6 +529,9 @@
     "selectionTarget": "main",
     "useSystemFileDialog": false
   },
+  "screenRecord": {
+    "savePath": ""
+  },
   "windows": {
     "centerTitle": true,
     "showTitlebar": true
@@ -555,7 +558,11 @@
     "disableAnimations": true,
     "disableEffects": true,
     "disableNiriAnimations": true,
+    "disableReloadToasts": true,
     "checkInterval": 2000
+  },
+  "reloadToasts": {
+    "enable": true
   },
   "modules": {
     "bar": true,
@@ -596,6 +603,19 @@
     "tweaks": {
       "smootherMenuAnimations": true,
       "switchHandlePositionFix": true
+    },
+    "altSwitcher": {
+      "preset": "thumbnails",
+      "autoHide": true,
+      "autoHideDelayMs": 500,
+      "closeOnFocus": true,
+      "quickSwitch": false,
+      "useMostRecentFirst": true,
+      "thumbnailWidth": 280,
+      "thumbnailHeight": 180,
+      "listWidth": 500,
+      "scrimOpacity": 0.4,
+      "showOverviewWhileSwitching": false
     },
     "background": {
       "wallpaperPath": "",
@@ -686,6 +706,7 @@
       "weatherHideLocation": false
     }
   },
+  "familyTransitionAnimation": true,
   "panelFamily": "ii",
   "enabledPanels": [
     "iiBar",
