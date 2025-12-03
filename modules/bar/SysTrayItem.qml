@@ -12,8 +12,8 @@ MouseArea {
     required property SystemTrayItem item
     property bool targetMenuOpen: false
     property bool isSpotifyItem: {
-        const id = (item.id || "").toLowerCase();
-        const title = (item.title || "").toLowerCase();
+        const id = (item?.id ?? "").toLowerCase();
+        const title = (item?.title ?? "").toLowerCase();
         return id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
     }
 
@@ -45,10 +45,16 @@ MouseArea {
         event.accepted = true;
     }
     onEntered: {
-        tooltip.text = item.tooltipTitle.length > 0 ? item.tooltipTitle
-                : (item.title.length > 0 ? item.title : item.id);
-        if (item.tooltipDescription.length > 0) tooltip.text += " • " + item.tooltipDescription;
-        if (Config.options.bar.tray.showItemId) tooltip.text += "\n[" + item.id + "]";
+        if (!item) return;
+        const tooltipTitle = item.tooltipTitle ?? "";
+        const title = item.title ?? "";
+        const id = item.id ?? "";
+        const tooltipDescription = item.tooltipDescription ?? "";
+        
+        tooltip.text = tooltipTitle.length > 0 ? tooltipTitle
+                : (title.length > 0 ? title : id);
+        if (tooltipDescription.length > 0) tooltip.text += " • " + tooltipDescription;
+        if (Config.options.bar.tray.showItemId) tooltip.text += "\n[" + id + "]";
     }
 
     Loader {
@@ -97,15 +103,29 @@ MouseArea {
     }
 
     Loader {
-        active: true
-        anchors.fill: trayIcon
+        active: Config.options.bar.tray.monochromeIcons
+        anchors.centerIn: parent
+        width: root.width
+        height: root.height
         sourceComponent: Item {
+            IconImage {
+                id: tintedIcon
+                visible: false
+                anchors.fill: parent
+                source: {
+                    const id = (root.item.id || "").toLowerCase();
+                    const title = (root.item.title || "").toLowerCase();
+                    if (id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1)
+                        return Quickshell.iconPath("spotify", "image-missing");
+                    return root.item.icon;
+                }
+            }
             Desaturate {
                 id: desaturatedIcon
-                visible: false // There's already color overlay
+                visible: false
                 anchors.fill: parent
-                source: trayIcon
-                desaturation: 0.8 // 1.0 means fully grayscale
+                source: tintedIcon
+                desaturation: 0.8
             }
             ColorOverlay {
                 anchors.fill: desaturatedIcon

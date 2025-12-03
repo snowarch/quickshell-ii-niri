@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 
 PopupWindow {
     id: root
@@ -34,14 +35,31 @@ PopupWindow {
 
     function open() {
         root.visible = true;
+        if (CompositorService.isNiri) clickOutsideBackdrop.visible = true;
         root.menuOpened(root);
     }
 
     function close() {
+        clickOutsideBackdrop.visible = false;
         root.visible = false;
         while (stackView.depth > 1)
             stackView.pop();
         root.menuClosed();
+    }
+
+    // Fullscreen transparent backdrop for Niri to detect clicks outside
+    PanelWindow {
+        id: clickOutsideBackdrop
+        visible: false
+        color: "transparent"
+        exclusiveZone: 0
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.namespace: "quickshell:trayMenuBackdrop"
+        anchors { top: true; bottom: true; left: true; right: true }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.close()
+        }
     }
 
     MouseArea {

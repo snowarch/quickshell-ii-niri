@@ -9,18 +9,30 @@ Singleton {
     id: root
 
     property bool smartTray: Config.options.tray.filterPassive
-    property list<var> itemsInUserList: SystemTray.items.values.filter(i => (Config.options.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
-    property list<var> itemsNotInUserList: SystemTray.items.values.filter(i => (!Config.options.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
+    
+    // Filter out invalid items (null or missing id)
+    function isValidItem(item) {
+        return item && item.id;
+    }
+    
+    property list<var> itemsInUserList: SystemTray.items.values.filter(i => (isValidItem(i) && Config.options.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
+    property list<var> itemsNotInUserList: SystemTray.items.values.filter(i => (isValidItem(i) && !Config.options.tray.pinnedItems.includes(i.id) && (!smartTray || i.status !== Status.Passive)))
 
     property bool invertPins: Config.options.tray.invertPinnedItems
     property list<var> pinnedItems: invertPins ? itemsNotInUserList : itemsInUserList
     property list<var> unpinnedItems: invertPins ? itemsInUserList : itemsNotInUserList
 
     function getTooltipForItem(item) {
-        var result = item.tooltipTitle.length > 0 ? item.tooltipTitle
-                : (item.title.length > 0 ? item.title : item.id);
-        if (item.tooltipDescription.length > 0) result += " • " + item.tooltipDescription;
-        if (Config.options.tray.showItemId) result += "\n[" + item.id + "]";
+        if (!item) return "";
+        const tooltipTitle = item.tooltipTitle ?? "";
+        const title = item.title ?? "";
+        const id = item.id ?? "";
+        const tooltipDescription = item.tooltipDescription ?? "";
+        
+        var result = tooltipTitle.length > 0 ? tooltipTitle
+                : (title.length > 0 ? title : id);
+        if (tooltipDescription.length > 0) result += " • " + tooltipDescription;
+        if (Config.options.tray.showItemId) result += "\n[" + id + "]";
         return result;
     }
 

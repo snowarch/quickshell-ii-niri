@@ -18,7 +18,14 @@ Item {
     property var activeMenu: null
 
     property bool smartTray: Config.options.bar.tray.filterPassive
+    
+    // Filter out invalid items (null or missing id)
+    function isValidItem(item) {
+        return item && item.id;
+    }
+    
     property list<var> itemsInUserList: SystemTray.items.values.filter(i => {
+        if (!isValidItem(i)) return false;
         const id = (i.id || "").toLowerCase();
         const title = (i.title || "").toLowerCase();
         const isSpotify = id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
@@ -26,6 +33,7 @@ Item {
                 && (!smartTray || i.status !== Status.Passive || isSpotify);
     })
     property list<var> itemsNotInUserList: SystemTray.items.values.filter(i => {
+        if (!isValidItem(i)) return false;
         const id = (i.id || "").toLowerCase();
         const title = (i.title || "").toLowerCase();
         const isSpotify = id.indexOf("spotify") !== -1 || title.indexOf("spotify") !== -1;
