@@ -55,7 +55,7 @@ Item { // Player instance
         interval: Config.options.resources.updateInterval
         repeat: true
         onTriggered: {
-            root.player.positionChanged()
+            root.player?.positionChanged()
         }
     }
 
@@ -293,7 +293,7 @@ Item { // Player instance
                         property real size: 44
                         implicitWidth: size
                         implicitHeight: size
-                        downAction: () => root.player.togglePlaying();
+                        downAction: () => root.player?.togglePlaying();
 
                         buttonRadius: root.player?.isPlaying ? Appearance?.rounding.normal : size / 2
                         colBackground: root.player?.isPlaying ? blendedColors.colPrimary : blendedColors.colSecondaryContainer

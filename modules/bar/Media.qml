@@ -6,6 +6,7 @@ import qs.modules.common.functions
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Io
 
@@ -23,47 +24,60 @@ Item {
         running: activePlayer?.playbackState == MprisPlaybackState.Playing
         interval: Config.options.resources.updateInterval
         repeat: true
-        onTriggered: activePlayer.positionChanged()
+        onTriggered: activePlayer?.positionChanged()
     }
 
     // Volume popup
-    Rectangle {
-        id: volumePopup
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: Config.options.bar.bottom ? undefined : parent.bottom
-        anchors.bottom: Config.options.bar.bottom ? parent.top : undefined
-        anchors.topMargin: Config.options.bar.bottom ? 0 : 4
-        anchors.bottomMargin: Config.options.bar.bottom ? 4 : 0
-        width: volumeRow.width + 12
-        height: volumeRow.height + 8
-        radius: Appearance.rounding.small
-        color: Appearance.colors.colLayer2
-        opacity: 0
-        visible: opacity > 0
+    property bool volumePopupVisible: false
+    
+    Timer {
+        id: hideTimer
+        interval: 1000
+        onTriggered: root.volumePopupVisible = false
+    }
 
-        Behavior on opacity {
-            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-        }
-
-        Timer {
-            id: hideTimer
-            interval: 1000
-            onTriggered: volumePopup.opacity = 0
-        }
-
-        Row {
-            id: volumeRow
-            anchors.centerIn: parent
-            spacing: 4
-            MaterialSymbol {
-                text: (activePlayer?.volume ?? 0) === 0 ? "volume_off" : "volume_up"
-                iconSize: Appearance.font.pixelSize.small
-                color: Appearance.m3colors.m3onSurface
+    Loader {
+        id: volumePopupLoader
+        active: root.volumePopupVisible
+        sourceComponent: PopupWindow {
+            visible: true
+            color: "transparent"
+            anchor {
+                window: root.QsWindow.window
+                item: root
+                edges: Config.options.bar.bottom ? Edges.Top : Edges.Bottom
+                gravity: Config.options.bar.bottom ? Edges.Top : Edges.Bottom
             }
-            StyledText {
-                text: Math.round((activePlayer?.volume ?? 0) * 100) + "%"
-                font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.m3colors.m3onSurface
+            implicitWidth: popupContent.width + 16
+            implicitHeight: popupContent.height + 16
+
+            Rectangle {
+                id: popupContent
+                anchors.centerIn: parent
+                width: volumeRow.width + 12
+                height: volumeRow.height + 8
+                radius: Appearance.rounding.verysmall
+                color: Appearance.colors.colLayer3
+                border.width: 1
+                border.color: Appearance.colors.colLayer3Hover
+
+                Row {
+                    id: volumeRow
+                    anchors.centerIn: parent
+                    spacing: 4
+                    MaterialSymbol {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: (root.activePlayer?.volume ?? 0) === 0 ? "volume_off" : "volume_up"
+                        iconSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colOnLayer3
+                    }
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Math.round((root.activePlayer?.volume ?? 0) * 100) + "%"
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colOnLayer3
+                    }
+                }
             }
         }
     }
@@ -73,11 +87,11 @@ Item {
         acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
         onPressed: (event) => {
             if (event.button === Qt.MiddleButton) {
-                activePlayer.togglePlaying();
+                activePlayer?.togglePlaying();
             } else if (event.button === Qt.BackButton) {
-                activePlayer.previous();
+                activePlayer?.previous();
             } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
-                activePlayer.next();
+                activePlayer?.next();
             } else if (event.button === Qt.LeftButton) {
                 GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
             }
@@ -85,9 +99,9 @@ Item {
         onWheel: (event) => {
             if (!activePlayer?.volumeSupported) return
             const step = 0.05
-            if (event.angleDelta.y > 0) activePlayer.volume = Math.min(1, activePlayer.volume + step)
-            else if (event.angleDelta.y < 0) activePlayer.volume = Math.max(0, activePlayer.volume - step)
-            volumePopup.opacity = 1
+            if (event.angleDelta.y > 0) activePlayer.volume = Math.min(1, activePlayer?.volume + step)
+            else if (event.angleDelta.y < 0) activePlayer.volume = Math.max(0, activePlayer?.volume - step)
+            volumePopupVisible = true
             hideTimer.restart()
         }
     }

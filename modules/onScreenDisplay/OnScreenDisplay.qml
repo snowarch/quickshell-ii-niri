@@ -215,15 +215,15 @@ Scope {
     IpcHandler {
         target: "osdVolume"
 
-        function trigger() {
+        function trigger(): void {
             root.triggerOsd();
         }
 
-        function hide() {
+        function hide(): void {
             GlobalStates.osdVolumeOpen = false;
         }
 
-        function toggle() {
+        function toggle(): void {
             GlobalStates.osdVolumeOpen = !GlobalStates.osdVolumeOpen;
         }
     }
