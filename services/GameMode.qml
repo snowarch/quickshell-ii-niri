@@ -202,15 +202,13 @@ Singleton {
     function setNiriAnimations(enabled) {
         if (!controlNiriAnimations) return
         // Use sed to toggle "off" line in animations block
-        // If enabling: comment out "off" -> "//off"  
-        // If disabling: uncomment "off" -> "off"
-        const cmd = enabled
-            ? ["sed", "-i", "s/^\\(animations {\\n\\)    off/\\1    \\/\\/off/; s/^\\(animations {[^}]*\\)\\n    off/\\1\\n    \\/\\/off/", niriConfigPath]
-            : ["sed", "-i", "s/^\\(animations {\\n\\)    \\/\\/off/\\1    off/; s/^\\(animations {[^}]*\\)\\n    \\/\\/off/\\1\\n    off/", niriConfigPath]
+        // If enabling (gamemode off): comment out "off" -> "//off"  
+        // If disabling (gamemode on): uncomment "off" -> "off"
+        // The pattern matches indented off///off after "animations {"
         
         niriAnimProcess.command = enabled
-            ? ["bash", "-c", "sed -i '/^animations {/,/^}/ s/^    off$/    \\/\\/off/' " + niriConfigPath + " && niri msg action reload-config"]
-            : ["bash", "-c", "sed -i '/^animations {/,/^}/ s/^    \\/\\/off$/    off/' " + niriConfigPath + " && niri msg action reload-config"]
+            ? ["bash", "-c", "sed -i '/^animations {/,/^}/ s/^\\([ \\t]*\\)off$/\\1\\/\\/off/' " + niriConfigPath + " && niri msg action reload-config"]
+            : ["bash", "-c", "sed -i '/^animations {/,/^}/ s/^\\([ \\t]*\\)\\/\\/off$/\\1off/' " + niriConfigPath + " && niri msg action reload-config"]
         niriAnimProcess.running = true
     }
 

@@ -188,6 +188,14 @@ BACKDROP_RULES
       if [[ $KEYBINDS_ADDED -gt 0 ]]; then
         log_success "Added $KEYBINDS_ADDED missing ii keybinds to Niri config"
       fi
+      
+      # Migrate: Add //off to animations block if missing (required for GameMode toggle)
+      if ! grep -qE '^\s*(//)?off' "$NIRI_CONFIG" 2>/dev/null || \
+         ! sed -n '/^animations {/,/^}/p' "$NIRI_CONFIG" | grep -qE '^\s*(//)?off'; then
+        echo -e "${STY_CYAN}Adding //off to animations block for GameMode support...${STY_RST}"
+        sed -i '/^animations {/a\    //off' "$NIRI_CONFIG"
+        log_success "Added //off to animations block"
+      fi
     fi
     ;;
 esac
