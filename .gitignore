@@ -1,7 +1,7 @@
 # Editor/IDE
 .ii-backup.patch
 .amazonq
-.AGENTS.md
+AGENTS.md
 .kiro
 .vscode
 *.swp
