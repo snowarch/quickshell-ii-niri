@@ -80,6 +80,7 @@ case "${SKIP_QUICKSHELL}" in
     QML_ITEMS=(
       shell.qml
       GlobalStates.qml
+      FamilyTransitionOverlay.qml
       killDialog.qml
       settings.qml
       welcome.qml
