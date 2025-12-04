@@ -563,7 +563,7 @@ WBarAttachedPanelContent {
                         spacing: 8
 
                         QuickActionButton {
-                            iconName: "apps"
+                            iconName: "folder"
                             label: Translation.tr("Files")
                             onClicked: {
                                 Quickshell.execDetached(["nautilus"])
@@ -572,7 +572,7 @@ WBarAttachedPanelContent {
                         }
 
                         QuickActionButton {
-                            iconName: "keyboard"
+                            iconName: "terminal"
                             label: Translation.tr("Terminal")
                             onClicked: {
                                 Quickshell.execDetached([Config.options.apps?.terminal ?? "foot"])
@@ -590,7 +590,7 @@ WBarAttachedPanelContent {
                         }
 
                         QuickActionButton {
-                            iconName: "desktop-speaker"
+                            iconName: "image"
                             label: Translation.tr("Wallpaper")
                             onClicked: {
                                 GlobalStates.wallpaperSelectorOpen = true
@@ -599,7 +599,7 @@ WBarAttachedPanelContent {
                         }
 
                         QuickActionButton {
-                            iconName: "cut"
+                            iconName: "screenshot"
                             label: Translation.tr("Screenshot")
                             onClicked: {
                                 GlobalStates.waffleWidgetsOpen = false

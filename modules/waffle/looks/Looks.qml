@@ -17,6 +17,14 @@ Singleton {
     property string iconsPath: `${Directories.assetsPath}/icons/fluent`
     property bool dark: Appearance.m3colors.darkmode
     property bool useMaterial: Config.options?.waffles?.theming?.useMaterialColors ?? false
+    
+    // Font family - reactive property at root level for proper binding updates
+    readonly property string fontFamily: {
+        const f = Config.options?.waffles?.theming?.font?.family;
+        return (f && f.length > 0) ? f : "Noto Sans";
+    }
+    // Font scale - reactive property
+    readonly property real fontScale: Config.options?.waffles?.theming?.font?.scale ?? 1.0
 
     property real backgroundTransparency: 0.13
     property real panelBackgroundTransparency: 0.12
@@ -198,19 +206,21 @@ Singleton {
     font: QtObject {
         id: font
         property QtObject family: QtObject {
-            property string ui: "Noto Sans"
+            // Delegates to root.fontFamily for reactive updates
+            readonly property string ui: root.fontFamily
         }
-        property QtObject weight: QtObject { // Noto is not Segoe, so we might use slightly different weights
+        property QtObject weight: QtObject {
             property int thin: Font.Normal
             property int regular: Font.Medium
             property int strong: Font.DemiBold
             property int stronger: Font.Bold
         }
         property QtObject pixelSize: QtObject {
-            property real small: 10
-            property real normal: 11
-            property real large: 13
-            property real larger: 15
+            property real tiny: Math.round(9 * root.fontScale)
+            property real small: Math.round(10 * root.fontScale)
+            property real normal: Math.round(11 * root.fontScale)
+            property real large: Math.round(13 * root.fontScale)
+            property real larger: Math.round(15 * root.fontScale)
         }
     }
 

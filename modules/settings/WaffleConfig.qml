@@ -271,9 +271,13 @@ ContentPage {
     }
 
     ContentSection {
+        id: themingSection
         visible: root.isWaffleActive
         icon: "palette"
         title: Translation.tr("Theming")
+
+        property string currentFontFamily: Config.options?.waffles?.theming?.font?.family ?? "Noto Sans"
+        property string defaultFont: "Noto Sans"
 
         ConfigSwitch {
             buttonIcon: "format_color_fill"
@@ -281,6 +285,65 @@ ContentPage {
             checked: Config.options?.waffles?.theming?.useMaterialColors ?? false
             onCheckedChanged: Config.options.waffles.theming.useMaterialColors = checked
             StyledToolTip { text: Translation.tr("Apply the Material ii color scheme instead of Windows 11 grey") }
+        }
+
+        ConfigSelectionArray {
+            options: [
+                { displayName: "Segoe UI", icon: "window", value: "Segoe UI Variable" },
+                { displayName: "Inter", icon: "text_fields", value: "Inter" },
+                { displayName: "Roboto", icon: "android", value: "Roboto" },
+                { displayName: "Noto Sans", icon: "translate", value: "Noto Sans" },
+                { displayName: "Ubuntu", icon: "terminal", value: "Ubuntu" }
+            ]
+            currentValue: themingSection.currentFontFamily
+            onSelected: newValue => Config.setNestedValue("waffles.theming.font.family", newValue)
+        }
+
+        FontSelector {
+            label: Translation.tr("Custom font")
+            icon: "font_download"
+            selectedFont: themingSection.currentFontFamily
+            onSelectedFontChanged: Config.setNestedValue("waffles.theming.font.family", selectedFont)
+        }
+
+        ConfigSpinBox {
+            icon: "format_size"
+            text: Translation.tr("Font scale (%)")
+            from: 80; to: 150; stepSize: 5
+            value: Math.round((Config.options?.waffles?.theming?.font?.scale ?? 1.0) * 100)
+            onValueChanged: Config.setNestedValue("waffles.theming.font.scale", value / 100.0)
+            StyledToolTip { text: Translation.tr("Scale all Waffle UI text (80% - 150%)") }
+        }
+
+        RippleButton {
+            visible: themingSection.currentFontFamily !== themingSection.defaultFont || (Config.options?.waffles?.theming?.font?.scale ?? 1.0) !== 1.0
+            Layout.fillWidth: true
+            implicitHeight: 36
+            
+            colBackground: Appearance.colors.colLayer1
+            colBackgroundHover: Appearance.colors.colLayer1Hover
+            colRipple: Appearance.colors.colLayer1Active
+
+            contentItem: RowLayout {
+                anchors.centerIn: parent
+                spacing: 8
+
+                MaterialSymbol {
+                    text: "restart_alt"
+                    iconSize: Appearance.font.pixelSize.normal
+                    color: Appearance.m3colors.m3onSurface
+                }
+                StyledText {
+                    text: Translation.tr("Reset to defaults")
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    color: Appearance.m3colors.m3onSurface
+                }
+            }
+
+            onClicked: {
+                Config.setNestedValue("waffles.theming.font.family", themingSection.defaultFont);
+                Config.setNestedValue("waffles.theming.font.scale", 1.0);
+            }
         }
     }
 
@@ -333,6 +396,15 @@ ContentPage {
             ]
             currentValue: Config.options?.waffles?.startMenu?.sizePreset ?? "normal"
             onSelected: (newValue) => Config.options.waffles.startMenu.sizePreset = newValue
+        }
+
+        ConfigSpinBox {
+            icon: "format_size"
+            text: Translation.tr("Text scale (%)")
+            from: 80; to: 150; stepSize: 5
+            value: Math.round((Config.options?.waffles?.startMenu?.scale ?? 1.0) * 100)
+            onValueChanged: Config.setNestedValue("waffles.startMenu.scale", value / 100.0)
+            StyledToolTip { text: Translation.tr("Scale text in the start menu (80% - 150%)") }
         }
     }
 
