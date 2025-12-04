@@ -78,11 +78,11 @@ Singleton {
 
         required property ShellScreen screen
         readonly property bool isDdc: {
-            const match = root.ddcMonitors.find(m => m.model === screen.model && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
+            const match = root.ddcMonitors.find(m => screen.model?.includes(m.model) && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
             return !!match;
         }
         readonly property string busNum: {
-            const match = root.ddcMonitors.find(m => m.model === screen.model && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
+            const match = root.ddcMonitors.find(m => screen.model?.includes(m.model) && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
             return match?.busNum ?? "";
         }
         property int rawMaxBrightness: 100
