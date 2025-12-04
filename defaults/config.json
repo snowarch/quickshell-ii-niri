@@ -253,6 +253,9 @@
     "low": 20,
     "suspend": 3
   },
+  "closeConfirm": {
+    "enabled": false
+  },
   "conflictKiller": {
     "autoKillNotificationDaemons": true,
     "autoKillTrays": true
@@ -689,13 +692,18 @@
       "locale": ""
     },
     "theming": {
-      "useMaterialColors": false
+      "useMaterialColors": false,
+      "font": {
+        "family": "Noto Sans",
+        "scale": 1.0
+      }
     },
     "behavior": {
       "allowMultiplePanels": false
     },
     "startMenu": {
-      "sizePreset": "normal"
+      "sizePreset": "normal",
+      "scale": 1.0
     },
     "widgetsPanel": {
       "showDateTime": true,

@@ -340,6 +340,23 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "select_window"
+        title: Translation.tr("Window Management")
+
+        ConfigSwitch {
+            buttonIcon: "help"
+            text: Translation.tr("Confirm before closing windows")
+            checked: Config.options?.closeConfirm?.enabled ?? false
+            onCheckedChanged: {
+                Config.setNestedValue("closeConfirm.enabled", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Show a confirmation dialog when pressing Super+Q")
+            }
+        }
+    }
+
+    ContentSection {
         icon: "work_alert"
         title: Translation.tr("Work safety")
 

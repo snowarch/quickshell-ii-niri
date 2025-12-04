@@ -26,6 +26,7 @@ import qs.modules.verticalBar
 import qs.modules.wallpaperSelector
 import qs.modules.altSwitcher
 import qs.modules.ii.overlay
+import qs.modules.closeConfirm
 import "modules/clipboard" as ClipboardModule
 
 import qs.modules.waffle.actionCenter
@@ -154,6 +155,9 @@ ShellRoot {
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleClipboardModule.WaffleClipboard {} }
     // Waffle AltSwitcher - handles IPC when panelFamily === "waffle"
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleAltSwitcherModule.WaffleAltSwitcher {} }
+
+    // Close confirmation dialog (always loaded, handles IPC)
+    LazyLoader { active: Config.ready; component: CloseConfirm {} }
 
     // Shared (always loaded via ToastManager)
     ToastManager {}

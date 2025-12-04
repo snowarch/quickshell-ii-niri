@@ -147,6 +147,29 @@ bind "Super+Slash" { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }
 
 ---
 
+### closeConfirm
+
+Close window confirmation dialog. Shows a prompt before closing the focused window. Useful if you're the type who accidentally closes things and then regrets it.
+
+| Function | Description |
+|----------|-------------|
+| `trigger` | Show close confirmation for focused window |
+| `close` | Dismiss the dialog without closing |
+
+```kdl
+bind "Mod+Q" repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "closeConfirm" "trigger"; }
+```
+
+By default, confirmation is disabled (closes immediately). Enable it in settings or config:
+
+```json
+"closeConfirm": {
+  "enabled": true
+}
+```
+
+---
+
 ### settings
 
 Open the settings window. GUI config so you don't have to edit JSON like it's 2005.

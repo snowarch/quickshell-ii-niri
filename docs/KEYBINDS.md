@@ -41,7 +41,7 @@ Change them. Break them. Make them yours. We won't judge.
 
 | Key | Action |
 |-----|--------|
-| `Super+Q` | Close window |
+| `Super+Q` | Close window (with optional confirmation) |
 | `Super+D` | Maximize column |
 | `Super+F` | Toggle fullscreen |
 | `Super+A` | Toggle floating |

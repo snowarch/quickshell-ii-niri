@@ -223,7 +223,7 @@ binds {
     Super+E { spawn "dolphin"; }
     
     // Window management
-    Mod+Q repeat=false { close-window; }
+    Mod+Q repeat=false { spawn "bash" "-c" "$HOME/.config/quickshell/ii/scripts/close-window.sh"; }
     Mod+D { maximize-column; }
     Mod+F { fullscreen-window; }
     Mod+A { toggle-window-floating; }

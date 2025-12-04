@@ -455,6 +455,10 @@ Singleton {
                 property int suspend: 3
             }
 
+            property JsonObject closeConfirm: JsonObject {
+                property bool enabled: false
+            }
+
             property JsonObject conflictKiller: JsonObject {
                 property bool autoKillNotificationDaemons: false
                 property bool autoKillTrays: false
@@ -851,12 +855,17 @@ Singleton {
                 }
                 property JsonObject theming: JsonObject {
                     property bool useMaterialColors: false // Use Material ii colors instead of W11 grey
+                    property JsonObject font: JsonObject {
+                        property string family: "Noto Sans"
+                        property real scale: 1.0 // Font size multiplier (0.8 - 1.5)
+                    }
+                }
+                property JsonObject startMenu: JsonObject {
+                    property string sizePreset: "normal" // mini, compact, normal, large, wide
+                    property real scale: 1.0 // Start menu scale (0.8 - 1.5)
                 }
                 property JsonObject behavior: JsonObject {
                     property bool allowMultiplePanels: false // Allow multiple panels open at once (for screenshots)
-                }
-                property JsonObject startMenu: JsonObject {
-                    property string sizePreset: "normal" // compact, normal, large, wide
                 }
                 property JsonObject widgetsPanel: JsonObject {
                     property bool showDateTime: true

@@ -196,6 +196,13 @@ BACKDROP_RULES
         sed -i '/^animations {/a\    //off' "$NIRI_CONFIG"
         log_success "Added //off to animations block"
       fi
+      
+      # Migrate: Replace native close-window with closeConfirm script (for confirmation dialog support)
+      if grep -q 'Mod+Q.*close-window' "$NIRI_CONFIG" 2>/dev/null; then
+        echo -e "${STY_CYAN}Migrating Mod+Q to use closeConfirm...${STY_RST}"
+        sed -i 's|Mod+Q.*{.*close-window.*}|Mod+Q repeat=false { spawn "bash" "-c" "$HOME/.config/quickshell/ii/scripts/close-window.sh"; }|' "$NIRI_CONFIG"
+        log_success "Mod+Q migrated to closeConfirm with fallback"
+      fi
     fi
     ;;
 esac
