@@ -3,7 +3,9 @@
 
 # shellcheck shell=bash
 
-printf "${STY_CYAN}[$0]: 3. Copying config files${STY_RST}\n"
+if ! ${quiet:-false}; then
+  printf "${STY_CYAN}[$0]: 3. Copying config files${STY_RST}\n"
+fi
 
 #####################################################################################
 # Ensure directories exist
@@ -69,7 +71,9 @@ if [[ ! "${SKIP_BACKUP}" == true ]]; then auto_backup_configs; fi
 case "${SKIP_QUICKSHELL}" in
   true) sleep 0;;
   *)
-    echo -e "${STY_CYAN}Installing Quickshell ii config...${STY_RST}"
+    if ! ${quiet:-false}; then
+      echo -e "${STY_CYAN}Installing Quickshell ii config...${STY_RST}"
+    fi
     
     # The ii QML code is in the root of this repo, not in dots/
     # We copy it to ~/.config/quickshell/ii/
@@ -109,7 +113,9 @@ esac
 #####################################################################################
 # Install config files from dots/
 #####################################################################################
-echo -e "${STY_CYAN}Installing config files from dots/...${STY_RST}"
+if ! ${quiet:-false}; then
+  echo -e "${STY_CYAN}Installing config files from dots/...${STY_RST}"
+fi
 
 # Niri config
 case "${SKIP_NIRI}" in
@@ -127,7 +133,9 @@ case "${SKIP_NIRI}" in
     NIRI_CONFIG="${XDG_CONFIG_HOME}/niri/config.kdl"
     if [[ -f "$NIRI_CONFIG" ]]; then
       if ! grep -q "quickshell:iiBackdrop" "$NIRI_CONFIG" 2>/dev/null; then
-        echo -e "${STY_CYAN}Adding backdrop layer-rules to Niri config...${STY_RST}"
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding backdrop layer-rules to Niri config...${STY_RST}"
+        fi
         cat >> "$NIRI_CONFIG" << 'BACKDROP_RULES'
 
 // ============================================================================
@@ -155,14 +163,16 @@ BACKDROP_RULES
       # Users can manually merge keybinds from .new if needed
       
       # Only show a hint if this is an update and .new was created
-      if [[ "${IS_UPDATE}" == "true" && -f "${NIRI_CONFIG}.new" ]]; then
+      if [[ "${IS_UPDATE}" == "true" && -f "${NIRI_CONFIG}.new" ]] && ! ${quiet:-false}; then
         echo -e "${STY_YELLOW}Note: New keybinds may be available in ${NIRI_CONFIG}.new${STY_RST}"
         echo -e "${STY_YELLOW}Compare with: diff ~/.config/niri/config.kdl ~/.config/niri/config.kdl.new${STY_RST}"
       fi
       
       # Migrate: Add //off to animations block if missing (required for GameMode toggle)
       if ! grep -qE '^\s*(//)?off' "$NIRI_CONFIG" 2>/dev/null; then
-        echo -e "${STY_CYAN}Adding //off to animations block for GameMode support...${STY_RST}"
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding //off to animations block for GameMode support...${STY_RST}"
+        fi
         python3 << 'MIGRATE_ANIMATIONS'
 import re
 import os
@@ -181,18 +191,16 @@ if animations_match:
         content = content[:animations_match.start()] + new_block + content[animations_match.end():]
         with open(config_path, 'w') as f:
             f.write(content)
-        print("Added //off to animations block")
-    else:
-        print("//off already present in animations block")
-else:
-    print("No animations block found")
+# Output suppressed - shell handles logging
 MIGRATE_ANIMATIONS
         log_success "Added //off to animations block"
       fi
       
       # Migrate: Replace native close-window with closeConfirm script
       if grep -q 'Mod+Q.*close-window' "$NIRI_CONFIG" 2>/dev/null; then
-        echo -e "${STY_CYAN}Migrating Mod+Q to use closeConfirm...${STY_RST}"
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Migrating Mod+Q to use closeConfirm...${STY_RST}"
+        fi
         python3 << 'MIGRATE_CLOSEWINDOW'
 import re
 import os
@@ -208,7 +216,7 @@ content = re.sub(pattern, replacement, content)
 
 with open(config_path, 'w') as f:
     f.write(content)
-print("Mod+Q migrated to closeConfirm")
+# Output suppressed in quiet mode (checked by shell)
 MIGRATE_CLOSEWINDOW
         log_success "Mod+Q migrated to closeConfirm with fallback"
       fi
@@ -254,7 +262,9 @@ fi
 
 # Copy Colloid theme to user Kvantum folder if installed
 if [[ -d "/usr/share/Kvantum/Colloid" ]]; then
-  echo -e "${STY_CYAN}Setting up Kvantum Colloid theme...${STY_RST}"
+  if ! ${quiet:-false}; then
+    echo -e "${STY_CYAN}Setting up Kvantum Colloid theme...${STY_RST}"
+  fi
   mkdir -p "${XDG_CONFIG_HOME}/Kvantum/Colloid"
   cp -r /usr/share/Kvantum/Colloid/* "${XDG_CONFIG_HOME}/Kvantum/Colloid/"
   log_success "Kvantum Colloid theme configured"
@@ -296,7 +306,9 @@ v dedup_and_sort_listfile "${INSTALLED_LISTFILE}" "${INSTALLED_LISTFILE}"
 #####################################################################################
 # Environment variables are configured in Niri
 #####################################################################################
-echo -e "${STY_CYAN}Configuring environment variables...${STY_RST}"
+if ! ${quiet:-false}; then
+  echo -e "${STY_CYAN}Configuring environment variables...${STY_RST}"
+fi
 
 # Note: ILLOGICAL_IMPULSE_VIRTUAL_ENV is set in ~/.config/niri/config.kdl
 # in the environment {} block. This is the proper way for Niri/Wayland compositors.
@@ -344,7 +356,9 @@ KDE_GLOBALS="${XDG_CONFIG_HOME}/kdeglobals"
 if [[ -f "$GTK_SETTINGS" ]]; then
     ICON_THEME=$(grep "gtk-icon-theme-name" "$GTK_SETTINGS" | cut -d= -f2 | xargs)
     if [[ -n "$ICON_THEME" ]]; then
-        echo -e "${STY_CYAN}Applying icon theme '$ICON_THEME' to Qt/KDE...${STY_RST}"
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Applying icon theme '$ICON_THEME' to Qt/KDE...${STY_RST}"
+        fi
         
         # Ensure [Icons] section exists
         if ! grep -q "\[Icons\]" "$KDE_GLOBALS" 2>/dev/null; then
@@ -368,7 +382,9 @@ fi
 #####################################################################################
 DEFAULT_WALLPAPER="${II_TARGET}/assets/wallpapers/qs-niri.jpg"
 if [[ "${INSTALL_FIRSTRUN}" == true && -f "${DEFAULT_WALLPAPER}" ]]; then
-  echo -e "${STY_CYAN}Setting default wallpaper...${STY_RST}"
+  if ! ${quiet:-false}; then
+    echo -e "${STY_CYAN}Setting default wallpaper...${STY_RST}"
+  fi
   
   # Ensure output directories exist for matugen
   mkdir -p "${XDG_STATE_HOME}/quickshell/user/generated"
@@ -390,7 +406,9 @@ if [[ "${INSTALL_FIRSTRUN}" == true && -f "${DEFAULT_WALLPAPER}" ]]; then
   # Generate initial theme colors with matugen
   export ILLOGICAL_IMPULSE_VIRTUAL_ENV="${XDG_STATE_HOME}/quickshell/.venv"
   if command -v matugen >/dev/null 2>&1; then
-    echo -e "${STY_CYAN}Generating theme colors from wallpaper...${STY_RST}"
+    if ! ${quiet:-false}; then
+      echo -e "${STY_CYAN}Generating theme colors from wallpaper...${STY_RST}"
+    fi
     # Use --config to ensure correct config file is used
     if matugen image "${DEFAULT_WALLPAPER}" --mode dark --config "${XDG_CONFIG_HOME}/matugen/config.toml" 2>&1; then
       log_success "Theme colors generated"
@@ -436,124 +454,139 @@ fi
 #####################################################################################
 # Final Summary
 #####################################################################################
-echo ""
-echo ""
 
-if [[ "${IS_UPDATE}" == "true" ]]; then
-  # Update-specific output
-  printf "${STY_GREEN}${STY_BOLD}"
-  cat << 'EOF'
+# In quiet mode, just print a simple status line
+if ${quiet:-false}; then
+  if [[ "${IS_UPDATE}" == "true" ]]; then
+    echo "ii-niri: update complete"
+  else
+    echo "ii-niri: install complete"
+  fi
+else
+  echo ""
+  echo ""
+
+  if [[ "${IS_UPDATE}" == "true" ]]; then
+    # Update-specific output
+    printf "${STY_GREEN}${STY_BOLD}"
+    cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║                    ✓ Update Complete                         ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
-  printf "${STY_RST}"
-  echo ""
+    printf "${STY_RST}"
+    echo ""
 
-  echo -e "${STY_BLUE}${STY_BOLD}┌─ What was updated${STY_RST}"
-  echo -e "${STY_BLUE}│${STY_RST}"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii synced to ~/.config/quickshell/ii/"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Missing keybinds added to Niri config (if any)"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Config migrations applied"
-  echo -e "${STY_BLUE}│${STY_RST}"
-  echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
-  echo ""
-else
-  # Install output
-  printf "${STY_GREEN}${STY_BOLD}"
-  cat << 'EOF'
+    echo -e "${STY_BLUE}${STY_BOLD}┌─ What was updated${STY_RST}"
+    echo -e "${STY_BLUE}│${STY_RST}"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii synced to ~/.config/quickshell/ii/"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Missing keybinds added to Niri config (if any)"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Config migrations applied"
+    echo -e "${STY_BLUE}│${STY_RST}"
+    echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
+    echo ""
+  else
+    # Install output
+    printf "${STY_GREEN}${STY_BOLD}"
+    cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║                  ✓ Installation Complete                     ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
-  printf "${STY_RST}"
-  echo ""
+    printf "${STY_RST}"
+    echo ""
 
-  echo -e "${STY_BLUE}${STY_BOLD}┌─ What was installed${STY_RST}"
-  echo -e "${STY_BLUE}│${STY_RST}"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii copied to ~/.config/quickshell/ii/"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Niri config with ii keybindings"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} GTK/Qt theming (Matugen + Kvantum + Darkly)"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Environment variables for ${DETECTED_SHELL:-your shell}"
-  echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper and color scheme"
-  echo -e "${STY_BLUE}│${STY_RST}"
-  echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
-  echo ""
-fi
-
-# Check for .new files that need manual review
-NEW_FILES=()
-for f in "${XDG_CONFIG_HOME}/niri/config.kdl.new" \
-         "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new" \
-         "${XDG_CONFIG_HOME}/kdeglobals.new"; do
-  if [[ -f "$f" ]]; then
-    NEW_FILES+=("$f")
+    echo -e "${STY_BLUE}${STY_BOLD}┌─ What was installed${STY_RST}"
+    echo -e "${STY_BLUE}│${STY_RST}"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Quickshell ii copied to ~/.config/quickshell/ii/"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Niri config with ii keybindings"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} GTK/Qt theming (Matugen + Kvantum + Darkly)"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Environment variables for ${DETECTED_SHELL:-your shell}"
+    echo -e "${STY_BLUE}│${STY_RST}  ${STY_GREEN}✓${STY_RST} Default wallpaper and color scheme"
+    echo -e "${STY_BLUE}│${STY_RST}"
+    echo -e "${STY_BLUE}└──────────────────────────────${STY_RST}"
+    echo ""
   fi
-done
+fi
 
-if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
-  echo -e "${STY_YELLOW}${STY_BOLD}┌─ Files to Review${STY_RST}"
-  echo -e "${STY_YELLOW}│${STY_RST}"
-  echo -e "${STY_YELLOW}│${STY_RST}  New defaults saved as .new (your config preserved):"
-  for f in "${NEW_FILES[@]}"; do
-    echo -e "${STY_YELLOW}│${STY_RST}    ${STY_FAINT}${f}${STY_RST}"
+# Skip the rest of the summary in quiet mode
+if ! ${quiet:-false}; then
+
+  # Check for .new files that need manual review
+  NEW_FILES=()
+  for f in "${XDG_CONFIG_HOME}/niri/config.kdl.new" \
+           "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new" \
+           "${XDG_CONFIG_HOME}/kdeglobals.new"; do
+    if [[ -f "$f" ]]; then
+      NEW_FILES+=("$f")
+    fi
   done
-  echo -e "${STY_YELLOW}│${STY_RST}"
-  echo -e "${STY_YELLOW}│${STY_RST}  Compare with: ${STY_FAINT}diff <file> <file>.new${STY_RST}"
-  echo -e "${STY_YELLOW}└──────────────────────────${STY_RST}"
+
+  if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
+    echo -e "${STY_YELLOW}${STY_BOLD}┌─ Files to Review${STY_RST}"
+    echo -e "${STY_YELLOW}│${STY_RST}"
+    echo -e "${STY_YELLOW}│${STY_RST}  New defaults saved as .new (your config preserved):"
+    for f in "${NEW_FILES[@]}"; do
+      echo -e "${STY_YELLOW}│${STY_RST}    ${STY_FAINT}${f}${STY_RST}"
+    done
+    echo -e "${STY_YELLOW}│${STY_RST}"
+    echo -e "${STY_YELLOW}│${STY_RST}  Compare with: ${STY_FAINT}diff <file> <file>.new${STY_RST}"
+    echo -e "${STY_YELLOW}└──────────────────────────${STY_RST}"
+    echo ""
+  fi
+
+  # Show warnings if any
+  if [[ ${#WARNINGS[@]} -gt 0 ]]; then
+    echo -e "${STY_YELLOW}${STY_BOLD}┌─ Warnings${STY_RST}"
+    echo -e "${STY_YELLOW}│${STY_RST}"
+    for warn in "${WARNINGS[@]}"; do
+      echo -e "${STY_YELLOW}│${STY_RST}  ${STY_RED}⚠${STY_RST} ${warn}"
+    done
+    echo -e "${STY_YELLOW}│${STY_RST}"
+    echo -e "${STY_YELLOW}└──────────────────────────────${STY_RST}"
+    echo ""
+  fi
+
+  # Next steps
+  echo -e "${STY_CYAN}${STY_BOLD}┌─ Next Steps${STY_RST}"
+  echo -e "${STY_CYAN}│${STY_RST}"
+  echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}1.${STY_RST} Log out and select ${STY_BOLD}Niri${STY_RST} at your display manager"
+  echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}2.${STY_RST} ii will start automatically with your session"
+  echo -e "${STY_CYAN}│${STY_RST}"
+  echo -e "${STY_CYAN}│${STY_RST}  Or reload now if already in Niri:"
+  echo -e "${STY_CYAN}│${STY_RST}  ${STY_FAINT}$ niri msg action load-config-file${STY_RST}"
+  echo -e "${STY_CYAN}│${STY_RST}"
+  echo -e "${STY_CYAN}└──────────────────────────────${STY_RST}"
   echo ""
-fi
 
-# Show warnings if any
-if [[ ${#WARNINGS[@]} -gt 0 ]]; then
-  echo -e "${STY_YELLOW}${STY_BOLD}┌─ Warnings${STY_RST}"
-  echo -e "${STY_YELLOW}│${STY_RST}"
-  for warn in "${WARNINGS[@]}"; do
-    echo -e "${STY_YELLOW}│${STY_RST}  ${STY_RED}⚠${STY_RST} ${warn}"
-  done
-  echo -e "${STY_YELLOW}│${STY_RST}"
-  echo -e "${STY_YELLOW}└──────────────────────────────${STY_RST}"
+  # Key shortcuts (only show on install, not update)
+  if [[ "${IS_UPDATE}" != "true" ]]; then
+    echo -e "${STY_PURPLE}${STY_BOLD}┌─ Key Shortcuts${STY_RST}"
+    echo -e "${STY_PURPLE}│${STY_RST}"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+Space ${STY_RST}     Search / Overview"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+G ${STY_RST}         Overlay (widgets, tools)"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Alt+Tab ${STY_RST}         Window switcher"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+V ${STY_RST}         Clipboard history"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Ctrl+Alt+T ${STY_RST}      Wallpaper picker"
+    echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+/ ${STY_RST}         Show all shortcuts"
+    echo -e "${STY_PURPLE}│${STY_RST}"
+    echo -e "${STY_PURPLE}└──────────────────────────────${STY_RST}"
+    echo ""
+  fi
+
+  echo -e "${STY_FAINT}Backups saved to: ${BACKUP_DIR}${STY_RST}"
+  echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
   echo ""
-fi
 
-# Next steps
-echo -e "${STY_CYAN}${STY_BOLD}┌─ Next Steps${STY_RST}"
-echo -e "${STY_CYAN}│${STY_RST}"
-echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}1.${STY_RST} Log out and select ${STY_BOLD}Niri${STY_RST} at your display manager"
-echo -e "${STY_CYAN}│${STY_RST}  ${STY_BOLD}2.${STY_RST} ii will start automatically with your session"
-echo -e "${STY_CYAN}│${STY_RST}"
-echo -e "${STY_CYAN}│${STY_RST}  Or reload now if already in Niri:"
-echo -e "${STY_CYAN}│${STY_RST}  ${STY_FAINT}$ niri msg action load-config-file${STY_RST}"
-echo -e "${STY_CYAN}│${STY_RST}"
-echo -e "${STY_CYAN}└──────────────────────────────${STY_RST}"
-echo ""
-
-# Key shortcuts (only show on install, not update)
-if [[ "${IS_UPDATE}" != "true" ]]; then
-  echo -e "${STY_PURPLE}${STY_BOLD}┌─ Key Shortcuts${STY_RST}"
-  echo -e "${STY_PURPLE}│${STY_RST}"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+Space ${STY_RST}     Search / Overview"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+G ${STY_RST}         Overlay (widgets, tools)"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Alt+Tab ${STY_RST}         Window switcher"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+V ${STY_RST}         Clipboard history"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Ctrl+Alt+T ${STY_RST}      Wallpaper picker"
-  echo -e "${STY_PURPLE}│${STY_RST}  ${STY_INVERT} Super+/ ${STY_RST}         Show all shortcuts"
-  echo -e "${STY_PURPLE}│${STY_RST}"
-  echo -e "${STY_PURPLE}└──────────────────────────────${STY_RST}"
+  if [[ "${IS_UPDATE}" == "true" ]]; then
+    echo -e "${STY_GREEN}Done. Hot reload should kick in any second now.${STY_RST}"
+  else
+    echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
+  fi
   echo ""
-fi
 
-echo -e "${STY_FAINT}Backups saved to: ${BACKUP_DIR}${STY_RST}"
-echo -e "${STY_FAINT}Logs: qs log -c ii${STY_RST}"
-echo ""
-
-if [[ "${IS_UPDATE}" == "true" ]]; then
-  echo -e "${STY_GREEN}Done. Hot reload should kick in any second now.${STY_RST}"
-else
-  echo -e "${STY_GREEN}Enjoy your new desktop!${STY_RST}"
-fi
-echo ""
+fi  # end quiet check
