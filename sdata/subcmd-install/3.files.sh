@@ -160,57 +160,78 @@ import os
 
 config_path = os.path.expanduser("~/.config/niri/config.kdl")
 if not os.path.exists(config_path):
+    print("Config file not found, skipping")
     sys.exit(0)
 
 with open(config_path, 'r') as f:
     content = f.read()
 
-# Keybinds to add if missing: (key_pattern, full_keybind_line)
-# key_pattern matches the KEY followed by any character (space, {, or attribute like allow-when-locked)
-# Using [^\n] to match anything except newline after the key name
-keybinds = [
-    # Format: (regex_for_key, keybind_line)
-    # The regex matches the key binding at start of line with optional whitespace
-    # Then the key name, then anything (attributes, {, etc)
-    (r'^\s*Alt\+Tab\b', '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'),
-    (r'^\s*Alt\+Shift\+Tab\b', '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'),
-    (r'^\s*Mod\+Shift\+W\b', '    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'),
-    (r'^\s*Mod\+Slash\b', '    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'),
-    (r'^\s*Mod\+V\b', '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'),
-    (r'^\s*Super\+G\b', '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'),
-    (r'^\s*Mod\+Space\b', '    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'),
-    (r'^\s*Mod\+Alt\+L\b', '    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'),
-    (r'^\s*Mod\+Shift\+S\b', '    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'),
-    (r'^\s*Mod\+Shift\+X\b', '    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'),
-    (r'^\s*Mod\+Shift\+A\b', '    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'),
-    (r'^\s*Ctrl\+Alt\+T\b', '    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'),
-    (r'^\s*Mod\+Comma\b', '    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'),
-    # Audio/Brightness/Media keys - use word boundary \b to match key name exactly
-    (r'^\s*XF86AudioRaiseVolume\b', '    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
-    (r'^\s*XF86AudioLowerVolume\b', '    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
-    (r'^\s*XF86AudioMute\b', '    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
-    (r'^\s*XF86AudioMicMute\b', '    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'),
-    (r'^\s*XF86MonBrightnessUp\b', '    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'),
-    (r'^\s*XF86MonBrightnessDown\b', '    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'),
-    (r'^\s*XF86AudioPlay\b', '    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
-    (r'^\s*XF86AudioNext\b', '    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
-    (r'^\s*XF86AudioPrev\b', '    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
-    # Keyboard alternatives for media (only add if not already bound)
-    (r'^\s*Mod\+Shift\+M\b', '    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
-    (r'^\s*Mod\+Shift\+P\b', '    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
-    (r'^\s*Mod\+Shift\+N\b', '    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
-    (r'^\s*Mod\+Shift\+B\b', '    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+# Check if we already ran migration (marker comment exists)
+if "ii keybinds (added by setup)" in content:
+    print("ii keybinds block already exists, skipping migration")
+    sys.exit(0)
+
+# Define keybinds to check/add
+# Format: (key_name_for_search, full_keybind_line)
+# We use simple string search instead of regex for reliability
+keybinds_to_check = [
+    ("Alt+Tab", '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'),
+    ("Alt+Shift+Tab", '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'),
+    ("Mod+Shift+W", '    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'),
+    ("Mod+Slash", '    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'),
+    ("Mod+V", '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'),
+    ("Super+G", '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'),
+    ("Mod+Space", '    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'),
+    ("Mod+Alt+L", '    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'),
+    ("Mod+Shift+S", '    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'),
+    ("Mod+Shift+X", '    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'),
+    ("Mod+Shift+A", '    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'),
+    ("Ctrl+Alt+T", '    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'),
+    ("Mod+Comma", '    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'),
+    # Hardware keys
+    ("XF86AudioRaiseVolume", '    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
+    ("XF86AudioLowerVolume", '    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
+    ("XF86AudioMute", '    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    ("XF86AudioMicMute", '    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'),
+    ("XF86MonBrightnessUp", '    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'),
+    ("XF86MonBrightnessDown", '    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'),
+    ("XF86AudioPlay", '    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    ("XF86AudioNext", '    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    ("XF86AudioPrev", '    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+    # Keyboard alternatives
+    ("Mod+Shift+M", '    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    ("Mod+Shift+P", '    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    ("Mod+Shift+N", '    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    ("Mod+Shift+B", '    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
 ]
 
-# Find missing keybinds by checking if the KEY already exists
+def key_exists_in_config(key_name, content):
+    """Check if a keybind exists by looking for the key name at start of a line (with whitespace)"""
+    # Look for patterns like:
+    #   XF86AudioRaiseVolume ...
+    #   XF86AudioRaiseVolume allow-when-locked=true ...
+    # But NOT in comments (lines starting with //)
+    for line in content.split('\n'):
+        stripped = line.strip()
+        # Skip comments
+        if stripped.startswith('//'):
+            continue
+        # Check if line starts with the key name
+        if stripped.startswith(key_name + ' ') or stripped.startswith(key_name + '{'):
+            return True
+    return False
+
+# Find missing keybinds
 missing = []
-for key_pattern, keybind in keybinds:
-    if not re.search(key_pattern, content, re.MULTILINE):
-        missing.append(keybind)
+for key_name, keybind_line in keybinds_to_check:
+    if not key_exists_in_config(key_name, content):
+        missing.append(keybind_line)
 
 if not missing:
     print("All ii keybinds already present")
     sys.exit(0)
+
+print(f"Found {len(missing)} missing keybinds, adding them...")
 
 # Find the binds { block
 binds_match = re.search(r'^binds\s*\{', content, re.MULTILINE)
@@ -236,7 +257,7 @@ if brace_count != 0:
 # Insert before the closing }
 insert_pos = pos - 1
 
-# Build the insertion text
+# Build the insertion text with marker
 insert_text = "\n    // ═══════════════════════════════════════════════════════════════════════════\n"
 insert_text += "    // ii keybinds (added by setup)\n"
 insert_text += "    // ═══════════════════════════════════════════════════════════════════════════\n"
