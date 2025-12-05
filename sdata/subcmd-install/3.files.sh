@@ -148,83 +148,197 @@ BACKDROP_RULES
         log_success "Backdrop layer-rules added to Niri config"
       fi
       
-      # Migrate: Add missing ii keybinds
-      # Each entry: "search_pattern|keybind_line"
-      II_KEYBINDS=(
-        'ipc" "call" "altSwitcher" "next|    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'
-        'ipc" "call" "altSwitcher" "previous|    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'
-        'ipc" "call" "panelFamily" "cycle|    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'
-        'ipc" "call" "cheatsheet" "toggle|    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'
-        'ipc" "call" "clipboard" "toggle|    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'
-        'ipc" "call" "overlay" "toggle|    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'
-        'ipc" "call" "overview" "toggle|    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'
-        'ipc" "call" "lock" "activate|    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'
-        'ipc" "call" "region" "screenshot|    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'
-        'ipc" "call" "region" "ocr|    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'
-        'ipc" "call" "region" "search|    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'
-        'ipc" "call" "wallpaperSelector" "toggle|    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'
-        'ipc" "call" "settings" "open|    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'
-        # Audio/Brightness/Media keys (with OSD support)
-        'ipc" "call" "audio" "volumeUp|    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'
-        'ipc" "call" "audio" "volumeDown|    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'
-        'ipc" "call" "audio" "mute|    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'
-        'ipc" "call" "audio" "micMute|    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'
-        'ipc" "call" "brightness" "increment|    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'
-        'ipc" "call" "brightness" "decrement|    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'
-        'ipc" "call" "mpris" "playPause|    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'
-        'ipc" "call" "mpris" "next|    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'
-        'ipc" "call" "mpris" "previous|    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'
-        # Keyboard alternatives for media
-        'Mod+Shift+M.*audio.*mute|    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'
-        'Mod+Shift+P.*mpris.*playPause|    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'
-        'Mod+Shift+N.*mpris.*next|    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'
-        'Mod+Shift+B.*mpris.*previous|    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'
-      )
-      
-      KEYBINDS_ADDED=0
-      for entry in "${II_KEYBINDS[@]}"; do
-        search_pattern="${entry%%|*}"
-        keybind_line="${entry#*|}"
+      # Migrate: Add missing ii keybinds using Python for robustness
+      # This approach is safer than sed because it properly handles KDL structure
+      if command -v python3 >/dev/null 2>&1; then
+        echo -e "${STY_CYAN}Checking for missing ii keybinds...${STY_RST}"
         
-        if ! grep -qF "$search_pattern" "$NIRI_CONFIG" 2>/dev/null; then
-          # Find the binds { block and add the keybind before the closing }
-          # We'll append to a temp section at the end of binds block
-          if [[ $KEYBINDS_ADDED -eq 0 ]]; then
-            echo -e "${STY_CYAN}Adding missing ii keybinds to Niri config...${STY_RST}"
-            # Add a comment section before the first keybind
-            sed -i '/^binds {/a\    // ii keybinds added by setup' "$NIRI_CONFIG"
-          fi
-          # Insert the keybind after the comment
-          sed -i "/\/\/ ii keybinds added by setup/a\\$keybind_line" "$NIRI_CONFIG"
-          KEYBINDS_ADDED=$((KEYBINDS_ADDED + 1))
+        python3 << 'MIGRATE_KEYBINDS'
+import re
+import sys
+import os
+
+config_path = os.path.expanduser("~/.config/niri/config.kdl")
+if not os.path.exists(config_path):
+    sys.exit(0)
+
+with open(config_path, 'r') as f:
+    content = f.read()
+
+# Keybinds to add if missing: (search_pattern, full_keybind_line)
+# search_pattern is used to check if keybind already exists
+keybinds = [
+    ('altSwitcher" "next', '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'),
+    ('altSwitcher" "previous', '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'),
+    ('panelFamily" "cycle', '    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'),
+    ('cheatsheet" "toggle', '    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'),
+    ('clipboard" "toggle', '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'),
+    ('overlay" "toggle', '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'),
+    ('overview" "toggle', '    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'),
+    ('lock" "activate', '    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'),
+    ('region" "screenshot', '    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'),
+    ('region" "ocr', '    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'),
+    ('region" "search', '    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'),
+    ('wallpaperSelector" "toggle', '    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'),
+    ('settings" "open', '    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'),
+    # Audio/Brightness/Media keys
+    ('audio" "volumeUp', '    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
+    ('audio" "volumeDown', '    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
+    ('audio" "mute', '    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    ('audio" "micMute', '    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'),
+    ('brightness" "increment', '    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'),
+    ('brightness" "decrement', '    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'),
+    ('mpris" "playPause', '    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    ('mpris" "next"', '    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    ('mpris" "previous', '    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+    # Keyboard alternatives
+    ('Mod+Shift+M', '    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    ('Mod+Shift+P', '    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    ('Mod+Shift+N', '    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    ('Mod+Shift+B', '    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+]
+
+# Find missing keybinds
+missing = []
+for pattern, keybind in keybinds:
+    if pattern not in content:
+        missing.append(keybind)
+
+if not missing:
+    print("All ii keybinds already present")
+    sys.exit(0)
+
+# Find the binds { block - look for closing brace at same indentation level
+# We'll insert before the last } of the binds block
+binds_match = re.search(r'^binds\s*\{', content, re.MULTILINE)
+if not binds_match:
+    print("ERROR: Could not find 'binds {' block in config")
+    sys.exit(1)
+
+# Find the end of binds block by counting braces
+start = binds_match.end()
+brace_count = 1
+pos = start
+while pos < len(content) and brace_count > 0:
+    if content[pos] == '{':
+        brace_count += 1
+    elif content[pos] == '}':
+        brace_count -= 1
+    pos += 1
+
+if brace_count != 0:
+    print("ERROR: Unbalanced braces in binds block")
+    sys.exit(1)
+
+# pos now points just after the closing } of binds block
+# Insert our keybinds before that closing }
+insert_pos = pos - 1  # Before the }
+
+# Build the insertion text
+insert_text = "\n    // ═══════════════════════════════════════════════════════════════════════════\n"
+insert_text += "    // ii keybinds (added by setup)\n"
+insert_text += "    // ═══════════════════════════════════════════════════════════════════════════\n"
+for kb in missing:
+    insert_text += kb + "\n"
+
+# Insert into content
+new_content = content[:insert_pos] + insert_text + content[insert_pos:]
+
+# Write back
+with open(config_path, 'w') as f:
+    f.write(new_content)
+
+print(f"Added {len(missing)} missing ii keybinds")
+MIGRATE_KEYBINDS
+        
+        if [[ $? -eq 0 ]]; then
+          log_success "Keybind migration completed"
         fi
-      done
-      
-      if [[ $KEYBINDS_ADDED -gt 0 ]]; then
-        log_success "Added $KEYBINDS_ADDED missing ii keybinds to Niri config"
+      else
+        log_warning "Python3 not found, skipping keybind migration"
       fi
       
       # Migrate: Replace old wpctl volume keybinds with ii IPC (for OSD support)
+      # Use Python for safer replacement
       if grep -q 'XF86AudioRaiseVolume.*wpctl' "$NIRI_CONFIG" 2>/dev/null; then
         echo -e "${STY_CYAN}Migrating volume keybinds to use ii IPC (enables OSD)...${STY_RST}"
-        sed -i 's|XF86AudioRaiseVolume.*{.*spawn "wpctl".*}|XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }|' "$NIRI_CONFIG"
-        sed -i 's|XF86AudioLowerVolume.*{.*spawn "wpctl".*}|XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }|' "$NIRI_CONFIG"
-        sed -i 's|XF86AudioMute.*{.*spawn "wpctl".*}|XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }|' "$NIRI_CONFIG"
+        python3 << 'MIGRATE_VOLUME'
+import re
+import os
+
+config_path = os.path.expanduser("~/.config/niri/config.kdl")
+with open(config_path, 'r') as f:
+    content = f.read()
+
+replacements = [
+    (r'XF86AudioRaiseVolume[^}]*spawn\s+"wpctl"[^}]*\}', 
+     'XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
+    (r'XF86AudioLowerVolume[^}]*spawn\s+"wpctl"[^}]*\}',
+     'XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
+    (r'XF86AudioMute[^}]*spawn\s+"wpctl"[^}]*\}',
+     'XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+]
+
+for pattern, replacement in replacements:
+    content = re.sub(pattern, replacement, content)
+
+with open(config_path, 'w') as f:
+    f.write(content)
+print("Volume keybinds migrated")
+MIGRATE_VOLUME
         log_success "Volume keybinds migrated to ii IPC"
       fi
       
       # Migrate: Add //off to animations block if missing (required for GameMode toggle)
-      if ! grep -qE '^\s*(//)?off' "$NIRI_CONFIG" 2>/dev/null || \
-         ! sed -n '/^animations {/,/^}/p' "$NIRI_CONFIG" | grep -qE '^\s*(//)?off'; then
+      if ! grep -qE '^\s*(//)?off' "$NIRI_CONFIG" 2>/dev/null; then
         echo -e "${STY_CYAN}Adding //off to animations block for GameMode support...${STY_RST}"
-        sed -i '/^animations {/a\    //off' "$NIRI_CONFIG"
+        python3 << 'MIGRATE_ANIMATIONS'
+import re
+import os
+
+config_path = os.path.expanduser("~/.config/niri/config.kdl")
+with open(config_path, 'r') as f:
+    content = f.read()
+
+# Check if //off already exists in animations block
+animations_match = re.search(r'^animations\s*\{([^}]*)\}', content, re.MULTILINE | re.DOTALL)
+if animations_match:
+    block_content = animations_match.group(1)
+    if '//off' not in block_content and 'off' not in block_content:
+        # Insert //off after animations {
+        new_block = 'animations {\n    //off' + block_content + '}'
+        content = content[:animations_match.start()] + new_block + content[animations_match.end():]
+        with open(config_path, 'w') as f:
+            f.write(content)
+        print("Added //off to animations block")
+    else:
+        print("//off already present in animations block")
+else:
+    print("No animations block found")
+MIGRATE_ANIMATIONS
         log_success "Added //off to animations block"
       fi
       
-      # Migrate: Replace native close-window with closeConfirm script (for confirmation dialog support)
+      # Migrate: Replace native close-window with closeConfirm script
       if grep -q 'Mod+Q.*close-window' "$NIRI_CONFIG" 2>/dev/null; then
         echo -e "${STY_CYAN}Migrating Mod+Q to use closeConfirm...${STY_RST}"
-        sed -i 's|Mod+Q.*{.*close-window.*}|Mod+Q repeat=false { spawn "bash" "-c" "$HOME/.config/quickshell/ii/scripts/close-window.sh"; }|' "$NIRI_CONFIG"
+        python3 << 'MIGRATE_CLOSEWINDOW'
+import re
+import os
+
+config_path = os.path.expanduser("~/.config/niri/config.kdl")
+with open(config_path, 'r') as f:
+    content = f.read()
+
+# Replace Mod+Q close-window with our script
+pattern = r'Mod\+Q[^}]*close-window[^}]*\}'
+replacement = 'Mod+Q repeat=false { spawn "bash" "-c" "$HOME/.config/quickshell/ii/scripts/close-window.sh"; }'
+content = re.sub(pattern, replacement, content)
+
+with open(config_path, 'w') as f:
+    f.write(content)
+print("Mod+Q migrated to closeConfirm")
+MIGRATE_CLOSEWINDOW
         log_success "Mod+Q migrated to closeConfirm with fallback"
       fi
     fi
