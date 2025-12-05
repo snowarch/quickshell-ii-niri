@@ -66,7 +66,7 @@ WSettingsPage {
                         text: Translation.tr("Change wallpaper")
                         icon.name: "image"
                         onClicked: {
-                            Config.options.wallpaperSelector.selectionTarget = "main"
+                            Config.setNestedValue("wallpaperSelector.selectionTarget", "main")
                             Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
                         }
                     }
