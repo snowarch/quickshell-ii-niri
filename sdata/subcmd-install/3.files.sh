@@ -220,6 +220,22 @@ with open(config_path, 'w') as f:
 MIGRATE_CLOSEWINDOW
         log_success "Mod+Q migrated to closeConfirm with fallback"
       fi
+      
+      # Migrate: Qt theming - use kde platform + Darkly style for proper Qt app theming
+      if grep -q 'QT_QPA_PLATFORMTHEME "gtk3"' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Migrating Qt theming to use Darkly...${STY_RST}"
+        fi
+        # Change gtk3 to kde for kdeglobals color support
+        sed -i 's/QT_QPA_PLATFORMTHEME "gtk3"/QT_QPA_PLATFORMTHEME "kde"/' "$NIRI_CONFIG"
+        # Remove QT_QPA_PLATFORMTHEME_QT6 if present (not needed with kde)
+        sed -i '/QT_QPA_PLATFORMTHEME_QT6/d' "$NIRI_CONFIG"
+        # Add QT_STYLE_OVERRIDE if not present
+        if ! grep -q 'QT_STYLE_OVERRIDE' "$NIRI_CONFIG" 2>/dev/null; then
+          sed -i '/QT_QPA_PLATFORMTHEME "kde"/a\    QT_STYLE_OVERRIDE "Darkly"' "$NIRI_CONFIG"
+        fi
+        log_success "Qt theming migrated to Darkly"
+      fi
     fi
     ;;
 esac
