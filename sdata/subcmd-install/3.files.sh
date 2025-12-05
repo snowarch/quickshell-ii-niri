@@ -394,6 +394,128 @@ if [[ -f "$GTK_SETTINGS" ]]; then
 fi
 
 #####################################################################################
+# Set default MIME associations (only if not already set)
+#####################################################################################
+if ! ${quiet:-false}; then
+  echo -e "${STY_CYAN}Configuring default applications...${STY_RST}"
+fi
+
+# Function to set MIME default only if not already configured or set to something broken
+set_mime_default_if_missing() {
+    local mime_type="$1"
+    local desktop_file="$2"
+    
+    # Check if the desktop file exists
+    if [[ ! -f "/usr/share/applications/${desktop_file}" ]] && [[ ! -f "${XDG_DATA_HOME}/applications/${desktop_file}" ]]; then
+        return 1  # Desktop file not available
+    fi
+    
+    # Get current default
+    local current_default
+    current_default=$(xdg-mime query default "$mime_type" 2>/dev/null)
+    
+    # If no default set, or default is a non-editor for text files, set our default
+    if [[ -z "$current_default" ]]; then
+        xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null
+        return 0
+    fi
+    
+    # For text files, check if current default is actually a text editor
+    # (avoid cases where okular or other non-editors are set)
+    if [[ "$mime_type" == text/* ]]; then
+        case "$current_default" in
+            *kate*|*gedit*|*code*|*vim*|*nvim*|*emacs*|*nano*|*sublime*|*atom*|*notepad*|*helix*|*zed*)
+                # Already set to a proper editor, don't change
+                return 1
+                ;;
+            *)
+                # Not a known editor, set our default
+                xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null
+                return 0
+                ;;
+        esac
+    fi
+    
+    return 1  # Already has a valid default
+}
+
+# Detect available text editor (in order of preference)
+TEXT_EDITOR=""
+for editor in org.kde.kate.desktop org.gnome.gedit.desktop code.desktop vim.desktop; do
+    if [[ -f "/usr/share/applications/${editor}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${editor}" ]]; then
+        TEXT_EDITOR="$editor"
+        break
+    fi
+done
+
+# Set text editor defaults if we found one
+if [[ -n "$TEXT_EDITOR" ]]; then
+    set_mime_default_if_missing "text/plain" "$TEXT_EDITOR" && log_success "Set default text editor: $TEXT_EDITOR"
+    # Also set for common config file types
+    for mime in text/x-shellscript application/x-shellscript text/x-python text/x-script.python; do
+        set_mime_default_if_missing "$mime" "$TEXT_EDITOR" 2>/dev/null
+    done
+fi
+
+# Detect and set file manager
+FILE_MANAGER=""
+for fm in org.kde.dolphin.desktop org.gnome.Nautilus.desktop thunar.desktop pcmanfm.desktop; do
+    if [[ -f "/usr/share/applications/${fm}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${fm}" ]]; then
+        FILE_MANAGER="$fm"
+        break
+    fi
+done
+
+if [[ -n "$FILE_MANAGER" ]]; then
+    set_mime_default_if_missing "inode/directory" "$FILE_MANAGER" && log_success "Set default file manager: $FILE_MANAGER"
+fi
+
+# Detect and set image viewer
+IMAGE_VIEWER=""
+for viewer in org.kde.gwenview.desktop org.gnome.eog.desktop org.gnome.Loupe.desktop feh.desktop; do
+    if [[ -f "/usr/share/applications/${viewer}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${viewer}" ]]; then
+        IMAGE_VIEWER="$viewer"
+        break
+    fi
+done
+
+if [[ -n "$IMAGE_VIEWER" ]]; then
+    for mime in image/png image/jpeg image/gif image/webp image/bmp; do
+        set_mime_default_if_missing "$mime" "$IMAGE_VIEWER" 2>/dev/null
+    done
+    log_success "Set default image viewer: $IMAGE_VIEWER"
+fi
+
+# Detect and set PDF viewer
+PDF_VIEWER=""
+for viewer in org.kde.okular.desktop org.gnome.Evince.desktop zathura.desktop; do
+    if [[ -f "/usr/share/applications/${viewer}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${viewer}" ]]; then
+        PDF_VIEWER="$viewer"
+        break
+    fi
+done
+
+if [[ -n "$PDF_VIEWER" ]]; then
+    set_mime_default_if_missing "application/pdf" "$PDF_VIEWER" && log_success "Set default PDF viewer: $PDF_VIEWER"
+fi
+
+# Detect and set web browser
+WEB_BROWSER=""
+for browser in firefox.desktop chromium.desktop google-chrome.desktop brave-browser.desktop; do
+    if [[ -f "/usr/share/applications/${browser}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${browser}" ]]; then
+        WEB_BROWSER="$browser"
+        break
+    fi
+done
+
+if [[ -n "$WEB_BROWSER" ]]; then
+    for mime in x-scheme-handler/http x-scheme-handler/https text/html; do
+        set_mime_default_if_missing "$mime" "$WEB_BROWSER" 2>/dev/null
+    done
+    log_success "Set default web browser: $WEB_BROWSER"
+fi
+
+#####################################################################################
 # Set default wallpaper and generate initial theme
 #####################################################################################
 DEFAULT_WALLPAPER="${II_TARGET}/assets/wallpapers/qs-niri.jpg"
