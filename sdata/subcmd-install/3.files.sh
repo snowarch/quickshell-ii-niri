@@ -236,6 +236,26 @@ MIGRATE_CLOSEWINDOW
         fi
         log_success "Qt theming migrated to Darkly"
       fi
+      
+      # Migrate: Add XDG_MENU_PREFIX for Dolphin file associations
+      if ! grep -q 'XDG_MENU_PREFIX' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding XDG_MENU_PREFIX for Dolphin file associations...${STY_RST}"
+        fi
+        # Add after XDG_CURRENT_DESKTOP
+        sed -i '/XDG_CURRENT_DESKTOP "niri"/a\    XDG_MENU_PREFIX "plasma-"  // Required for Dolphin file associations' "$NIRI_CONFIG"
+        log_success "XDG_MENU_PREFIX added for Dolphin"
+      fi
+      
+      # Migrate: Add spawn-at-startup for systemctl import-environment (Dolphin fix)
+      if ! grep -q 'import-environment XDG_MENU_PREFIX' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding systemctl import-environment for Dolphin...${STY_RST}"
+        fi
+        # Add before the first spawn-at-startup
+        sed -i '0,/spawn-at-startup/s//spawn-at-startup "bash" "-c" "systemctl --user import-environment XDG_MENU_PREFIX \&\& kbuildsycoca6"\n\nspawn-at-startup/' "$NIRI_CONFIG"
+        log_success "systemctl import-environment added for Dolphin"
+      fi
     fi
     ;;
 esac
