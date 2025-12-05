@@ -87,6 +87,7 @@ case "${SKIP_QUICKSHELL}" in
       FamilyTransitionOverlay.qml
       killDialog.qml
       settings.qml
+      waffleSettings.qml
       welcome.qml
       modules
       services
