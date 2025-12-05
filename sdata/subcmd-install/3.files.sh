@@ -166,39 +166,40 @@ with open(config_path, 'r') as f:
     content = f.read()
 
 # Keybinds to add if missing: (key_pattern, full_keybind_line)
-# key_pattern is the KEY (not command) to check - prevents duplicates
-# We search for the key at start of line (with optional whitespace)
+# key_pattern matches the KEY followed by any character (space, {, or attribute like allow-when-locked)
+# Using [^\n] to match anything except newline after the key name
 keybinds = [
     # Format: (regex_for_key, keybind_line)
-    # The regex matches the key binding itself, not the command
-    (r'^\s*Alt\+Tab\s*\{', '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'),
-    (r'^\s*Alt\+Shift\+Tab\s*\{', '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'),
-    (r'^\s*Mod\+Shift\+W\s*\{', '    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'),
-    (r'^\s*Mod\+Slash\s*\{', '    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'),
-    (r'^\s*Mod\+V\s*\{', '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'),
-    (r'^\s*Super\+G\s*\{', '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'),
-    (r'^\s*Mod\+Space\s', '    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'),
-    (r'^\s*Mod\+Alt\+L\s', '    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'),
-    (r'^\s*Mod\+Shift\+S\s*\{', '    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'),
-    (r'^\s*Mod\+Shift\+X\s*\{', '    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'),
-    (r'^\s*Mod\+Shift\+A\s*\{', '    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'),
-    (r'^\s*Ctrl\+Alt\+T\s*\{', '    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'),
-    (r'^\s*Mod\+Comma\s*\{', '    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'),
-    # Audio/Brightness/Media keys - search by XF86 key name
-    (r'^\s*XF86AudioRaiseVolume\s', '    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
-    (r'^\s*XF86AudioLowerVolume\s', '    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
-    (r'^\s*XF86AudioMute\s', '    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
-    (r'^\s*XF86AudioMicMute\s', '    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'),
-    (r'^\s*XF86MonBrightnessUp\s', '    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'),
-    (r'^\s*XF86MonBrightnessDown\s', '    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'),
-    (r'^\s*XF86AudioPlay\s', '    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
-    (r'^\s*XF86AudioNext\s', '    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
-    (r'^\s*XF86AudioPrev\s', '    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+    # The regex matches the key binding at start of line with optional whitespace
+    # Then the key name, then anything (attributes, {, etc)
+    (r'^\s*Alt\+Tab\b', '    Alt+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "next"; }'),
+    (r'^\s*Alt\+Shift\+Tab\b', '    Alt+Shift+Tab { spawn "qs" "-c" "ii" "ipc" "call" "altSwitcher" "previous"; }'),
+    (r'^\s*Mod\+Shift\+W\b', '    Mod+Shift+W { spawn "qs" "-c" "ii" "ipc" "call" "panelFamily" "cycle"; }'),
+    (r'^\s*Mod\+Slash\b', '    Mod+Slash { spawn "qs" "-c" "ii" "ipc" "call" "cheatsheet" "toggle"; }'),
+    (r'^\s*Mod\+V\b', '    Mod+V { spawn "qs" "-c" "ii" "ipc" "call" "clipboard" "toggle"; }'),
+    (r'^\s*Super\+G\b', '    Super+G { spawn "qs" "-c" "ii" "ipc" "call" "overlay" "toggle"; }'),
+    (r'^\s*Mod\+Space\b', '    Mod+Space repeat=false { spawn "qs" "-c" "ii" "ipc" "call" "overview" "toggle"; }'),
+    (r'^\s*Mod\+Alt\+L\b', '    Mod+Alt+L allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "lock" "activate"; }'),
+    (r'^\s*Mod\+Shift\+S\b', '    Mod+Shift+S { spawn "qs" "-c" "ii" "ipc" "call" "region" "screenshot"; }'),
+    (r'^\s*Mod\+Shift\+X\b', '    Mod+Shift+X { spawn "qs" "-c" "ii" "ipc" "call" "region" "ocr"; }'),
+    (r'^\s*Mod\+Shift\+A\b', '    Mod+Shift+A { spawn "qs" "-c" "ii" "ipc" "call" "region" "search"; }'),
+    (r'^\s*Ctrl\+Alt\+T\b', '    Ctrl+Alt+T { spawn "qs" "-c" "ii" "ipc" "call" "wallpaperSelector" "toggle"; }'),
+    (r'^\s*Mod\+Comma\b', '    Mod+Comma { spawn "qs" "-c" "ii" "ipc" "call" "settings" "open"; }'),
+    # Audio/Brightness/Media keys - use word boundary \b to match key name exactly
+    (r'^\s*XF86AudioRaiseVolume\b', '    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }'),
+    (r'^\s*XF86AudioLowerVolume\b', '    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }'),
+    (r'^\s*XF86AudioMute\b', '    XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    (r'^\s*XF86AudioMicMute\b', '    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }'),
+    (r'^\s*XF86MonBrightnessUp\b', '    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }'),
+    (r'^\s*XF86MonBrightnessDown\b', '    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }'),
+    (r'^\s*XF86AudioPlay\b', '    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    (r'^\s*XF86AudioNext\b', '    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    (r'^\s*XF86AudioPrev\b', '    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
     # Keyboard alternatives for media (only add if not already bound)
-    (r'^\s*Mod\+Shift\+M\s*\{', '    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
-    (r'^\s*Mod\+Shift\+P\s*\{', '    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
-    (r'^\s*Mod\+Shift\+N\s*\{', '    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
-    (r'^\s*Mod\+Shift\+B\s*\{', '    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
+    (r'^\s*Mod\+Shift\+M\b', '    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }'),
+    (r'^\s*Mod\+Shift\+P\b', '    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }'),
+    (r'^\s*Mod\+Shift\+N\b', '    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }'),
+    (r'^\s*Mod\+Shift\+B\b', '    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }'),
 ]
 
 # Find missing keybinds by checking if the KEY already exists
