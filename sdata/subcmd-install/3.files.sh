@@ -271,6 +271,56 @@ MIGRATE_CLOSEWINDOW
         sed -i '0,/spawn-at-startup/s//spawn-at-startup "bash" "-c" "systemctl --user import-environment XDG_MENU_PREFIX \&\& kbuildsycoca6"\n\nspawn-at-startup/' "$NIRI_CONFIG"
         log_success "systemctl import-environment added for Dolphin"
       fi
+      
+      # Migrate: Update media/audio keybinds to use ii IPC (shows OSD)
+      if grep -q 'XF86AudioRaiseVolume.*wpctl' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Migrating audio keybinds to use ii IPC (with OSD)...${STY_RST}"
+        fi
+        # Replace old wpctl keybinds with ii IPC
+        sed -i 's|XF86AudioRaiseVolume.*{.*spawn.*wpctl.*}|XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }|' "$NIRI_CONFIG"
+        sed -i 's|XF86AudioLowerVolume.*{.*spawn.*wpctl.*}|XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }|' "$NIRI_CONFIG"
+        sed -i 's|XF86AudioMute.*{.*spawn.*wpctl.*}|XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }|' "$NIRI_CONFIG"
+        log_success "Audio keybinds migrated to ii IPC"
+      fi
+      
+      # Add XF86AudioMicMute if missing
+      if ! grep -q 'XF86AudioMicMute' "$NIRI_CONFIG" 2>/dev/null; then
+        sed -i '/XF86AudioMute.*allow-when-locked/a\    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }' "$NIRI_CONFIG"
+        log_success "XF86AudioMicMute keybind added"
+      fi
+      
+      # Add brightness keybinds if missing
+      if ! grep -q 'XF86MonBrightnessUp' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding brightness keybinds...${STY_RST}"
+        fi
+        # Add after XF86AudioMicMute or XF86AudioMute
+        if grep -q 'XF86AudioMicMute' "$NIRI_CONFIG"; then
+          sed -i '/XF86AudioMicMute/a\    \n    // Brightness (hardware keys)\n    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }\n    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }' "$NIRI_CONFIG"
+        else
+          sed -i '/XF86AudioMute/a\    \n    // Brightness (hardware keys)\n    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }\n    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }' "$NIRI_CONFIG"
+        fi
+        log_success "Brightness keybinds added"
+      fi
+      
+      # Add media playback keybinds if missing
+      if ! grep -q 'XF86AudioPlay' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding media playback keybinds...${STY_RST}"
+        fi
+        sed -i '/XF86MonBrightnessDown/a\    \n    // Media playback (hardware keys)\n    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    XF86AudioPause { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }\n    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }' "$NIRI_CONFIG"
+        log_success "Media playback keybinds added"
+      fi
+      
+      # Add keyboard alternatives for media (Mod+Shift+M/P/N/B) if missing
+      if ! grep -q 'Mod+Shift+M.*audio.*mute' "$NIRI_CONFIG" 2>/dev/null; then
+        if ! ${quiet:-false}; then
+          echo -e "${STY_CYAN}Adding keyboard media shortcuts (Mod+Shift+M/P/N/B)...${STY_RST}"
+        fi
+        sed -i '/XF86AudioPrev/a\    \n    // Keyboard alternatives for media (for keyboards without media keys)\n    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }\n    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }\n    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }' "$NIRI_CONFIG"
+        log_success "Keyboard media shortcuts added"
+      fi
     fi
     ;;
 esac
