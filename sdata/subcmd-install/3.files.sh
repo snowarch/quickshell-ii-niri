@@ -457,9 +457,9 @@ if [[ -n "$TEXT_EDITOR" ]]; then
     done
 fi
 
-# Detect and set file manager
+# Detect and set file manager (prefer Dolphin for KDE consistency)
 FILE_MANAGER=""
-for fm in org.kde.dolphin.desktop org.gnome.Nautilus.desktop thunar.desktop pcmanfm.desktop; do
+for fm in org.kde.dolphin.desktop thunar.desktop pcmanfm.desktop org.gnome.Nautilus.desktop; do
     if [[ -f "/usr/share/applications/${fm}" ]] || [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${fm}" ]]; then
         FILE_MANAGER="$fm"
         break
