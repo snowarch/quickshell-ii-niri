@@ -37,38 +37,34 @@ BarButton {
                 }
             }
 
-            // Notification indicators
-            Row {
+            // Notification badge - Windows 11 style (simple, no effects)
+            Rectangle {
+                id: notifBadge
+                readonly property int count: Notifications.list.length
+                visible: count > 0 && !Notifications.silent
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 4
+                width: count > 9 ? 18 : (count > 0 ? 16 : 0)
+                height: 16
+                radius: 8
+                color: Looks.colors.accent
 
-                // Silent mode indicator
-                FluentIcon {
-                    visible: Notifications.silent
-                    anchors.verticalCenter: parent.verticalCenter
-                    icon: "alert-snooze"
-                    implicitSize: 18
-                    filled: true
+                WText {
+                    anchors.centerIn: parent
+                    text: notifBadge.count > 9 ? "9+" : String(notifBadge.count)
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                    color: Looks.colors.accentFg
                 }
+            }
 
-                // Unread notification badge
-                Rectangle {
-                    visible: !Notifications.silent && Notifications.list.length > 0
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: notifCount.implicitWidth + 8
-                    height: 18
-                    radius: 9
-                    color: Looks.colors.accent
-
-                    WText {
-                        id: notifCount
-                        anchors.centerIn: parent
-                        text: Notifications.list.length > 99 ? "99+" : String(Notifications.list.length)
-                        font.pixelSize: 10
-                        font.weight: Font.DemiBold
-                        color: Looks.colors.bg0
-                    }
-                }
+            // Silent mode indicator
+            FluentIcon {
+                visible: Notifications.silent
+                anchors.verticalCenter: parent.verticalCenter
+                icon: "alert-snooze"
+                implicitSize: 16
+                monochrome: true
+                color: Looks.colors.subfg
             }
         }
     }

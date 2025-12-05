@@ -33,13 +33,14 @@ WBarAttachedPanelContent {
     }
 
     contentItem: WPane {
-        borderColor: Looks.colors.ambientShadow
-
-        contentItem: Rectangle {
+        contentItem: Item {
             implicitWidth: 300
             implicitHeight: 90
-            color: Looks.colors.bgPanelFooter
-            radius: Looks.radius.large
+
+            Rectangle {
+                anchors.fill: parent
+                color: Looks.colors.bgPanelFooter
+            }
 
             RowLayout {
                 anchors.fill: parent

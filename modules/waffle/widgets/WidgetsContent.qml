@@ -75,7 +75,7 @@ WBarAttachedPanelContent {
                             implicitSize: 16
                         }
                         onClicked: {
-                            Quickshell.execDetached(["qs", "-p", Quickshell.shellPath("settings.qml")])
+                            Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "settings", "open"])
                             GlobalStates.waffleWidgetsOpen = false
                         }
                     }
@@ -585,7 +585,7 @@ WBarAttachedPanelContent {
                             iconName: "settings"
                             label: Translation.tr("Settings")
                             onClicked: {
-                                Quickshell.execDetached(["qs", "-p", Quickshell.shellPath("settings.qml")])
+                                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "settings", "open"])
                                 GlobalStates.waffleWidgetsOpen = false
                             }
                         }

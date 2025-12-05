@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.common.widgets
+import qs.modules.waffle.regionSelector as WaffleRegion
 import qs.services
 import QtQuick
 import QtQuick.Controls
@@ -293,6 +294,7 @@ PanelWindow {
         if (root.regionWidth <= 0 || root.regionHeight <= 0) {
             console.warn("[Region Selector] Invalid region size, skipping snip.");
             root.dismiss();
+            return;
         }
 
         // Clamp region to screen bounds
@@ -322,7 +324,7 @@ PanelWindow {
         }
         switch (root.action) {
             case RegionSelection.SnipAction.Copy:
-                snipProc.command = ["bash", "-c", `${cropToStdout} | wl-copy && ${cleanup}`]
+                snipProc.command = ["bash", "-c", `${cropToStdout} | wl-copy && ${cleanup} && notify-send "Screenshot copied" "${rw}x${rh} region copied to clipboard" -a "Screenshot" -i camera-photo -t 3000`]
                 break;
             case RegionSelection.SnipAction.Edit:
                 snipProc.command = ["bash", "-c", `${cropToStdout} | swappy -f - && ${cleanup}`]
@@ -331,7 +333,7 @@ PanelWindow {
                 snipProc.command = ["bash", "-c", `${cropInPlace} && xdg-open "${root.imageSearchEngineBaseUrl}$(${uploadAndGetUrl(root.screenshotPath)})" && ${cleanup}`]
                 break;
             case RegionSelection.SnipAction.CharRecognition:
-                snipProc.command = ["bash", "-c", `${cropInPlace} && tesseract '${StringUtils.shellSingleQuoteEscape(root.screenshotPath)}' stdout -l $(tesseract --list-langs | awk 'NR>1{print $1}' | tr '\\n' '+' | sed 's/\\+$/\\n/') | wl-copy && ${cleanup}`]
+                snipProc.command = ["bash", "-c", `${cropInPlace} && tesseract '${StringUtils.shellSingleQuoteEscape(root.screenshotPath)}' stdout -l $(tesseract --list-langs | awk 'NR>1{print $1}' | tr '\\n' '+' | sed 's/\\+$/\\n/') | wl-copy && ${cleanup} && notify-send "Text recognized" "OCR text copied to clipboard" -a "OCR" -i edit-find -t 3000`]
                 break;
             case RegionSelection.SnipAction.Record:
                 snipProc.command = ["bash", "-c", `${Directories.recordScriptPath} --region '${slurpRegion}'`]
@@ -505,60 +507,98 @@ PanelWindow {
             }
 
             // Controls
-            Row {
+            Item {
                 id: regionSelectionControls
                 z: 9999
+                implicitWidth: controlsLoader.implicitWidth
+                implicitHeight: controlsLoader.implicitHeight
+                opacity: 0
+                
+                readonly property bool useWaffle: Config.options?.panelFamily === "waffle"
+                
+                // Position: waffle = top center, material = bottom center
                 anchors {
                     horizontalCenter: parent.horizontalCenter
-                    bottom: parent.bottom
-                    bottomMargin: -height
+                    top: useWaffle ? parent.top : undefined
+                    bottom: useWaffle ? undefined : parent.bottom
+                    topMargin: useWaffle ? -height : 0
+                    bottomMargin: useWaffle ? 0 : -height
                 }
-                opacity: 0
+                
                 Connections {
                     target: root
                     function onVisibleChanged() {
                         if (!visible) return;
-                        regionSelectionControls.anchors.bottomMargin = 8;
+                        if (regionSelectionControls.useWaffle) {
+                            regionSelectionControls.anchors.topMargin = 16;
+                        } else {
+                            regionSelectionControls.anchors.bottomMargin = 8;
+                        }
                         regionSelectionControls.opacity = 1;
                     }
                 }
                 Behavior on opacity {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
                 }
+                Behavior on anchors.topMargin {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
                 Behavior on anchors.bottomMargin {
                     animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                 }
-                spacing: 6
 
-                OptionsToolbar {
-                    action: root.action
-                    selectionMode: root.selectionMode
-                    onActionChanged: root.action = action
-                    onSelectionModeChanged: root.selectionMode = selectionMode
-                    onDismiss: root.dismiss();
+                Loader {
+                    id: controlsLoader
+                    sourceComponent: regionSelectionControls.useWaffle ? waffleControls : materialControls
                 }
-                Item {
-                    anchors {
-                        verticalCenter: parent.verticalCenter
-                    }
-                    implicitWidth: closeFab.implicitWidth
-                    implicitHeight: closeFab.implicitHeight
-                    StyledRectangularShadow {
-                        target: closeFab
-                        radius: closeFab.buttonRadius
-                    }
-                    FloatingActionButton {
-                        id: closeFab
-                        baseSize: 48
-                        iconText: "close"
-                        onClicked: root.dismiss();
-                        StyledToolTip {
-                            text: Translation.tr("Close")
+
+                // Material ii controls
+                Component {
+                    id: materialControls
+                    Row {
+                        spacing: 6
+
+                        OptionsToolbar {
+                            action: root.action
+                            selectionMode: root.selectionMode
+                            onActionChanged: root.action = action
+                            onSelectionModeChanged: root.selectionMode = selectionMode
+                            onDismiss: root.dismiss();
                         }
-                        colBackground: Appearance.colors.colTertiaryContainer
-                        colBackgroundHover: Appearance.colors.colTertiaryContainerHover
-                        colRipple: Appearance.colors.colTertiaryContainerActive
-                        colOnBackground: Appearance.colors.colOnTertiaryContainer
+                        Item {
+                            anchors.verticalCenter: parent.verticalCenter
+                            implicitWidth: closeFab.implicitWidth
+                            implicitHeight: closeFab.implicitHeight
+                            StyledRectangularShadow {
+                                target: closeFab
+                                radius: closeFab.buttonRadius
+                            }
+                            FloatingActionButton {
+                                id: closeFab
+                                baseSize: 48
+                                iconText: "close"
+                                onClicked: root.dismiss();
+                                StyledToolTip {
+                                    text: Translation.tr("Close")
+                                }
+                                colBackground: Appearance.colors.colTertiaryContainer
+                                colBackgroundHover: Appearance.colors.colTertiaryContainerHover
+                                colRipple: Appearance.colors.colTertiaryContainerActive
+                                colOnBackground: Appearance.colors.colOnTertiaryContainer
+                            }
+                        }
+                    }
+                }
+
+                // Waffle (Windows 11) controls
+                Component {
+                    id: waffleControls
+                    WaffleRegion.WOptionsToolbar {
+                        action: root.action
+                        selectionMode: root.selectionMode
+                        onActionChanged: root.action = action
+                        onSelectionModeChanged: root.selectionMode = selectionMode
+                        onDismiss: root.dismiss()
                     }
                 }
             }

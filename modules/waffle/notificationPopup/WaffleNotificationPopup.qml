@@ -15,7 +15,7 @@ Scope {
 
     PanelWindow {
         id: panelWindow
-        visible: (Notifications.popupList.length > 0) && !GlobalStates.screenLocked
+        visible: (Notifications.popupList.length > 0) && !GlobalStates.screenLocked && !GlobalStates.waffleNotificationCenterOpen
 
         screen: CompositorService.isNiri
             ? Quickshell.screens.find(s => s.name === NiriService.currentOutput) ?? Quickshell.screens[0]

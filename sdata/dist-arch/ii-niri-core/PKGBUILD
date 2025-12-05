@@ -27,9 +27,8 @@ depends=(
   xdg-desktop-portal-gtk
   xdg-desktop-portal-gnome
   
-  # Polkit (mate-polkit works well with Niri)
+  # Polkit - any agent works (mate-polkit, gnome-polkit, lxpolkit, etc)
   polkit
-  mate-polkit
   
   # Network
   networkmanager
@@ -38,7 +37,7 @@ depends=(
   # File manager
   dolphin
   
-  # Terminal (foot is lightweight, change to your preference)
+  # Terminal - foot is default, change in niri config if you prefer another
   foot
   
   # TUI for setup script

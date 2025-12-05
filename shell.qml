@@ -108,12 +108,20 @@ ShellRoot {
     IpcHandler {
         target: "settings"
         function open(): void {
-            settingsProcess.running = true
+            if (Config.options?.panelFamily === "waffle") {
+                waffleSettingsProcess.running = true
+            } else {
+                settingsProcess.running = true
+            }
         }
     }
     Process {
         id: settingsProcess
         command: ["qs", "-n", "-p", Quickshell.shellPath("settings.qml")]
+    }
+    Process {
+        id: waffleSettingsProcess
+        command: ["qs", "-n", "-p", Quickshell.shellPath("waffleSettings.qml")]
     }
 
     // === Panel Loaders ===

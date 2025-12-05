@@ -669,13 +669,33 @@ ApplicationWindow {
                     id: pagesStack
                     anchors.fill: parent
 
+                    // Track which pages have been visited (for lazy loading with cache)
+                    property var visitedPages: ({})
+
+                    Connections {
+                        target: root
+                        function onCurrentPageChanged() {
+                            pagesStack.visitedPages[root.currentPage] = true
+                            pagesStack.visitedPagesChanged()
+                        }
+                    }
+
+                    Component.onCompleted: {
+                        // Mark initial page as visited
+                        visitedPages[root.currentPage] = true
+                    }
+
                     Repeater {
                         model: root.pages.length
                         delegate: Loader {
+                            id: pageLoader
+                            required property int index
                             anchors.fill: parent
-                            active: Config.ready
+                            // Lazy load: only load when visited, keep loaded after
+                            active: Config.ready && (pagesStack.visitedPages[index] === true)
+                            asynchronous: index !== root.currentPage // Load non-current pages async
                             source: root.pages[index].component
-                            visible: index === root.currentPage
+                            visible: index === root.currentPage && status === Loader.Ready
                             opacity: visible ? 1 : 0
 
                             Behavior on opacity {

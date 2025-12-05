@@ -1,22 +1,77 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
+import qs.modules.common
+import qs.modules.waffle.looks
 import qs.services
-import qs.modules.common.widgets
 
+/**
+ * Windows 11 style notification list with smooth transitions
+ */
 ListView {
     id: root
 
     spacing: 8
-    clip: true
+    cacheBuffer: 300
 
-    // Drag state for swipe-to-dismiss (same as ii)
     property int dragIndex: -1
     property real dragDistance: 0
 
     function resetDrag() {
         dragIndex = -1
         dragDistance = 0
+    }
+
+    // Smooth add transition - slide in from right with fade
+    add: Transition {
+        ParallelAnimation {
+            NumberAnimation { 
+                property: "opacity"
+                from: 0; to: 1
+                duration: 200
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation { 
+                property: "x"
+                from: 50; to: 0
+                duration: 250
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                property: "scale"
+                from: 0.95; to: 1
+                duration: 200
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
+
+    // Smooth remove transition - slide out to right with fade
+    remove: Transition {
+        ParallelAnimation {
+            NumberAnimation { 
+                property: "opacity"
+                from: 1; to: 0
+                duration: 150
+                easing.type: Easing.InCubic
+            }
+            NumberAnimation { 
+                property: "x"
+                from: 0; to: 80
+                duration: 200
+                easing.type: Easing.InCubic
+            }
+        }
+    }
+
+    // Smooth reposition when items are added/removed
+    displaced: Transition {
+        NumberAnimation { 
+            properties: "x,y"
+            duration: 200
+            easing.type: Easing.OutCubic
+        }
     }
 
     model: ScriptModel {
@@ -30,39 +85,5 @@ ListView {
         width: root.width
         notificationGroup: Notifications.popupGroupsByAppName[modelData]
         qmlParent: root
-    }
-
-    // Same animations as ii NotificationGroup
-    add: Transition {
-        NumberAnimation {
-            property: "opacity"
-            from: 0
-            to: 1
-            duration: 200
-            easing.type: Easing.OutCubic
-        }
-        NumberAnimation {
-            property: "x"
-            from: 80
-            to: 0
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    remove: Transition {
-        NumberAnimation {
-            property: "opacity"
-            to: 0
-            duration: 150
-        }
-    }
-
-    displaced: Transition {
-        NumberAnimation {
-            properties: "y"
-            duration: 250
-            easing.type: Easing.OutCubic
-        }
     }
 }
