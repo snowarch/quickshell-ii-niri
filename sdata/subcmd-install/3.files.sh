@@ -238,7 +238,8 @@ MIGRATE_CLOSEWINDOW
       fi
       
       # Migrate: Add XDG_MENU_PREFIX for Dolphin file associations
-      if ! grep -q 'XDG_MENU_PREFIX' "$NIRI_CONFIG" 2>/dev/null; then
+      # Check specifically for XDG_MENU_PREFIX in environment block (not spawn-at-startup)
+      if ! grep -q 'XDG_MENU_PREFIX "plasma-"' "$NIRI_CONFIG" 2>/dev/null; then
         if ! ${quiet:-false}; then
           echo -e "${STY_CYAN}Adding XDG_MENU_PREFIX for Dolphin file associations...${STY_RST}"
         fi
