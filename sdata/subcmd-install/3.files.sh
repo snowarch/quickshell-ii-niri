@@ -80,32 +80,27 @@ case "${SKIP_QUICKSHELL}" in
     II_SOURCE="${REPO_ROOT}"
     II_TARGET="${XDG_CONFIG_HOME}/quickshell/ii"
     
-    # Files/dirs to copy (QML code and assets)
-    QML_ITEMS=(
-      shell.qml
-      GlobalStates.qml
-      FamilyTransitionOverlay.qml
-      killDialog.qml
-      settings.qml
-      waffleSettings.qml
-      welcome.qml
-      modules
-      services
-      scripts
-      assets
-      translations
-      requirements.txt
-    )
-    
     v mkdir -p "$II_TARGET"
     
-    for item in "${QML_ITEMS[@]}"; do
-      if [[ -d "${II_SOURCE}/${item}" ]]; then
-        install_dir__sync "${II_SOURCE}/${item}" "${II_TARGET}/${item}"
-      elif [[ -f "${II_SOURCE}/${item}" ]]; then
-        install_file "${II_SOURCE}/${item}" "${II_TARGET}/${item}"
+    # Copy all .qml files from root (auto-detect, no manual list needed)
+    for qml_file in "${II_SOURCE}"/*.qml; do
+      if [[ -f "$qml_file" ]]; then
+        install_file "$qml_file" "${II_TARGET}/$(basename "$qml_file")"
       fi
     done
+    
+    # Copy required directories
+    QML_DIRS=(modules services scripts assets translations)
+    for dir in "${QML_DIRS[@]}"; do
+      if [[ -d "${II_SOURCE}/${dir}" ]]; then
+        install_dir__sync "${II_SOURCE}/${dir}" "${II_TARGET}/${dir}"
+      fi
+    done
+    
+    # Copy requirements.txt
+    if [[ -f "${II_SOURCE}/requirements.txt" ]]; then
+      install_file "${II_SOURCE}/requirements.txt" "${II_TARGET}/requirements.txt"
+    fi
     
     log_success "Quickshell ii config installed"
     ;;
