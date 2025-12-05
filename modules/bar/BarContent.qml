@@ -82,18 +82,18 @@ Item { // Bar content region
         RowLayout {
             id: leftSectionRowLayout
             anchors.fill: parent
+            anchors.leftMargin: Appearance.rounding.screenRounding
+            anchors.rightMargin: Appearance.rounding.screenRounding
             spacing: 10
 
             LeftSidebarButton { // Left sidebar button
                 visible: Config.options.bar.modules.leftSidebarButton
                 Layout.alignment: Qt.AlignVCenter
-                Layout.leftMargin: Appearance.rounding.screenRounding
                 colBackground: barLeftSideMouseArea.hovered ? Appearance.colors.colLayer1Hover : ColorUtils.transparentize(Appearance.colors.colLayer1Hover, 1)
             }
 
             ActiveWindow {
                 visible: Config.options.bar.modules.activeWindow && root.useShortenedForm === 0
-                Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: true
                 Layout.fillHeight: true
             }
@@ -224,6 +224,8 @@ Item { // Bar content region
         RowLayout {
             id: rightSectionRowLayout
             anchors.fill: parent
+            anchors.leftMargin: Appearance.rounding.screenRounding
+            anchors.rightMargin: Appearance.rounding.screenRounding
             spacing: 5
             layoutDirection: Qt.RightToLeft
 
@@ -232,7 +234,6 @@ Item { // Bar content region
                 visible: Config.options.bar.modules.rightSidebarButton
 
                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                Layout.rightMargin: Appearance.rounding.screenRounding
                 Layout.fillWidth: false
 
                 implicitWidth: indicatorsRowLayout.implicitWidth + 10 * 2
