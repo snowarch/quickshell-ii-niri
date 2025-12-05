@@ -44,6 +44,7 @@
   "apps": {
     "bluetooth": "blueman-manager",
     "discord": "discord",
+    "manageUser": "kcmshell6 kcm_users",
     "network": "nm-connection-editor",
     "networkEthernet": "nm-connection-editor",
     "taskManager": "missioncenter",

@@ -71,6 +71,7 @@ Scope {
                 onClosed: {
                     GlobalStates.searchOpen = false
                     panelLoader.active = false
+                    LauncherSearch.query = ""
                 }
             }
         }
