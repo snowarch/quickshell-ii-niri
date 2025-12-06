@@ -31,6 +31,17 @@ WSettingsPage {
             checked: root.wBg.useMainWallpaper ?? true
             onCheckedChanged: Config.setNestedValue("waffles.background.useMainWallpaper", checked)
         }
+        
+        WSettingsButton {
+            visible: !(root.wBg.useMainWallpaper ?? true)
+            label: Translation.tr("Waffle wallpaper")
+            icon: "image"
+            buttonText: Translation.tr("Change")
+            onButtonClicked: {
+                Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle")
+                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
+            }
+        }
     }
     
     WSettingsCard {
@@ -133,6 +144,28 @@ WSettingsPage {
             from: 0; to: 100; stepSize: 5
             value: root.wBackdrop.dim ?? 20
             onValueChanged: Config.setNestedValue("waffles.background.backdrop.dim", value)
+        }
+        
+        WSettingsSpinBox {
+            visible: root.wBackdrop.enable ?? true
+            label: Translation.tr("Backdrop saturation")
+            icon: "options"
+            description: Translation.tr("Increase color intensity")
+            suffix: "%"
+            from: -100; to: 100; stepSize: 10
+            value: root.wBackdrop.saturation ?? 0
+            onValueChanged: Config.setNestedValue("waffles.background.backdrop.saturation", value)
+        }
+        
+        WSettingsSpinBox {
+            visible: root.wBackdrop.enable ?? true
+            label: Translation.tr("Backdrop contrast")
+            icon: "options"
+            description: Translation.tr("Increase light/dark difference")
+            suffix: "%"
+            from: -100; to: 100; stepSize: 10
+            value: root.wBackdrop.contrast ?? 0
+            onValueChanged: Config.setNestedValue("waffles.background.backdrop.contrast", value)
         }
     }
 }

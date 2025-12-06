@@ -34,8 +34,8 @@ Variants {
         
         readonly property int backdropBlurRadius: wBackdrop.blurRadius ?? 32
         readonly property int backdropDim: wBackdrop.dim ?? 35
-        readonly property real backdropSaturation: wBackdrop.saturation ?? 1.0
-        readonly property real backdropContrast: wBackdrop.contrast ?? 1.0
+        readonly property real backdropSaturation: (wBackdrop.saturation ?? 0) / 100.0
+        readonly property real backdropContrast: (wBackdrop.contrast ?? 0) / 100.0
         readonly property bool vignetteEnabled: wBackdrop.vignetteEnabled ?? false
         readonly property real vignetteIntensity: wBackdrop.vignetteIntensity ?? 0.5
         readonly property real vignetteRadius: wBackdrop.vignetteRadius ?? 0.7
