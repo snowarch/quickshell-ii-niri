@@ -10,6 +10,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 2
     pageTitle: Translation.tr("Taskbar")
     pageIcon: "desktop"
     pageDescription: Translation.tr("Taskbar appearance and behavior")

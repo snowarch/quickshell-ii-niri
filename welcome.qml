@@ -49,7 +49,7 @@ ApplicationWindow {
     Process {
         id: konachanWallProc
         property string status: ""
-        command: ["bash", "-c", Quickshell.shellPath("scripts/colors/random/random_konachan_wall.sh")]
+        command: [Quickshell.shellPath("scripts/colors/random/random_konachan_wall.sh")]
         stdout: SplitParser {
             onRead: data => {
                 console.log(`Konachan wall proc output: ${data}`);
@@ -67,14 +67,14 @@ ApplicationWindow {
 
         Item {
             // Titlebar
-            visible: Config.options?.windows.showTitlebar
+            visible: Config.options?.windows?.showTitlebar ?? true
             Layout.fillWidth: true
             implicitHeight: Math.max(welcomeText.implicitHeight, windowControlsRow.implicitHeight)
             StyledText {
                 id: welcomeText
                 anchors {
-                    left: Config.options.windows.centerTitle ? undefined : parent.left
-                    horizontalCenter: Config.options.windows.centerTitle ? parent.horizontalCenter : undefined
+                    left: (Config.options?.windows?.centerTitle ?? false) ? undefined : parent.left
+                    horizontalCenter: (Config.options?.windows?.centerTitle ?? false) ? parent.horizontalCenter : undefined
                     verticalCenter: parent.verticalCenter
                     leftMargin: 12
                 }
@@ -103,7 +103,7 @@ ApplicationWindow {
                         if (checked) {
                             Quickshell.execDetached(["rm", root.firstRunFilePath]);
                         } else {
-                            Quickshell.execDetached(["bash", "-c", `echo '${StringUtils.shellSingleQuoteEscape(root.firstRunFileContent)}' > '${StringUtils.shellSingleQuoteEscape(root.firstRunFilePath)}'`]);
+                            Quickshell.execDetached(["fish", "-c", `echo '${StringUtils.shellSingleQuoteEscape(root.firstRunFileContent)}' > '${StringUtils.shellSingleQuoteEscape(root.firstRunFilePath)}'`]);
                         }
                     }
                 }
@@ -201,17 +201,17 @@ ApplicationWindow {
                             ConfigSwitch {
                                 buttonIcon: "overview_key"
                                 text: Translation.tr("Enable overview grid")
-                                checked: Config.options.overview.enable
+                                checked: Config.options?.overview?.enable ?? true
                                 onCheckedChanged: {
-                                    Config.options.overview.enable = checked;
+                                    Config.setNestedValue("overview.enable", checked);
                                 }
                             }
                             ConfigSwitch {
                                 buttonIcon: "opacity"
                                 text: Translation.tr("Darken screen behind overlay")
-                                checked: Config.options.overlay.darkenScreen
+                                checked: Config.options?.overlay?.darkenScreen ?? true
                                 onCheckedChanged: {
-                                    Config.options.overlay.darkenScreen = checked;
+                                    Config.setNestedValue("overlay.darkenScreen", checked);
                                 }
                             }
                         }
@@ -220,24 +220,24 @@ ApplicationWindow {
                             ConfigSpinBox {
                                 icon: "loupe"
                                 text: Translation.tr("Overview scale (%)")
-                                value: Config.options.overview.scale * 100
+                                value: (Config.options?.overview?.scale ?? 1) * 100
                                 from: 50
                                 to: 150
                                 stepSize: 5
                                 onValueChanged: {
-                                    Config.options.overview.scale = value / 100;
+                                    Config.setNestedValue("overview.scale", value / 100);
                                 }
                             }
                             ConfigSpinBox {
                                 icon: "opacity"
                                 text: Translation.tr("Overlay scrim dim (%)")
-                                value: Config.options.overlay.scrimDim
+                                value: Config.options?.overlay?.scrimDim ?? 50
                                 from: 0
                                 to: 100
                                 stepSize: 5
-                                enabled: Config.options.overlay.darkenScreen
+                                enabled: Config.options?.overlay?.darkenScreen ?? true
                                 onValueChanged: {
-                                    Config.options.overlay.scrimDim = value;
+                                    Config.setNestedValue("overlay.scrimDim", value);
                                 }
                             }
                         }
@@ -252,10 +252,10 @@ ApplicationWindow {
                         ContentSubsection {
                             title: Translation.tr("Bar position")
                             ConfigSelectionArray {
-                                currentValue: (Config.options.bar.bottom ? 1 : 0) | (Config.options.bar.vertical ? 2 : 0)
+                                currentValue: ((Config.options?.bar?.bottom ?? false) ? 1 : 0) | ((Config.options?.bar?.vertical ?? false) ? 2 : 0)
                                 onSelected: newValue => {
-                                    Config.options.bar.bottom = (newValue & 1) !== 0;
-                                    Config.options.bar.vertical = (newValue & 2) !== 0;
+                                    Config.setNestedValue("bar.bottom", (newValue & 1) !== 0);
+                                    Config.setNestedValue("bar.vertical", (newValue & 2) !== 0);
                                 }
                                 options: [
                                     {
@@ -285,9 +285,9 @@ ApplicationWindow {
                             title: Translation.tr("Bar style")
 
                             ConfigSelectionArray {
-                                currentValue: Config.options.bar.cornerStyle
+                                currentValue: Config.options?.bar?.cornerStyle ?? 0
                                 onSelected: newValue => {
-                                    Config.options.bar.cornerStyle = newValue; // Update local copy
+                                    Config.setNestedValue("bar.cornerStyle", newValue);
                                 }
                                 options: [
                                     {
@@ -314,11 +314,9 @@ ApplicationWindow {
                         title: Translation.tr("Wallpaper mode")
 
                         ConfigSelectionArray {
-                            currentValue: Config.options?.background?.backdrop?.hideWallpaper ? 1 : 0
+                            currentValue: (Config.options?.background?.backdrop?.hideWallpaper ?? false) ? 1 : 0
                             onSelected: newValue => {
-                                if (!Config.options.background) Config.options.background = ({});
-                                if (!Config.options.background.backdrop) Config.options.background.backdrop = ({});
-                                Config.options.background.backdrop.hideWallpaper = (newValue === 1);
+                                Config.setNestedValue("background.backdrop.hideWallpaper", newValue === 1);
                             }
                             options: [
                                 {
@@ -354,7 +352,7 @@ ApplicationWindow {
                         Layout.alignment: Qt.AlignHCenter
                         RippleButtonWithIcon {
                             id: rndWallBtn
-                            visible: Config.options.policies.weeb === 1
+                            visible: (Config.options?.policies?.weeb ?? 0) === 1
                             Layout.alignment: Qt.AlignHCenter
                             buttonRadius: Appearance.rounding.small
                             materialIcon: "ifl"
@@ -421,9 +419,9 @@ ApplicationWindow {
                             title: "Weeb"
 
                             ConfigSelectionArray {
-                                currentValue: Config.options.policies.weeb
+                                currentValue: Config.options?.policies?.weeb ?? 0
                                 onSelected: newValue => {
-                                    Config.options.policies.weeb = newValue;
+                                    Config.setNestedValue("policies.weeb", newValue);
                                 }
                                 options: [
                                     {
@@ -449,9 +447,9 @@ ApplicationWindow {
                             title: "AI"
 
                             ConfigSelectionArray {
-                                currentValue: Config.options.policies.ai
+                                currentValue: Config.options?.policies?.ai ?? 0
                                 onSelected: newValue => {
-                                    Config.options.policies.ai = newValue;
+                                    Config.setNestedValue("policies.ai", newValue);
                                 }
                                 options: [
                                     {

@@ -12,6 +12,11 @@ import qs.modules.waffle.looks
 
 Scope {
     id: root
+    
+    // Position from waffle-specific config
+    readonly property string position: Config.options?.waffles?.notifications?.position ?? "bottomRight"
+    readonly property bool isTop: position.startsWith("top")
+    readonly property bool isLeft: position.endsWith("Left")
 
     PanelWindow {
         id: panelWindow
@@ -26,15 +31,14 @@ Scope {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         exclusiveZone: 0
 
-        // Position: bottom-right for waffle (Windows 11 style)
         anchors {
-            bottom: Config.options?.waffles?.bar?.bottom ?? true
-            top: !(Config.options?.waffles?.bar?.bottom ?? true)
-            right: true
+            top: root.isTop
+            bottom: !root.isTop
+            left: root.isLeft
+            right: !root.isLeft
         }
 
         color: "transparent"
-        // Windows 11 toast width is 364px content + padding
         implicitWidth: 380
         implicitHeight: Math.min(listview.contentHeight + 16, (screen?.height ?? 800) * 0.7)
 

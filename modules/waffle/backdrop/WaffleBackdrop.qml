@@ -40,11 +40,21 @@ Variants {
         readonly property real vignetteIntensity: wBackdrop.vignetteIntensity ?? 0.5
         readonly property real vignetteRadius: wBackdrop.vignetteRadius ?? 0.7
 
-        // Wallpaper path - use main wallpaper or custom backdrop wallpaper
+        // Wallpaper path - backdrop can have its own wallpaper
         readonly property string effectiveWallpaperPath: {
-            const useMain = wBackdrop.useMainWallpaper ?? true;
-            if (useMain) return Config.options?.background?.wallpaperPath ?? "";
-            return wBackdrop.wallpaperPath || Config.options?.background?.wallpaperPath || "";
+            // Check if backdrop has its own wallpaper
+            const useBackdropOwn = !(wBackdrop.useMainWallpaper ?? true);
+            if (useBackdropOwn && wBackdrop.wallpaperPath) {
+                return wBackdrop.wallpaperPath;
+            }
+            
+            // Otherwise use waffle wallpaper (which may be shared with Material ii)
+            const wBg = Config.options?.waffles?.background ?? {};
+            const useMainForWaffle = wBg.useMainWallpaper ?? true;
+            if (useMainForWaffle) {
+                return Config.options?.background?.wallpaperPath ?? "";
+            }
+            return wBg.wallpaperPath || Config.options?.background?.wallpaperPath || "";
         }
 
         // Build proper file:// URL

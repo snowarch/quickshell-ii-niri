@@ -67,7 +67,7 @@ Item {
         radius: Looks.radius.medium
 
         Behavior on x {
-            enabled: !dragManager.dragging
+            enabled: false
             animation: Looks.transition.move.createObject(this)
         }
 
@@ -94,7 +94,7 @@ Item {
                     color: Looks.colors.danger
 
                     SequentialAnimation on opacity {
-                        running: root.isCritical
+                        running: false
                         loops: Animation.Infinite
                         NumberAnimation { to: 0.4; duration: 600 }
                         NumberAnimation { to: 1; duration: 600 }

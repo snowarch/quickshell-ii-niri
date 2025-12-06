@@ -36,7 +36,7 @@ PanelWindow {
     readonly property bool useNiri: CompositorService.isNiri
 
     property string screenshotDir: Directories.screenshotTemp
-    property string imageSearchEngineBaseUrl: Config.options.search.imageSearch.imageSearchEngineBaseUrl
+    property string imageSearchEngineBaseUrl: Config.options?.search?.imageSearch?.imageSearchEngineBaseUrl ?? "https://lens.google.com/uploadbyurl?url="
     property string fileUploadApiEndpoint: "https://uguu.se/upload"
     property color overlayColor: "#88111111"
     property color brightText: Appearance.m3colors.darkmode ? Appearance.colors.colOnLayer0 : Appearance.colors.colLayer0
@@ -144,11 +144,11 @@ PanelWindow {
     }
 
     property bool isCircleSelection: (root.selectionMode === RegionSelection.SelectionMode.Circle)
-    property bool enableWindowRegions: Config.options.regionSelector.targetRegions.windows && !isCircleSelection
-    property bool enableLayerRegions: Config.options.regionSelector.targetRegions.layers && !isCircleSelection
-    property bool enableContentRegions: Config.options.regionSelector.targetRegions.content
-    property real targetRegionOpacity: Config.options.regionSelector.targetRegions.opacity
-    property real contentRegionOpacity: Config.options.regionSelector.targetRegions.contentRegionOpacity
+    property bool enableWindowRegions: (Config.options?.regionSelector?.targetRegions?.windows ?? true) && !isCircleSelection
+    property bool enableLayerRegions: (Config.options?.regionSelector?.targetRegions?.layers ?? true) && !isCircleSelection
+    property bool enableContentRegions: Config.options?.regionSelector?.targetRegions?.content ?? true
+    property real targetRegionOpacity: Config.options?.regionSelector?.targetRegions?.opacity ?? 0.5
+    property real contentRegionOpacity: Config.options?.regionSelector?.targetRegions?.contentRegionOpacity ?? 0.3
 
     property real targetedRegionX: -1
     property real targetedRegionY: -1
@@ -158,7 +158,7 @@ PanelWindow {
         return (root.targetedRegionX >= 0 && root.targetedRegionY >= 0)
     }
     function setRegionToTargeted() {
-        const padding = Config.options.regionSelector.targetRegions.selectionPadding; // Make borders not cut off n stuff
+        const padding = Config.options?.regionSelector?.targetRegions?.selectionPadding ?? 2; // Make borders not cut off n stuff
         root.regionX = root.targetedRegionX - padding;
         root.regionY = root.targetedRegionY - padding;
         root.regionWidth = root.targetedRegionWidth + padding * 2;
@@ -399,7 +399,7 @@ PanelWindow {
                 }
                 // Circle dragging?
                 else if (root.selectionMode === RegionSelection.SelectionMode.Circle) {
-                    const padding = Config.options.regionSelector.circle.padding + Config.options.regionSelector.circle.strokeWidth / 2;
+                    const padding = (Config.options?.regionSelector?.circle?.padding ?? 10) + (Config.options?.regionSelector?.circle?.strokeWidth ?? 2) / 2;
                     const dragPoints = (root.points.length > 0) ? root.points : [{ x: mouseArea.mouseX, y: mouseArea.mouseY }];
                     const maxX = Math.max(...dragPoints.map(p => p.x));
                     const minX = Math.min(...dragPoints.map(p => p.x));

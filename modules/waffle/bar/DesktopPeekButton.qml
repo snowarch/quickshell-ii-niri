@@ -10,18 +10,23 @@ Rectangle {
     implicitHeight: parent.height
     color: hoverArea.containsMouse ? Looks.colors.bg1 : "transparent"
 
+    readonly property bool hoverPeekEnabled: Config.options?.waffles?.bar?.desktopPeek?.hoverPeek ?? false
+    readonly property int hoverDelay: Config.options?.waffles?.bar?.desktopPeek?.hoverDelay ?? 500
     property bool isPeeking: false
 
     Behavior on color { animation: Looks.transition.color.createObject(this) }
 
     Timer {
         id: peekTimer
-        interval: 500
+        interval: root.hoverDelay
         onTriggered: {
-            if (hoverArea.containsMouse && CompositorService.isNiri) {
+            if (hoverArea.containsMouse) {
                 root.isPeeking = true
-                // Minimize all windows temporarily (Niri doesn't have this, so just show overview)
-                NiriService.toggleOverview()
+                if (CompositorService.isNiri) {
+                    NiriService.toggleOverview()
+                } else {
+                    GlobalStates.overviewOpen = true
+                }
             }
         }
     }
@@ -32,26 +37,34 @@ Rectangle {
         hoverEnabled: true
 
         onEntered: {
-            if (Config.options?.waffles?.bar?.desktopPeek?.hoverPeek ?? false) {
+            if (root.hoverPeekEnabled) {
                 peekTimer.start()
             }
         }
 
         onExited: {
             peekTimer.stop()
-            if (root.isPeeking && CompositorService.isNiri) {
-                NiriService.toggleOverview()
+            if (root.isPeeking) {
+                if (CompositorService.isNiri) {
+                    NiriService.toggleOverview()
+                } else {
+                    GlobalStates.overviewOpen = false
+                }
                 root.isPeeking = false
             }
         }
 
         onClicked: {
             peekTimer.stop()
-            root.isPeeking = false
-            if (CompositorService.isNiri) {
-                NiriService.toggleOverview()
+            if (root.isPeeking) {
+                root.isPeeking = false
+                // Already showing, click toggles off
             } else {
-                GlobalStates.overviewOpen = !GlobalStates.overviewOpen
+                if (CompositorService.isNiri) {
+                    NiriService.toggleOverview()
+                } else {
+                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen
+                }
             }
         }
     }

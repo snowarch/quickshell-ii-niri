@@ -10,9 +10,12 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 6
     pageTitle: Translation.tr("Modules")
     pageIcon: "apps"
-    pageDescription: Translation.tr("Enable or disable shell modules")
+    pageDescription: Translation.tr("Panel style and optional modules")
+    
+    property bool isWaffleActive: Config.options?.panelFamily === "waffle"
     
     WSettingsCard {
         title: Translation.tr("Panel Style")
@@ -20,7 +23,7 @@ WSettingsPage {
         
         WText {
             Layout.fillWidth: true
-            text: Translation.tr("Choose between Material Design (ii) and Windows 11 (Waffle) styles.")
+            text: Translation.tr("Choose between Material Design (ii) and Windows 11 (Waffle) styles. Changing this will reload the shell.")
             font.pixelSize: Looks.font.pixelSize.normal
             color: Looks.colors.subfg
             wrapMode: Text.WordWrap
@@ -35,183 +38,173 @@ WSettingsPage {
                 { value: "waffle", displayName: Translation.tr("Windows 11 (Waffle)") }
             ]
             onSelected: newValue => {
-                Config.setNestedValue("panelFamily", newValue)
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "panelFamily", "set", newValue])
+                if (newValue !== Config.options?.panelFamily) {
+                    Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "panelFamily", "set", newValue])
+                }
             }
         }
     }
     
+    // Material modules available in Waffle
     WSettingsCard {
-        title: Translation.tr("Core Modules")
-        icon: "apps"
+        visible: root.isWaffleActive
+        title: Translation.tr("Material Modules in Waffle")
+        icon: "options"
         
-        WSettingsSwitch {
-            label: Translation.tr("Background")
-            icon: "image"
-            description: Translation.tr("Wallpaper and backdrop layer")
-            checked: (Config.options?.enabledPanels ?? []).includes("iiBackground") || (Config.options?.enabledPanels ?? []).includes("wBackground")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                const bgPanels = ["iiBackground", "wBackground"]
-                if (checked) {
-                    if (!panels.includes("iiBackground")) panels.push("iiBackground")
-                    if (!panels.includes("wBackground")) panels.push("wBackground")
-                } else {
-                    panels = panels.filter(p => !bgPanels.includes(p))
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+        WText {
+            Layout.fillWidth: true
+            text: Translation.tr("Enable Material ii modules while using Waffle style. These provide additional functionality not available in Windows 11 style.")
+            font.pixelSize: Looks.font.pixelSize.normal
+            color: Looks.colors.subfg
+            wrapMode: Text.WordWrap
         }
         
         WSettingsSwitch {
-            label: Translation.tr("Overview")
+            label: Translation.tr("Left Sidebar")
+            icon: "panel-left"
+            description: Translation.tr("AI chat, wallpaper selector, translator")
+            checked: Config.options?.waffles?.modules?.sidebarLeft ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.modules.sidebarLeft", checked)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Right Sidebar")
+            icon: "panel-right"
+            description: Translation.tr("Quick settings, calendar, notifications (Material style)")
+            checked: Config.options?.waffles?.modules?.sidebarRight ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.modules.sidebarRight", checked)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Dock")
             icon: "apps"
-            description: Translation.tr("Window overview and app launcher")
-            checked: (Config.options?.enabledPanels ?? []).includes("iiOverview")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("iiOverview")) panels.push("iiOverview")
-                } else {
-                    panels = panels.filter(p => p !== "iiOverview")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+            description: Translation.tr("macOS-style dock with pinned apps")
+            checked: Config.options?.waffles?.modules?.dock ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.modules.dock", checked)
         }
         
         WSettingsSwitch {
-            label: Translation.tr("Clipboard")
-            icon: "copy"
-            description: Translation.tr("Clipboard history manager")
-            checked: (Config.options?.enabledPanels ?? []).includes("iiClipboard")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("iiClipboard")) panels.push("iiClipboard")
-                } else {
-                    panels = panels.filter(p => p !== "iiClipboard")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+            label: Translation.tr("Media Controls Overlay")
+            icon: "music-note-2"
+            description: Translation.tr("Floating media player controls")
+            checked: Config.options?.waffles?.modules?.mediaControls ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.modules.mediaControls", checked)
         }
         
         WSettingsSwitch {
-            label: Translation.tr("Lock Screen")
-            icon: "lock-closed"
-            checked: (Config.options?.enabledPanels ?? []).includes("iiLock")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("iiLock")) panels.push("iiLock")
-                } else {
-                    panels = panels.filter(p => p !== "iiLock")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+            label: Translation.tr("Screen Corners")
+            icon: "desktop"
+            description: Translation.tr("Hot corners and rounded screen corners")
+            checked: Config.options?.waffles?.modules?.screenCorners ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.modules.screenCorners", checked)
         }
     }
     
+    // Waffle-specific modules
     WSettingsCard {
+        visible: root.isWaffleActive
         title: Translation.tr("Waffle Modules")
         icon: "desktop"
-        visible: Config.options?.panelFamily === "waffle"
         
-        WSettingsSwitch {
+        WText {
+            Layout.fillWidth: true
+            text: Translation.tr("These modules are part of the Windows 11 style and are enabled by default.")
+            font.pixelSize: Looks.font.pixelSize.normal
+            color: Looks.colors.subfg
+            wrapMode: Text.WordWrap
+        }
+        
+        WSettingsRow {
+            label: Translation.tr("Taskbar")
+            icon: "desktop"
+            description: Translation.tr("Windows 11 style taskbar")
+            
+            WText {
+                text: Translation.tr("Always enabled")
+                font.pixelSize: Looks.font.pixelSize.small
+                color: Looks.colors.subfg
+            }
+        }
+        
+        WSettingsRow {
             label: Translation.tr("Start Menu")
             icon: "apps"
-            checked: (Config.options?.enabledPanels ?? []).includes("wStartMenu")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("wStartMenu")) panels.push("wStartMenu")
-                } else {
-                    panels = panels.filter(p => p !== "wStartMenu")
-                }
-                Config.setNestedValue("enabledPanels", panels)
+            description: Translation.tr("Windows 11 style start menu")
+            
+            WText {
+                text: Translation.tr("Always enabled")
+                font.pixelSize: Looks.font.pixelSize.small
+                color: Looks.colors.subfg
             }
         }
         
-        WSettingsSwitch {
+        WSettingsRow {
             label: Translation.tr("Action Center")
             icon: "settings"
-            checked: (Config.options?.enabledPanels ?? []).includes("wActionCenter")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("wActionCenter")) panels.push("wActionCenter")
-                } else {
-                    panels = panels.filter(p => p !== "wActionCenter")
-                }
-                Config.setNestedValue("enabledPanels", panels)
+            description: Translation.tr("Quick settings and toggles")
+            
+            WText {
+                text: Translation.tr("Always enabled")
+                font.pixelSize: Looks.font.pixelSize.small
+                color: Looks.colors.subfg
             }
         }
         
-        WSettingsSwitch {
+        WSettingsRow {
             label: Translation.tr("Notification Center")
             icon: "alert"
-            checked: (Config.options?.enabledPanels ?? []).includes("wNotificationCenter")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("wNotificationCenter")) panels.push("wNotificationCenter")
-                } else {
-                    panels = panels.filter(p => p !== "wNotificationCenter")
-                }
-                Config.setNestedValue("enabledPanels", panels)
+            description: Translation.tr("Notification history and calendar")
+            
+            WText {
+                text: Translation.tr("Always enabled")
+                font.pixelSize: Looks.font.pixelSize.small
+                color: Looks.colors.subfg
             }
         }
         
         WSettingsSwitch {
             label: Translation.tr("Widgets Panel")
             icon: "apps"
-            checked: (Config.options?.enabledPanels ?? []).includes("wWidgets")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("wWidgets")) panels.push("wWidgets")
-                } else {
-                    panels = panels.filter(p => p !== "wWidgets")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+            description: Translation.tr("Weather, system info, media controls")
+            checked: Config.options?.waffles?.modules?.widgets ?? true
+            onCheckedChanged: Config.setNestedValue("waffles.modules.widgets", checked)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Desktop Backdrop")
+            icon: "image"
+            description: Translation.tr("Blurred backdrop for overview")
+            checked: Config.options?.waffles?.background?.backdrop?.enable ?? true
+            onCheckedChanged: Config.setNestedValue("waffles.background.backdrop.enable", checked)
         }
     }
     
+    // Shared modules info
     WSettingsCard {
-        title: Translation.tr("Material Modules")
-        icon: "options"
-        visible: Config.options?.panelFamily !== "waffle"
+        title: Translation.tr("Shared Modules")
+        icon: "link"
         
-        WSettingsSwitch {
-            label: Translation.tr("Left Sidebar")
-            icon: "options"
-            description: Translation.tr("AI chat, wallpapers, translator")
-            checked: (Config.options?.enabledPanels ?? []).includes("iiSidebarLeft")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("iiSidebarLeft")) panels.push("iiSidebarLeft")
-                } else {
-                    panels = panels.filter(p => p !== "iiSidebarLeft")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+        WText {
+            Layout.fillWidth: true
+            text: Translation.tr("These modules work with both panel styles and are always available:")
+            font.pixelSize: Looks.font.pixelSize.normal
+            color: Looks.colors.subfg
+            wrapMode: Text.WordWrap
         }
         
-        WSettingsSwitch {
-            label: Translation.tr("Right Sidebar")
-            icon: "options"
-            description: Translation.tr("Quick settings, calendar, notifications")
-            checked: (Config.options?.enabledPanels ?? []).includes("iiSidebarRight")
-            onCheckedChanged: {
-                let panels = Config.options?.enabledPanels ?? []
-                if (checked) {
-                    if (!panels.includes("iiSidebarRight")) panels.push("iiSidebarRight")
-                } else {
-                    panels = panels.filter(p => p !== "iiSidebarRight")
-                }
-                Config.setNestedValue("enabledPanels", panels)
-            }
+        WText {
+            Layout.fillWidth: true
+            text: "• " + Translation.tr("Overview (Super key)") + "\n" +
+                  "• " + Translation.tr("Clipboard Manager") + "\n" +
+                  "• " + Translation.tr("Lock Screen") + "\n" +
+                  "• " + Translation.tr("Session Screen (logout/shutdown)") + "\n" +
+                  "• " + Translation.tr("On-Screen Display (volume/brightness)") + "\n" +
+                  "• " + Translation.tr("Cheatsheet (keybindings)") + "\n" +
+                  "• " + Translation.tr("Wallpaper Selector")
+            font.pixelSize: Looks.font.pixelSize.normal
+            color: Looks.colors.fg
+            wrapMode: Text.WordWrap
+            lineHeight: 1.4
         }
     }
 }

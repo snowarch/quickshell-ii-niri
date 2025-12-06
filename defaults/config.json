@@ -241,6 +241,7 @@
         "9",
         "10"
       ],
+      "scrollBehavior": "workspace",
       "showAppIcons": false,
       "showNumberDelay": 300,
       "shown": 5,
@@ -252,6 +253,7 @@
     "critical": 5,
     "full": 101,
     "low": 20,
+    "notifyFull": true,
     "suspend": 3
   },
   "closeConfirm": {
@@ -597,7 +599,8 @@
     "showItemId": false,
     "invertPinnedItems": true,
     "pinnedItems": [],
-    "filterPassive": true
+    "filterPassive": true,
+    "extraProblematicApps": []
   },
   "updates": {
     "checkInterval": 120,
@@ -605,6 +608,9 @@
     "stronglyAdviseUpdateThreshold": 200
   },
   "waffles": {
+    "settings": {
+      "useMaterialStyle": false
+    },
     "tweaks": {
       "smootherMenuAnimations": true,
       "switchHandlePositionFix": true

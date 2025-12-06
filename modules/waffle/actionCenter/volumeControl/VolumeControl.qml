@@ -122,7 +122,7 @@ Item {
 
         WChoiceButton {
             visible: EasyEffects.available && root.output
-            text: "EasyEffects"
+            text: Translation.tr("EasyEffects")
             checked: EasyEffects.active
             onClicked: EasyEffects.enable()
         }

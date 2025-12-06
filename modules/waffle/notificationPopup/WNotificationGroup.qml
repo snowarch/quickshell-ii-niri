@@ -28,8 +28,9 @@ Item {
     
     implicitHeight: background.height
     
-    // Smooth height changes
+    // Smooth height changes - disabled for performance
     Behavior on implicitHeight {
+        enabled: false
         NumberAnimation {
             duration: 200
             easing.type: Easing.OutCubic
@@ -84,9 +85,9 @@ Item {
         }
     }
 
-    // Swipe progress indicator
+    // Swipe progress indicator - hidden for cleaner look
     Rectangle {
-        visible: Math.abs(dragManager.dragDiffX) > 20 && !root.expanded
+        visible: false
         anchors.right: dragManager.dragDiffX < 0 ? parent.right : undefined
         anchors.left: dragManager.dragDiffX > 0 ? parent.left : undefined
         anchors.verticalCenter: parent.verticalCenter
@@ -123,7 +124,7 @@ Item {
         border.width: 1
         
         Behavior on x {
-            enabled: !dragManager.dragging
+            enabled: false
             NumberAnimation {
                 duration: 200
                 easing.type: Easing.OutCubic
@@ -131,6 +132,7 @@ Item {
         }
 
         Behavior on height {
+            enabled: false
             NumberAnimation {
                 duration: 250
                 easing.type: Easing.OutCubic
@@ -138,6 +140,7 @@ Item {
         }
         
         Behavior on color {
+            enabled: false
             ColorAnimation {
                 duration: 150
                 easing.type: Easing.OutCubic

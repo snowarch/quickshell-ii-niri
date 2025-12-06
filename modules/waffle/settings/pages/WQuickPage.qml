@@ -13,6 +13,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 0
     pageTitle: Translation.tr("Quick Settings")
     pageIcon: "flash-on"
     pageDescription: Translation.tr("Frequently used settings and quick actions")
@@ -38,7 +39,11 @@ WSettingsPage {
                     id: wallpaperPreview
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectCrop
-                    source: Config.options?.background?.wallpaperPath ?? ""
+                    source: {
+                        const useMain = Config.options?.waffles?.background?.useMainWallpaper ?? true
+                        if (useMain) return Config.options?.background?.wallpaperPath ?? ""
+                        return Config.options?.waffles?.background?.wallpaperPath ?? Config.options?.background?.wallpaperPath ?? ""
+                    }
                     asynchronous: true
                     cache: false
                     
@@ -66,7 +71,9 @@ WSettingsPage {
                         text: Translation.tr("Change wallpaper")
                         icon.name: "image"
                         onClicked: {
-                            Config.setNestedValue("wallpaperSelector.selectionTarget", "main")
+                            // Use waffle target if not sharing wallpaper with Material ii
+                            const useMain = Config.options?.waffles?.background?.useMainWallpaper ?? true
+                            Config.setNestedValue("wallpaperSelector.selectionTarget", useMain ? "main" : "waffle")
                             Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
                         }
                     }

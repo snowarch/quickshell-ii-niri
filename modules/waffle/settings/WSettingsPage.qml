@@ -14,6 +14,10 @@ Flickable {
     property string pageDescription: ""
     default property alias content: contentColumn.data
     
+    // Settings search context
+    property int settingsPageIndex: -1
+    property string settingsPageName: pageTitle
+    
     clip: true
     contentHeight: contentColumn.implicitHeight + 40
     boundsBehavior: Flickable.StopAtBounds

@@ -8,7 +8,6 @@ import qs.modules.common
 import qs.modules.background
 import qs.modules.bar
 import qs.modules.cheatsheet
-import qs.modules.crosshair
 import qs.modules.dock
 import qs.modules.lock
 import qs.modules.mediaControls
@@ -69,8 +68,8 @@ ShellRoot {
                 console.log("[Shell] Config ready, applying theme");
                 ThemeService.applyCurrentTheme();
                 // Only reset enabledPanels if it's empty or undefined (first run / corrupted config)
-                if (!Config.options.enabledPanels || Config.options.enabledPanels.length === 0) {
-                    const family = Config.options.panelFamily || "ii"
+                if (!Config.options?.enabledPanels || Config.options.enabledPanels.length === 0) {
+                    const family = Config.options?.panelFamily ?? "ii"
                     if (root.families.includes(family)) {
                         Config.options.enabledPanels = root.panelFamilies[family]
                     }
@@ -87,8 +86,8 @@ ShellRoot {
         if (_migrationDone) return;
         _migrationDone = true;
         
-        const family = Config.options.panelFamily || "ii";
-        const panels = Config.options.enabledPanels || [];
+        const family = Config.options?.panelFamily ?? "ii";
+        const panels = Config.options?.enabledPanels ?? [];
         
         if (family === "waffle") {
             // If waffle family has iiBackdrop but not wBackdrop, migrate
@@ -108,7 +107,8 @@ ShellRoot {
     IpcHandler {
         target: "settings"
         function open(): void {
-            if (Config.options?.panelFamily === "waffle") {
+            // Use waffle settings if enabled and panel family is waffle
+            if (Config.options?.panelFamily === "waffle" && Config.options?.waffles?.settings?.useMaterialStyle !== true) {
                 waffleSettingsProcess.running = true
             } else {
                 settingsProcess.running = true
@@ -126,14 +126,13 @@ ShellRoot {
 
     // === Panel Loaders ===
     // ii style (Material)
-    PanelLoader { identifier: "iiBar"; extraCondition: !Config.options.bar.vertical; component: Bar {} }
+    PanelLoader { identifier: "iiBar"; extraCondition: !(Config.options?.bar?.vertical ?? false); component: Bar {} }
     PanelLoader { identifier: "iiBackground"; component: Background {} }
     PanelLoader { identifier: "iiBackdrop"; extraCondition: Config.options?.background?.backdrop?.enable ?? false; component: Backdrop {} }
     PanelLoader { identifier: "iiCheatsheet"; component: Cheatsheet {} }
-    PanelLoader { identifier: "iiCrosshair"; component: Crosshair {} }
-    PanelLoader { identifier: "iiDock"; extraCondition: Config.options.dock.enable; component: Dock {} }
+    PanelLoader { identifier: "iiDock"; extraCondition: (Config.options?.dock?.enable ?? true) || (Config.options?.panelFamily === "waffle" && (Config.options?.waffles?.modules?.dock ?? false)); component: Dock {} }
     PanelLoader { identifier: "iiLock"; component: Lock {} }
-    PanelLoader { identifier: "iiMediaControls"; component: MediaControls {} }
+    PanelLoader { identifier: "iiMediaControls"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.mediaControls ?? false); component: MediaControls {} }
     PanelLoader { identifier: "iiNotificationPopup"; component: NotificationPopup {} }
     PanelLoader { identifier: "iiOnScreenDisplay"; component: OnScreenDisplay {} }
     PanelLoader { identifier: "iiOnScreenKeyboard"; component: OnScreenKeyboard {} }
@@ -141,11 +140,11 @@ ShellRoot {
     PanelLoader { identifier: "iiOverview"; component: Overview {} }
     PanelLoader { identifier: "iiPolkit"; component: Polkit {} }
     PanelLoader { identifier: "iiRegionSelector"; component: RegionSelector {} }
-    PanelLoader { identifier: "iiScreenCorners"; component: ScreenCorners {} }
+    PanelLoader { identifier: "iiScreenCorners"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.screenCorners ?? false); component: ScreenCorners {} }
     PanelLoader { identifier: "iiSessionScreen"; component: SessionScreen {} }
-    PanelLoader { identifier: "iiSidebarLeft"; component: SidebarLeft {} }
-    PanelLoader { identifier: "iiSidebarRight"; component: SidebarRight {} }
-    PanelLoader { identifier: "iiVerticalBar"; extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
+    PanelLoader { identifier: "iiSidebarLeft"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarLeft ?? false); component: SidebarLeft {} }
+    PanelLoader { identifier: "iiSidebarRight"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarRight ?? false); component: SidebarRight {} }
+    PanelLoader { identifier: "iiVerticalBar"; extraCondition: Config.options?.bar?.vertical ?? false; component: VerticalBar {} }
     PanelLoader { identifier: "iiWallpaperSelector"; component: WallpaperSelector {} }
     // Material ii AltSwitcher - handles IPC when panelFamily !== "waffle"
     LazyLoader { active: Config.ready; component: AltSwitcher {} }
@@ -158,7 +157,7 @@ ShellRoot {
     PanelLoader { identifier: "wActionCenter"; component: WaffleActionCenter {} }
     PanelLoader { identifier: "wNotificationCenter"; component: WaffleNotificationCenter {} }
     PanelLoader { identifier: "wOnScreenDisplay"; component: WaffleOSDModule.WaffleOSD {} }
-    PanelLoader { identifier: "wWidgets"; component: WaffleWidgets {} }
+    PanelLoader { identifier: "wWidgets"; extraCondition: Config.options?.waffles?.modules?.widgets ?? true; component: WaffleWidgets {} }
     PanelLoader { identifier: "wBackdrop"; extraCondition: Config.options?.waffles?.background?.backdrop?.enable ?? true; component: WaffleBackdropModule.WaffleBackdrop {} }
     PanelLoader { identifier: "wNotificationPopup"; component: WaffleNotificationPopupModule.WaffleNotificationPopup {} }
     // Waffle Clipboard - handles IPC when panelFamily === "waffle"
@@ -177,7 +176,7 @@ ShellRoot {
     component PanelLoader: LazyLoader {
         required property string identifier
         property bool extraCondition: true
-        active: Config.ready && Config.options.enabledPanels.includes(identifier) && extraCondition
+        active: Config.ready && (Config.options?.enabledPanels ?? []).includes(identifier) && extraCondition
     }
 
     // === Panel Families ===
@@ -206,7 +205,8 @@ ShellRoot {
     property bool _transitionInProgress: false
 
     function cyclePanelFamily() {
-        const currentIndex = families.indexOf(Config.options.panelFamily)
+        const currentFamily = Config.options?.panelFamily ?? "ii"
+        const currentIndex = families.indexOf(currentFamily)
         const nextIndex = (currentIndex + 1) % families.length
         const nextFamily = families[nextIndex]
         
@@ -216,8 +216,9 @@ ShellRoot {
     }
 
     function setPanelFamily(family: string) {
-        if (families.includes(family) && family !== Config.options.panelFamily) {
-            const currentIndex = families.indexOf(Config.options.panelFamily)
+        const currentFamily = Config.options?.panelFamily ?? "ii"
+        if (families.includes(family) && family !== currentFamily) {
+            const currentIndex = families.indexOf(currentFamily)
             const nextIndex = families.indexOf(family)
             const direction = nextIndex > currentIndex ? "left" : "right"
             root.startFamilyTransition(family, direction)

@@ -20,6 +20,25 @@ done
 v mkdir -p "${XDG_STATE_HOME}/quickshell/user/generated/wallpaper"
 v mkdir -p "${XDG_CACHE_HOME}/quickshell"
 
+# Notifications persistence setup
+OLD_NOTIF_PATH="${XDG_CACHE_HOME}/quickshell/notifications/notifications.json"
+NEW_NOTIF_PATH="${XDG_STATE_HOME}/quickshell/user/notifications.json"
+
+# Migrate from old cache location if exists
+if [[ -f "$OLD_NOTIF_PATH" && ! -f "$NEW_NOTIF_PATH" ]]; then
+  if ! ${quiet:-false}; then
+    echo -e "${STY_CYAN}Migrating notifications to persistent storage...${STY_RST}"
+  fi
+  mv "$OLD_NOTIF_PATH" "$NEW_NOTIF_PATH"
+  rmdir "${XDG_CACHE_HOME}/quickshell/notifications" 2>/dev/null || true
+  log_success "Notifications migrated to state directory"
+fi
+
+# Create empty notifications file if it doesn't exist (fresh install)
+if [[ ! -f "$NEW_NOTIF_PATH" ]]; then
+  echo "[]" > "$NEW_NOTIF_PATH"
+fi
+
 #####################################################################################
 # Determine first run
 #####################################################################################

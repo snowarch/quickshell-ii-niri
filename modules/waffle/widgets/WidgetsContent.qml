@@ -249,7 +249,7 @@ WBarAttachedPanelContent {
                         spacing: 4
                         RowLayout {
                             Layout.fillWidth: true
-                            WText { text: "CPU"; font.pixelSize: Looks.font.pixelSize.small }
+                            WText { text: Translation.tr("CPU"); font.pixelSize: Looks.font.pixelSize.small }
                             Item { Layout.fillWidth: true }
                             WText {
                                 text: Math.round(ResourceUsage.cpuUsage * 100) + "%"
@@ -273,7 +273,7 @@ WBarAttachedPanelContent {
                         spacing: 4
                         RowLayout {
                             Layout.fillWidth: true
-                            WText { text: "RAM"; font.pixelSize: Looks.font.pixelSize.small }
+                            WText { text: Translation.tr("RAM"); font.pixelSize: Looks.font.pixelSize.small }
                             Item { Layout.fillWidth: true }
                             WText {
                                 readonly property string used: (ResourceUsage.memoryUsed / (1024 * 1024)).toFixed(1)
@@ -300,7 +300,7 @@ WBarAttachedPanelContent {
                         visible: ResourceUsage.swapTotal > 1
                         RowLayout {
                             Layout.fillWidth: true
-                            WText { text: "Swap"; font.pixelSize: Looks.font.pixelSize.small }
+                            WText { text: Translation.tr("Swap"); font.pixelSize: Looks.font.pixelSize.small }
                             Item { Layout.fillWidth: true }
                             WText {
                                 readonly property string used: (ResourceUsage.swapUsed / (1024 * 1024)).toFixed(1)

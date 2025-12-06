@@ -2,44 +2,43 @@ import QtQuick
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
-import org.kde.kirigami as Kirigami
 import qs.modules.common
-import qs.modules.common.widgets
 import qs.modules.common.functions
+import qs.modules.waffle.looks
 import qs.services
 
-// Elegant overlay that shows family-specific branding during transition
-// Each family has its own unique visual identity
+// Family transition with blurred wallpaper backdrop
+// Waffle: 4 tiles expand from center
+// Material: Ripple circle expands from center
 Scope {
     id: root
 
     signal exitComplete()
     signal enterComplete()
 
-    readonly property int animDuration: Appearance.animationsEnabled ? 300 : 20
-    readonly property int holdDuration: 400
-    readonly property int fadeOutDuration: Appearance.animationsEnabled ? 450 : 30
+    readonly property int enterDuration: Appearance.animationsEnabled ? 400 : 10
+    readonly property int holdDuration: 250
+    readonly property int exitDuration: Appearance.animationsEnabled ? 450 : 10
     
     property bool _isWaffle: false
-    property bool _fadingOut: false
-    property bool _visible: false
+    property bool _phase: false
+    property bool _active: false
 
     Connections {
         target: GlobalStates
         function onFamilyTransitionActiveChanged() {
             if (GlobalStates.familyTransitionActive) {
                 root._isWaffle = GlobalStates.familyTransitionDirection === "left"
-                root._fadingOut = false
-                root._visible = true
-                console.log("[FamilyTransition] Showing overlay for:", root._isWaffle ? "Waffle" : "Material ii")
-                switchTimer.start()
+                root._phase = false
+                root._active = true
+                enterTimer.start()
             }
         }
     }
 
     Timer {
-        id: switchTimer
-        interval: root.animDuration + 50
+        id: enterTimer
+        interval: root.enterDuration + 80
         onTriggered: {
             root.exitComplete()
             holdTimer.start()
@@ -50,27 +49,24 @@ Scope {
         id: holdTimer
         interval: root.holdDuration
         onTriggered: {
-            root._fadingOut = true
-            fadeOutTimer.start()
+            root._phase = true
+            exitTimer.start()
         }
     }
     
     Timer {
-        id: fadeOutTimer
-        interval: root.fadeOutDuration + 50
+        id: exitTimer
+        interval: root.exitDuration + 80
         onTriggered: {
-            root._visible = false
-            root._fadingOut = false
+            root._active = false
             root.enterComplete()
         }
     }
 
     Loader {
-        id: overlayLoader
-        active: GlobalStates.familyTransitionActive || root._visible
+        active: GlobalStates.familyTransitionActive || root._active
 
         sourceComponent: PanelWindow {
-            id: overlayPanel
             visible: true
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
@@ -92,225 +88,178 @@ Scope {
 
             // Blurred wallpaper background
             Item {
-                id: blurredBackground
+                id: blurredBg
                 anchors.fill: parent
-                opacity: root._fadingOut ? 0 : 1
+                opacity: root._phase ? 0 : 1
                 
                 Behavior on opacity {
                     NumberAnimation { 
-                        duration: root.fadeOutDuration
-                        easing.type: Easing.InOutQuad
+                        duration: root.exitDuration
+                        easing.type: Easing.OutQuad
                     }
                 }
 
                 Image {
-                    id: wallpaperImage
+                    id: wallpaperImg
                     anchors.fill: parent
-                    source: Config.options?.background?.wallpaperPath 
-                        ? Qt.resolvedUrl(Config.options.background.wallpaperPath)
-                        : ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    cache: true
-
-                    layer.enabled: Appearance.effectsEnabled
-                    layer.effect: MultiEffect {
-                        source: wallpaperImage
-                        anchors.fill: source
-                        saturation: 0.3
-                        blurEnabled: true
-                        blurMax: 80
-                        blur: 1.0
+                    source: {
+                        const path = Config.options?.background?.wallpaperPath ?? ""
+                        if (!path) return ""
+                        return path.startsWith("file://") ? path : "file://" + path
                     }
+                    fillMode: Image.PreserveAspectCrop
+                    visible: false
                 }
 
+                MultiEffect {
+                    anchors.fill: parent
+                    source: wallpaperImg
+                    visible: wallpaperImg.status === Image.Ready
+                    blurEnabled: true
+                    blur: 0.8
+                    blurMax: 64
+                    saturation: 0.3
+                }
+
+                // Subtle tint overlay
                 Rectangle {
                     anchors.fill: parent
-                    color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.2)
+                    color: root._isWaffle 
+                        ? (Looks.dark ? "#000000" : "#FFFFFF")
+                        : Appearance.m3colors.m3background
+                    opacity: 0.3
                 }
             }
 
-            // Family-specific content
+            // Family-specific transition effect
             Loader {
-                anchors.centerIn: parent
+                anchors.fill: parent
                 sourceComponent: root._isWaffle ? waffleTransition : materialTransition
-                
-                opacity: root._fadingOut ? 0 : (root._visible ? 1 : 0)
-                scale: root._fadingOut ? 1.05 : (root._visible ? 1 : 0.9)
-                
-                Behavior on opacity {
-                    NumberAnimation { 
-                        duration: root._fadingOut ? root.fadeOutDuration * 0.4 : root.animDuration
-                        easing.type: Easing.OutQuad
-                    }
-                }
-                Behavior on scale {
-                    NumberAnimation { 
-                        duration: root._fadingOut ? root.fadeOutDuration * 0.5 : root.animDuration
-                        easing.type: root._fadingOut ? Easing.InQuad : Easing.OutBack
-                        easing.overshoot: root._fadingOut ? 0 : 1.2
-                    }
-                }
             }
         }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // WAFFLE TRANSITION - Windows 11 Style
-    // Grid of tiles that animate in with staggered timing
+    // WAFFLE - 4 tiles expand from center
     // ═══════════════════════════════════════════════════════════════════════
     Component {
         id: waffleTransition
         
         Item {
             id: waffleRoot
-            width: 320
-            height: 280
+            anchors.fill: parent
             
-            // Acrylic-style card with subtle border
-            Rectangle {
-                id: waffleCard
-                anchors.fill: parent
-                radius: 8
-                color: ColorUtils.transparentize("#1C1C1C", 0.15)
-                border.width: 1
-                border.color: ColorUtils.transparentize("#FFFFFF", 0.9)
+            readonly property real centerX: width / 2
+            readonly property real centerY: height / 2
+            property bool expanded: false
+            property bool showContent: false
+            
+            Component.onCompleted: Qt.callLater(() => expanded = true)
+            
+            Timer {
+                interval: 200
+                running: waffleRoot.expanded
+                onTriggered: waffleRoot.showContent = true
+            }
+            
+            // 4 expanding tiles
+            Repeater {
+                model: 4
                 
-                layer.enabled: Appearance.effectsEnabled
-                layer.effect: MultiEffect {
-                    source: waffleCard
-                    anchors.fill: source
-                    shadowEnabled: true
-                    shadowColor: ColorUtils.transparentize("#000000", 0.5)
-                    shadowBlur: 0.6
-                    shadowVerticalOffset: 8
-                    shadowHorizontalOffset: 0
+                Rectangle {
+                    id: tile
+                    required property int index
+                    
+                    readonly property bool isLeft: index % 2 === 0
+                    readonly property bool isTop: index < 2
+                    
+                    x: waffleRoot.expanded && !root._phase
+                        ? (isLeft ? 0 : waffleRoot.centerX + 2)
+                        : waffleRoot.centerX - 24
+                    y: waffleRoot.expanded && !root._phase
+                        ? (isTop ? 0 : waffleRoot.centerY + 2)
+                        : waffleRoot.centerY - 24
+                    width: waffleRoot.expanded && !root._phase
+                        ? waffleRoot.centerX - 2
+                        : 48
+                    height: waffleRoot.expanded && !root._phase
+                        ? waffleRoot.centerY - 2
+                        : 48
+                    
+                    radius: waffleRoot.expanded ? 0 : 4
+                    color: ColorUtils.transparentize(Looks.colors.bg0, 0.15)
+                    border.width: 1
+                    border.color: ColorUtils.transparentize(Looks.colors.fg, 0.92)
+                    opacity: root._phase ? 0 : 1
+                    
+                    Behavior on x { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
+                    Behavior on y { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
+                    Behavior on width { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
+                    Behavior on height { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
+                    Behavior on radius { NumberAnimation { duration: root.enterDuration * 0.5; easing.type: Easing.OutQuad } }
+                    Behavior on opacity { NumberAnimation { duration: root.exitDuration; easing.type: Easing.OutQuad } }
                 }
             }
             
+            // Center content
             Column {
                 anchors.centerIn: parent
-                spacing: 24
+                spacing: 16
+                opacity: root._phase ? 0 : (waffleRoot.showContent ? 1 : 0)
+                scale: root._phase ? 0.9 : (waffleRoot.showContent ? 1 : 0.8)
                 
-                // Windows logo made of animated tiles
-                Item {
+                Behavior on opacity { NumberAnimation { duration: root._phase ? 200 : 250; easing.type: Easing.OutQuad } }
+                Behavior on scale { NumberAnimation { duration: root._phase ? 200 : 300; easing.type: Easing.OutCubic } }
+                
+                Image {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 80
-                    height: 80
+                    width: 48
+                    height: 48
+                    source: `${Looks.iconsPath}/start-here.svg`
+                    sourceSize: Qt.size(48, 48)
                     
-                    // 2x2 grid of tiles (Windows logo style)
-                    Grid {
-                        anchors.centerIn: parent
-                        columns: 2
-                        spacing: 4
-                        
-                        Repeater {
-                            model: 4
-                            
-                            Rectangle {
-                                id: tile
-                                required property int index
-                                width: 34
-                                height: 34
-                                radius: 2
-                                color: Appearance.colors.colPrimary
-                                
-                                // Staggered entrance animation
-                                opacity: 0
-                                scale: 0.5
-                                rotation: -15
-                                
-                                SequentialAnimation on opacity {
-                                    running: root._visible && !root._fadingOut
-                                    PauseAnimation { duration: tile.index * 80 }
-                                    NumberAnimation { 
-                                        to: 1
-                                        duration: 250
-                                        easing.type: Easing.OutQuad
-                                    }
-                                }
-                                
-                                SequentialAnimation on scale {
-                                    running: root._visible && !root._fadingOut
-                                    PauseAnimation { duration: tile.index * 80 }
-                                    NumberAnimation { 
-                                        to: 1
-                                        duration: 300
-                                        easing.type: Easing.OutBack
-                                        easing.overshoot: 1.5
-                                    }
-                                }
-                                
-                                SequentialAnimation on rotation {
-                                    running: root._visible && !root._fadingOut
-                                    PauseAnimation { duration: tile.index * 80 }
-                                    NumberAnimation { 
-                                        to: 0
-                                        duration: 300
-                                        easing.type: Easing.OutBack
-                                    }
-                                }
-                                
-                                // Subtle pulse when fully visible
-                                SequentialAnimation on opacity {
-                                    running: root._visible && !root._fadingOut
-                                    loops: Animation.Infinite
-                                    PauseAnimation { duration: 600 + tile.index * 80 }
-                                    NumberAnimation { to: 0.7; duration: 800; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { to: 1; duration: 800; easing.type: Easing.InOutQuad }
-                                }
-                            }
-                        }
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        colorization: 1.0
+                        colorizationColor: Looks.colors.fg
                     }
                 }
                 
-                // Text content
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
+                    spacing: 4
                     
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Waffle"
-                        font.pixelSize: 32
-                        font.family: "Segoe UI Variable"
+                        font.pixelSize: 22
+                        font.family: Looks.font.family
                         font.weight: Font.DemiBold
-                        color: "#FFFFFF"
+                        color: Looks.colors.fg
+                        
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowColor: Looks.dark ? "#000000" : "#FFFFFF"
+                            shadowBlur: 0.8
+                            shadowVerticalOffset: 1
+                        }
                     }
                     
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Windows 11 Style"
-                        font.pixelSize: 13
-                        font.family: "Segoe UI Variable"
-                        color: ColorUtils.transparentize("#FFFFFF", 0.3)
-                    }
-                }
-                
-                // Loading dots (Windows style - horizontal line)
-                Row {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 6
-                    
-                    Repeater {
-                        model: 5
-                        Rectangle {
-                            id: loadingDot
-                            required property int index
-                            width: 4
-                            height: 4
-                            radius: 2
-                            color: Appearance.colors.colPrimary
-                            opacity: 0.3
-                            
-                            SequentialAnimation on opacity {
-                                loops: Animation.Infinite
-                                running: root._visible && !root._fadingOut
-                                PauseAnimation { duration: loadingDot.index * 100 }
-                                NumberAnimation { to: 1; duration: 200; easing.type: Easing.OutQuad }
-                                NumberAnimation { to: 0.3; duration: 200; easing.type: Easing.InQuad }
-                                PauseAnimation { duration: (4 - loadingDot.index) * 100 + 200 }
-                            }
+                        font.pixelSize: Looks.font.size.small
+                        font.family: Looks.font.family
+                        color: Looks.colors.fg
+                        opacity: 0.7
+                        
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowColor: Looks.dark ? "#000000" : "#FFFFFF"
+                            shadowBlur: 0.6
+                            shadowVerticalOffset: 1
                         }
                     }
                 }
@@ -319,154 +268,122 @@ Scope {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // MATERIAL II TRANSITION - Material Design 3 Style
-    // Uses the illogical-impulse logo with smooth 3-dot loading indicator
+    // MATERIAL II - Ripple circle expands from center
     // ═══════════════════════════════════════════════════════════════════════
     Component {
         id: materialTransition
         
-        Rectangle {
-            id: materialCard
-            width: 320
-            height: 280
-            radius: Appearance.rounding.large
-            color: Appearance.colors.colLayer1
-            border.width: 1
-            border.color: Appearance.colors.colLayer0Border
+        Item {
+            id: materialRoot
+            anchors.fill: parent
             
-            layer.enabled: Appearance.effectsEnabled
-            layer.effect: StyledDropShadow {
-                target: materialCard
-                radius: 20
+            readonly property real maxRadius: Math.sqrt(width * width + height * height) / 2 + 100
+            property bool expanded: false
+            property bool showContent: false
+            
+            Component.onCompleted: Qt.callLater(() => expanded = true)
+            
+            Timer {
+                interval: 180
+                running: materialRoot.expanded
+                onTriggered: materialRoot.showContent = true
             }
             
+            // Expanding ripple circle
+            Rectangle {
+                anchors.centerIn: parent
+                width: materialRoot.expanded && !root._phase ? materialRoot.maxRadius * 2 : 0
+                height: width
+                radius: width / 2
+                color: ColorUtils.transparentize(Appearance.colors.colPrimaryContainer, 0.4)
+                opacity: root._phase ? 0 : 1
+                
+                Behavior on width { NumberAnimation { duration: root._phase ? root.exitDuration * 0.7 : root.enterDuration; easing.type: Easing.OutQuart } }
+                Behavior on opacity { NumberAnimation { duration: root.exitDuration; easing.type: Easing.OutQuad } }
+            }
+            
+            // Secondary ripple ring
+            Rectangle {
+                anchors.centerIn: parent
+                width: materialRoot.expanded && !root._phase ? materialRoot.maxRadius * 2.1 : 0
+                height: width
+                radius: width / 2
+                color: "transparent"
+                border.width: 2
+                border.color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.7)
+                opacity: root._phase ? 0 : 1
+                
+                Behavior on width { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration + 80; easing.type: Easing.OutQuart } }
+                Behavior on opacity { NumberAnimation { duration: root.exitDuration * 0.8 } }
+            }
+            
+            // Center content
             Column {
                 anchors.centerIn: parent
-                spacing: 24
+                spacing: 14
+                opacity: root._phase ? 0 : (materialRoot.showContent ? 1 : 0)
+                scale: root._phase ? 0.9 : (materialRoot.showContent ? 1 : 0.75)
                 
-                // Logo container with glow
-                Item {
+                Behavior on opacity { NumberAnimation { duration: root._phase ? 200 : 280; easing.type: Easing.OutQuad } }
+                Behavior on scale { NumberAnimation { duration: root._phase ? 200 : 350; easing.type: Easing.OutCubic } }
+                
+                Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 100
-                    height: 100
+                    width: 64
+                    height: 64
+                    radius: 32
+                    color: Appearance.colors.colPrimaryContainer
                     
-                    // Soft pulsing glow
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 90
-                        height: 90
-                        radius: width / 2
-                        color: Appearance.colors.colPrimary
-                        opacity: 0.12
-                        
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            running: root._visible && !root._fadingOut
-                            NumberAnimation { to: 1.2; duration: 1500; easing.type: Easing.InOutSine }
-                            NumberAnimation { to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
-                        }
-                    }
-                    
-                    // ii logo
                     Image {
-                        id: iiLogo
                         anchors.centerIn: parent
-                        width: 64
-                        height: 64
+                        width: 36
+                        height: 36
                         source: Qt.resolvedUrl("assets/icons/illogical-impulse.svg")
-                        sourceSize: Qt.size(64, 64)
-                        fillMode: Image.PreserveAspectFit
-                        asynchronous: true
+                        sourceSize: Qt.size(36, 36)
                         
-                        // Tint to primary color
                         layer.enabled: true
                         layer.effect: MultiEffect {
                             colorization: 1.0
-                            colorizationColor: Appearance.colors.colPrimary
-                        }
-                        
-                        // Entrance animation
-                        scale: root._visible && !root._fadingOut ? 1 : 0.5
-                        opacity: root._visible && !root._fadingOut ? 1 : 0
-                        
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: 400
-                                easing.type: Easing.OutBack
-                                easing.overshoot: 1.4
-                            }
-                        }
-                        Behavior on opacity {
-                            NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+                            colorizationColor: Appearance.colors.colOnPrimaryContainer
                         }
                     }
                 }
                 
-                // Text content
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 6
+                    spacing: 2
                     
-                    StyledText {
+                    Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Material ii"
-                        font.pixelSize: 32
+                        font.pixelSize: Appearance.font.pixelSize.title
                         font.family: Appearance.font.family.title
+                        font.weight: Font.Medium
                         color: Appearance.m3colors.m3onSurface
+                        
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowColor: Appearance.m3colors.darkmode ? "#000000" : "#FFFFFF"
+                            shadowBlur: 0.8
+                            shadowVerticalOffset: 1
+                        }
                     }
                     
-                    StyledText {
+                    Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Material Design"
                         font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colSubtext
-                    }
-                }
-                
-                // Simple 3-dot loading indicator (smooth bounce)
-                Row {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-                    
-                    Repeater {
-                        model: 3
+                        font.family: Appearance.font.family.main
+                        color: Appearance.m3colors.m3onSurface
+                        opacity: 0.7
                         
-                        Rectangle {
-                            id: dot
-                            required property int index
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: Appearance.colors.colPrimary
-                            
-                            // Smooth wave animation
-                            transform: Translate { id: dotTranslate; y: 0 }
-                            
-                            SequentialAnimation {
-                                loops: Animation.Infinite
-                                running: root._visible && !root._fadingOut
-                                
-                                PauseAnimation { duration: dot.index * 120 }
-                                
-                                SequentialAnimation {
-                                    NumberAnimation {
-                                        target: dotTranslate
-                                        property: "y"
-                                        to: -10
-                                        duration: 300
-                                        easing.type: Easing.OutQuad
-                                    }
-                                    NumberAnimation {
-                                        target: dotTranslate
-                                        property: "y"
-                                        to: 0
-                                        duration: 300
-                                        easing.type: Easing.InQuad
-                                    }
-                                }
-                                
-                                PauseAnimation { duration: (2 - dot.index) * 120 + 400 }
-                            }
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowColor: Appearance.m3colors.darkmode ? "#000000" : "#FFFFFF"
+                            shadowBlur: 0.6
+                            shadowVerticalOffset: 1
                         }
                     }
                 }

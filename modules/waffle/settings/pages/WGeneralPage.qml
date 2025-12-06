@@ -10,6 +10,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 1
     pageTitle: Translation.tr("General")
     pageIcon: "settings"
     pageDescription: Translation.tr("System behavior and preferences")

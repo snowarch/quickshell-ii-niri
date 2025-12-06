@@ -10,9 +10,28 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 3
     pageTitle: Translation.tr("Background")
     pageIcon: "image"
-    pageDescription: Translation.tr("Wallpaper effects and backdrop settings")
+    pageDescription: Translation.tr("Wallpaper effects and backdrop settings for Waffle")
+    
+    // Shorthand for waffle background config
+    readonly property var wBg: Config.options?.waffles?.background ?? {}
+    readonly property var wEffects: wBg.effects ?? {}
+    readonly property var wBackdrop: wBg.backdrop ?? {}
+    
+    WSettingsCard {
+        title: Translation.tr("Wallpaper")
+        icon: "image"
+        
+        WSettingsSwitch {
+            label: Translation.tr("Use Material ii wallpaper")
+            icon: "image"
+            description: Translation.tr("Share wallpaper with Material ii family")
+            checked: root.wBg.useMainWallpaper ?? true
+            onCheckedChanged: Config.setNestedValue("waffles.background.useMainWallpaper", checked)
+        }
+    }
     
     WSettingsCard {
         title: Translation.tr("Wallpaper Effects")
@@ -22,17 +41,17 @@ WSettingsPage {
             label: Translation.tr("Enable blur")
             icon: "options"
             description: Translation.tr("Blur wallpaper when windows are open")
-            checked: Config.options?.background?.effects?.enableBlur ?? false
-            onCheckedChanged: Config.setNestedValue("background.effects.enableBlur", checked)
+            checked: root.wEffects.enableBlur ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.background.effects.enableBlur", checked)
         }
         
         WSettingsSpinBox {
-            visible: Config.options?.background?.effects?.enableBlur ?? false
+            visible: root.wEffects.enableBlur ?? false
             label: Translation.tr("Blur radius")
             icon: "options"
             from: 0; to: 100; stepSize: 5
-            value: Config.options?.background?.effects?.blurRadius ?? 32
-            onValueChanged: Config.setNestedValue("background.effects.blurRadius", value)
+            value: root.wEffects.blurRadius ?? 32
+            onValueChanged: Config.setNestedValue("waffles.background.effects.blurRadius", value)
         }
         
         WSettingsSpinBox {
@@ -41,8 +60,8 @@ WSettingsPage {
             description: Translation.tr("Darken the wallpaper")
             suffix: "%"
             from: 0; to: 100; stepSize: 5
-            value: Config.options?.background?.effects?.dim ?? 0
-            onValueChanged: Config.setNestedValue("background.effects.dim", value)
+            value: root.wEffects.dim ?? 0
+            onValueChanged: Config.setNestedValue("waffles.background.effects.dim", value)
         }
         
         WSettingsSpinBox {
@@ -51,8 +70,8 @@ WSettingsPage {
             description: Translation.tr("Additional dim when windows are present")
             suffix: "%"
             from: 0; to: 100; stepSize: 5
-            value: Config.options?.background?.effects?.dynamicDim ?? 0
-            onValueChanged: Config.setNestedValue("background.effects.dynamicDim", value)
+            value: root.wEffects.dynamicDim ?? 0
+            onValueChanged: Config.setNestedValue("waffles.background.effects.dynamicDim", value)
         }
     }
     
@@ -64,64 +83,56 @@ WSettingsPage {
             label: Translation.tr("Enable backdrop")
             icon: "desktop"
             description: Translation.tr("Show backdrop layer for overview")
-            checked: Config.options?.background?.backdrop?.enable ?? true
-            onCheckedChanged: Config.setNestedValue("background.backdrop.enable", checked)
+            checked: root.wBackdrop.enable ?? true
+            onCheckedChanged: Config.setNestedValue("waffles.background.backdrop.enable", checked)
         }
         
         WSettingsSwitch {
-            visible: Config.options?.background?.backdrop?.enable ?? true
+            visible: root.wBackdrop.enable ?? true
+            label: Translation.tr("Use separate wallpaper")
+            icon: "image"
+            description: Translation.tr("Use a different wallpaper for backdrop")
+            checked: !(root.wBackdrop.useMainWallpaper ?? true)
+            onCheckedChanged: Config.setNestedValue("waffles.background.backdrop.useMainWallpaper", !checked)
+        }
+        
+        WSettingsButton {
+            visible: (root.wBackdrop.enable ?? true) && !(root.wBackdrop.useMainWallpaper ?? true)
+            label: Translation.tr("Backdrop wallpaper")
+            icon: "image"
+            buttonText: Translation.tr("Change")
+            onButtonClicked: {
+                Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle-backdrop")
+                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
+            }
+        }
+        
+        WSettingsSwitch {
+            visible: root.wBackdrop.enable ?? true
             label: Translation.tr("Hide main wallpaper")
             icon: "options"
             description: Translation.tr("Show only backdrop, hide main wallpaper")
-            checked: Config.options?.background?.backdrop?.hideWallpaper ?? false
-            onCheckedChanged: Config.setNestedValue("background.backdrop.hideWallpaper", checked)
-        }
-        
-        WSettingsSwitch {
-            visible: Config.options?.background?.backdrop?.enable ?? true
-            label: Translation.tr("Use main wallpaper")
-            icon: "image"
-            description: Translation.tr("Use the same wallpaper for backdrop")
-            checked: Config.options?.background?.backdrop?.useMainWallpaper ?? true
-            onCheckedChanged: Config.setNestedValue("background.backdrop.useMainWallpaper", checked)
+            checked: root.wBackdrop.hideWallpaper ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.background.backdrop.hideWallpaper", checked)
         }
         
         WSettingsSpinBox {
-            visible: Config.options?.background?.backdrop?.enable ?? true
+            visible: root.wBackdrop.enable ?? true
             label: Translation.tr("Backdrop blur")
             icon: "options"
             from: 0; to: 100; stepSize: 5
-            value: Config.options?.background?.backdrop?.blurRadius ?? 64
-            onValueChanged: Config.setNestedValue("background.backdrop.blurRadius", value)
+            value: root.wBackdrop.blurRadius ?? 64
+            onValueChanged: Config.setNestedValue("waffles.background.backdrop.blurRadius", value)
         }
         
         WSettingsSpinBox {
-            visible: Config.options?.background?.backdrop?.enable ?? true
+            visible: root.wBackdrop.enable ?? true
             label: Translation.tr("Backdrop dim")
             icon: "options"
             suffix: "%"
             from: 0; to: 100; stepSize: 5
-            value: Config.options?.background?.backdrop?.dim ?? 20
-            onValueChanged: Config.setNestedValue("background.backdrop.dim", value)
-        }
-    }
-    
-    WSettingsCard {
-        title: Translation.tr("Wallpaper Rounding")
-        icon: "options"
-        
-        WSettingsDropdown {
-            label: Translation.tr("Fill radius")
-            icon: "options"
-            description: Translation.tr("Round corners on wallpaper")
-            currentValue: Config.options?.background?.fillRadius ?? 0
-            options: [
-                { value: 0, displayName: Translation.tr("None") },
-                { value: 12, displayName: Translation.tr("Small (12px)") },
-                { value: 24, displayName: Translation.tr("Medium (24px)") },
-                { value: 48, displayName: Translation.tr("Large (48px)") }
-            ]
-            onSelected: newValue => Config.setNestedValue("background.fillRadius", newValue)
+            value: root.wBackdrop.dim ?? 20
+            onValueChanged: Config.setNestedValue("waffles.background.backdrop.dim", value)
         }
     }
 }

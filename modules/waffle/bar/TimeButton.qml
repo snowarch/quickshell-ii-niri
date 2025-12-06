@@ -41,7 +41,8 @@ BarButton {
             Rectangle {
                 id: notifBadge
                 readonly property int count: Notifications.list.length
-                visible: count > 0 && !Notifications.silent
+                readonly property bool showCount: Config.options?.waffles?.bar?.notifications?.showUnreadCount ?? true
+                visible: count > 0 && !Notifications.silent && showCount
                 anchors.verticalCenter: parent.verticalCenter
                 width: count > 9 ? 18 : (count > 0 ? 16 : 0)
                 height: 16

@@ -10,6 +10,11 @@ import Quickshell.Hyprland
 
 Scope {
     id: notificationPopup
+    
+    // Position from config: topRight, topLeft, bottomRight, bottomLeft
+    readonly property string position: Config.options?.notifications?.position ?? "topRight"
+    readonly property bool isTop: position.startsWith("top")
+    readonly property bool isLeft: position.endsWith("Left")
 
     PanelWindow {
         id: root
@@ -24,8 +29,10 @@ Scope {
         exclusiveZone: 0
 
         anchors {
-            top: true
-            right: true
+            top: notificationPopup.isTop
+            bottom: !notificationPopup.isTop
+            left: notificationPopup.isLeft
+            right: !notificationPopup.isLeft
         }
 
         color: "transparent"

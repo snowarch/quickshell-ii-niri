@@ -58,8 +58,8 @@ Scope {
     Timer {
         id: osdTimeout
         interval: root.currentIndicator === "media" 
-            ? Config.options.osd.timeout + 1500  // Longer for media
-            : Config.options.osd.timeout
+            ? (Config.options?.osd?.timeout ?? 2000) + 1500  // Longer for media
+            : (Config.options?.osd?.timeout ?? 2000)
         repeat: false
         running: false
         onTriggered: {
@@ -126,8 +126,8 @@ Scope {
             WlrLayershell.namespace: "quickshell:onScreenDisplay"
             WlrLayershell.layer: WlrLayer.Overlay
             anchors {
-                top: !Config.options.bar.bottom
-                bottom: Config.options.bar.bottom
+                top: !(Config.options?.bar?.bottom ?? false)
+                bottom: Config.options?.bar?.bottom ?? false
             }
             mask: Region {
                 item: osdValuesWrapper
@@ -149,7 +149,7 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 // Subtle open animation for the OSD, sliding from the bar edge
-                transformOrigin: !Config.options.bar.bottom ? Item.Top : Item.Bottom
+                transformOrigin: !(Config.options?.bar?.bottom ?? false) ? Item.Top : Item.Bottom
                 scale: GlobalStates.osdVolumeOpen ? 1.0 : 0.96
                 opacity: GlobalStates.osdVolumeOpen ? 1.0 : 0.0
                 Behavior on scale {

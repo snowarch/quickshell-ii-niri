@@ -556,6 +556,18 @@ ContentPage {
                 text: Translation.tr("Automatically suppress reload toasts when Game Mode is active")
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "help"
+            text: Translation.tr("Confirm before closing windows")
+            checked: Config.options?.closeConfirm?.enabled ?? false
+            onCheckedChanged: {
+                Config.setNestedValue("closeConfirm.enabled", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Show a confirmation dialog when closing windows with Super+Q")
+            }
+        }
     }
 
     // Subtle footer

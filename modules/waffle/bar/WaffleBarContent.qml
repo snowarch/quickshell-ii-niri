@@ -114,6 +114,7 @@ Rectangle {
             sourceComponent: WidgetsButton {}
         }
         Tray {}
+        TimerButton {}
         UpdatesButton {}
         SystemButton {}
         TimeButton {}

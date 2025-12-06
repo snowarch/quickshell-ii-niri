@@ -10,6 +10,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 5
     pageTitle: Translation.tr("Interface")
     pageIcon: "apps"
     pageDescription: Translation.tr("Notifications, OSD, and other UI elements")
@@ -50,14 +51,14 @@ WSettingsPage {
         WSettingsDropdown {
             label: Translation.tr("Popup position")
             icon: "options"
-            currentValue: Config.options?.notifications?.position ?? "topRight"
+            currentValue: Config.options?.waffles?.notifications?.position ?? "bottomRight"
             options: [
                 { value: "topLeft", displayName: Translation.tr("Top Left") },
                 { value: "topRight", displayName: Translation.tr("Top Right") },
                 { value: "bottomLeft", displayName: Translation.tr("Bottom Left") },
                 { value: "bottomRight", displayName: Translation.tr("Bottom Right") }
             ]
-            onSelected: newValue => Config.setNestedValue("notifications.position", newValue)
+            onSelected: newValue => Config.setNestedValue("waffles.notifications.position", newValue)
         }
         
         WSettingsSwitch {

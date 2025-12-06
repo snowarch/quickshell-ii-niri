@@ -10,6 +10,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
+    settingsPageIndex: 4
     pageTitle: Translation.tr("Themes")
     pageIcon: "dark-theme"
     pageDescription: Translation.tr("Color themes and typography")

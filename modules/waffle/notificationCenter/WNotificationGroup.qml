@@ -14,7 +14,7 @@ Item {
     required property var notificationGroup
     readonly property var notifications: notificationGroup?.notifications ?? []
     readonly property int notificationCount: notifications.length
-    readonly property bool hasCritical: notifications.some(n => n.urgency === NotificationUrgency.Critical)
+    readonly property bool hasCritical: notificationGroup?.hasCritical ?? false
     property bool expanded: false
 
     implicitWidth: contentLayout.implicitWidth

@@ -361,6 +361,30 @@ ContentPage {
         icon: "workspaces"
         title: Translation.tr("Workspaces")
 
+        ContentSubsection {
+            title: Translation.tr("Scroll behavior")
+            visible: CompositorService.isNiri
+
+            ConfigSelectionArray {
+                currentValue: Config.options?.bar?.workspaces?.scrollBehavior ?? "workspace"
+                onSelected: newValue => {
+                    Config.setNestedValue("bar.workspaces.scrollBehavior", newValue)
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Switch workspaces"),
+                        icon: "workspaces",
+                        value: "workspace"
+                    },
+                    {
+                        displayName: Translation.tr("Cycle columns"),
+                        icon: "view_column",
+                        value: "column"
+                    }
+                ]
+            }
+        }
+
         ConfigSwitch {
             buttonIcon: "counter_1"
             text: Translation.tr('Always show numbers')

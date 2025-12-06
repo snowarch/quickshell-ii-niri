@@ -23,8 +23,9 @@ ListView {
         dragDistance = 0
     }
 
-    // Smooth add transition - slide in from right with fade
+    // Smooth add transition - disabled for performance
     add: Transition {
+        enabled: false
         ParallelAnimation {
             NumberAnimation { 
                 property: "opacity"
@@ -47,8 +48,9 @@ ListView {
         }
     }
 
-    // Smooth remove transition - slide out to right with fade
+    // Smooth remove transition - disabled for performance
     remove: Transition {
+        enabled: false
         ParallelAnimation {
             NumberAnimation { 
                 property: "opacity"
@@ -65,8 +67,9 @@ ListView {
         }
     }
 
-    // Smooth reposition when items are added/removed
+    // Smooth reposition - disabled for performance
     displaced: Transition {
+        enabled: false
         NumberAnimation { 
             properties: "x,y"
             duration: 200
