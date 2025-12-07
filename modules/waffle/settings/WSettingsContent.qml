@@ -22,49 +22,113 @@ Item {
     property var searchResults: []
     property bool navExpanded: width > 800
     
-    // Search index for waffle settings pages
+    // Complete search index with all individual options + targetLabel for spotlight
     property var searchIndex: [
-        // Home (0)
-        { pageIndex: 0, pageName: pages[0]?.name ?? "Home", section: "", label: Translation.tr("Home"), keywords: ["home", "quick", "start"] },
+        // === General (1) ===
+        // Audio
+        { pageIndex: 1, pageName: "General", section: "Audio", label: "Volume protection", targetLabel: "Volume protection", keywords: ["volume", "sound", "audio", "protection", "limit", "hearing", "damage", "loud"] },
+        { pageIndex: 1, pageName: "General", section: "Audio", label: "Maximum volume", targetLabel: "Maximum volume", keywords: ["volume", "max", "limit", "percent"] },
+        { pageIndex: 1, pageName: "General", section: "Audio", label: "Max increase per step", targetLabel: "Max increase per step", keywords: ["volume", "step", "increment"] },
+        // Battery
+        { pageIndex: 1, pageName: "General", section: "Battery", label: "Low battery warning", targetLabel: "Low battery warning", keywords: ["battery", "low", "warning", "power", "energy"] },
+        { pageIndex: 1, pageName: "General", section: "Battery", label: "Critical battery", targetLabel: "Critical battery", keywords: ["battery", "critical", "suspend", "shutdown"] },
+        { pageIndex: 1, pageName: "General", section: "Battery", label: "Full battery notification", targetLabel: "Full battery notification", keywords: ["battery", "full", "charged", "notification"] },
+        // Time & Language
+        { pageIndex: 1, pageName: "General", section: "Time & Language", label: "Show seconds", targetLabel: "Show seconds", keywords: ["time", "clock", "seconds", "format"] },
+        { pageIndex: 1, pageName: "General", section: "Time & Language", label: "Language", targetLabel: "Language", keywords: ["language", "locale", "translation", "idioma", "español", "english"] },
+        // Window Management
+        { pageIndex: 1, pageName: "General", section: "Window Management", label: "Confirm before closing", targetLabel: "Confirm before closing", keywords: ["close", "confirm", "window", "dialog", "super+q"] },
+        // Sounds
+        { pageIndex: 1, pageName: "General", section: "Sounds", label: "Battery sounds", targetLabel: "Battery sounds", keywords: ["sound", "audio", "battery", "beep"] },
+        { pageIndex: 1, pageName: "General", section: "Sounds", label: "Notification sounds", targetLabel: "Notification sounds", keywords: ["sound", "audio", "notification", "alert"] },
+        // Idle & Sleep
+        { pageIndex: 1, pageName: "General", section: "Idle & Sleep", label: "Screen off timeout", targetLabel: "Screen off timeout", keywords: ["screen", "off", "timeout", "idle", "dpms", "monitor"] },
+        { pageIndex: 1, pageName: "General", section: "Idle & Sleep", label: "Lock timeout", targetLabel: "Lock timeout", keywords: ["lock", "timeout", "idle", "security"] },
+        { pageIndex: 1, pageName: "General", section: "Idle & Sleep", label: "Suspend timeout", targetLabel: "Suspend timeout", keywords: ["suspend", "sleep", "timeout", "idle", "hibernate"] },
+        { pageIndex: 1, pageName: "General", section: "Idle & Sleep", label: "Lock before sleep", targetLabel: "Lock before sleep", keywords: ["lock", "sleep", "suspend", "security"] },
+        // Game Mode
+        { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Auto-detect fullscreen", targetLabel: "Auto-detect fullscreen", keywords: ["game", "gaming", "fullscreen", "auto", "detect"] },
+        { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable animations", targetLabel: "Disable animations", keywords: ["game", "gaming", "animations", "performance"] },
+        { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable effects", targetLabel: "Disable effects", keywords: ["game", "gaming", "effects", "blur", "shadows", "performance"] },
+        { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable Niri animations", targetLabel: "Disable Niri animations", keywords: ["game", "gaming", "niri", "compositor", "animations"] },
         
-        // General (1)
-        { pageIndex: 1, pageName: pages[1]?.name ?? "General", section: Translation.tr("Time"), label: Translation.tr("Time Format"), keywords: ["time", "clock", "24h", "12h", "format", "seconds"] },
-        { pageIndex: 1, pageName: pages[1]?.name ?? "General", section: Translation.tr("Language"), label: Translation.tr("Language"), keywords: ["language", "locale", "translation"] },
-        { pageIndex: 1, pageName: pages[1]?.name ?? "General", section: Translation.tr("Behavior"), label: Translation.tr("Behavior"), keywords: ["behavior", "close", "confirm", "window"] },
-        { pageIndex: 1, pageName: pages[1]?.name ?? "General", section: Translation.tr("Developer"), label: Translation.tr("Developer Options"), keywords: ["developer", "debug", "reload"] },
+        // === Taskbar (2) ===
+        { pageIndex: 2, pageName: "Taskbar", section: "Position & Layout", label: "Bottom position", targetLabel: "Bottom position", keywords: ["taskbar", "bar", "position", "bottom", "top"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Position & Layout", label: "Left-align apps", targetLabel: "Left-align apps", keywords: ["taskbar", "align", "left", "center", "apps"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Icons", label: "Tint app icons", targetLabel: "Tint app icons", keywords: ["taskbar", "icons", "tint", "monochrome", "accent", "color"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Icons", label: "Tint tray icons", targetLabel: "Tint tray icons", keywords: ["tray", "icons", "tint", "system", "monochrome"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Desktop Peek", label: "Enable hover peek", targetLabel: "Enable hover peek", keywords: ["desktop", "peek", "hover", "show", "corner"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Desktop Peek", label: "Hover delay", targetLabel: "Hover delay", keywords: ["desktop", "peek", "delay", "timeout"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Clock & Notifications", label: "Show seconds", targetLabel: "Show seconds", keywords: ["clock", "seconds", "time", "taskbar"] },
+        { pageIndex: 2, pageName: "Taskbar", section: "Clock & Notifications", label: "Show unread count", targetLabel: "Show unread count", keywords: ["notification", "badge", "count", "unread", "clock"] },
         
-        // Taskbar (2)
-        { pageIndex: 2, pageName: pages[2]?.name ?? "Taskbar", section: Translation.tr("Position"), label: Translation.tr("Taskbar Position"), keywords: ["taskbar", "bar", "position", "bottom"] },
-        { pageIndex: 2, pageName: pages[2]?.name ?? "Taskbar", section: Translation.tr("Buttons"), label: Translation.tr("Taskbar Buttons"), keywords: ["start", "search", "widgets", "tray", "clock"] },
-        { pageIndex: 2, pageName: pages[2]?.name ?? "Taskbar", section: Translation.tr("Desktop Peek"), label: Translation.tr("Desktop Peek"), keywords: ["desktop", "peek", "hover", "show"] },
-        { pageIndex: 2, pageName: pages[2]?.name ?? "Taskbar", section: Translation.tr("Weather"), label: Translation.tr("Weather in Widgets"), keywords: ["weather", "widgets", "temperature"] },
+        // === Background (3) ===
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper", label: "Use Material ii wallpaper", targetLabel: "Use Material ii wallpaper", keywords: ["wallpaper", "background", "material", "share", "image"] },
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper", label: "Waffle wallpaper", targetLabel: "Waffle wallpaper", keywords: ["wallpaper", "background", "waffle", "change", "image"] },
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper Effects", label: "Enable blur", targetLabel: "Enable blur", keywords: ["blur", "wallpaper", "background", "effect"] },
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper Effects", label: "Blur radius", targetLabel: "Blur radius", keywords: ["blur", "radius", "intensity"] },
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper Effects", label: "Dim overlay", targetLabel: "Dim overlay", keywords: ["dim", "dark", "darken", "overlay", "wallpaper"] },
+        { pageIndex: 3, pageName: "Background", section: "Wallpaper Effects", label: "Extra dim with windows", targetLabel: "Extra dim with windows", keywords: ["dim", "dynamic", "windows", "wallpaper"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Enable backdrop", targetLabel: "Enable backdrop", keywords: ["backdrop", "overview", "background"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Use separate wallpaper", targetLabel: "Use separate wallpaper", keywords: ["backdrop", "wallpaper", "separate", "different"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Hide main wallpaper", targetLabel: "Hide main wallpaper", keywords: ["backdrop", "wallpaper", "hide", "main"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Backdrop blur", targetLabel: "Backdrop blur", keywords: ["backdrop", "blur", "radius"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Backdrop dim", targetLabel: "Backdrop dim", keywords: ["backdrop", "dim", "dark"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Backdrop saturation", targetLabel: "Backdrop saturation", keywords: ["backdrop", "saturation", "color", "vibrant"] },
+        { pageIndex: 3, pageName: "Background", section: "Backdrop (Overview)", label: "Backdrop contrast", targetLabel: "Backdrop contrast", keywords: ["backdrop", "contrast"] },
         
-        // Background (3)
-        { pageIndex: 3, pageName: pages[3]?.name ?? "Background", section: Translation.tr("Wallpaper"), label: Translation.tr("Wallpaper"), keywords: ["wallpaper", "background", "image"] },
-        { pageIndex: 3, pageName: pages[3]?.name ?? "Background", section: Translation.tr("Effects"), label: Translation.tr("Background Effects"), keywords: ["blur", "dim", "effects", "parallax"] },
-        { pageIndex: 3, pageName: pages[3]?.name ?? "Background", section: Translation.tr("Backdrop"), label: Translation.tr("Backdrop"), keywords: ["backdrop", "overlay"] },
+        // === Themes (4) ===
+        { pageIndex: 4, pageName: "Themes", section: "Color Theme", label: "Color Theme", targetLabel: "Color Theme", keywords: ["theme", "color", "preset", "gruvbox", "catppuccin", "nord", "dracula", "monokai", "tokyo"] },
+        { pageIndex: 4, pageName: "Themes", section: "Dark Mode", label: "Appearance", targetLabel: "Appearance", keywords: ["dark", "light", "mode", "theme", "appearance"] },
+        { pageIndex: 4, pageName: "Themes", section: "Color Scheme", label: "Palette type", targetLabel: "Palette type", keywords: ["palette", "scheme", "matugen", "material", "colors", "expressive", "fidelity"] },
+        { pageIndex: 4, pageName: "Themes", section: "Waffle Typography", label: "Font family", targetLabel: "Font family", keywords: ["font", "family", "typography", "segoe", "inter", "roboto", "noto"] },
+        { pageIndex: 4, pageName: "Themes", section: "Waffle Typography", label: "Font scale", targetLabel: "Font scale", keywords: ["font", "size", "scale", "typography", "bigger", "smaller"] },
         
-        // Themes (4)
-        { pageIndex: 4, pageName: pages[4]?.name ?? "Themes", section: Translation.tr("Theme Presets"), label: Translation.tr("Theme Presets"), keywords: ["theme", "preset", "gruvbox", "catppuccin", "nord", "dracula"] },
-        { pageIndex: 4, pageName: pages[4]?.name ?? "Themes", section: Translation.tr("Auto Theme"), label: Translation.tr("Auto Theme"), keywords: ["auto", "wallpaper", "dynamic", "matugen"] },
-        { pageIndex: 4, pageName: pages[4]?.name ?? "Themes", section: Translation.tr("Typography"), label: Translation.tr("Typography"), keywords: ["font", "typography", "family", "size"] },
+        // === Interface (5) ===
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Normal timeout", targetLabel: "Normal timeout", keywords: ["notification", "timeout", "duration", "normal"] },
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Low priority timeout", targetLabel: "Low priority timeout", keywords: ["notification", "timeout", "low", "priority"] },
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Critical timeout", targetLabel: "Critical timeout", keywords: ["notification", "timeout", "critical", "urgent"] },
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Ignore app timeout", targetLabel: "Ignore app timeout", keywords: ["notification", "timeout", "app", "ignore", "override"] },
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Popup position", targetLabel: "Popup position", keywords: ["notification", "position", "popup", "corner", "top", "bottom", "left", "right"] },
+        { pageIndex: 5, pageName: "Interface", section: "Notifications", label: "Do Not Disturb", targetLabel: "Do Not Disturb", keywords: ["notification", "dnd", "silent", "mute", "disturb", "quiet"] },
+        { pageIndex: 5, pageName: "Interface", section: "On-Screen Display", label: "OSD timeout", targetLabel: "OSD timeout", keywords: ["osd", "volume", "brightness", "timeout", "duration"] },
+        { pageIndex: 5, pageName: "Interface", section: "Lock Screen", label: "Enable blur", targetLabel: "Enable blur", keywords: ["lock", "screen", "blur", "background"] },
+        { pageIndex: 5, pageName: "Interface", section: "Lock Screen", label: "Blur radius", targetLabel: "Blur radius", keywords: ["lock", "screen", "blur", "radius"] },
+        { pageIndex: 5, pageName: "Interface", section: "Lock Screen", label: "Center clock", targetLabel: "Center clock", keywords: ["lock", "screen", "clock", "center", "position"] },
+        { pageIndex: 5, pageName: "Interface", section: "Lock Screen", label: "Show 'Locked' text", targetLabel: "Show 'Locked' text", keywords: ["lock", "screen", "text", "locked"] },
+        { pageIndex: 5, pageName: "Interface", section: "Screen Corners", label: "Fake rounded corners", targetLabel: "Fake rounded corners", keywords: ["screen", "corners", "rounded", "rounding", "fake"] },
         
-        // Interface (5)
-        { pageIndex: 5, pageName: pages[5]?.name ?? "Interface", section: Translation.tr("Animations"), label: Translation.tr("Animations"), keywords: ["animations", "effects", "motion", "reduce"] },
-        { pageIndex: 5, pageName: pages[5]?.name ?? "Interface", section: Translation.tr("Blur"), label: Translation.tr("Blur Effects"), keywords: ["blur", "transparency", "acrylic"] },
-        { pageIndex: 5, pageName: pages[5]?.name ?? "Interface", section: Translation.tr("Screen"), label: Translation.tr("Screen Rounding"), keywords: ["screen", "rounding", "corners"] },
+        // === Modules (6) ===
+        { pageIndex: 6, pageName: "Modules", section: "Panel Style", label: "Panel family", targetLabel: "Panel family", keywords: ["panel", "family", "style", "material", "waffle", "windows"] },
+        { pageIndex: 6, pageName: "Modules", section: "Material Modules in Waffle", label: "Left Sidebar", targetLabel: "Left Sidebar", keywords: ["sidebar", "left", "ai", "chat", "translator"] },
+        { pageIndex: 6, pageName: "Modules", section: "Material Modules in Waffle", label: "Right Sidebar", targetLabel: "Right Sidebar", keywords: ["sidebar", "right", "quick", "settings", "calendar"] },
+        { pageIndex: 6, pageName: "Modules", section: "Material Modules in Waffle", label: "Dock", targetLabel: "Dock", keywords: ["dock", "macos", "pinned", "apps"] },
+        { pageIndex: 6, pageName: "Modules", section: "Material Modules in Waffle", label: "Media Controls Overlay", targetLabel: "Media Controls Overlay", keywords: ["media", "controls", "overlay", "music", "player"] },
+        { pageIndex: 6, pageName: "Modules", section: "Material Modules in Waffle", label: "Screen Corners", targetLabel: "Screen Corners", keywords: ["screen", "corners", "hot", "rounded"] },
+        { pageIndex: 6, pageName: "Modules", section: "Waffle Modules", label: "Widgets Panel", targetLabel: "Widgets Panel", keywords: ["widgets", "panel", "weather", "system", "media"] },
+        { pageIndex: 6, pageName: "Modules", section: "Waffle Modules", label: "Desktop Backdrop", targetLabel: "Desktop Backdrop", keywords: ["backdrop", "desktop", "overview", "blur"] },
         
-        // Modules (6)
-        { pageIndex: 6, pageName: pages[6]?.name ?? "Modules", section: Translation.tr("Panels"), label: Translation.tr("Panel Modules"), keywords: ["modules", "panels", "enable", "disable"] },
+        // === Waffle Style (7) ===
+        { pageIndex: 7, pageName: "Waffle Style", section: "Theming", label: "Use Material colors", targetLabel: "Use Material colors", keywords: ["material", "colors", "theme", "grey", "accent"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Alt+Tab Switcher", label: "Style", targetLabel: "Style", keywords: ["alt", "tab", "switcher", "style", "thumbnails", "cards", "compact", "list"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Alt+Tab Switcher", label: "Quick switch", targetLabel: "Quick switch", keywords: ["alt", "tab", "quick", "switch", "fast"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Alt+Tab Switcher", label: "Most recent first", targetLabel: "Most recent first", keywords: ["alt", "tab", "recent", "order", "mru"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Alt+Tab Switcher", label: "Auto-hide", targetLabel: "Auto-hide", keywords: ["alt", "tab", "auto", "hide", "timeout"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Alt+Tab Switcher", label: "Auto-hide delay", targetLabel: "Auto-hide delay", keywords: ["alt", "tab", "auto", "hide", "delay", "timeout"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Behavior", label: "Allow multiple panels open", targetLabel: "Allow multiple panels open", keywords: ["panels", "multiple", "open", "start", "action"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Behavior", label: "Smoother menu animations", targetLabel: "Smoother menu animations", keywords: ["menu", "animations", "smooth", "popup"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Widgets Panel", label: "Show date & time", targetLabel: "Show date & time", keywords: ["widgets", "date", "time", "clock"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Widgets Panel", label: "Show weather", targetLabel: "Show weather", keywords: ["widgets", "weather", "temperature", "forecast"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Widgets Panel", label: "Show system info", targetLabel: "Show system info", keywords: ["widgets", "system", "info", "cpu", "ram", "memory"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Widgets Panel", label: "Show media controls", targetLabel: "Show media controls", keywords: ["widgets", "media", "controls", "music", "player"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Widgets Panel", label: "Show quick actions", targetLabel: "Show quick actions", keywords: ["widgets", "quick", "actions", "buttons"] },
+        { pageIndex: 7, pageName: "Waffle Style", section: "Calendar", label: "Force 2-char day names", targetLabel: "Force 2-char day names", keywords: ["calendar", "day", "names", "short", "2char"] },
         
-        // Waffle Style (7)
-        { pageIndex: 7, pageName: pages[7]?.name ?? "Waffle Style", section: Translation.tr("Action Center"), label: Translation.tr("Action Center"), keywords: ["action", "center", "toggles", "quick"] },
-        { pageIndex: 7, pageName: pages[7]?.name ?? "Waffle Style", section: Translation.tr("Start Menu"), label: Translation.tr("Start Menu"), keywords: ["start", "menu", "apps", "pinned"] },
-        { pageIndex: 7, pageName: pages[7]?.name ?? "Waffle Style", section: Translation.tr("Alt+Tab"), label: Translation.tr("Alt+Tab Switcher"), keywords: ["alt", "tab", "switcher", "windows"] },
-        { pageIndex: 7, pageName: pages[7]?.name ?? "Waffle Style", section: Translation.tr("Widgets"), label: Translation.tr("Widgets Panel"), keywords: ["widgets", "panel", "weather", "calendar"] },
+        // === Shortcuts (8) ===
+        { pageIndex: 8, pageName: "Shortcuts", section: "", label: "Keyboard Shortcuts", targetLabel: "", keywords: ["shortcuts", "keybinds", "hotkeys", "keyboard", "niri", "super", "mod"] },
         
-        // About (8)
-        { pageIndex: 8, pageName: pages[8]?.name ?? "About", section: "", label: Translation.tr("About ii"), keywords: ["about", "version", "credits", "github"] }
+        // === About (9) ===
+        { pageIndex: 9, pageName: "About", section: "", label: "About ii", targetLabel: "", keywords: ["about", "version", "credits", "github", "info"] }
     ]
     
     function highlightTerms(text: string, terms: list<string>): string {
@@ -120,6 +184,7 @@ Item {
                     section: entry.section,
                     label: entry.label,
                     labelHighlighted: highlightTerms(entry.label, terms),
+                    targetLabel: entry.targetLabel || "",
                     score: score
                 });
             }
@@ -151,17 +216,65 @@ Item {
         if (entry && entry.pageIndex !== undefined && entry.pageIndex >= 0) {
             currentPage = entry.pageIndex;
             
-            // Focus option if available
-            if (typeof SettingsSearchRegistry !== "undefined" && entry.optionId !== undefined) {
-                const optionId = entry.optionId;
-                Qt.callLater(() => {
-                    SettingsSearchRegistry.focusOption(optionId);
-                });
+            // Focus option - try optionId first (dynamic registry), then targetLabel (static index)
+            if (typeof SettingsSearchRegistry !== "undefined") {
+                if (entry.optionId !== undefined) {
+                    // Dynamic registry entry - use optionId
+                    const optionId = entry.optionId;
+                    Qt.callLater(() => {
+                        SettingsSearchRegistry.focusOption(optionId);
+                    });
+                } else if (entry.targetLabel) {
+                    // Static index entry - find widget by label after page loads
+                    const targetLabel = entry.targetLabel;
+                    spotlightTimer.targetLabel = targetLabel;
+                    spotlightTimer.restart();
+                }
             }
         }
         
         searchText = "";
         searchInput.text = "";
+    }
+    
+    // Timer to wait for page to load before spotlight
+    Timer {
+        id: spotlightTimer
+        interval: 100
+        repeat: true
+        property string targetLabel: ""
+        property int retries: 0
+        property int maxRetries: 20  // 2 seconds max wait
+        
+        onTriggered: {
+            if (!targetLabel || typeof SettingsSearchRegistry === "undefined") {
+                console.log("[Spotlight] No targetLabel or registry")
+                stop();
+                return;
+            }
+            
+            // Find entry by label in registry
+            var entries = SettingsSearchRegistry.entries;
+            console.log("[Spotlight] Looking for:", targetLabel, "in page", root.currentPage, "- entries:", entries.length, "retry:", retries)
+            
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].label === targetLabel && entries[i].pageIndex === root.currentPage) {
+                    console.log("[Spotlight] Found! Focusing option", entries[i].id)
+                    SettingsSearchRegistry.focusOption(entries[i].id);
+                    retries = 0;
+                    stop();
+                    return;
+                }
+            }
+            
+            // Retry until found or max retries
+            retries++;
+            if (retries >= maxRetries) {
+                console.log("[Spotlight] Max retries reached, giving up")
+                retries = 0;
+                stop();
+            }
+        }
     }
     
     RowLayout {
@@ -211,6 +324,19 @@ Item {
                         text: Translation.tr("Settings")
                         font.pixelSize: Looks.font.pixelSize.larger
                         font.weight: Font.DemiBold
+                    }
+                    
+                    WBorderlessButton {
+                        implicitWidth: 32
+                        implicitHeight: 32
+                        onClicked: root.closeRequested()
+                        
+                        contentItem: FluentIcon {
+                            anchors.centerIn: parent
+                            icon: "dismiss"
+                            implicitSize: 16
+                            color: Looks.colors.fg
+                        }
                     }
                 }
                 
@@ -598,6 +724,7 @@ Item {
                 anchors.fill: parent
                 
                 property var visitedPages: ({})
+                property bool allPagesLoaded: false
                 
                 Connections {
                     target: root
@@ -609,6 +736,30 @@ Item {
                 
                 Component.onCompleted: {
                     visitedPages[root.currentPage] = true
+                    // Pre-load all pages async for search registration
+                    preloadTimer.start()
+                }
+                
+                // Timer to pre-load pages one by one
+                Timer {
+                    id: preloadTimer
+                    interval: 100
+                    repeat: true
+                    property int nextPage: 1  // Start from 1, page 0 is already loaded
+                    
+                    onTriggered: {
+                        if (nextPage >= root.pages.length) {
+                            pageStack.allPagesLoaded = true
+                            stop()
+                            return
+                        }
+                        
+                        if (!pageStack.visitedPages[nextPage]) {
+                            pageStack.visitedPages[nextPage] = true
+                            pageStack.visitedPagesChanged()
+                        }
+                        nextPage++
+                    }
                 }
                 
                 Repeater {

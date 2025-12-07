@@ -65,6 +65,8 @@ Scope {
                 active: {
                     if (!(Config.options?.sidebar?.cornerOpen?.enable ?? false)) return false;
                     if (cornerPanelWindow.fullscreen) return false;
+                    // Disable corner interactions during GameMode to avoid input capture
+                    if (GameMode.active) return false;
                     return ((Config.options?.sidebar?.cornerOpen?.bottom ?? false) == cornerWidget.isBottom);
                 }
                 anchors {

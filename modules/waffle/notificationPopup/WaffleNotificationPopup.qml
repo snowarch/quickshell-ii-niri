@@ -20,7 +20,8 @@ Scope {
 
     PanelWindow {
         id: panelWindow
-        visible: (Notifications.popupList.length > 0) && !GlobalStates.screenLocked && !GlobalStates.waffleNotificationCenterOpen
+        // Hide during GameMode to avoid input interference
+        visible: (Notifications.popupList.length > 0) && !GlobalStates.screenLocked && !GlobalStates.waffleNotificationCenterOpen && !GameMode.active
 
         screen: CompositorService.isNiri
             ? Quickshell.screens.find(s => s.name === NiriService.currentOutput) ?? Quickshell.screens[0]
@@ -30,6 +31,11 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         exclusiveZone: 0
+        
+        // Only capture input on actual notification area
+        mask: Region {
+            item: listview
+        }
 
         anchors {
             top: root.isTop

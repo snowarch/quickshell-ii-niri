@@ -89,11 +89,7 @@ Singleton {
                 root.silent = Config.options?.notifications?.silent ?? false
             }
         }
-    }
-    
-    Connections {
-        target: Config.options?.notifications ?? null
-        function onSilentChanged() {
+        function onOptionsChanged() {
             root.silent = Config.options?.notifications?.silent ?? false
         }
     }

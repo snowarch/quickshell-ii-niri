@@ -11,7 +11,7 @@ import qs.modules.waffle.settings
 
 WSettingsPage {
     id: root
-    settingsPageIndex: 8
+    settingsPageIndex: 9
     pageTitle: Translation.tr("About")
     pageIcon: "info"
     pageDescription: Translation.tr("Information about ii-niri")
@@ -85,7 +85,7 @@ WSettingsPage {
             label: Translation.tr("GitHub Repository")
             icon: "open"
             buttonText: Translation.tr("Open")
-            onButtonClicked: Qt.openUrlExternally("https://github.com/snowarch/ii-niri")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/snowarch/quickshell-ii-niri")
         }
         
         WSettingsButton {

@@ -62,6 +62,11 @@ ApplicationWindow {
             component: Qt.resolvedUrl("modules/waffle/settings/pages/WWaffleStylePage.qml")
         },
         {
+            name: Translation.tr("Shortcuts"),
+            icon: "keyboard",
+            component: Qt.resolvedUrl("modules/waffle/settings/pages/WShortcutsPage.qml")
+        },
+        {
             name: Translation.tr("About"),
             icon: "info",
             component: Qt.resolvedUrl("modules/waffle/settings/pages/WAboutPage.qml")

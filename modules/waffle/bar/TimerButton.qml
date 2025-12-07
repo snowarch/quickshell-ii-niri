@@ -41,10 +41,10 @@ BarButton {
     }
 
     readonly property string iconName: {
-        if (pomodoroActive) return (TimerService?.pomodoroBreak ?? false) ? "coffee" : "target"
+        if (pomodoroActive) return (TimerService?.pomodoroBreak ?? false) ? "drink-coffee" : "target"
         if (countdownActive) return "hourglass-half"
         if (stopwatchActive) return "timer"
-        return "clock"
+        return "drink-coffee"
     }
 
     visible: anyActive

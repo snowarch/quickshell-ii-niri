@@ -129,4 +129,37 @@ WSettingsPage {
             onCheckedChanged: Config.setNestedValue("waffles.bar.notifications.showUnreadCount", checked)
         }
     }
+    
+    WSettingsCard {
+        visible: root.isWaffleActive
+        title: Translation.tr("Updates")
+        icon: "arrow-sync"
+        
+        WSettingsSpinBox {
+            label: Translation.tr("Check interval")
+            icon: "options"
+            suffix: "m"
+            from: 15; to: 1440; stepSize: 15
+            value: Config.options?.updates?.checkInterval ?? 120
+            onValueChanged: Config.setNestedValue("updates.checkInterval", value)
+        }
+        
+        WSettingsSpinBox {
+            label: Translation.tr("Show icon threshold")
+            icon: "alert"
+            description: Translation.tr("Show update icon when packages exceed this")
+            from: 1; to: 200; stepSize: 5
+            value: Config.options?.updates?.adviseUpdateThreshold ?? 10
+            onValueChanged: Config.setNestedValue("updates.adviseUpdateThreshold", value)
+        }
+        
+        WSettingsSpinBox {
+            label: Translation.tr("Warning threshold")
+            icon: "warning"
+            description: Translation.tr("Show warning color when packages exceed this")
+            from: 10; to: 500; stepSize: 10
+            value: Config.options?.updates?.stronglyAdviseUpdateThreshold ?? 50
+            onValueChanged: Config.setNestedValue("updates.stronglyAdviseUpdateThreshold", value)
+        }
+    }
 }

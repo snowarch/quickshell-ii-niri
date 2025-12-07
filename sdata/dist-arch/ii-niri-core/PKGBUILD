@@ -21,6 +21,7 @@ depends=(
   git
   wl-clipboard
   libnotify
+  pacman-contrib  # checkupdates for update notifications
   
   # XDG Portals for Niri
   xdg-desktop-portal

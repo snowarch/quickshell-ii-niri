@@ -21,7 +21,7 @@
     "extraBackgroundTint": true,
     "fakeScreenRounding": 0,
     "palette": {
-      "type": "scheme-rainbow"
+      "type": "angel"
     },
     "transparency": {
       "automatic": true,
@@ -49,7 +49,8 @@
     "networkEthernet": "nm-connection-editor",
     "taskManager": "missioncenter",
     "terminal": "foot",
-    "volumeMixer": "pavucontrol"
+    "volumeMixer": "pavucontrol",
+    "update": "foot -e arch-update"
   },
   "audio": {
     "protection": {
@@ -69,7 +70,7 @@
       "vignetteEnabled": false,
       "vignetteIntensity": 1,
       "vignetteRadius": 0.7,
-      "wallpaperPath": "~/.config/quickshell/ii/assets/wallpapers/qs-niri.jpg",
+      "wallpaperPath": "",
       "hideWallpaper": false
     },
     "effects": {
@@ -90,7 +91,7 @@
       "workspaceZoom": 1.07
     },
     "thumbnailPath": "",
-    "wallpaperPath": "~/.config/quickshell/ii/assets/wallpapers/qs-niri.jpg",
+    "wallpaperPath": "",
     "widgets": {
       "clock": {
         "cookie": {

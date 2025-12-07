@@ -396,7 +396,10 @@ ApplicationWindow {
             section: Translation.tr("Keyboard Shortcuts"),
             label: Translation.tr("Keyboard Shortcuts"),
             description: Translation.tr("Niri and ii keybindings reference"),
-            keywords: ["shortcuts", "keybindings", "hotkeys", "keyboard", "cheatsheet"]
+            keywords: ["shortcuts", "keybindings", "hotkeys", "keyboard", "cheatsheet",
+                       "terminal", "clipboard", "volume", "brightness", "screenshot", "lock",
+                       "workspace", "window", "focus", "move", "fullscreen", "floating",
+                       "overview", "settings", "wallpaper", "media", "play", "pause"]
         },
 
         // Modules
@@ -555,6 +558,8 @@ ApplicationWindow {
 
     // Pending spotlight data
     property int pendingSpotlightOptionId: -1
+    property string pendingSpotlightLabel: ""
+    property int pendingSpotlightPageIndex: -1
     property var spotlightFlickable: null
     
     function openSearchResult(entry) {
@@ -571,44 +576,74 @@ ApplicationWindow {
             return;
         }
         
-        // Store the optionId for spotlight (if available)
+        // Store spotlight target info
         pendingSpotlightOptionId = (entry.optionId !== undefined) ? entry.optionId : -1;
+        pendingSpotlightLabel = entry.label || "";
+        pendingSpotlightPageIndex = entry.pageIndex;
         
         // Navigate to page (this triggers page load if needed)
         if (currentPage !== entry.pageIndex) {
             currentPage = entry.pageIndex;
-            // Page change - wait for load then spotlight
-            if (pendingSpotlightOptionId >= 0) {
-                spotlightPageLoadTimer.restart();
-            }
-        } else {
-            // Same page - spotlight immediately
-            if (pendingSpotlightOptionId >= 0) {
-                doSpotlight();
-            }
+        }
+        
+        // Always try spotlight (with retry for lazy-loaded widgets)
+        if (pendingSpotlightOptionId >= 0 || pendingSpotlightLabel.length > 0) {
+            spotlightRetryCount = 0;
+            spotlightPageLoadTimer.restart();
         }
     }
     
-    // Timer to wait for page load after navigation
+    property int spotlightRetryCount: 0
+    property int spotlightMaxRetries: 15
+    
+    // Timer to wait for page load and widget registration
     Timer {
         id: spotlightPageLoadTimer
-        interval: 200  // Wait for page to fully load and layout
-        onTriggered: root.doSpotlight()
+        interval: 150
+        onTriggered: root.trySpotlight()
     }
     
-    function doSpotlight() {
-        if (pendingSpotlightOptionId < 0) return;
+    function trySpotlight() {
+        var control = null;
         
-        var control = SettingsSearchRegistry.getControlById(pendingSpotlightOptionId);
-        if (!control) {
-            pendingSpotlightOptionId = -1;
-            return;
+        // Try by optionId first
+        if (pendingSpotlightOptionId >= 0) {
+            control = SettingsSearchRegistry.getControlById(pendingSpotlightOptionId);
         }
+        
+        // Fallback: search by label+pageIndex in registry
+        if (!control && pendingSpotlightLabel.length > 0) {
+            for (var i = 0; i < SettingsSearchRegistry.entries.length; i++) {
+                var e = SettingsSearchRegistry.entries[i];
+                if (e.pageIndex === pendingSpotlightPageIndex && e.label === pendingSpotlightLabel) {
+                    control = e.control;
+                    break;
+                }
+            }
+        }
+        
+        if (control) {
+            doSpotlightForControl(control);
+        } else if (spotlightRetryCount < spotlightMaxRetries) {
+            spotlightRetryCount++;
+            spotlightPageLoadTimer.restart();
+        } else {
+            // Give up after max retries
+            pendingSpotlightOptionId = -1;
+            pendingSpotlightLabel = "";
+            pendingSpotlightPageIndex = -1;
+        }
+    }
+    
+    function doSpotlightForControl(control) {
+        if (!control) return;
         
         // Find the parent Flickable (ContentPage/StyledFlickable)
         var flick = findParentFlickable(control);
         if (!flick) {
             pendingSpotlightOptionId = -1;
+            pendingSpotlightLabel = "";
+            pendingSpotlightPageIndex = -1;
             return;
         }
         
@@ -1075,6 +1110,7 @@ ApplicationWindow {
 
                     // Track which pages have been visited (for lazy loading with cache)
                     property var visitedPages: ({})
+                    property int preloadIndex: 0
 
                     Connections {
                         target: root
@@ -1087,6 +1123,27 @@ ApplicationWindow {
                     Component.onCompleted: {
                         // Mark initial page as visited
                         visitedPages[root.currentPage] = true
+                        // Start preloading other pages after a short delay
+                        preloadTimer.start()
+                    }
+                    
+                    // Preload all pages asynchronously for search
+                    Timer {
+                        id: preloadTimer
+                        interval: 300
+                        repeat: true
+                        onTriggered: {
+                            while (pagesStack.preloadIndex < root.pages.length) {
+                                if (!pagesStack.visitedPages[pagesStack.preloadIndex]) {
+                                    pagesStack.visitedPages[pagesStack.preloadIndex] = true
+                                    pagesStack.visitedPagesChanged()
+                                    pagesStack.preloadIndex++
+                                    return // Load one page per tick
+                                }
+                                pagesStack.preloadIndex++
+                            }
+                            preloadTimer.stop()
+                        }
                     }
 
                     Repeater {

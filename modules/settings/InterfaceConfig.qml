@@ -568,6 +568,18 @@ ContentPage {
             }
 
             ConfigSpinBox {
+                icon: "blur_linear"
+                text: Translation.tr("Blur radius")
+                value: Config.options?.lock?.blur?.radius ?? 100
+                from: 0
+                to: 200
+                stepSize: 10
+                onValueChanged: {
+                    Config.setNestedValue("lock.blur.radius", value);
+                }
+            }
+
+            ConfigSpinBox {
                 icon: "loupe"
                 text: Translation.tr("Extra wallpaper zoom (%)")
                 value: Config.options.lock.blur.extraZoom * 100

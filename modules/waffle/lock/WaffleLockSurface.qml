@@ -54,11 +54,18 @@ MouseArea {
         z: -1
     }
 
+    // Resolve wallpaper path: waffle-specific if configured, otherwise main
+    readonly property string _wallpaperPath: {
+        const wBg = Config.options?.waffles?.background
+        if (wBg?.useMainWallpaper ?? true) return Config.options?.background?.wallpaperPath ?? ""
+        return wBg?.wallpaperPath ?? Config.options?.background?.wallpaperPath ?? ""
+    }
+
     // Background wallpaper with Acrylic blur effect
     Image {
         id: backgroundWallpaper
         anchors.fill: parent
-        source: Config.options?.background?.wallpaperPath ?? ""
+        source: root._wallpaperPath
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         
@@ -182,25 +189,22 @@ MouseArea {
                     spacing: 12
                     
                     // Weather icon
-                    Image {
-                        id: weatherIcon
+                    MaterialSymbol {
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 48
-                        height: 48
-                        source: `${Directories.assetsPath}/icons/weather/${getWeatherIconName(Weather.data?.wCode ?? "113")}.png`
-                        fillMode: Image.PreserveAspectFit
-                        asynchronous: true
+                        text: {
+                            const icon = Icons.getWeatherIcon(Weather.data?.wCode ?? "113")
+                            return icon ? icon : "cloud"
+                        }
+                        iconSize: 48
+                        color: root.textColor
                         
-                        function getWeatherIconName(code: string): string {
-                            const c = parseInt(code)
-                            if (c === 113) return "sunny"
-                            if (c === 116) return "partly-cloudy"
-                            if ([119, 122].includes(c)) return "cloudy"
-                            if ([143, 248, 260].includes(c)) return "fog"
-                            if ([176, 263, 266, 293, 296, 299, 302, 305, 308, 353, 356, 359].includes(c)) return "rainy"
-                            if ([179, 182, 185, 227, 230, 281, 284, 311, 314, 317, 320, 323, 326, 329, 332, 335, 338, 350, 362, 365, 368, 371, 374, 377].includes(c)) return "snowy"
-                            if ([200, 386, 389, 392, 395].includes(c)) return "thunderstorm"
-                            return "cloudy"
+                        layer.enabled: true
+                        layer.effect: DropShadow {
+                            horizontalOffset: 0
+                            verticalOffset: 2
+                            radius: 6
+                            samples: 13
+                            color: root.textShadowColor
                         }
                     }
                     
