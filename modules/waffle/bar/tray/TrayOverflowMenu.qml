@@ -11,6 +11,8 @@ import qs.modules.waffle.bar
 
 BarPopup {
     id: root
+    
+    property var trayParent: null  // Reference to Tray for closing other menus
 
     // Disable both auto-close mechanisms - this menu is controlled by the toggle button
     closeOnFocusLost: false
@@ -51,6 +53,7 @@ BarPopup {
                     id: trayButton
                     required property var modelData
                     item: modelData
+                    trayParent: root.trayParent
 
                     topInset: 0
                     bottomInset: 0

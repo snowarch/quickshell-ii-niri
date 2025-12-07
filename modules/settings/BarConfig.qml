@@ -343,13 +343,20 @@ ContentPage {
         visible: root.isIiActive
         icon: "cloud"
         title: Translation.tr("Weather")
+        
         ConfigSwitch {
             buttonIcon: "check"
-            text: Translation.tr("Enable")
-            checked: Config.options.bar.weather.enable
-            onCheckedChanged: {
-                Config.options.bar.weather.enable = checked;
-            }
+            text: Translation.tr("Show in bar")
+            checked: Config.options?.bar?.weather?.enable ?? false
+            onCheckedChanged: Config.setNestedValue("bar.weather.enable", checked)
+        }
+        
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Configure city, units and update interval in Services → Weather")
+            color: Appearance.colors.colOnSurfaceVariant
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
         }
     }
 

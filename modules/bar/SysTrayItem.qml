@@ -11,6 +11,7 @@ import Qt5Compat.GraphicalEffects
 MouseArea {
     id: root
     required property SystemTrayItem item
+    property var trayParent: null  // Reference to SysTray for closing other menus
     property bool targetMenuOpen: false
     // Check if this is a problematic app that needs special handling
     property bool isProblematicApp: TrayService.getProblematicAppInfo(item) !== null
@@ -20,14 +21,14 @@ MouseArea {
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-    implicitWidth: 20
-    implicitHeight: 20
+    implicitWidth: 18
+    implicitHeight: 18
     onPressed: (event) => {
         switch (event.button) {
         case Qt.LeftButton: {
-            // Use smart activate for problematic apps (Spotify, Discord, etc.)
-            // Falls back to normal activate() if not a known problematic app
-            if (!TrayService.smartActivate(item)) {
+            // Smart toggle: click to show, click again to minimize
+            // Falls back to normal activate() if not handled
+            if (!TrayService.smartToggle(item)) {
                 item.activate();
             }
             break;
@@ -37,7 +38,11 @@ MouseArea {
             item.secondaryActivate();
             break;
         case Qt.RightButton:
-            if (item.hasMenu) menu.open();
+            if (item.hasMenu) {
+                // Close other tray menus first
+                if (trayParent) trayParent.closeAllTrayMenus();
+                menu.open();
+            }
             break;
         }
         event.accepted = true;
@@ -55,6 +60,17 @@ MouseArea {
         if (Config.options?.bar?.tray?.showItemId) tooltip.text += "\n[" + id + "]";
     }
 
+    // Listen for close signal from parent tray
+    Connections {
+        target: root.trayParent
+        enabled: root.trayParent !== null
+        function onCloseAllTrayMenus() {
+            if (menu.active && menu.item) {
+                menu.item.close();
+            }
+        }
+    }
+
     Loader {
         id: menu
         function open() {
@@ -64,14 +80,12 @@ MouseArea {
         sourceComponent: SysTrayMenu {
             Component.onCompleted: this.open();
             trayItemMenuHandle: root.item.menu
+            anchorHovered: root.containsMouse
             anchor {
-                window: root.QsWindow.window
-                rect.x: root.x + ((Config.options?.bar?.vertical ?? false) ? 0 : QsWindow.window?.width)
-                rect.y: root.y + ((Config.options?.bar?.vertical ?? false) ? QsWindow.window?.height : 0)
-                rect.height: root.height
-                rect.width: root.width
-                edges: (Config.options?.bar?.bottom ?? false) ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
-                gravity: (Config.options?.bar?.bottom ?? false) ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                item: root
+                edges: (Config.options?.bar?.bottom ?? false) ? Edges.Top : Edges.Bottom
+                gravity: (Config.options?.bar?.bottom ?? false) ? Edges.Top : Edges.Bottom
+                adjustment: PopupAdjustment.SlideX
             }
             onMenuOpened: (window) => root.menuOpened(window);
             onMenuClosed: {

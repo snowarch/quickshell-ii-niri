@@ -17,6 +17,9 @@ Item {
     property bool showOverflowMenu: true
     property var activeMenu: null
 
+    // Signal to close all tray menus before opening a new one
+    signal closeAllTrayMenus()
+
     property bool smartTray: Config.options.bar.tray.filterPassive
     
     // Filter out invalid items (null or missing id)
@@ -139,6 +142,7 @@ Item {
                         delegate: SysTrayItem {
                             required property SystemTrayItem modelData
                             item: modelData
+                            trayParent: root
                             Layout.fillHeight: !root.vertical
                             Layout.fillWidth: root.vertical
                             onMenuClosed: root.releaseFocus();
@@ -157,6 +161,7 @@ Item {
             delegate: SysTrayItem {
                 required property SystemTrayItem modelData
                 item: modelData
+                trayParent: root
                 Layout.fillHeight: !root.vertical
                 Layout.fillWidth: root.vertical
                 onMenuClosed: root.releaseFocus();

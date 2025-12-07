@@ -11,6 +11,7 @@ AppButton {
     id: root
 
     required property var appEntry
+    property var tasksParent: null  // Reference to Tasks for closing other menus
     readonly property bool isSeparator: appEntry.appId === "SEPARATOR"
     readonly property var desktopEntry: DesktopEntries.heuristicLookup(appEntry.appId)
     property bool active: root.appEntry.toplevels.some(t => t.activated)
@@ -117,7 +118,19 @@ AppButton {
     altAction: () => {
         root.hoverPreviewDismissed()
         root.hoverTimer.stop()
+        // Close other context menus first
+        if (tasksParent) tasksParent.closeAllContextMenus()
         contextMenu.active = true;
+    }
+    
+    Connections {
+        target: root.tasksParent
+        enabled: root.tasksParent !== null
+        function onCloseAllContextMenus() {
+            if (contextMenu.active && contextMenu.item) {
+                contextMenu.item.close();
+            }
+        }
     }
 
     // Smart indicator: W11 style pills showing window count and which is focused
@@ -176,6 +189,7 @@ AppButton {
 
     BarMenu {
         id: contextMenu
+        anchorHovered: root.hovered
         noSmoothClosing: false // On the real thing this is always smooth
 
         model: [

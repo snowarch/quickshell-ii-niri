@@ -15,11 +15,12 @@ BarPopup {
     required property QsMenuHandle trayItemMenuHandle
     
     closeOnFocusLost: true
-    closeOnHoverLost: false
-    padding: 4
+    closeOnHoverLost: true
+    padding: 2
+    visualMargin: 8
 
     contentItem: Item {
-        implicitWidth: stackView.implicitWidth
+        implicitWidth: Math.min(stackView.implicitWidth, 220)
         implicitHeight: stackView.implicitHeight
 
         StackView {

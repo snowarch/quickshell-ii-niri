@@ -11,6 +11,7 @@ PopupWindow {
     id: root
     required property QsMenuHandle trayItemMenuHandle
     property real popupBackgroundMargin: 0
+    property bool anchorHovered: false  // Set by parent to indicate if anchor is hovered
 
     signal menuClosed
     signal menuOpened(qsWindow: var) // Correct type is QsWindow, but QML does not like that
@@ -62,6 +63,18 @@ PopupWindow {
         }
     }
 
+    // Close when mouse leaves the popup AND anchor
+    HoverHandler {
+        id: hoverHandler
+    }
+    
+    Timer {
+        id: closeTimer
+        interval: 300
+        running: root.visible && !hoverHandler.hovered && !root.anchorHovered
+        onTriggered: root.close()
+    }
+
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.BackButton | Qt.RightButton
@@ -77,7 +90,7 @@ PopupWindow {
 
         Rectangle {
             id: popupBackground
-            readonly property real padding: 4
+            readonly property real padding: 3
             anchors {
                 left: parent.left
                 right: parent.right

@@ -171,6 +171,47 @@ WSettingsPage {
         }
     }
     
+    // Weather configuration - shared with ii family
+    WSettingsCard {
+        title: Translation.tr("Weather")
+        icon: "weather-sunny"
+        
+        WSettingsTextField {
+            label: Translation.tr("City")
+            icon: "location"
+            description: Translation.tr("Leave empty to auto-detect from IP")
+            placeholderText: Translation.tr("e.g. Buenos Aires, London, Tokyo")
+            text: Config.options?.bar?.weather?.city ?? ""
+            onTextEdited: newText => Config.setNestedValue("bar.weather.city", newText)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Use GPS location")
+            icon: "location"
+            description: Translation.tr("Override city with GPS coordinates when available")
+            checked: Config.options?.bar?.weather?.enableGPS ?? false
+            onCheckedChanged: Config.setNestedValue("bar.weather.enableGPS", checked)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Use Fahrenheit")
+            icon: "options"
+            description: Translation.tr("Display temperature in °F instead of °C")
+            checked: Config.options?.bar?.weather?.useUSCS ?? false
+            onCheckedChanged: Config.setNestedValue("bar.weather.useUSCS", checked)
+        }
+        
+        WSettingsSpinBox {
+            label: Translation.tr("Update interval")
+            icon: "arrow-sync"
+            description: Translation.tr("How often to refresh weather data")
+            suffix: " min"
+            from: 5; to: 60; stepSize: 5
+            value: Config.options?.bar?.weather?.fetchInterval ?? 10
+            onValueChanged: Config.setNestedValue("bar.weather.fetchInterval", value)
+        }
+    }
+    
     WSettingsCard {
         visible: root.isWaffleActive
         title: Translation.tr("Calendar")
