@@ -10,3 +10,4 @@ WSettingsButton 1.0 WSettingsButton.qml
 WSettingsNavItem 1.0 WSettingsNavItem.qml
 WSettingsContent 1.0 WSettingsContent.qml
 WKeybindRow 1.0 WKeybindRow.qml
+WSettingsTextField 1.0 WSettingsTextField.qml

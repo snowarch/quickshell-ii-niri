@@ -30,9 +30,16 @@ WButton {
     enabled: !menuEntry.isSeparator && menuEntry.enabled
     visible: !menuEntry.isSeparator
     
+    // Hover más visible con accent color
+    colBackground: "transparent"
+    colBackgroundHover: ColorUtils.transparentize(Looks.colors.accent, 0.85)
+    colBackgroundActive: ColorUtils.transparentize(Looks.colors.accent, 0.7)
+    
     text: menuEntry.text
-    horizontalPadding: 12
-    verticalPadding: 8
+    horizontalPadding: 10
+    verticalPadding: 6
+    
+    font.pixelSize: Looks.font.pixelSize.small
 
     onClicked: {
         if (menuEntry.hasChildren) {
@@ -88,16 +95,17 @@ WButton {
         // Menu item text
         WText {
             text: root.menuEntry.text
-            font.pixelSize: Looks.font.pixelSize.normal
+            font.pixelSize: Looks.font.pixelSize.small
             color: root.fgColor
             Layout.fillWidth: true
+            elide: Text.ElideRight
         }
 
         // Submenu arrow
         FluentIcon {
             visible: root.menuEntry.hasChildren
             icon: "chevron-right"
-            implicitSize: 12
+            implicitSize: 10
             color: root.fgColor
         }
     }

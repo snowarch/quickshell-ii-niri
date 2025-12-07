@@ -16,6 +16,7 @@ BarIconButton {
     id: root
 
     required property SystemTrayItem item
+    property var trayParent: null  // Reference to Tray for closing other menus
     property alias menuOpen: menu.visible
     readonly property bool barAtBottom: Config.options.waffles.bar.bottom
     readonly property bool tintIcons: Config.options.waffles.bar.tintTrayIcons
@@ -37,7 +38,21 @@ BarIconButton {
     }
 
     altAction: () => {
-        if (item?.hasMenu) menu.active = true
+        if (item?.hasMenu) {
+            // Close other tray menus first
+            if (trayParent) trayParent.closeAllTrayMenus();
+            menu.active = true
+        }
+    }
+    
+    Connections {
+        target: root.trayParent
+        enabled: root.trayParent !== null
+        function onCloseAllTrayMenus() {
+            if (menu.active && menu.item) {
+                menu.item.close();
+            }
+        }
     }
 
     // Normal icon (no tint)
@@ -80,6 +95,7 @@ BarIconButton {
 
     WaffleTrayMenu {
         id: menu
+        anchorHovered: root.hovered
         trayItemMenuHandle: root.item?.menu ?? null
     }
 

@@ -20,6 +20,9 @@ Item {
     property Item lastHoveredButton
     property bool buttonHovered: false
     property bool requestDockShow: previewPopup.show
+    
+    // Signal to close any open context menu before opening a new one
+    signal closeAllContextMenus()
 
     Layout.fillHeight: true
     Layout.topMargin: Appearance.sizes.hyprlandGapsOut // why does this work

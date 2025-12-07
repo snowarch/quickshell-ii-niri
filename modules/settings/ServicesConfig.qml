@@ -277,47 +277,49 @@ ContentPage {
     ContentSection {
         icon: "weather_mix"
         title: Translation.tr("Weather")
-        ConfigRow {
-            ConfigSwitch {
-                buttonIcon: "assistant_navigation"
-                text: Translation.tr("Enable GPS based location")
-                checked: Config.options.bar.weather.enableGPS
-                onCheckedChanged: {
-                    Config.options.bar.weather.enableGPS = checked;
-                }
-            }
-            ConfigSwitch {
-                buttonIcon: "thermometer"
-                text: Translation.tr("Fahrenheit unit")
-                checked: Config.options.bar.weather.useUSCS
-                onCheckedChanged: {
-                    Config.options.bar.weather.useUSCS = checked;
-                }
-                StyledToolTip {
-                    text: Translation.tr("It may take a few seconds to update")
-                }
-            }
+        
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Weather data is provided by Open-Meteo. Leave city empty to auto-detect from your IP address.")
+            color: Appearance.colors.colOnSurfaceVariant
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
         }
         
         MaterialTextArea {
             Layout.fillWidth: true
-            placeholderText: Translation.tr("City name")
-            text: Config.options.bar.weather.city
+            placeholderText: Translation.tr("City (e.g. Buenos Aires, London, Tokyo)")
+            text: Config.options?.bar?.weather?.city ?? ""
             wrapMode: TextEdit.Wrap
-            onTextChanged: {
-                Config.options.bar.weather.city = text;
+            onTextChanged: Config.setNestedValue("bar.weather.city", text)
+        }
+        
+        ConfigRow {
+            ConfigSwitch {
+                buttonIcon: "my_location"
+                text: Translation.tr("Use GPS location")
+                checked: Config.options?.bar?.weather?.enableGPS ?? false
+                onCheckedChanged: Config.setNestedValue("bar.weather.enableGPS", checked)
+                StyledToolTip {
+                    text: Translation.tr("Override city with GPS coordinates when available")
+                }
+            }
+            ConfigSwitch {
+                buttonIcon: "thermometer"
+                text: Translation.tr("Use Fahrenheit (°F)")
+                checked: Config.options?.bar?.weather?.useUSCS ?? false
+                onCheckedChanged: Config.setNestedValue("bar.weather.useUSCS", checked)
             }
         }
+        
         ConfigSpinBox {
-            icon: "av_timer"
-            text: Translation.tr("Polling interval (m)")
-            value: Config.options.bar.weather.fetchInterval
+            icon: "update"
+            text: Translation.tr("Update interval (minutes)")
+            value: Config.options?.bar?.weather?.fetchInterval ?? 10
             from: 5
-            to: 50
+            to: 60
             stepSize: 5
-            onValueChanged: {
-                Config.options.bar.weather.fetchInterval = value;
-            }
+            onValueChanged: Config.setNestedValue("bar.weather.fetchInterval", value)
         }
     }
 }

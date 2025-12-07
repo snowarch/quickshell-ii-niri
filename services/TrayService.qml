@@ -5,6 +5,7 @@ import qs.services
 import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
+import Quickshell.Wayland
 
 Singleton {
     id: root
@@ -13,21 +14,22 @@ Singleton {
     
     // Apps that don't implement DBus Activate properly (libappindicator issue)
     // These apps need workarounds: gtk-launch or window focus
+    // matches: array of substrings to match in tray id/title OR window app_id/title
+    // focusOnly: true = only focus, don't minimize (for apps that crash when minimized)
     readonly property var problematicApps: [
-        // Pattern: { match: "substring to match in id/title", launch: "desktop-file-id or command" }
-        { match: "spotify", launch: "spotify-launcher" },
-        { match: "discord", launch: "discord" },
-        { match: "vesktop", launch: "vesktop" },
-        { match: "armcord", launch: "armcord" },
-        { match: "slack", launch: "slack" },
-        { match: "teams", launch: "teams-for-linux" },
-        { match: "telegram", launch: "org.telegram.desktop" },
-        { match: "signal", launch: "signal-desktop" },
-        { match: "element", launch: "element-desktop" },
-        { match: "steam", launch: "steam" },
-        { match: "skype", launch: "skypeforlinux" },
-        { match: "viber", launch: "viber" },
-        { match: "zoom", launch: "zoom" },
+        { matches: ["spotify"], launch: "spotify-launcher" },
+        { matches: ["discord", "Discord"], launch: "discord", focusOnly: true },
+        { matches: ["vesktop", "Vesktop"], launch: "vesktop" },
+        { matches: ["armcord", "ArmCord"], launch: "armcord" },
+        { matches: ["slack", "Slack"], launch: "slack" },
+        { matches: ["teams", "Teams"], launch: "teams-for-linux" },
+        { matches: ["telegram", "Telegram", "org.telegram"], launch: "org.telegram.desktop" },
+        { matches: ["signal", "Signal"], launch: "signal-desktop" },
+        { matches: ["element", "Element"], launch: "element-desktop" },
+        { matches: ["steam", "Steam"], launch: "steam" },
+        { matches: ["skype", "Skype"], launch: "skypeforlinux" },
+        { matches: ["viber", "Viber"], launch: "viber" },
+        { matches: ["zoom", "Zoom"], launch: "zoom" },
     ]
     
     // Check if an item is a problematic app
@@ -35,13 +37,28 @@ Singleton {
         if (!item) return null;
         const id = (item.id ?? "").toLowerCase();
         const title = (item.title ?? "").toLowerCase();
+        const tooltipTitle = (item.tooltipTitle ?? "").toLowerCase();
+        const iconName = (item.icon ?? "").toLowerCase();
         
         for (const app of problematicApps) {
-            if (id.includes(app.match) || title.includes(app.match)) {
-                return app;
+            for (const pattern of app.matches) {
+                const p = pattern.toLowerCase();
+                if (id.includes(p) || title.includes(p) || tooltipTitle.includes(p) || iconName.includes(p)) {
+                    return app;
+                }
             }
         }
         return null;
+    }
+    
+    // Check if a string matches any pattern from an app's matches array
+    function matchesApp(str, app): bool {
+        if (!str || !app?.matches) return false;
+        const s = str.toLowerCase();
+        for (const pattern of app.matches) {
+            if (s.includes(pattern.toLowerCase())) return true;
+        }
+        return false;
     }
     
     // Smart activate: tries to focus existing window or launch app
@@ -74,6 +91,57 @@ Singleton {
         const cmd = "gtk-launch " + appInfo.launch + " 2>/dev/null; or " + appInfo.launch + " &";
         Quickshell.execDetached(["fish", "-c", cmd]);
         return true;
+    }
+    
+    // Smart toggle: click to show/hide window
+    // For most apps: close window (they stay in tray), click again to reopen
+    // For focusOnly apps (like Discord): just focus (close crashes them)
+    function smartToggle(item): bool {
+        if (!item) return false;
+        
+        const id = (item.id ?? "").toLowerCase();
+        const appInfo = getProblematicAppInfo(item);
+        const focusOnly = appInfo?.focusOnly ?? false;
+        
+        if (CompositorService.isNiri) {
+            // Find window using ToplevelManager
+            let toplevel = null;
+            for (const tl of ToplevelManager.toplevels.values) {
+                const appId = (tl.appId ?? "").toLowerCase();
+                const tlTitle = (tl.title ?? "").toLowerCase();
+                
+                let isMatch = false;
+                if (appInfo) {
+                    isMatch = matchesApp(appId, appInfo) || matchesApp(tlTitle, appInfo);
+                } else {
+                    isMatch = appId.includes(id) || id.includes(appId) || 
+                              tlTitle.includes(id) || appId === id;
+                }
+                
+                if (isMatch) {
+                    toplevel = tl;
+                    break;
+                }
+            }
+            
+            if (toplevel) {
+                if (focusOnly) {
+                    toplevel.activate();
+                } else {
+                    toplevel.close();
+                }
+                return true;
+            }
+        }
+        
+        // No window found - launch app
+        if (appInfo) {
+            const cmd = "gtk-launch \"" + appInfo.launch + "\" || \"" + appInfo.launch + "\" &";
+            Quickshell.execDetached(["bash", "-lc", cmd]);
+            return true;
+        }
+        
+        return false;
     }
     
     // Filter out invalid items (null or missing id)

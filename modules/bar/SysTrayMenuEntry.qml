@@ -20,15 +20,17 @@ RippleButton {
     signal dismiss()
     signal openSubmenu(handle: QsMenuHandle)
 
-    colBackground: menuEntry.isSeparator ? Appearance.m3colors.m3outlineVariant : ColorUtils.transparentize(Appearance.colors.colLayer0)
+    colBackground: menuEntry.isSeparator ? Appearance.m3colors.m3outlineVariant : "transparent"
+    colBackgroundHover: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.85)
+    colRipple: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.7)
     enabled: !menuEntry.isSeparator
     opacity: 1
 
-    horizontalPadding: 12
+    horizontalPadding: 8
     implicitWidth: contentItem.implicitWidth + horizontalPadding * 2
-    implicitHeight: menuEntry.isSeparator ? 1 : 36
-    Layout.topMargin: menuEntry.isSeparator ? 4 : 0
-    Layout.bottomMargin: menuEntry.isSeparator ? 4 : 0
+    implicitHeight: menuEntry.isSeparator ? 1 : 32
+    Layout.topMargin: menuEntry.isSeparator ? 2 : 0
+    Layout.bottomMargin: menuEntry.isSeparator ? 2 : 0
     Layout.fillWidth: true
 
     Component.onCompleted: {
@@ -58,14 +60,14 @@ RippleButton {
             leftMargin: root.horizontalPadding
             rightMargin: root.horizontalPadding
         }
-        spacing: 8
+        spacing: 6
         visible: !root.menuEntry.isSeparator
 
         // Interaction: checkbox or radio button
         Item {
             visible: root.hasSpecialInteraction || root.forceSpecialInteractionColumn
-            implicitWidth: 20
-            implicitHeight: 20
+            implicitWidth: 16
+            implicitHeight: 16
 
             Loader {
                 anchors.fill: parent
@@ -84,7 +86,7 @@ RippleButton {
 
                 sourceComponent: MaterialSymbol {
                     text: root.menuEntry.checkState === Qt.PartiallyChecked ? "check_indeterminate_small" : "check"
-                    iconSize: 20
+                    iconSize: 16
                 }
             }
         }
@@ -92,8 +94,8 @@ RippleButton {
         // Button icon
         Item {
             visible: root.hasIcon || root.forceIconColumn
-            implicitWidth: 20
-            implicitHeight: 20
+            implicitWidth: 16
+            implicitHeight: 16
 
             Loader {
                 anchors.centerIn: parent
@@ -101,7 +103,7 @@ RippleButton {
                 sourceComponent: IconImage {
                     asynchronous: true
                     source: root.menuEntry.icon
-                    implicitSize: 20
+                    implicitSize: 16
                     mipmap: true
                 }
             }
@@ -110,7 +112,7 @@ RippleButton {
         StyledText {
             id: label
             text: root.menuEntry.text
-            font.pixelSize: Appearance.font.pixelSize.smallie
+            font.pixelSize: Appearance.font.pixelSize.small
             Layout.fillWidth: true
         }
 
@@ -119,7 +121,7 @@ RippleButton {
 
             sourceComponent: MaterialSymbol {
                 text: "chevron_right"
-                iconSize: 20
+                iconSize: 16
             }
         }
     }

@@ -12,6 +12,9 @@ MouseArea {
     implicitHeight: row.implicitHeight
     implicitWidth: row.implicitWidth
     hoverEnabled: true
+    
+    // Signal to close all context menus before opening a new one
+    signal closeAllContextMenus()
 
     function showPreviewPopup(appEntry, button) {
         previewPopup.show(appEntry, button);
@@ -39,6 +42,7 @@ MouseArea {
             delegate: TaskAppButton {
                 required property var modelData
                 appEntry: modelData
+                tasksParent: root
 
                 onHoverPreviewRequested: {
                     root.showPreviewPopup(appEntry, this)

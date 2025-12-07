@@ -48,7 +48,7 @@ import qs.services
 ShellRoot {
     id: root
 
-    // Force Idle/GameMode singleton instantiation
+    // Force singleton instantiation
     property var _idleService: Idle
     property var _gameModeService: GameMode
 

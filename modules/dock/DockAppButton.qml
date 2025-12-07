@@ -151,13 +151,63 @@ DockButton {
     }
 
     altAction: () => {
-        // Use originalAppId to ensure proper matching with config (case-sensitive comparison)
-        const appId = appToplevel.originalAppId ?? appToplevel.appId;
-        if (Config.options.dock.pinnedApps.indexOf(appId) !== -1) {
-            Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.filter(id => id !== appId)
-        } else {
-            Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.concat([appId])
+        root.appListRoot.closeAllContextMenus()
+        contextMenu.active = true
+    }
+
+    Connections {
+        target: root.appListRoot
+        function onCloseAllContextMenus() {
+            contextMenu.close()
         }
+    }
+
+    DockContextMenu {
+        id: contextMenu
+        anchorItem: root
+        anchorHovered: root.buttonHovered
+        
+        model: [
+            // Desktop actions (if available)
+            ...((root.desktopEntry?.actions?.length > 0) ? root.desktopEntry.actions.map(action => ({
+                iconName: action.icon ?? "",
+                text: action.name,
+                action: () => action.execute()
+            })).concat({ type: "separator" }) : []),
+            // Launch new instance
+            {
+                iconName: root.desktopEntry?.icon ?? "",
+                text: root.desktopEntry?.name ?? StringUtils.toTitleCase(appToplevel.originalAppId ?? appToplevel.appId),
+                monochromeIcon: false,
+                action: () => root.launchFromDesktopEntry()
+            },
+            // Pin/Unpin
+            {
+                iconName: appToplevel.pinned ? "keep_off" : "keep",
+                text: appToplevel.pinned ? Translation.tr("Unpin from dock") : Translation.tr("Pin to dock"),
+                action: () => {
+                    const appId = appToplevel.originalAppId ?? appToplevel.appId;
+                    if (Config.options?.dock?.pinnedApps?.indexOf(appId) !== -1) {
+                        Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.filter(id => id !== appId)
+                    } else {
+                        Config.options.dock.pinnedApps = (Config.options?.dock?.pinnedApps ?? []).concat([appId])
+                    }
+                }
+            },
+            // Close window(s) - only if has windows
+            ...(root.hasWindows ? [
+                { type: "separator" },
+                {
+                    iconName: "close",
+                    text: appToplevel.toplevels.length > 1 ? Translation.tr("Close all windows") : Translation.tr("Close window"),
+                    action: () => {
+                        for (let toplevel of appToplevel.toplevels) {
+                            toplevel.close()
+                        }
+                    }
+                }
+            ] : [])
+        ]
     }
 
     contentItem: Loader {

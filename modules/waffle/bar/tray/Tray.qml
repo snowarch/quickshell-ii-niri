@@ -14,6 +14,9 @@ RowLayout {
 
     property bool overflowOpen: false
     property bool dragging: false
+    
+    // Signal to close all tray menus before opening a new one
+    signal closeAllTrayMenus()
 
     Layout.fillHeight: true
     spacing: 0
@@ -37,6 +40,7 @@ RowLayout {
 
         TrayOverflowMenu {
             id: trayOverflowLayout
+            trayParent: root
             Synchronizer on active {
                 property alias source: root.overflowOpen
             }
@@ -64,6 +68,7 @@ RowLayout {
             id: trayButton
             required property var modelData
             item: modelData
+            trayParent: root
 
             property real initialX
             property real initialY
