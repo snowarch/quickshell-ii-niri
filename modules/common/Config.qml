@@ -801,6 +801,13 @@ Singleton {
                 property int stronglyAdviseUpdateThreshold: 200
             }
             property JsonObject waffles: JsonObject {
+                property JsonObject modules: JsonObject {
+                    property bool sidebarLeft: false
+                    property bool sidebarRight: false
+                    property bool dock: false
+                    property bool mediaControls: false
+                    property bool screenCorners: false
+                }
                 property JsonObject tweaks: JsonObject {
                     property bool smootherMenuAnimations: true
                     property bool switchHandlePositionFix: true

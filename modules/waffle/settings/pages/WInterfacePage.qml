@@ -48,17 +48,25 @@ WSettingsPage {
             onValueChanged: Config.setNestedValue("notifications.timeoutCritical", value)
         }
         
+        WSettingsSwitch {
+            label: Translation.tr("Ignore app timeout")
+            icon: "options"
+            description: Translation.tr("Always use your timeout settings instead of app-defined ones")
+            checked: Config.options?.notifications?.ignoreAppTimeout ?? false
+            onCheckedChanged: Config.setNestedValue("notifications.ignoreAppTimeout", checked)
+        }
+        
         WSettingsDropdown {
             label: Translation.tr("Popup position")
             icon: "options"
-            currentValue: Config.options?.waffles?.notifications?.position ?? "bottomRight"
+            currentValue: Config.options?.notifications?.position ?? "bottomRight"
             options: [
                 { value: "topLeft", displayName: Translation.tr("Top Left") },
                 { value: "topRight", displayName: Translation.tr("Top Right") },
                 { value: "bottomLeft", displayName: Translation.tr("Bottom Left") },
                 { value: "bottomRight", displayName: Translation.tr("Bottom Right") }
             ]
-            onSelected: newValue => Config.setNestedValue("waffles.notifications.position", newValue)
+            onSelected: newValue => Config.setNestedValue("notifications.position", newValue)
         }
         
         WSettingsSwitch {
@@ -82,37 +90,6 @@ WSettingsPage {
             from: 500; to: 5000; stepSize: 250
             value: Config.options?.osd?.timeout ?? 1000
             onValueChanged: Config.setNestedValue("osd.timeout", value)
-        }
-    }
-    
-    WSettingsCard {
-        title: Translation.tr("Overview")
-        icon: "apps"
-        
-        WSettingsSpinBox {
-            label: Translation.tr("Scale")
-            icon: "options"
-            description: Translation.tr("Window preview size in overview")
-            suffix: "%"
-            from: 50; to: 150; stepSize: 10
-            value: Math.round((Config.options?.overview?.scale ?? 1.0) * 100)
-            onValueChanged: Config.setNestedValue("overview.scale", value / 100)
-        }
-        
-        WSettingsSpinBox {
-            label: Translation.tr("Rows")
-            icon: "options"
-            from: 1; to: 5; stepSize: 1
-            value: Config.options?.overview?.rows ?? 2
-            onValueChanged: Config.setNestedValue("overview.rows", value)
-        }
-        
-        WSettingsSpinBox {
-            label: Translation.tr("Columns")
-            icon: "options"
-            from: 2; to: 8; stepSize: 1
-            value: Config.options?.overview?.columns ?? 5
-            onValueChanged: Config.setNestedValue("overview.columns", value)
         }
     }
     

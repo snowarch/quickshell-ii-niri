@@ -231,17 +231,19 @@ Singleton {
     }
 
     function _timeoutForNotification(notification) {
-        // 1) La app define un timeout explícito (> 0): lo respetamos tal cual
-        if (notification.expireTimeout > 0) {
+        const ignoreApp = Config.options?.notifications?.ignoreAppTimeout ?? false;
+        
+        // 1) La app define un timeout explícito (> 0): respetarlo solo si no ignoramos
+        if (!ignoreApp && notification.expireTimeout > 0) {
             return notification.expireTimeout;
         }
 
-        // 2) expireTimeout == 0 => "no expira" según spec freedesktop
-        if (notification.expireTimeout === 0) {
+        // 2) expireTimeout == 0 => "no expira" según spec freedesktop (solo si no ignoramos)
+        if (!ignoreApp && notification.expireTimeout === 0) {
             return 0;
         }
 
-        // 3) expireTimeout < 0 o indefinido: usar defaults por urgencia
+        // 3) Usar defaults por urgencia
         let urgencyStr = "normal";
         if (notification.urgency && notification.urgency.toString) {
             urgencyStr = notification.urgency.toString();
@@ -352,6 +354,7 @@ Singleton {
         const index = root.list.findIndex((notif) => notif.notificationId === id);
         if (root.list[index] != null)
             root.list[index].popup = false;
+        triggerListChange();
         root.timeout(id);
     }
 
@@ -362,6 +365,7 @@ Singleton {
         root.popupList.forEach((notif) => {
             notif.popup = false;
         });
+        triggerListChange();
     }
 
     function attemptInvokeAction(id, notifIdentifier) {
@@ -381,7 +385,8 @@ Singleton {
     }
 
     function triggerListChange() {
-        root.list = root.list.slice(0)
+        root._groupsDirty = true
+        root._updateGroups()
     }
 
     function refresh() {

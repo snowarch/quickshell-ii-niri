@@ -12,7 +12,7 @@ WSettingsPage {
     id: root
     settingsPageIndex: 6
     pageTitle: Translation.tr("Modules")
-    pageIcon: "apps"
+    pageIcon: "settings-cog-multiple"
     pageDescription: Translation.tr("Panel style and optional modules")
     
     property bool isWaffleActive: Config.options?.panelFamily === "waffle"

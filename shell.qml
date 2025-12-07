@@ -196,7 +196,7 @@ ShellRoot {
             // Shared modules that work with waffle
             // Note: wAltSwitcher is always loaded when waffle is active (not in this list)
             "iiCheatsheet", "iiLock", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
-            "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiClipboard"
+            "iiRegionSelector", "iiScreenCorners", "iiSessionScreen", "iiWallpaperSelector", "iiClipboard"
         ]
     })
 

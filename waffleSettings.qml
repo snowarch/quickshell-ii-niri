@@ -53,7 +53,7 @@ ApplicationWindow {
         },
         {
             name: Translation.tr("Modules"),
-            icon: "apps",
+            icon: "settings-cog-multiple",
             component: Qt.resolvedUrl("modules/waffle/settings/pages/WModulesPage.qml")
         },
         {
@@ -113,6 +113,7 @@ ApplicationWindow {
         pages: root.pages
         currentPage: root.currentPage
         onCurrentPageChanged: root.currentPage = currentPage
+        onCloseRequested: root.close()
         
         Behavior on opacity {
             NumberAnimation { duration: 150; easing.type: Easing.OutQuad }

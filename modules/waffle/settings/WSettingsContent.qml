@@ -14,6 +14,8 @@ import qs.modules.waffle.looks
 Item {
     id: root
     
+    signal closeRequested()
+    
     property var pages: []
     property int currentPage: 0
     property string searchText: ""
@@ -183,7 +185,7 @@ Item {
                 }
                 spacing: 4
                 
-                // Header with app name
+                // Header with app name (expanded)
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.bottomMargin: 8
@@ -196,11 +198,10 @@ Item {
                         radius: Looks.radius.medium
                         color: Looks.colors.accent
                         
-                        WText {
+                        FluentIcon {
                             anchors.centerIn: parent
-                            text: "ii"
-                            font.pixelSize: Looks.font.pixelSize.large
-                            font.weight: Font.Bold
+                            icon: "settings"
+                            implicitSize: 18
                             color: Looks.colors.accentFg
                         }
                     }
@@ -210,6 +211,24 @@ Item {
                         text: Translation.tr("Settings")
                         font.pixelSize: Looks.font.pixelSize.larger
                         font.weight: Font.DemiBold
+                    }
+                }
+                
+                // Header icon (collapsed)
+                Rectangle {
+                    visible: !root.navExpanded
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.bottomMargin: 8
+                    radius: Looks.radius.medium
+                    color: Looks.colors.accent
+                    
+                    FluentIcon {
+                        anchors.centerIn: parent
+                        icon: "settings"
+                        implicitSize: 20
+                        color: Looks.colors.accentFg
                     }
                 }
                 
@@ -409,7 +428,7 @@ Item {
                                 FluentIcon {
                                     icon: {
                                         var icons = ["home", "settings", "desktop", "image", "color", 
-                                                    "apps", "apps", "desktop", "info"];
+                                                    "apps", "settings-cog-multiple", "desktop", "info"];
                                         return icons[resultDelegate.modelData.pageIndex] || "settings";
                                     }
                                     implicitSize: 16
@@ -492,23 +511,6 @@ Item {
                     }
                 }
 
-                // Search icon button (when collapsed)
-                WBorderlessButton {
-                    visible: !root.navExpanded
-                    Layout.preferredWidth: 40
-                    Layout.preferredHeight: 40
-                    Layout.alignment: Qt.AlignHCenter
-                    
-                    contentItem: FluentIcon {
-                        anchors.centerIn: parent
-                        icon: "search"
-                        implicitSize: 20
-                        color: Looks.colors.fg
-                    }
-                    
-                    onClicked: root.navExpanded = true
-                }
-                
                 Item { height: 8 }
                 
                 // Navigation items
