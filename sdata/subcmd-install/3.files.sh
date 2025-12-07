@@ -618,6 +618,8 @@ fi
 #####################################################################################
 # Copy bundled wallpapers to user's Pictures/Wallpapers (always, don't overwrite)
 #####################################################################################
+# Ensure II_TARGET is defined (in case SKIP_QUICKSHELL was set)
+II_TARGET="${II_TARGET:-${XDG_CONFIG_HOME}/quickshell/ii}"
 USER_WALLPAPERS_DIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")/Wallpapers"
 if [[ -d "${II_TARGET}/assets/wallpapers" ]]; then
   mkdir -p "${USER_WALLPAPERS_DIR}"
