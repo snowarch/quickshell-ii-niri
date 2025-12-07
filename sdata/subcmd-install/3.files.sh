@@ -501,6 +501,7 @@ if ! ${quiet:-false}; then
 fi
 
 # Function to set MIME default only if not already configured or set to something broken
+# Note: xdg-mime may fail without a graphical session, so we handle errors gracefully
 set_mime_default_if_missing() {
     local mime_type="$1"
     local desktop_file="$2"
@@ -510,13 +511,18 @@ set_mime_default_if_missing() {
         return 1  # Desktop file not available
     fi
     
-    # Get current default
+    # xdg-mime requires a graphical session, skip if not available
+    if ! command -v xdg-mime &>/dev/null; then
+        return 1
+    fi
+    
+    # Get current default (may fail without D-Bus session)
     local current_default
-    current_default=$(xdg-mime query default "$mime_type" 2>/dev/null)
+    current_default=$(xdg-mime query default "$mime_type" 2>/dev/null) || return 1
     
     # If no default set, or default is a non-editor for text files, set our default
     if [[ -z "$current_default" ]]; then
-        xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null
+        xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null || return 1
         return 0
     fi
     
@@ -530,7 +536,7 @@ set_mime_default_if_missing() {
                 ;;
             *)
                 # Not a known editor, set our default
-                xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null
+                xdg-mime default "$desktop_file" "$mime_type" 2>/dev/null || return 1
                 return 0
                 ;;
         esac
@@ -550,10 +556,10 @@ done
 
 # Set text editor defaults if we found one
 if [[ -n "$TEXT_EDITOR" ]]; then
-    set_mime_default_if_missing "text/plain" "$TEXT_EDITOR" && log_success "Set default text editor: $TEXT_EDITOR"
+    set_mime_default_if_missing "text/plain" "$TEXT_EDITOR" && log_success "Set default text editor: $TEXT_EDITOR" || true
     # Also set for common config file types
     for mime in text/x-shellscript application/x-shellscript text/x-python text/x-script.python; do
-        set_mime_default_if_missing "$mime" "$TEXT_EDITOR" 2>/dev/null
+        set_mime_default_if_missing "$mime" "$TEXT_EDITOR" 2>/dev/null || true
     done
 fi
 
@@ -567,7 +573,7 @@ for fm in org.kde.dolphin.desktop thunar.desktop pcmanfm.desktop org.gnome.Nauti
 done
 
 if [[ -n "$FILE_MANAGER" ]]; then
-    set_mime_default_if_missing "inode/directory" "$FILE_MANAGER" && log_success "Set default file manager: $FILE_MANAGER"
+    set_mime_default_if_missing "inode/directory" "$FILE_MANAGER" && log_success "Set default file manager: $FILE_MANAGER" || true
 fi
 
 # Detect and set image viewer
@@ -581,7 +587,7 @@ done
 
 if [[ -n "$IMAGE_VIEWER" ]]; then
     for mime in image/png image/jpeg image/gif image/webp image/bmp; do
-        set_mime_default_if_missing "$mime" "$IMAGE_VIEWER" 2>/dev/null
+        set_mime_default_if_missing "$mime" "$IMAGE_VIEWER" 2>/dev/null || true
     done
     log_success "Set default image viewer: $IMAGE_VIEWER"
 fi
@@ -596,7 +602,7 @@ for viewer in org.kde.okular.desktop org.gnome.Evince.desktop zathura.desktop; d
 done
 
 if [[ -n "$PDF_VIEWER" ]]; then
-    set_mime_default_if_missing "application/pdf" "$PDF_VIEWER" && log_success "Set default PDF viewer: $PDF_VIEWER"
+    set_mime_default_if_missing "application/pdf" "$PDF_VIEWER" && log_success "Set default PDF viewer: $PDF_VIEWER" || true
 fi
 
 # Detect and set web browser
@@ -610,9 +616,13 @@ done
 
 if [[ -n "$WEB_BROWSER" ]]; then
     for mime in x-scheme-handler/http x-scheme-handler/https text/html; do
-        set_mime_default_if_missing "$mime" "$WEB_BROWSER" 2>/dev/null
+        set_mime_default_if_missing "$mime" "$WEB_BROWSER" 2>/dev/null || true
     done
     log_success "Set default web browser: $WEB_BROWSER"
+fi
+
+if ! ${quiet:-false}; then
+  echo -e "${STY_CYAN}Copying wallpapers...${STY_RST}"
 fi
 
 #####################################################################################
@@ -629,7 +639,7 @@ if [[ -d "${II_TARGET}/assets/wallpapers" ]]; then
       dest="${USER_WALLPAPERS_DIR}/$(basename "$wallpaper")"
       if [[ ! -f "$dest" ]]; then
         cp "$wallpaper" "$dest"
-        ((COPIED_COUNT++))
+        COPIED_COUNT=$((COPIED_COUNT + 1))
       fi
     fi
   done
