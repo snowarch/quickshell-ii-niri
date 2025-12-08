@@ -41,15 +41,21 @@ Rectangle {
     Connections {
         target: parent
         function onWidthChanged() {
-            updateWidthTimer.restart()
+            // Only update if not currently scrolling
+            if (!parent.moving && !parent.dragging) {
+                updateWidthTimer.restart()
+            }
         }
     }
 
     Timer {
         id: updateWidthTimer
-        interval: 100
+        interval: 150
         onTriggered: {
-            availableWidth = parent.width
+            // Double-check we're not scrolling before updating
+            if (parent && !parent.moving && !parent.dragging) {
+                availableWidth = parent.width
+            }
         }
     }
 
@@ -262,14 +268,26 @@ Rectangle {
             RippleButton { // Next page button
                 id: button
                 property string buttonText
+                property bool clickHandled: false
 
                 implicitHeight: 30
                 leftPadding: 10
                 rightPadding: 5
 
                 onClicked: {
+                    // Prevent double-clicks
+                    if (clickHandled) return
+                    clickHandled = true
+                    clickResetTimer.restart()
+                    
                     tagInputField.text = `${responseData.tags.join(" ")} ${parseInt(root.responseData.page) + 1}`
                     tagInputField.accept()
+                }
+
+                Timer {
+                    id: clickResetTimer
+                    interval: 500
+                    onTriggered: button.clickHandled = false
                 }
 
                 buttonRadius: Appearance.rounding.small
@@ -304,11 +322,18 @@ Rectangle {
 
             RippleButton { // Clear button
                 id: clearButton
+                property bool clickHandled: false
+                
                 implicitHeight: 30
                 leftPadding: 10
                 rightPadding: 10
 
                 onClicked: {
+                    // Prevent double-clicks
+                    if (clickHandled) return
+                    clickHandled = true
+                    clearClickResetTimer.restart()
+                    
                     if (root.tagInputField) {
                         root.tagInputField.text = ""
                     }
@@ -317,6 +342,12 @@ Rectangle {
                     } else {
                         Booru.clearResponses()
                     }
+                }
+
+                Timer {
+                    id: clearClickResetTimer
+                    interval: 500
+                    onTriggered: clearButton.clickHandled = false
                 }
 
                 buttonRadius: Appearance.rounding.small

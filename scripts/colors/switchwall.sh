@@ -57,6 +57,8 @@ post_process() {
 
     handle_kde_material_you_colors &
     "$SCRIPT_DIR/code/material-code-set-color.sh" &
+    # Note: GTK4/libadwaita apps don't reload ~/.config/gtk-4.0/gtk.css in real-time
+    # Apps need to be restarted to pick up new colors from matugen
 }
 
 get_max_monitor_resolution() {

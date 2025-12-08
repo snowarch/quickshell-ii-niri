@@ -77,7 +77,7 @@ Rectangle {
             animation: Looks.transition.opacity.createObject(this)
         }
 
-        WidgetsButton {}
+        WeatherButton {}
     }
 
     BarGroupRow {
@@ -111,7 +111,7 @@ Rectangle {
         FadeLoader {
             Layout.fillHeight: true
             shown: Config.options.waffles.bar.leftAlignApps
-            sourceComponent: WidgetsButton {}
+            sourceComponent: WeatherButton {}
         }
         Tray {}
         TimerButton {}

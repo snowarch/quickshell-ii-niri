@@ -3,6 +3,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
+import qs.modules.sidebarLeft.anime
 import QtQml
 import QtQuick
 import QtQuick.Controls
@@ -14,7 +15,6 @@ import Quickshell.Hyprland
 
 Button {
     id: root
-    z: showActions ? 100 : 0  // Bring to front when menu is open
     property var imageData
     property var rowHeight
     property bool manualDownload: false
@@ -29,26 +29,7 @@ Button {
 
     // Allow consumers (e.g. Wallhaven) to opt-out of hover tooltips
     property bool enableTooltip: true
-
-    property bool showActions: GlobalStates.activeBooruImageMenu === root
-    
-    function openMenu() {
-        GlobalStates.activeBooruImageMenu = root
-    }
-    
-    function closeMenu() {
-        if (GlobalStates.activeBooruImageMenu === root) {
-            GlobalStates.activeBooruImageMenu = null
-        }
-    }
-    
-    function toggleMenu() {
-        if (showActions) {
-            closeMenu()
-        } else {
-            openMenu()
-        }
-    }
+    property bool buttonHovered: false
     
     Process {
         id: downloadProcess
@@ -107,10 +88,12 @@ Button {
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.RightButton
-            hoverEnabled: false
+            hoverEnabled: true
+            onEntered: root.buttonHovered = true
+            onExited: root.buttonHovered = false
             onClicked: (mouse) => {
                 if (mouse.button === Qt.RightButton) {
-                    root.toggleMenu()
+                    contextMenu.active = true
                     mouse.accepted = true
                 }
             }
@@ -138,103 +121,70 @@ Button {
             }
 
             onClicked: {
-                root.toggleMenu()
+                contextMenu.active = true
             }
         }
 
-        Loader {
-            id: contextMenuLoader
-            z: 10
-            active: root.showActions
-            anchors.top: menuButton.bottom
-            anchors.right: parent.right
-            anchors.margins: 8
+        // Invisible anchor point at center of image for context menu positioning
+        Item {
+            id: menuAnchor
+            anchors.centerIn: parent
+            width: 1
+            height: 1
+            z: 1000
+        }
 
-            sourceComponent: Item {
-                width: contextMenu.width
-                height: contextMenu.height
-
-                StyledRectangularShadow {
-                    target: contextMenu
-                }
-                Rectangle {
-                    id: contextMenu
-                    anchors.centerIn: parent
-                    opacity: root.showActions ? 1 : 0
-                    visible: opacity > 0
-                    radius: Appearance.rounding.small
-                    color: Appearance.colors.colSurfaceContainer
-                    implicitHeight: contextMenuColumnLayout.implicitHeight + radius * 2
-                    implicitWidth: contextMenuColumnLayout.implicitWidth
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: Appearance.animation.elementMoveFast.duration
-                            easing.type: Appearance.animation.elementMoveFast.type
-                            easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
-                        }
+        BooruImageContextMenu {
+            id: contextMenu
+            z: 1000
+            anchorItem: menuAnchor
+            anchorHovered: root.hovered || root.buttonHovered
+            
+            model: [
+                {
+                    iconName: "open_in_new",
+                    text: Translation.tr("Open file link"),
+                    action: () => {
+                        if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
+                        Qt.openUrlExternally(root.imageData.file_url)
+                        if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
                     }
-
-                    ColumnLayout {
-                        id: contextMenuColumnLayout
-                        anchors.centerIn: parent
-                        spacing: 0
-
-                        MenuButton {
-                            id: openFileLinkButton
-                            Layout.fillWidth: true
-                            buttonText: Translation.tr("Open file link")
-                            onClicked: {
-                                root.closeMenu()
-                                if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
-                                Qt.openUrlExternally(root.imageData.file_url)
-                                if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
-                            }
-                        }
-                        MenuButton {
-                            id: sourceButton
-                            visible: root.imageData.source && root.imageData.source.length > 0
-                            Layout.fillWidth: true
-                            buttonText: Translation.tr("Go to source (%1)").arg(StringUtils.getDomain(root.imageData.source))
-                            enabled: root.imageData.source && root.imageData.source.length > 0
-                            onClicked: {
-                                root.closeMenu()
-                                if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
-                                Qt.openUrlExternally(root.imageData.source)
-                                if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
-                            }
-                        }
-                        MenuButton {
-                            id: downloadButton
-                            Layout.fillWidth: true
-                            buttonText: Translation.tr("Download")
-                            onClicked: {
-                                root.closeMenu()
-                                const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
-                                const localPath = `${targetPath}/${root.fileName}`;
-                                Quickshell.execDetached(["bash", "-c", 
-                                    `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${localPath}' && notify-send '${Translation.tr("Download complete")}' '${localPath}' -a 'Shell'`
-                                ])
-                                Quickshell.execDetached(["xdg-open", targetPath])
-                            }
-                        }
-                        MenuButton {
-                            id: setWallpaperButton
-                            Layout.fillWidth: true
-                            buttonText: Translation.tr("Set as wallpaper")
-                            onClicked: {
-                                root.closeMenu()
-                                const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
-                                const localPath = `${targetPath}/${root.fileName}`;
-                                const mode = Appearance.m3colors.darkmode ? "dark" : "light";
-                                Quickshell.execDetached(["bash", "-c",
-                                    `mkdir -p '${targetPath}' && curl -sSL '${root.imageData.file_url}' -o '${localPath}' && '${Directories.wallpaperSwitchScriptPath}' --image '${localPath}' --mode '${mode}'`
-                                ])
-                            }
-                        }
+                },
+                ...(root.imageData.source && root.imageData.source.length > 0 ? [{
+                    iconName: "link",
+                    text: Translation.tr("Go to source (%1)").arg(StringUtils.getDomain(root.imageData.source)),
+                    action: () => {
+                        if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps true")
+                        Qt.openUrlExternally(root.imageData.source)
+                        if (CompositorService.isHyprland) Hyprland.dispatch("keyword cursor:no_warps false")
+                    }
+                }] : []),
+                { type: "separator" },
+                {
+                    iconName: "download",
+                    text: Translation.tr("Download"),
+                    action: () => {
+                        const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
+                        const localPath = `${targetPath}/${root.fileName}`;
+                        Quickshell.execDetached(["bash", "-c", 
+                            `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${localPath}' && notify-send '${Translation.tr("Download complete")}' '${localPath}' -a 'Shell'`
+                        ])
+                        Quickshell.execDetached(["xdg-open", targetPath])
+                    }
+                },
+                {
+                    iconName: "wallpaper",
+                    text: Translation.tr("Set as wallpaper"),
+                    action: () => {
+                        const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
+                        const localPath = `${targetPath}/${root.fileName}`;
+                        const mode = Appearance.m3colors.darkmode ? "dark" : "light";
+                        Quickshell.execDetached(["bash", "-c",
+                            `mkdir -p '${targetPath}' && curl -sSL '${root.imageData.file_url}' -o '${localPath}' && '${Directories.wallpaperSwitchScriptPath}' --image '${localPath}' --mode '${mode}'`
+                        ])
                     }
                 }
-            }
+            ]
         }
     }
 }

@@ -292,6 +292,21 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "folder"
+        title: Translation.tr("Icon Theme")
+
+        IconThemeSelector {}
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Quickshell will restart to apply changes.")
+            color: Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.smaller
+            wrapMode: Text.WordWrap
+        }
+    }
+
+    ContentSection {
         icon: "info"
         title: Translation.tr("About Themes")
 

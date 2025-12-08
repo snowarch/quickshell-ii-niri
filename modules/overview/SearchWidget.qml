@@ -20,6 +20,9 @@ Item { // Wrapper
     implicitHeight: searchBar.implicitHeight + searchBar.verticalPadding * 2 + Appearance.sizes.elevationMargin * 2
 
     property string mathResult: ""
+    property string debouncedSearchText: ""
+    property var cachedResults: []
+
     property bool clipboardWorkSafetyActive: {
         const enabled = Config.options.workSafety.enable.clipboard;
         const sensitiveNetwork = (StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords))
@@ -118,11 +121,180 @@ Item { // Wrapper
         return StringUtils.stringListContainsSubstring(entry.toLowerCase(), unsafeKeywords);
     }
 
+    function updateSearchResults(): void {
+        const text = root.debouncedSearchText;
+        
+        if (text === "") {
+            root.cachedResults = [];
+            return;
+        }
+
+        // Clipboard search
+        if (text.startsWith(Config.options.search.prefix.clipboard)) {
+            const searchString = StringUtils.cleanPrefix(text, Config.options.search.prefix.clipboard);
+            root.cachedResults = Cliphist.fuzzyQuery(searchString).map((entry, index, array) => {
+                const mightBlurImage = Cliphist.entryIsImage(entry) && root.clipboardWorkSafetyActive;
+                let shouldBlurImage = mightBlurImage;
+                if (mightBlurImage) {
+                    shouldBlurImage = shouldBlurImage && (containsUnsafeLink(array[index - 1]) || containsUnsafeLink(array[index + 1]));
+                }
+                const type = `#${entry.match(/^\s*(\S+)/)?.[1] || ""}`
+                return {
+                    key: type,
+                    cliphistRawString: entry,
+                    name: StringUtils.cleanCliphistEntry(entry),
+                    clickActionName: "",
+                    type: type,
+                    execute: () => { Cliphist.copy(entry) },
+                    actions: [
+                        { name: "Copy", materialIcon: "content_copy", execute: () => { Cliphist.copy(entry); } },
+                        { name: "Delete", materialIcon: "delete", execute: () => { Cliphist.deleteEntry(entry); } }
+                    ],
+                    blurImage: shouldBlurImage,
+                    blurImageText: Translation.tr("Work safety")
+                };
+            }).filter(Boolean);
+            return;
+        }
+        
+        // Emoji search
+        if (text.startsWith(Config.options.search.prefix.emojis)) {
+            const searchString = StringUtils.cleanPrefix(text, Config.options.search.prefix.emojis);
+            root.cachedResults = Emojis.fuzzyQuery(searchString).map(entry => {
+                const emoji = entry.match(/^\s*(\S+)/)?.[1] || ""
+                return {
+                    key: emoji,
+                    cliphistRawString: entry,
+                    bigText: emoji,
+                    name: entry.replace(/^\s*\S+\s+/, ""),
+                    clickActionName: "",
+                    type: "Emoji",
+                    execute: () => { Quickshell.clipboardText = entry.match(/^\s*(\S+)/)?.[1]; }
+                };
+            }).filter(Boolean);
+            return;
+        }
+
+        // Default search
+        nonAppResultsTimer.restart();
+        
+        const mathResultObject = {
+            key: `Math result: ${root.mathResult}`,
+            name: root.mathResult,
+            clickActionName: Translation.tr("Copy"),
+            type: Translation.tr("Math result"),
+            fontType: "monospace",
+            materialSymbol: 'calculate',
+            execute: () => { Quickshell.clipboardText = root.mathResult; }
+        };
+        
+        const appResultObjects = AppSearch.fuzzyQuery(StringUtils.cleanPrefix(text, Config.options.search.prefix.app)).map(entry => {
+            entry.clickActionName = Translation.tr("Launch");
+            entry.type = Translation.tr("App");
+            entry.key = entry.execute;
+            return entry;
+        });
+        
+        const commandResultObject = {
+            key: `cmd ${text}`,
+            name: StringUtils.cleanPrefix(text, Config.options.search.prefix.shellCommand).replace("file://", ""),
+            clickActionName: Translation.tr("Run"),
+            type: Translation.tr("Run command"),
+            fontType: "monospace",
+            materialSymbol: 'terminal',
+            execute: () => {
+                let cleanedCommand = text.replace("file://", "");
+                cleanedCommand = StringUtils.cleanPrefix(cleanedCommand, Config.options.search.prefix.shellCommand);
+                if (cleanedCommand.startsWith(Config.options.search.prefix.shellCommand)) {
+                    cleanedCommand = cleanedCommand.slice(Config.options.search.prefix.shellCommand.length);
+                }
+                cleanedCommand = cleanedCommand.trim();
+                if (!cleanedCommand.length) return;
+                const term = Config.options.apps.terminal || "ghostty";
+                if (term.indexOf("ghostty") !== -1) {
+                    Quickshell.execDetached([term, "-e", "sh", "-lc", cleanedCommand]);
+                } else {
+                    const commandToRun = `${term} fish -C '${cleanedCommand}'`;
+                    Quickshell.execDetached(["bash", "-c", commandToRun]);
+                }
+            }
+        };
+        
+        const webSearchResultObject = {
+            key: `website ${text}`,
+            name: StringUtils.cleanPrefix(text, Config.options.search.prefix.webSearch),
+            clickActionName: Translation.tr("Search"),
+            type: Translation.tr("Search the web"),
+            materialSymbol: 'travel_explore',
+            execute: () => {
+                let query = StringUtils.cleanPrefix(text, Config.options.search.prefix.webSearch);
+                let url = Config.options.search.engineBaseUrl + query;
+                for (let site of Config.options.search.excludedSites) {
+                    url += ` -site:${site}`;
+                }
+                Qt.openUrlExternally(url);
+            }
+        };
+        
+        const launcherActionObjects = root.searchActions.map(action => {
+            const actionString = `${Config.options.search.prefix.action}${action.action}`;
+            if (actionString.startsWith(text) || text.startsWith(actionString)) {
+                return {
+                    key: `Action ${actionString}`,
+                    name: text.startsWith(actionString) ? text : actionString,
+                    clickActionName: Translation.tr("Run"),
+                    type: Translation.tr("Action"),
+                    materialSymbol: 'settings_suggest',
+                    execute: () => { action.execute(text.split(" ").slice(1).join(" ")); }
+                };
+            }
+            return null;
+        }).filter(Boolean);
+
+        let result = [];
+        const startsWithNumber = /^\d/.test(text);
+        const startsWithMathPrefix = text.startsWith(Config.options.search.prefix.math);
+        const startsWithShellCommandPrefix = text.startsWith(Config.options.search.prefix.shellCommand);
+        const startsWithWebSearchPrefix = text.startsWith(Config.options.search.prefix.webSearch);
+        
+        if (startsWithNumber || startsWithMathPrefix) {
+            result.push(mathResultObject);
+        } else if (startsWithShellCommandPrefix) {
+            result.push(commandResultObject);
+        } else if (startsWithWebSearchPrefix) {
+            result.push(webSearchResultObject);
+        }
+
+        result = result.concat(appResultObjects);
+        result = result.concat(launcherActionObjects);
+
+        if (Config.options.search.prefix.showDefaultActionsWithoutPrefix) {
+            if (!startsWithShellCommandPrefix) result.push(commandResultObject);
+            if (!startsWithNumber && !startsWithMathPrefix) result.push(mathResultObject);
+            if (!startsWithWebSearchPrefix) result.push(webSearchResultObject);
+        }
+
+        root.cachedResults = result;
+    }
+
+    Timer {
+        id: searchDebounceTimer
+        interval: 32  // ~2 frames debounce
+        onTriggered: {
+            root.debouncedSearchText = root.searchingText;
+            root.updateSearchResults();
+        }
+    }
+
+    onSearchingTextChanged: {
+        searchDebounceTimer.restart();
+    }
+
     Timer {
         id: nonAppResultsTimer
         interval: Config.options.search.nonAppResultDelay
         onTriggered: {
-            let expr = root.searchingText;
+            let expr = root.debouncedSearchText;
             if (expr.startsWith(Config.options.search.prefix.math)) {
                 expr = expr.slice(Config.options.search.prefix.math.length);
             }
@@ -215,7 +387,10 @@ Item { // Wrapper
         Behavior on implicitHeight {
             id: searchHeightBehavior
             enabled: GlobalStates.overviewOpen && root.showResults
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.OutQuart
+            }
         }
 
         ColumnLayout {
@@ -269,13 +444,6 @@ Item { // Wrapper
                 KeyNavigation.up: searchBar
                 highlightMoveDuration: 100
 
-                Behavior on implicitHeight {
-                    NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
                 onFocusChanged: {
                     if (focus)
                         appResults.currentIndex = 1;
@@ -292,188 +460,7 @@ Item { // Wrapper
                 model: ScriptModel {
                     id: model
                     objectProp: "key"
-                    values: {
-                        // Search results are handled here
-                        ////////////////// Skip? //////////////////
-                        if (root.searchingText == "")
-                            return [];
-
-                        ///////////// Special cases ///////////////
-                        if (root.searchingText.startsWith(Config.options.search.prefix.clipboard)) {
-                            // Clipboard
-                            const searchString = StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.clipboard);
-                            return Cliphist.fuzzyQuery(searchString).map((entry, index, array) => {
-                                const mightBlurImage = Cliphist.entryIsImage(entry) && root.clipboardWorkSafetyActive;
-                                let shouldBlurImage = mightBlurImage;
-                                if (mightBlurImage) {
-                                    shouldBlurImage = shouldBlurImage && (containsUnsafeLink(array[index - 1]) || containsUnsafeLink(array[index + 1]));
-                                }
-                                const type = `#${entry.match(/^\s*(\S+)/)?.[1] || ""}`
-                                return {
-                                    key: type,
-                                    cliphistRawString: entry,
-                                    name: StringUtils.cleanCliphistEntry(entry),
-                                    clickActionName: "",
-                                    type: type,
-                                    execute: () => {
-                                        Cliphist.copy(entry)
-                                    },
-                                    actions: [
-                                        {
-                                            name: "Copy",
-                                            materialIcon: "content_copy",
-                                            execute: () => {
-                                                Cliphist.copy(entry);
-                                            }
-                                        },
-                                        {
-                                            name: "Delete",
-                                            materialIcon: "delete",
-                                            execute: () => {
-                                                Cliphist.deleteEntry(entry);
-                                            }
-                                        }
-                                    ],
-                                    blurImage: shouldBlurImage,
-                                    blurImageText: Translation.tr("Work safety")
-                                };
-                            }).filter(Boolean);
-                        }
-                        else if (root.searchingText.startsWith(Config.options.search.prefix.emojis)) {
-                            // Clipboard
-                            const searchString = StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.emojis);
-                            return Emojis.fuzzyQuery(searchString).map(entry => {
-                                const emoji = entry.match(/^\s*(\S+)/)?.[1] || ""
-                                return {
-                                    key: emoji,
-                                    cliphistRawString: entry,
-                                    bigText: emoji,
-                                    name: entry.replace(/^\s*\S+\s+/, ""),
-                                    clickActionName: "",
-                                    type: "Emoji",
-                                    execute: () => {
-                                        Quickshell.clipboardText = entry.match(/^\s*(\S+)/)?.[1];
-                                    }
-                                };
-                            }).filter(Boolean);
-                        }
-
-                        ////////////////// Init ///////////////////
-                        nonAppResultsTimer.restart();
-                        const mathResultObject = {
-                            key: `Math result: ${root.mathResult}`,
-                            name: root.mathResult,
-                            clickActionName: Translation.tr("Copy"),
-                            type: Translation.tr("Math result"),
-                            fontType: "monospace",
-                            materialSymbol: 'calculate',
-                            execute: () => {
-                                Quickshell.clipboardText = root.mathResult;
-                            }
-                        };
-                        const appResultObjects = AppSearch.fuzzyQuery(StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.app)).map(entry => {
-                            entry.clickActionName = Translation.tr("Launch");
-                            entry.type = Translation.tr("App");
-                            entry.key = entry.execute
-                            return entry;
-                        })
-                        const commandResultObject = {
-                            key: `cmd ${root.searchingText}`,
-                            name: StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.shellCommand).replace("file://", ""),
-                            clickActionName: Translation.tr("Run"),
-                            type: Translation.tr("Run command"),
-                            fontType: "monospace",
-                            materialSymbol: 'terminal',
-                            execute: () => {
-                                let cleanedCommand = root.searchingText.replace("file://", "");
-                                cleanedCommand = StringUtils.cleanPrefix(cleanedCommand, Config.options.search.prefix.shellCommand);
-                                if (cleanedCommand.startsWith(Config.options.search.prefix.shellCommand)) {
-                                    cleanedCommand = cleanedCommand.slice(Config.options.search.prefix.shellCommand.length);
-                                }
-                                cleanedCommand = cleanedCommand.trim();
-                                if (!cleanedCommand.length)
-                                    return;
-
-                                const term = Config.options.apps.terminal || "ghostty";
-
-                                console.log("[ii SearchWidget] Run command via overview", {
-                                    raw: root.searchingText,
-                                    cleanedCommand: cleanedCommand,
-                                    terminal: term,
-                                });
-
-                                // Integración específica para Ghostty: usar -e sh -lc <cmd>
-                                // Esto permite comandos arbitrarios con tuberías, etc.
-                                if (term.indexOf("ghostty") !== -1) {
-                                    Quickshell.execDetached([term, "-e", "sh", "-lc", cleanedCommand]);
-                                } else {
-                                    // Fallback genérico: usar bash para construir "terminal fish -C 'cmd'".
-                                    const commandToRun = `${term} fish -C '${cleanedCommand}'`;
-                                    Quickshell.execDetached(["bash", "-c", commandToRun]);
-                                }
-                            }
-                        };
-                        const webSearchResultObject = {
-                            key: `website ${root.searchingText}`,
-                            name: StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.webSearch),
-                            clickActionName: Translation.tr("Search"),
-                            type: Translation.tr("Search the web"),
-                            materialSymbol: 'travel_explore',
-                            execute: () => {
-                                let query = StringUtils.cleanPrefix(root.searchingText, Config.options.search.prefix.webSearch);
-                                let url = Config.options.search.engineBaseUrl + query;
-                                for (let site of Config.options.search.excludedSites) {
-                                    url += ` -site:${site}`;
-                                }
-                                Qt.openUrlExternally(url);
-                            }
-                        }
-                        const launcherActionObjects = root.searchActions.map(action => {
-                            const actionString = `${Config.options.search.prefix.action}${action.action}`;
-                            if (actionString.startsWith(root.searchingText) || root.searchingText.startsWith(actionString)) {
-                                return {
-                                    key: `Action ${actionString}`,
-                                    name: root.searchingText.startsWith(actionString) ? root.searchingText : actionString,
-                                    clickActionName: Translation.tr("Run"),
-                                    type: Translation.tr("Action"),
-                                    materialSymbol: 'settings_suggest',
-                                    execute: () => {
-                                        action.execute(root.searchingText.split(" ").slice(1).join(" "));
-                                    }
-                                };
-                            }
-                            return null;
-                        }).filter(Boolean);
-
-                        //////// Prioritized by prefix /////////
-                        let result = [];
-                        const startsWithNumber = /^\d/.test(root.searchingText);
-                        const startsWithMathPrefix = root.searchingText.startsWith(Config.options.search.prefix.math);
-                        const startsWithShellCommandPrefix = root.searchingText.startsWith(Config.options.search.prefix.shellCommand);
-                        const startsWithWebSearchPrefix = root.searchingText.startsWith(Config.options.search.prefix.webSearch);
-                        if (startsWithNumber || startsWithMathPrefix) {
-                            result.push(mathResultObject);
-                        } else if (startsWithShellCommandPrefix) {
-                            result.push(commandResultObject);
-                        } else if (startsWithWebSearchPrefix) {
-                            result.push(webSearchResultObject);
-                        }
-
-                        //////////////// Apps //////////////////
-                        result = result.concat(appResultObjects);
-
-                        ////////// Launcher actions ////////////
-                        result = result.concat(launcherActionObjects);
-
-                        /// Math result, command, web search ///
-                        if (Config.options.search.prefix.showDefaultActionsWithoutPrefix) {
-                            if (!startsWithShellCommandPrefix) result.push(commandResultObject);
-                            if (!startsWithNumber && !startsWithMathPrefix) result.push(mathResultObject);
-                            if (!startsWithWebSearchPrefix) result.push(webSearchResultObject);
-                        }
-
-                        return result;
-                    }
+                    values: root.cachedResults
                 }
 
                 delegate: SearchItem {
@@ -482,7 +469,7 @@ Item { // Wrapper
                     anchors.left: parent?.left
                     anchors.right: parent?.right
                     entry: modelData
-                    query: StringUtils.cleanOnePrefix(root.searchingText, [
+                    query: StringUtils.cleanOnePrefix(root.debouncedSearchText, [
                         Config.options.search.prefix.action,
                         Config.options.search.prefix.app,
                         Config.options.search.prefix.clipboard,

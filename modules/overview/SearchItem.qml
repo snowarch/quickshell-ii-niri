@@ -32,6 +32,13 @@ RippleButton {
     property int buttonVerticalPadding: 6
     property bool keyboardDown: false
 
+    // Subtle fade-in animation
+    opacity: 0
+    Component.onCompleted: opacity = 1
+    Behavior on opacity {
+        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+    }
+
     implicitHeight: rowLayout.implicitHeight + root.buttonVerticalPadding * 2
     implicitWidth: rowLayout.implicitWidth + root.buttonHorizontalPadding * 2
     buttonRadius: Appearance.rounding.normal
