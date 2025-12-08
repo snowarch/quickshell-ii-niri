@@ -640,7 +640,7 @@
         "dynamicDim": 0
       },
       "backdrop": {
-        "enable": false,
+        "enable": true,
         "hideWallpaper": false,
         "useMainWallpaper": true,
         "wallpaperPath": "",
