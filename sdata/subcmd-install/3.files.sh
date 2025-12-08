@@ -397,13 +397,13 @@ if [[ -d "dots/.config/fontconfig" ]]; then
   install_dir__sync "dots/.config/fontconfig" "${XDG_CONFIG_HOME}/fontconfig"
 fi
 
-# illogical-impulse config.json
-if [[ -f "dots/.config/illogical-impulse/config.json" ]]; then
-  install_file__auto_backup "dots/.config/illogical-impulse/config.json" "${XDG_CONFIG_HOME}/illogical-impulse/config.json"
-elif [[ -f "defaults/config.json" ]]; then
-  # Fallback to defaults
+# illogical-impulse config.json (use defaults for distribution)
+if [[ -f "defaults/config.json" ]]; then
   v mkdir -p "${XDG_CONFIG_HOME}/illogical-impulse"
   install_file__auto_backup "defaults/config.json" "${XDG_CONFIG_HOME}/illogical-impulse/config.json"
+elif [[ -f "dots/.config/illogical-impulse/config.json" ]]; then
+  # Fallback to dots (legacy)
+  install_file__auto_backup "dots/.config/illogical-impulse/config.json" "${XDG_CONFIG_HOME}/illogical-impulse/config.json"
 fi
 
 #####################################################################################
