@@ -944,6 +944,22 @@ Singleton {
         m3.m3successContainer = c.m3successContainer;
         m3.m3onSuccessContainer = c.m3onSuccessContainer;
         
+        // Apply to GTK apps (Nautilus, etc)
+        applyGtkTheme(c);
+        
         return true;
+    }
+    
+    function applyGtkTheme(c): void {
+        const script = Directories.scriptPath + "/colors/apply-gtk-theme.sh";
+        Quickshell.execDetached([
+            script,
+            c.m3background,
+            c.m3onBackground,
+            c.m3primary,
+            c.m3onPrimary,
+            c.m3surface,
+            c.m3surfaceDim
+        ]);
     }
 }
