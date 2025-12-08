@@ -1,97 +1,102 @@
 import QtQuick
+import qs
+import qs.services
+import qs.modules.common
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import qs.services
-import qs.modules.common
 
 Scope {
     id: root
 
-    // Window info captured when dialog is triggered
+    // Window captured at the moment of trigger (prevents race condition)
     property var targetWindow: null
     property bool dialogVisible: false
-    property bool _pendingConfirmation: false
-    
-    // Read enabled state reactively
-    property bool confirmEnabled: Config.options?.closeConfirm?.enabled ?? false
-    
-    // Initialize config if missing
-    Component.onCompleted: {
-        if (Config.ready && Config.options?.closeConfirm === undefined) {
-            Config.setNestedValue("closeConfirm.enabled", false)
-        }
-    }
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            if (Config.ready && Config.options?.closeConfirm === undefined) {
-                Config.setNestedValue("closeConfirm.enabled", false)
-            }
-        }
+
+    // Debounce to prevent double-trigger
+    property bool _busy: false
+    Timer {
+        id: debounce
+        interval: 200
+        onTriggered: root._busy = false
     }
 
-    // Process to get focused window from Niri
+    // Config state
+    readonly property bool confirmEnabled: Config.options?.closeConfirm?.enabled ?? false
+
+    // Fallback: get focused window directly from niri when activeWindow is stale
     Process {
         id: focusedWindowProc
         command: ["niri", "msg", "-j", "focused-window"]
         stdout: SplitParser {
             onRead: line => {
-                if (!line || line.trim() === "") return
-                
+                if (!line?.trim()) return
                 try {
-                    const windowData = JSON.parse(line)
-                    if (windowData && windowData.id) {
-                        const appId = windowData.app_id || ""
-                        if (root._pendingConfirmation) {
-                            root.targetWindow = windowData
-                            root.dialogVisible = true
-                            root._pendingConfirmation = false
-                        } else {
-                            NiriService.closeWindow(windowData.id)
-                        }
-                    }
-                } catch (e) {
-                    console.warn("[CloseConfirm] Failed to parse focused window:", e)
-                }
+                    const win = JSON.parse(line)
+                    if (win?.id) root.processWindow(win)
+                } catch (e) {}
             }
+        }
+    }
+
+    function processWindow(win): void {
+        if (root.confirmEnabled) {
+            root.targetWindow = win
+            root.dialogVisible = true
+        } else {
+            root.closeWindowFast(win)
         }
     }
 
     IpcHandler {
         target: "closeConfirm"
-        
+
         function trigger(): void {
-            root._pendingConfirmation = root.confirmEnabled
-            focusedWindowProc.running = true
+            if (root._busy) return
+            root._busy = true
+            debounce.restart()
+
+            // Try cached activeWindow first, fallback to niri query
+            const win = NiriService.activeWindow
+            if (win?.id) {
+                root.processWindow(win)
+            } else {
+                focusedWindowProc.running = true
+            }
         }
-        
+
         function close(): void {
             root.dialogVisible = false
             root.targetWindow = null
         }
     }
 
-    function confirmClose() {
+    function closeWindowFast(win): void {
+        if (!win?.id) return
+        // Use niri msg directly - more reliable than socket IPC for some apps
+        Quickshell.execDetached(["niri", "msg", "action", "close-window", "--id", String(win.id)])
+    }
+
+    function confirmClose(): void {
         if (targetWindow) {
-            NiriService.closeWindow(targetWindow.id)
+            closeWindowFast(targetWindow)
         }
         dialogVisible = false
         targetWindow = null
     }
 
-    function cancel() {
+    function cancel(): void {
         dialogVisible = false
         targetWindow = null
     }
 
+    // Dialog UI
     Loader {
         active: root.dialogVisible
 
         sourceComponent: Variants {
             model: Quickshell.screens
             delegate: PanelWindow {
-                id: panelWindow
                 required property var modelData
                 screen: modelData
 
@@ -111,7 +116,7 @@ Scope {
                 Loader {
                     anchors.fill: parent
                     sourceComponent: Config.options?.panelFamily === "waffle" ? waffleContent : iiContent
-                    
+
                     Component {
                         id: iiContent
                         CloseConfirmContent {
@@ -120,7 +125,7 @@ Scope {
                             onCancel: root.cancel()
                         }
                     }
-                    
+
                     Component {
                         id: waffleContent
                         WCloseConfirmContent {
