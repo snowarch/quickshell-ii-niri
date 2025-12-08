@@ -178,12 +178,28 @@ Item {
                 mouseScrollFactor: Config.options.interactions.scrolling.mouseScrollFactor * 1.4
 
                 property int lastResponseLength: 0
+                property bool userIsScrolling: false
+                
+                onMovingChanged: {
+                    if (moving) userIsScrolling = true
+                    else Qt.callLater(() => { userIsScrolling = false })
+                }
+                
+                onDraggingChanged: {
+                    if (dragging) userIsScrolling = true
+                    else Qt.callLater(() => { userIsScrolling = false })
+                }
+                
                 Connections {
                     target: root
                     function onResponsesChanged() {
                         if (root.responses.length > booruResponseListView.lastResponseLength) {
-                            if (booruResponseListView.lastResponseLength > 0 && root.responses[booruResponseListView.lastResponseLength].provider != "system")
+                            // Only auto-scroll if user is not actively scrolling
+                            if (!booruResponseListView.userIsScrolling && 
+                                booruResponseListView.lastResponseLength > 0 && 
+                                root.responses[booruResponseListView.lastResponseLength].provider != "system") {
                                 booruResponseListView.contentY = booruResponseListView.contentY + root.scrollOnNewResponse
+                            }
                             booruResponseListView.lastResponseLength = root.responses.length
                         }
                     }

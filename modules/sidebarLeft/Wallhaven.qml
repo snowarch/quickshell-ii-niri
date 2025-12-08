@@ -156,12 +156,26 @@ Item {
                 mouseScrollFactor: Config.options.interactions.scrolling.mouseScrollFactor * 1.4
 
                 property int lastResponseLength: 0
+                property bool userIsScrolling: false
+                
+                onMovingChanged: {
+                    if (moving) userIsScrolling = true
+                    else Qt.callLater(() => { userIsScrolling = false })
+                }
+                
+                onDraggingChanged: {
+                    if (dragging) userIsScrolling = true
+                    else Qt.callLater(() => { userIsScrolling = false })
+                }
+                
                 Connections {
                     target: root
                     function onResponsesChanged() {
                         if (root.responses.length > wallhavenResponseListView.lastResponseLength) {
-                            if (wallhavenResponseListView.lastResponseLength > 0)
+                            // Only auto-scroll if user is not actively scrolling
+                            if (!wallhavenResponseListView.userIsScrolling && wallhavenResponseListView.lastResponseLength > 0) {
                                 wallhavenResponseListView.contentY = wallhavenResponseListView.contentY + root.scrollOnNewResponse
+                            }
                             wallhavenResponseListView.lastResponseLength = root.responses.length
                         }
                     }
