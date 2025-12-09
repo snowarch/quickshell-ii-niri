@@ -188,6 +188,9 @@ ContentPage {
                 if (Config.options?.appearance?.typography)
                     Config.options.appearance.typography.sizeScale = value / 100
             }
+            StyledToolTip {
+                text: Translation.tr("Scale all text in the shell")
+            }
         }
 
         // Variable Font Axes - Collapsible
@@ -242,6 +245,9 @@ ContentPage {
                     target: Config.options?.appearance?.typography?.variableAxes ?? null
                     function onWghtChanged() { weightSpinBox.value = Config.options.appearance.typography.variableAxes.wght }
                 }
+                StyledToolTip {
+                    text: Translation.tr("Font weight (100=thin, 400=normal, 700=bold)")
+                }
             }
 
             ConfigSpinBox {
@@ -260,6 +266,9 @@ ContentPage {
                     target: Config.options?.appearance?.typography?.variableAxes ?? null
                     function onWdthChanged() { widthSpinBox.value = Config.options.appearance.typography.variableAxes.wdth }
                 }
+                StyledToolTip {
+                    text: Translation.tr("Font width (75=condensed, 100=normal, 125=expanded)")
+                }
             }
 
             ConfigSpinBox {
@@ -277,6 +286,9 @@ ContentPage {
                 Connections {
                     target: Config.options?.appearance?.typography?.variableAxes ?? null
                     function onGradChanged() { gradeSpinBox.value = Config.options.appearance.typography.variableAxes.grad }
+                }
+                StyledToolTip {
+                    text: Translation.tr("Font grade (optical weight adjustment)")
                 }
             }
         }

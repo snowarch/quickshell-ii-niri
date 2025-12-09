@@ -21,6 +21,9 @@ ContentPage {
             to: 3600
             stepSize: 30
             onValueChanged: Config.options.idle.screenOffTimeout = value
+            StyledToolTip {
+                text: Translation.tr("Turn off display after this many seconds of inactivity (0 = never)")
+            }
         }
 
         ConfigSpinBox {
@@ -31,6 +34,9 @@ ContentPage {
             to: 3600
             stepSize: 60
             onValueChanged: Config.options.idle.lockTimeout = value
+            StyledToolTip {
+                text: Translation.tr("Lock screen after this many seconds of inactivity (0 = never)")
+            }
         }
 
         ConfigSpinBox {
@@ -41,6 +47,9 @@ ContentPage {
             to: 7200
             stepSize: 60
             onValueChanged: Config.options.idle.suspendTimeout = value
+            StyledToolTip {
+                text: Translation.tr("Suspend system after this many seconds of inactivity (0 = never)")
+            }
         }
 
         ConfigSwitch {
@@ -48,6 +57,9 @@ ContentPage {
             text: Translation.tr("Lock before sleep")
             checked: Config.options.idle.lockBeforeSleep
             onCheckedChanged: Config.options.idle.lockBeforeSleep = checked
+            StyledToolTip {
+                text: Translation.tr("Lock the screen before the system goes to sleep")
+            }
         }
 
         ConfigSwitch {
@@ -56,6 +68,9 @@ ContentPage {
             checked: Idle.inhibit
             onCheckedChanged: {
                 if (checked !== Idle.inhibit) Idle.toggleInhibit()
+            }
+            StyledToolTip {
+                text: Translation.tr("Temporarily prevent screen from turning off and system from sleeping")
             }
         }
     }
@@ -91,6 +106,9 @@ ContentPage {
             onValueChanged: {
                 Config.options.musicRecognition.timeout = value;
             }
+            StyledToolTip {
+                text: Translation.tr("Maximum time to wait for music recognition result")
+            }
         }
         ConfigSpinBox {
             icon: "av_timer"
@@ -101,6 +119,9 @@ ContentPage {
             stepSize: 1
             onValueChanged: {
                 Config.options.musicRecognition.interval = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("How often to check for recognition result")
             }
         }
     }
@@ -133,6 +154,9 @@ ContentPage {
             stepSize: 100
             onValueChanged: {
                 Config.options.resources.updateInterval = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("How often to update CPU, RAM, and disk usage stats")
             }
         }
         
@@ -243,6 +267,9 @@ ContentPage {
             to: 1440
             stepSize: 15
             onValueChanged: Config.setNestedValue("updates.checkInterval", value)
+            StyledToolTip {
+                text: Translation.tr("How often to check for system updates (in minutes)")
+            }
         }
 
         ConfigSpinBox {
@@ -253,6 +280,9 @@ ContentPage {
             to: 200
             stepSize: 5
             onValueChanged: Config.setNestedValue("updates.adviseUpdateThreshold", value)
+            StyledToolTip {
+                text: Translation.tr("Show update icon in bar when available updates exceed this number")
+            }
         }
 
         ConfigSpinBox {
@@ -263,6 +293,9 @@ ContentPage {
             to: 500
             stepSize: 10
             onValueChanged: Config.setNestedValue("updates.stronglyAdviseUpdateThreshold", value)
+            StyledToolTip {
+                text: Translation.tr("Show warning color when available updates exceed this number")
+            }
         }
 
         MaterialTextArea {
@@ -320,6 +353,9 @@ ContentPage {
             to: 60
             stepSize: 5
             onValueChanged: Config.setNestedValue("bar.weather.fetchInterval", value)
+            StyledToolTip {
+                text: Translation.tr("How often to fetch new weather data from Open-Meteo")
+            }
         }
     }
 }
