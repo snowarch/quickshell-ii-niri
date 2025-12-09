@@ -85,10 +85,15 @@ install-python-packages(){
     }
   fi
   
-  # Install required packages
-  source "$venv_dir/bin/activate"
-  x uv pip install pillow opencv-contrib-python material-color-utilities numpy psutil
-  deactivate
+  # Install required packages from requirements.txt
+  local requirements_file="${XDG_CONFIG_HOME}/quickshell/ii/requirements.txt"
+  if [[ -f "$requirements_file" ]]; then
+    source "$venv_dir/bin/activate"
+    x uv pip install -r "$requirements_file"
+    deactivate
+  else
+    log_warning "requirements.txt not found at $requirements_file"
+  fi
   
   log_success "Python venv ready at $venv_dir"
 }
