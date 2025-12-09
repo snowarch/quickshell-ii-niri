@@ -37,6 +37,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.indicators.notifications.showUnreadCount = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Show the number of unread notifications instead of just a dot")
+            }
         }
     }
 
@@ -54,6 +57,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.bar.modules.leftSidebarButton = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Show button to open AI chat and tools sidebar")
+                }
             }
             ConfigSwitch {
                 buttonIcon: "window"
@@ -61,6 +67,9 @@ ContentPage {
                 checked: Config.options.bar.modules.activeWindow
                 onCheckedChanged: {
                     Config.options.bar.modules.activeWindow = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Show the title of the currently focused window")
                 }
             }
         }
@@ -74,6 +83,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.bar.modules.rightSidebarButton = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Show button to open quick settings and notifications sidebar")
+                }
             }
             ConfigSwitch {
                 buttonIcon: "shelf_auto_hide"
@@ -81,6 +93,9 @@ ContentPage {
                 checked: Config.options.bar.modules.sysTray
                 onCheckedChanged: {
                     Config.options.bar.modules.sysTray = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Show system tray icons from running applications")
                 }
             }
         }
@@ -91,6 +106,9 @@ ContentPage {
             checked: Config.options.bar.modules.weather
             onCheckedChanged: {
                 Config.options.bar.modules.weather = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Show current weather conditions in the bar")
             }
         }
     }
@@ -220,6 +238,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.showBackground = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Show a semi-transparent background behind the bar")
+            }
         }
     }
 
@@ -235,6 +256,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.tray.invertPinnedItems = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("New tray icons will be visible by default instead of hidden")
+            }
         }
         
         ConfigSwitch {
@@ -244,6 +268,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.tray.monochromeIcons = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Apply accent color tint to tray icons")
+            }
         }
 
         ConfigSwitch {
@@ -252,6 +279,9 @@ ContentPage {
             checked: Config.options.bar.tray.showItemId
             onCheckedChanged: {
                 Config.options.bar.tray.showItemId = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Show the internal ID of tray items (useful for debugging)")
             }
         }
     }
@@ -396,6 +426,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.workspaces.alwaysShowNumbers = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Always display workspace numbers instead of only when Super is held")
+            }
         }
 
         ConfigSwitch {
@@ -405,6 +438,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.bar.workspaces.showAppIcons = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Show icons of apps running in each workspace")
+            }
         }
 
         ConfigSwitch {
@@ -413,6 +449,9 @@ ContentPage {
             checked: Config.options.bar.workspaces.monochromeIcons
             onCheckedChanged: {
                 Config.options.bar.workspaces.monochromeIcons = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Apply accent color tint to workspace app icons")
             }
         }
 
@@ -428,6 +467,45 @@ ContentPage {
             }
         }
 
+        ConfigSwitch {
+            buttonIcon: "dynamic_feed"
+            text: Translation.tr("Dynamic workspace count")
+            checked: Config.options.bar.workspaces.dynamicCount
+            onCheckedChanged: {
+                Config.options.bar.workspaces.dynamicCount = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Automatically show only existing workspaces (Niri)")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "all_inclusive"
+            text: Translation.tr("Wrap around")
+            checked: Config.options.bar.workspaces.wrapAround
+            onCheckedChanged: {
+                Config.options.bar.workspaces.wrapAround = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Cycle from last to first workspace and vice versa")
+            }
+        }
+
+        ConfigSpinBox {
+            icon: "mouse"
+            text: Translation.tr("Scroll steps")
+            value: Config.options.bar.workspaces.scrollSteps
+            from: 1
+            to: 10
+            stepSize: 1
+            onValueChanged: {
+                Config.options.bar.workspaces.scrollSteps = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("Wheel steps required to switch workspace/column")
+            }
+        }
+
         ConfigSpinBox {
             icon: "touch_long"
             text: Translation.tr("Number show delay when pressing Super (ms)")
@@ -437,6 +515,9 @@ ContentPage {
             stepSize: 50
             onValueChanged: {
                 Config.options.bar.workspaces.showNumberDelay = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("Delay before showing workspace numbers when holding Super key")
             }
         }
 

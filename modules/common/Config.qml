@@ -426,8 +426,12 @@ Singleton {
                     property bool filterPassive: true
                 }
                 property JsonObject workspaces: JsonObject {
+                    property string scrollBehavior: "workspace" // "workspace" or "column"
                     property bool monochromeIcons: true
-                    property int shown: 10
+                    property bool dynamicCount: true // Auto-detect workspace count (Niri)
+                    property int shown: 10 // Only used when dynamicCount is false
+                    property bool wrapAround: true // Cycle from last to first and vice versa
+                    property int scrollSteps: 3 // Wheel steps required to switch
                     property bool showAppIcons: true
                     property bool alwaysShowNumbers: false
                     property int showNumberDelay: 300 // milliseconds
@@ -617,6 +621,8 @@ Singleton {
 
             // Settings for the custom Alt-Tab switcher in ii
             property JsonObject altSwitcher: JsonObject {
+                // Preset style: "default" (sidebar) or "list" (centered list)
+                property string preset: "default"
                 // Whether to tint app icons (monochrome), similar to dock/workspaces
                 property bool monochromeIcons: false
                 // Enable/disable slide in/out animation

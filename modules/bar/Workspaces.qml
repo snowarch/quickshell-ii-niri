@@ -20,10 +20,25 @@ Item {
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
     readonly property var wsConfig: Config.options?.bar.workspaces ?? {}
     
+    // Scroll behavior: "workspace" = switch workspaces, "column" = cycle windows left/right in same workspace
+    readonly property string scrollBehavior: wsConfig.scrollBehavior ?? "workspace"
+    readonly property bool columnMode: scrollBehavior === "column" && CompositorService.isNiri
+
     readonly property int currentWorkspaceNumber: CompositorService.isNiri
             ? NiriService.getCurrentWorkspaceNumber()
             : (monitor?.activeWorkspace?.id || 1)
-    readonly property int workspacesShown: wsConfig.shown ?? 10
+    
+    // Dynamic workspace count: use actual workspaces from Niri, or fixed count
+    readonly property bool dynamicCount: (wsConfig.dynamicCount ?? true) && CompositorService.isNiri
+    readonly property int actualWorkspaceCount: {
+        if (!dynamicCount) return wsConfig.shown ?? 10
+        // Niri: count workspaces on current output
+        const wsList = NiriService.currentOutputWorkspaces || []
+        return Math.max(wsList.length, 1)
+    }
+    readonly property int workspacesShown: actualWorkspaceCount
+    readonly property bool wrapAround: wsConfig.wrapAround ?? true
+    
     readonly property int workspaceGroup: Math.floor((currentWorkspaceNumber - 1) / root.workspacesShown)
     property list<bool> workspaceOccupied: []
     property int widgetPadding: 4
@@ -34,6 +49,19 @@ Item {
     property real workspaceIconOpacityShrinked: 1
     property real workspaceIconMarginShrinked: -4
     property int workspaceIndexInGroup: (currentWorkspaceNumber - 1) % root.workspacesShown
+
+    // Column mode: windows in current workspace
+    readonly property var currentWorkspaceWindows: {
+        if (!columnMode) return []
+        const currentWs = NiriService.currentOutputWorkspaces?.find(w => w.is_active)
+        if (!currentWs) return []
+        return NiriService.windows.filter(w => w.workspace_id === currentWs.id)
+    }
+    readonly property int currentWindowIndex: {
+        if (!columnMode) return -1
+        return currentWorkspaceWindows.findIndex(w => w.is_focused)
+    }
+    readonly property int columnsShown: columnMode ? Math.max(currentWorkspaceWindows.length, 1) : workspacesShown
 
     property bool showNumbers: false
     Timer {
@@ -123,71 +151,89 @@ Item {
         updateWorkspaceOccupied();
     }
 
-    implicitWidth: root.vertical ? Appearance.sizes.verticalBarWidth : (root.workspaceButtonWidth * root.workspacesShown)
-    implicitHeight: root.vertical ? (root.workspaceButtonWidth * root.workspacesShown) : Appearance.sizes.barHeight
+    implicitWidth: root.vertical ? Appearance.sizes.verticalBarWidth : (root.workspaceButtonWidth * root.columnsShown)
+    implicitHeight: root.vertical ? (root.workspaceButtonWidth * root.columnsShown) : Appearance.sizes.barHeight
 
-    // Scroll behavior: "workspace" = switch workspaces, "column" = cycle windows left/right in same workspace
-    readonly property string scrollBehavior: wsConfig.scrollBehavior ?? "workspace"
-
-    // Scroll to switch workspaces or cycle columns - uses horizontal scroll direction for Niri's scrolling model
-    WheelHandler {
+    // Scroll handler overlay - captures wheel events above all content
+    MouseArea {
+        z: 10
+        anchors.fill: parent
+        acceptedButtons: Qt.BackButton
+        
+        property int wheelStepCounter: 0
+        readonly property int wheelStepsRequired: Math.max(1, wsConfig.scrollSteps ?? 3)
+        
+        onPressed: (event) => {
+            if (event.button === Qt.BackButton && CompositorService.isHyprland) {
+                Hyprland.dispatch(`togglespecialworkspace`);
+            }
+        }
+        
         onWheel: (event) => {
-            // Use horizontal delta if available (touchpad horizontal scroll), otherwise use vertical
+            wheelStepCounter += 1
+            if (wheelStepCounter < wheelStepsRequired) return
+            wheelStepCounter = 0
             const deltaX = event.angleDelta.x
             const deltaY = event.angleDelta.y
-            
-            // Prefer horizontal scroll for natural left/right navigation
-            // Fall back to vertical scroll (inverted: scroll up = left, scroll down = right)
             const delta = deltaX !== 0 ? deltaX : -deltaY
-            if (delta === 0)
-                return
+            if (delta === 0) return
             
-            // Positive delta = scroll right = next
-            // Negative delta = scroll left = previous
             const direction = delta > 0 ? 1 : -1
 
             if (CompositorService.isNiri) {
-                if (root.scrollBehavior === "column") {
-                    // Cycle through columns (windows side by side) in the same workspace
-                    if (direction > 0) {
-                        NiriService.focusColumnRight()
+                if (root.columnMode) {
+                    // Column mode with wrap-around
+                    const windowCount = root.currentWorkspaceWindows.length
+                    if (windowCount <= 1) return
+                    
+                    if (root.wrapAround) {
+                        const currentIdx = root.currentWindowIndex
+                        if (direction > 0 && currentIdx >= windowCount - 1) {
+                            // At last, go to first
+                            NiriService.focusColumnFirst()
+                        } else if (direction < 0 && currentIdx <= 0) {
+                            // At first, go to last
+                            NiriService.focusColumnLast()
+                        } else {
+                            if (direction > 0) NiriService.focusColumnRight()
+                            else NiriService.focusColumnLeft()
+                        }
                     } else {
-                        NiriService.focusColumnLeft()
+                        if (direction > 0) NiriService.focusColumnRight()
+                        else NiriService.focusColumnLeft()
                     }
                 } else {
-                    // Default: switch workspaces
-                    // Niri uses Up/Down for workspace navigation (vertical scrolling model)
-                    if (direction > 0) {
-                        NiriService.focusWorkspaceDown()  // Next workspace
+                    // Workspace mode with wrap-around
+                    const wsCount = root.workspacesShown
+                    const currentWs = root.currentWorkspaceNumber
+                    
+                    if (root.wrapAround) {
+                        if (direction > 0 && currentWs >= wsCount) {
+                            // At last, go to first
+                            NiriService.switchToWorkspace(1)
+                        } else if (direction < 0 && currentWs <= 1) {
+                            // At first, go to last
+                            NiriService.switchToWorkspace(wsCount)
+                        } else {
+                            if (direction > 0) NiriService.focusWorkspaceDown()
+                            else NiriService.focusWorkspaceUp()
+                        }
                     } else {
-                        NiriService.focusWorkspaceUp()    // Previous workspace
+                        if (direction > 0) NiriService.focusWorkspaceDown()
+                        else NiriService.focusWorkspaceUp()
                     }
                 }
             } else if (CompositorService.isHyprland) {
-                if (direction > 0)
-                    Hyprland.dispatch(`workspace r+1`);
-                else
-                    Hyprland.dispatch(`workspace r-1`);
+                Hyprland.dispatch(direction > 0 ? `workspace r+1` : `workspace r-1`)
             }
         }
-        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
     }
 
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.BackButton
-        enabled: CompositorService.isHyprland // Niri doesn't have special workspaces
-        onPressed: (event) => {
-            if (event.button === Qt.BackButton) {
-                Hyprland.dispatch(`togglespecialworkspace`);
-            } 
-        }
-    }
-
-    // Workspaces - background
+    // Workspaces/Columns - background
     Grid {
         z: 1
         anchors.centerIn: parent
+        visible: !root.columnMode
 
         rowSpacing: 0
         columnSpacing: 0
@@ -232,9 +278,10 @@ Item {
 
     }
 
-    // Active workspace
+    // Active workspace indicator (workspace mode only)
     Rectangle {
         z: 2
+        visible: !root.columnMode
         // Make active ws indicator, which has a brighter color, smaller to look like it is of the same size as ws occupied highlight
         radius: Appearance.rounding.full
         color: Appearance.colors.colPrimary
@@ -259,9 +306,10 @@ Item {
 
     }
 
-    // Workspaces - numbers
+    // Workspaces - numbers (workspace mode)
     Grid {
         z: 3
+        visible: !root.columnMode
 
         columns: root.vertical ? 1 : root.workspacesShown
         rows: root.vertical ? root.workspacesShown : 1
@@ -418,6 +466,170 @@ Item {
 
         }
 
+    }
+
+    // Column mode - background (same style as workspace mode)
+    Grid {
+        z: 1
+        anchors.centerIn: parent
+        visible: root.columnMode && root.currentWorkspaceWindows.length > 0
+
+        rowSpacing: 0
+        columnSpacing: 0
+        columns: root.vertical ? 1 : root.currentWorkspaceWindows.length
+        rows: root.vertical ? root.currentWorkspaceWindows.length : 1
+
+        Repeater {
+            model: root.currentWorkspaceWindows.length
+
+            Rectangle {
+                z: 1
+                implicitWidth: workspaceButtonWidth
+                implicitHeight: workspaceButtonWidth
+                radius: (width / 2)
+                property bool previousExists: index > 0
+                property bool nextExists: index < root.currentWorkspaceWindows.length - 1
+                property var radiusPrev: previousExists ? 0 : (width / 2)
+                property var radiusNext: nextExists ? 0 : (width / 2)
+
+                topLeftRadius: radiusPrev
+                bottomLeftRadius: root.vertical ? radiusNext : radiusPrev
+                topRightRadius: root.vertical ? radiusPrev : radiusNext
+                bottomRightRadius: radiusNext
+                
+                color: ColorUtils.transparentize(Appearance.m3colors.m3secondaryContainer, 0.4)
+
+                Behavior on radiusPrev {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
+                Behavior on radiusNext {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
+            }
+        }
+    }
+
+    // Column mode - active indicator
+    Rectangle {
+        z: 2
+        visible: root.columnMode && root.currentWindowIndex >= 0
+        radius: Appearance.rounding.full
+        color: Appearance.colors.colPrimary
+
+        anchors {
+            verticalCenter: vertical ? undefined : parent.verticalCenter
+            horizontalCenter: vertical ? parent.horizontalCenter : undefined
+        }
+
+        AnimatedTabIndexPair {
+            id: columnIdxPair
+            index: root.currentWindowIndex
+        }
+        property real indicatorPosition: Math.min(columnIdxPair.idx1, columnIdxPair.idx2) * workspaceButtonWidth + root.activeWorkspaceMargin
+        property real indicatorLength: Math.abs(columnIdxPair.idx1 - columnIdxPair.idx2) * workspaceButtonWidth + workspaceButtonWidth - root.activeWorkspaceMargin * 2
+        property real indicatorThickness: workspaceButtonWidth - root.activeWorkspaceMargin * 2
+
+        x: root.vertical ? null : indicatorPosition
+        implicitWidth: root.vertical ? indicatorThickness : indicatorLength
+        y: root.vertical ? indicatorPosition : null
+        implicitHeight: root.vertical ? indicatorLength : indicatorThickness
+    }
+
+    // Column mode - buttons with icons
+    Grid {
+        z: 3
+        visible: root.columnMode
+        anchors.centerIn: parent
+        
+        columns: root.vertical ? 1 : Math.max(root.currentWorkspaceWindows.length, 1)
+        rows: root.vertical ? Math.max(root.currentWorkspaceWindows.length, 1) : 1
+        columnSpacing: 0
+        rowSpacing: 0
+
+        Repeater {
+            model: root.currentWorkspaceWindows
+
+            Button {
+                id: columnButton
+                required property var modelData
+                required property int index
+                
+                implicitHeight: vertical ? Appearance.sizes.verticalBarWidth : Appearance.sizes.barHeight
+                implicitWidth: vertical ? Appearance.sizes.verticalBarWidth : workspaceButtonWidth
+                width: vertical ? undefined : workspaceButtonWidth
+                height: vertical ? workspaceButtonWidth : undefined
+                
+                onPressed: {
+                    if (modelData?.id !== undefined) {
+                        NiriService.focusWindow(modelData.id)
+                    }
+                }
+
+                background: Item {
+                    implicitWidth: workspaceButtonWidth
+                    implicitHeight: workspaceButtonWidth
+                    
+                    property string appIconSource: Quickshell.iconPath(AppSearch.guessIcon(columnButton.modelData?.app_id), "image-missing")
+                    property bool isActive: columnButton.index === root.currentWindowIndex
+                    property color dotColor: isActive ? Appearance.m3colors.m3onPrimary : Appearance.m3colors.m3onSecondaryContainer
+
+                    // Dot (when showAppIcons is off) - always hidden in column mode
+                    Rectangle {
+                        id: columnDot
+                        opacity: 0  // Column mode always shows icons
+                        visible: opacity > 0
+                        anchors.centerIn: parent
+                        width: workspaceButtonWidth * 0.18
+                        height: width
+                        radius: width / 2
+                        color: parent.dotColor
+
+                        Behavior on opacity {
+                            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                        }
+                    }
+
+                    // App icon - always visible in column mode
+                    Item {
+                        anchors.centerIn: parent
+                        width: workspaceButtonWidth
+                        height: workspaceButtonWidth
+                        opacity: 1
+                        visible: true
+
+                        IconImage {
+                            id: columnAppIcon
+                            anchors.centerIn: parent
+                            source: parent.parent.appIconSource
+                            implicitSize: root.workspaceIconSize
+
+                            Behavior on opacity {
+                                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                            }
+                        }
+
+                        Loader {
+                            active: wsConfig.monochromeIcons
+                            anchors.fill: columnAppIcon
+                            sourceComponent: Item {
+                                Desaturate {
+                                    id: colDesaturatedIcon
+                                    visible: false
+                                    anchors.fill: parent
+                                    source: columnAppIcon
+                                    desaturation: 0.8
+                                }
+                                ColorOverlay {
+                                    anchors.fill: colDesaturatedIcon
+                                    source: colDesaturatedIcon
+                                    color: ColorUtils.transparentize(columnDot.color, 0.9)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
