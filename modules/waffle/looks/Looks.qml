@@ -192,6 +192,7 @@ Singleton {
             : (root.dark ? root.darkColors.accentUnfocused : root.lightColors.accentUnfocused)
         property color accentFg: ColorUtils.isDark(accent) ? "#FFFFFF" : "#000000"
         property color selection: Appearance.colors.colPrimaryContainer
+        property color selectionFg: Appearance.colors.colOnPrimaryContainer
     }
 
     radius: QtObject {
@@ -213,7 +214,8 @@ Singleton {
             property int thin: Font.Normal
             property int regular: Font.Medium
             property int strong: Font.DemiBold
-            property int stronger: Font.Bold
+            property int stronger: (Font.DemiBold + 2*Font.Bold) / 3
+            property int strongest: Font.Bold
         }
         property QtObject pixelSize: QtObject {
             property real tiny: Math.round(9 * root.fontScale)
@@ -221,6 +223,7 @@ Singleton {
             property real normal: Math.round(11 * root.fontScale)
             property real large: Math.round(13 * root.fontScale)
             property real larger: Math.round(15 * root.fontScale)
+            property real xlarger: Math.round(17 * root.fontScale)
         }
     }
 

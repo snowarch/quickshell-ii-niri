@@ -60,6 +60,7 @@ WSettingsPage {
             visible: root.wEffects.enableBlur ?? false
             label: Translation.tr("Blur radius")
             icon: "options"
+            description: Translation.tr("Amount of blur applied to wallpaper")
             from: 0; to: 100; stepSize: 5
             value: root.wEffects.blurRadius ?? 32
             onValueChanged: Config.setNestedValue("waffles.background.effects.blurRadius", value)
@@ -131,6 +132,7 @@ WSettingsPage {
             visible: root.wBackdrop.enable ?? true
             label: Translation.tr("Backdrop blur")
             icon: "options"
+            description: Translation.tr("Amount of blur for backdrop layer")
             from: 0; to: 100; stepSize: 5
             value: root.wBackdrop.blurRadius ?? 64
             onValueChanged: Config.setNestedValue("waffles.background.backdrop.blurRadius", value)
@@ -140,6 +142,7 @@ WSettingsPage {
             visible: root.wBackdrop.enable ?? true
             label: Translation.tr("Backdrop dim")
             icon: "options"
+            description: Translation.tr("Darken the backdrop layer")
             suffix: "%"
             from: 0; to: 100; stepSize: 5
             value: root.wBackdrop.dim ?? 20
