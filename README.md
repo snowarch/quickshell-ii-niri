@@ -184,3 +184,7 @@ This fork diverged a lot from the original - different compositor, different fea
 - [**end-4**](https://github.com/end-4/dots-hyprland) –  illogical-impulse for Hyprland
 - [**Quickshell**](https://quickshell.outfoxxed.me/) – the framework that makes this possible
 - [**Niri**](https://github.com/YaLTeR/niri) – the compositor that doesn't crash
+
+---
+
+Got questions? Something broke? Wanna flex your setup? Hit me up on Discord: `snow.f`
