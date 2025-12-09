@@ -7,13 +7,21 @@ A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to wor
 
 > **Heads up:** almost everything here is configurable. Modules, colors, fonts, animations - if something bugs you, there's probably a toggle for it. Hit `Super+,` for settings before you rage-quit.
 
-| Overview | Uglydesktop |
+### Material ii
+
+| Overview | Sidebars |
 |:---|:---|
 | ![Overview](https://github.com/user-attachments/assets/9faaad0e-a665-4747-9428-ea94756e1f0f) | ![Sidebars](https://github.com/user-attachments/assets/21e43f3e-d6d9-4625-8210-642f9c05509b) |
 
-| Overlay/Search | Settings/Sidebar |
+| Overlay/Search | Settings |
 |:---|:---|
 | ![Settings](https://github.com/user-attachments/assets/25700a1c-70e6-4456-b053-35cf83fcac7a) | ![Overlay](https://github.com/user-attachments/assets/1d5ca0f0-6ffb-46da-be1a-2d5e494089e7) |
+
+### Waffle (Windows 11 style)
+
+| Start Menu + Widgets | Quick Settings |
+|:---|:---|
+| ![Waffle Start](https://github.com/user-attachments/assets/5c5996e7-90eb-4789-9921-0d5fe5283fa3) | ![Waffle Settings](https://github.com/user-attachments/assets/fadf9562-751e-4138-a3a1-b87b31114d44) |
 
 ---
 
