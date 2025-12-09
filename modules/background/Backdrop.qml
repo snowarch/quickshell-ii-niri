@@ -33,6 +33,11 @@ Variants {
         
         readonly property int backdropBlurRadius: iiBackdrop.blurRadius ?? 32
         readonly property int backdropDim: iiBackdrop.dim ?? 35
+        readonly property real backdropSaturation: iiBackdrop.saturation ?? 0
+        readonly property real backdropContrast: iiBackdrop.contrast ?? 0
+        readonly property bool vignetteEnabled: iiBackdrop.vignetteEnabled ?? false
+        readonly property real vignetteIntensity: iiBackdrop.vignetteIntensity ?? 0.5
+        readonly property real vignetteRadius: iiBackdrop.vignetteRadius ?? 0.7
 
         readonly property string effectiveWallpaperPath: {
             const useMain = iiBackdrop.useMainWallpaper ?? true;
@@ -63,12 +68,25 @@ Variants {
                 blurEnabled: backdropWindow.backdropBlurRadius > 0
                 blur: backdropWindow.backdropBlurRadius / 100.0
                 blurMax: 64
+                saturation: backdropWindow.backdropSaturation
+                contrast: backdropWindow.backdropContrast
             }
 
             Rectangle {
                 anchors.fill: parent
                 color: "black"
                 opacity: backdropWindow.backdropDim / 100.0
+            }
+
+            // Vignette effect
+            Rectangle {
+                anchors.fill: parent
+                visible: backdropWindow.vignetteEnabled
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "transparent" }
+                    GradientStop { position: backdropWindow.vignetteRadius; color: "transparent" }
+                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, backdropWindow.vignetteIntensity) }
+                }
             }
         }
     }

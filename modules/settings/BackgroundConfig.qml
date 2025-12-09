@@ -39,6 +39,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.background.parallax.vertical = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Enable vertical parallax movement based on mouse position")
+            }
         }
 
         ConfigRow {
@@ -50,6 +53,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.background.parallax.enableWorkspace = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Shift wallpaper based on current workspace position")
+                }
             }
             ConfigSwitch {
                 buttonIcon: "side_navigation"
@@ -57,6 +63,9 @@ ContentPage {
                 checked: Config.options.background.parallax.enableSidebar
                 onCheckedChanged: {
                     Config.options.background.parallax.enableSidebar = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Shift wallpaper when sidebars are open")
                 }
             }
         }
@@ -69,6 +78,9 @@ ContentPage {
             stepSize: 1
             onValueChanged: {
                 Config.options.background.parallax.workspaceZoom = value / 100;
+            }
+            StyledToolTip {
+                text: Translation.tr("How much to zoom the wallpaper for parallax effect")
             }
         }
     }
@@ -85,6 +97,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.background.effects.enableBlur = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Blur the wallpaper when windows are present")
+            }
         }
 
         ConfigSpinBox {
@@ -97,6 +112,9 @@ ContentPage {
             stepSize: 2
             onValueChanged: {
                 Config.options.background.effects.blurRadius = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("Amount of blur applied to the wallpaper")
             }
         }
 
@@ -111,6 +129,9 @@ ContentPage {
             onValueChanged: {
                 Config.options.background.effects.blurStatic = value;
             }
+            StyledToolTip {
+                text: Translation.tr("Percentage of blur to keep even when no windows are open")
+            }
         }
 
         ConfigSpinBox {
@@ -123,6 +144,9 @@ ContentPage {
             stepSize: 5
             onValueChanged: {
                 Config.options.background.effects.videoBlurStrength = value;
+            }
+            StyledToolTip {
+                text: Translation.tr("Blur strength for video wallpapers (separate from static images)")
             }
         }
 
@@ -171,6 +195,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.background.backdrop.enable = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Show a separate backdrop layer when overview is open")
+                }
             }
 
             ConfigSwitch {
@@ -180,6 +207,9 @@ ContentPage {
                 checked: Config.options.background.backdrop.hideWallpaper
                 onCheckedChanged: {
                     Config.options.background.backdrop.hideWallpaper = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Only show the backdrop, hide the main wallpaper entirely")
                 }
             }
 
@@ -192,6 +222,9 @@ ContentPage {
                     if (checked) {
                         Config.options.background.backdrop.wallpaperPath = "";
                     }
+                }
+                StyledToolTip {
+                    text: Translation.tr("Use the same wallpaper for backdrop as the main wallpaper")
                 }
             }
 
@@ -230,6 +263,9 @@ ContentPage {
                 onValueChanged: {
                     Config.options.background.backdrop.blurRadius = value;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Amount of blur applied to the backdrop layer")
+                }
             }
 
             ConfigSpinBox {
@@ -243,69 +279,88 @@ ContentPage {
                 onValueChanged: {
                     Config.options.background.backdrop.dim = value;
                 }
-            }
-
-            ConfigSpinBox {
-                visible: Config.options.background.backdrop.enable
-                icon: "palette"
-                text: Translation.tr("Backdrop saturation")
-                value: Math.round(Config.options.background.backdrop.saturation * 100)
-                from: 0
-                to: 200
-                stepSize: 5
-                onValueChanged: {
-                    Config.options.background.backdrop.saturation = value / 100.0;
+                StyledToolTip {
+                    text: Translation.tr("Darken the backdrop layer")
                 }
             }
 
             ConfigSpinBox {
-                visible: Config.options.background.backdrop.enable
-                icon: "contrast"
-                text: Translation.tr("Backdrop contrast")
-                value: Math.round(Config.options.background.backdrop.contrast * 100)
-                from: 0
-                to: 200
+                visible: Config.options?.background?.backdrop?.enable ?? true
+                icon: "palette"
+                text: Translation.tr("Backdrop saturation")
+                value: Math.round((Config.options?.background?.backdrop?.saturation ?? 0) * 100)
+                from: -100
+                to: 100
                 stepSize: 5
                 onValueChanged: {
-                    Config.options.background.backdrop.contrast = value / 100.0;
+                    Config.setNestedValue("background.backdrop.saturation", value / 100.0);
+                }
+                StyledToolTip {
+                    text: Translation.tr("Increase or decrease color intensity of the backdrop")
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options?.background?.backdrop?.enable ?? true
+                icon: "contrast"
+                text: Translation.tr("Backdrop contrast")
+                value: Math.round((Config.options?.background?.backdrop?.contrast ?? 0) * 100)
+                from: -100
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.setNestedValue("background.backdrop.contrast", value / 100.0);
+                }
+                StyledToolTip {
+                    text: Translation.tr("Increase or decrease light/dark difference in the backdrop")
                 }
             }
 
             ConfigRow {
                 uniform: true
+                visible: Config.options?.background?.backdrop?.enable ?? true
                 ConfigSwitch {
                     buttonIcon: "gradient"
                     text: Translation.tr("Enable vignette")
-                    checked: Config.options.background.backdrop.vignetteEnabled
+                    checked: Config.options?.background?.backdrop?.vignetteEnabled ?? false
                     onCheckedChanged: {
-                        Config.options.background.backdrop.vignetteEnabled = checked;
+                        Config.setNestedValue("background.backdrop.vignetteEnabled", checked);
+                    }
+                    StyledToolTip {
+                        text: Translation.tr("Add a dark gradient around the edges of the backdrop")
                     }
                 }
             }
 
             ConfigSpinBox {
-                visible: Config.options.background.backdrop.enable && Config.options.background.backdrop.vignetteEnabled
+                visible: (Config.options?.background?.backdrop?.enable ?? true) && (Config.options?.background?.backdrop?.vignetteEnabled ?? false)
                 icon: "blur_circular"
                 text: Translation.tr("Vignette intensity")
-                value: Math.round(Config.options.background.backdrop.vignetteIntensity * 100)
+                value: Math.round((Config.options?.background?.backdrop?.vignetteIntensity ?? 0.5) * 100)
                 from: 0
                 to: 100
                 stepSize: 5
                 onValueChanged: {
-                    Config.options.background.backdrop.vignetteIntensity = value / 100.0;
+                    Config.setNestedValue("background.backdrop.vignetteIntensity", value / 100.0);
+                }
+                StyledToolTip {
+                    text: Translation.tr("How dark the vignette effect should be")
                 }
             }
 
             ConfigSpinBox {
-                visible: Config.options.background.backdrop.enable && Config.options.background.backdrop.vignetteEnabled
+                visible: (Config.options?.background?.backdrop?.enable ?? true) && (Config.options?.background?.backdrop?.vignetteEnabled ?? false)
                 icon: "trip_origin"
                 text: Translation.tr("Vignette radius")
-                value: Math.round(Config.options.background.backdrop.vignetteRadius * 100)
+                value: Math.round((Config.options?.background?.backdrop?.vignetteRadius ?? 0.7) * 100)
                 from: 10
                 to: 100
                 stepSize: 5
                 onValueChanged: {
-                    Config.options.background.backdrop.vignetteRadius = value / 100.0;
+                    Config.setNestedValue("background.backdrop.vignetteRadius", value / 100.0);
+                }
+                StyledToolTip {
+                    text: Translation.tr("How far the vignette extends from the edges")
                 }
             }
         }
