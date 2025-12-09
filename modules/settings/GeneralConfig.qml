@@ -45,6 +45,9 @@ ContentPage {
                 onValueChanged: {
                     Config.options.audio.protection.maxAllowedIncrease = value;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Maximum volume increase per key press")
+                }
             }
             ConfigSpinBox {
                 icon: "vertical_align_top"
@@ -55,6 +58,9 @@ ContentPage {
                 stepSize: 2
                 onValueChanged: {
                     Config.options.audio.protection.maxAllowed = value;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Maximum volume percentage (pavucontrol allows up to 153%)")
                 }
             }
         }
@@ -76,6 +82,9 @@ ContentPage {
                 onValueChanged: {
                     Config.options.battery.low = value;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Show warning notification when battery drops below this level")
+                }
             }
             ConfigSpinBox {
                 icon: "dangerous"
@@ -86,6 +95,9 @@ ContentPage {
                 stepSize: 5
                 onValueChanged: {
                     Config.options.battery.critical = value;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Show critical warning when battery drops below this level")
                 }
             }
         }
@@ -126,6 +138,9 @@ ContentPage {
                 stepSize: 5
                 onValueChanged: {
                     Config.options.battery.full = value;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Notify when battery reaches this level while charging (101 = disabled)")
                 }
             }
         }
@@ -269,6 +284,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.sounds.battery = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Play sound for battery warnings")
+                }
             }
             ConfigSwitch {
                 buttonIcon: "av_timer"
@@ -277,6 +295,9 @@ ContentPage {
                 onCheckedChanged: {
                     Config.options.sounds.pomodoro = checked;
                 }
+                StyledToolTip {
+                    text: Translation.tr("Play sound when pomodoro timer ends")
+                }
             }
             ConfigSwitch {
                 buttonIcon: "notifications"
@@ -284,6 +305,9 @@ ContentPage {
                 checked: Config.options.sounds.notifications
                 onCheckedChanged: {
                     Config.options.sounds.notifications = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Play sound for incoming notifications")
                 }
             }
         }
@@ -367,6 +391,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.workSafety.enable.clipboard = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Blur clipboard preview for images from anime/NSFW sites")
+            }
         }
         ConfigSwitch {
             buttonIcon: "wallpaper"
@@ -374,6 +401,9 @@ ContentPage {
             checked: Config.options.workSafety.enable.wallpaper
             onCheckedChanged: {
                 Config.options.workSafety.enable.wallpaper = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Replace anime wallpapers with a solid color when enabled")
             }
         }
     }

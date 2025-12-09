@@ -110,6 +110,7 @@ WSettingsPage {
         WSettingsDropdown {
             label: Translation.tr("Appearance")
             icon: "weather-moon"
+            description: Translation.tr("Light or dark color scheme")
             currentValue: Appearance.m3colors.darkmode ? "dark" : "light"
             options: [
                 { value: "light", displayName: Translation.tr("Light") },
@@ -164,6 +165,7 @@ WSettingsPage {
         WSettingsDropdown {
             label: Translation.tr("Font family")
             icon: "options"
+            description: Translation.tr("Font used in Waffle panels")
             currentValue: Config.options?.waffles?.theming?.font?.family ?? "Noto Sans"
             options: [
                 { value: "Segoe UI Variable", displayName: "Segoe UI" },
@@ -178,6 +180,7 @@ WSettingsPage {
         WSettingsSpinBox {
             label: Translation.tr("Font scale")
             icon: "options"
+            description: Translation.tr("Scale all text in Waffle panels")
             suffix: "%"
             from: 80; to: 150; stepSize: 5
             value: Math.round((Config.options?.waffles?.theming?.font?.scale ?? 1.0) * 100)

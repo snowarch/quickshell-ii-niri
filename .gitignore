@@ -6,6 +6,7 @@ AGENTS.md
 .vscode
 *.swp
 *~
+.context
 
 # Docs (internal)
 docs/OPTIMIZATION.md

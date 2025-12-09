@@ -62,6 +62,7 @@ WSettingsPage {
         WSettingsDropdown {
             label: Translation.tr("Style")
             icon: "options"
+            description: Translation.tr("Visual style of the window switcher")
             currentValue: Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails"
             options: [
                 { value: "thumbnails", displayName: Translation.tr("Thumbnails") },
@@ -101,6 +102,7 @@ WSettingsPage {
             visible: Config.options?.waffles?.altSwitcher?.autoHide ?? true
             label: Translation.tr("Auto-hide delay")
             icon: "options"
+            description: Translation.tr("Time before switcher hides after releasing Alt")
             suffix: "ms"
             from: 100; to: 2000; stepSize: 100
             value: Config.options?.waffles?.altSwitcher?.autoHideDelayMs ?? 500
@@ -138,6 +140,7 @@ WSettingsPage {
         WSettingsSwitch {
             label: Translation.tr("Show date & time")
             icon: "options"
+            description: Translation.tr("Display date and time widget")
             checked: Config.options?.waffles?.widgetsPanel?.showDateTime ?? true
             onCheckedChanged: Config.setNestedValue("waffles.widgetsPanel.showDateTime", checked)
         }
@@ -145,6 +148,7 @@ WSettingsPage {
         WSettingsSwitch {
             label: Translation.tr("Show weather")
             icon: "weather-sunny"
+            description: Translation.tr("Display weather conditions widget")
             checked: Config.options?.waffles?.widgetsPanel?.showWeather ?? true
             onCheckedChanged: Config.setNestedValue("waffles.widgetsPanel.showWeather", checked)
         }
@@ -152,6 +156,7 @@ WSettingsPage {
         WSettingsSwitch {
             label: Translation.tr("Show system info")
             icon: "desktop"
+            description: Translation.tr("Display CPU, RAM, and disk usage")
             checked: Config.options?.waffles?.widgetsPanel?.showSystem ?? true
             onCheckedChanged: Config.setNestedValue("waffles.widgetsPanel.showSystem", checked)
         }
@@ -159,6 +164,7 @@ WSettingsPage {
         WSettingsSwitch {
             label: Translation.tr("Show media controls")
             icon: "music-note-2"
+            description: Translation.tr("Display now playing and media controls")
             checked: Config.options?.waffles?.widgetsPanel?.showMedia ?? true
             onCheckedChanged: Config.setNestedValue("waffles.widgetsPanel.showMedia", checked)
         }
@@ -166,6 +172,7 @@ WSettingsPage {
         WSettingsSwitch {
             label: Translation.tr("Show quick actions")
             icon: "flash-on"
+            description: Translation.tr("Display quick action buttons")
             checked: Config.options?.waffles?.widgetsPanel?.showQuickActions ?? true
             onCheckedChanged: Config.setNestedValue("waffles.widgetsPanel.showQuickActions", checked)
         }

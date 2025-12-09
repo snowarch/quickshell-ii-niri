@@ -106,7 +106,7 @@ Singleton {
             }
         }
         onMultipliedBrightnessChanged: {
-            if (monitor.animationEnabled) syncBrightness();
+            if (monitor.animateChanges) syncBrightness();
             else setTimer.restart();
         }
 

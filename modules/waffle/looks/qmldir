@@ -36,3 +36,5 @@ AcrylicRectangle 1.0 AcrylicRectangle.qml
 BodyRectangle 1.0 BodyRectangle.qml
 FooterRectangle 1.0 FooterRectangle.qml
 FooterMoreButton 1.0 FooterMoreButton.qml
+CloseButton 1.0 CloseButton.qml
+WTextField 1.0 WTextField.qml

@@ -19,6 +19,9 @@ ContentPage {
             onCheckedChanged: {
                 Config.options.appearance.wallpaperTheming.enableAppsAndShell = checked;
             }
+            StyledToolTip {
+                text: Translation.tr("Generate colors for GTK apps, fuzzel, and other utilities from wallpaper")
+            }
         }
         ConfigSwitch {
             buttonIcon: "tv_options_input_settings"
@@ -28,7 +31,7 @@ ContentPage {
                 Config.options.appearance.wallpaperTheming.enableQtApps = checked;
             }
             StyledToolTip {
-                text: Translation.tr("Shell & utilities theming must also be enabled")
+                text: Translation.tr("Generate colors for Qt/KDE apps (requires Shell & utilities)")
             }
         }
         ConfigSwitch {
@@ -39,7 +42,7 @@ ContentPage {
                 Config.options.appearance.wallpaperTheming.enableTerminal = checked;
             }
             StyledToolTip {
-                text: Translation.tr("Shell & utilities theming must also be enabled")
+                text: Translation.tr("Generate terminal color scheme from wallpaper (requires Shell & utilities)")
             }
         }
         ConfigRow {
@@ -52,7 +55,7 @@ ContentPage {
                      Config.options.appearance.wallpaperTheming.terminalGenerationProps.forceDarkMode= checked;
                 }
                 StyledToolTip {
-                    text: Translation.tr("Ignored if terminal theming is not enabled")
+                    text: Translation.tr("Always use dark background for terminal regardless of wallpaper")
                 }
             }
         }
@@ -67,6 +70,9 @@ ContentPage {
             onValueChanged: {
                 Config.options.appearance.wallpaperTheming.terminalGenerationProps.harmony = value / 100;
             }
+            StyledToolTip {
+                text: Translation.tr("How much to blend terminal colors with the wallpaper palette")
+            }
         }
         ConfigSpinBox {
             icon: "gradient"
@@ -78,6 +84,9 @@ ContentPage {
             onValueChanged: {
                 Config.options.appearance.wallpaperTheming.terminalGenerationProps.harmonizeThreshold = value;
             }
+            StyledToolTip {
+                text: Translation.tr("Minimum color difference before harmonization is applied")
+            }
         }
         ConfigSpinBox {
             icon: "format_color_text"
@@ -88,6 +97,9 @@ ContentPage {
             stepSize: 10
             onValueChanged: {
                 Config.options.appearance.wallpaperTheming.terminalGenerationProps.termFgBoost = value / 100;
+            }
+            StyledToolTip {
+                text: Translation.tr("Increase contrast of terminal foreground colors")
             }
         }
     }
