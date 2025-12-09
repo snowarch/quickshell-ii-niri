@@ -19,7 +19,7 @@ A Quickshell shell for Niri. Fork of end-4's illogical-impulse, butchered to wor
 
 ### Waffle (Windows 11 style)
 
-| Start Menu + Widgets | Quick Settings |
+| Quick Settings | Start Menu + Widgets |
 |:---|:---|
 | ![Waffle Start](https://github.com/user-attachments/assets/5c5996e7-90eb-4789-9921-0d5fe5283fa3) | ![Waffle Settings](https://github.com/user-attachments/assets/fadf9562-751e-4138-a3a1-b87b31114d44) |
 
@@ -146,6 +146,7 @@ Main targets:
 | `brightness` | `increment`, `decrement` |
 | `gamemode` | `toggle`, `activate`, `deactivate`, `status` |
 | `notifications` | `test`, `clearAll`, `toggleSilent` |
+| `audio` | `volumeUp`, `volumeDown`, `mute`, `micMute` |
 
 Full reference with examples: [docs/IPC.md](docs/IPC.md)
 
@@ -174,7 +175,7 @@ If you're still stuck, the logs usually tell you what's missing. Usually.
 
 This is my daily driver. It works. Most of the time. I break things when I'm bored.
 
-If you want something stable and polished, check out end-4's original ii for Hyprland instead. This fork is for people who like living dangerously on Niri.
+This fork diverged a lot from the original - different compositor, different features, different bugs. If you want the Hyprland version, check out end-4's original.
 
 ---
 
