@@ -100,7 +100,8 @@ Item {
             // App info card
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: buttonsRow.width
+                Layout.preferredWidth: Math.min(buttonsRow.width, 320)
+                Layout.maximumWidth: 320
                 implicitHeight: appInfoColumn.implicitHeight + Appearance.sizes.spacingMedium * 2
                 radius: Appearance.rounding.normal
                 color: Appearance.colors.colLayer1

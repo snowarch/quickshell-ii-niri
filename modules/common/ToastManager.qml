@@ -162,7 +162,9 @@ Scope {
                         
                         // Entry animation
                         Component.onCompleted: {
-                            entryAnim.start()
+                            if (Appearance.animationsEnabled) {
+                                entryAnim.start()
+                            }
                         }
                         
                         ParallelAnimation {
@@ -186,7 +188,11 @@ Scope {
                         }
                         
                         onDismissed: {
-                            exitAnim.start()
+                            if (Appearance.animationsEnabled) {
+                                exitAnim.start()
+                            } else {
+                                root.removeToast(modelData.id)
+                            }
                         }
                         
                         ParallelAnimation {

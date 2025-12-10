@@ -49,6 +49,9 @@ Item {
         id: dialog
         anchors.centerIn: parent
         radius: Looks.radius.large
+        
+        // Fixed width to prevent expansion from long titles/URLs
+        implicitWidth: 360
 
         scale: 0.96
         opacity: 0
@@ -96,15 +99,15 @@ Item {
                         wrapMode: Text.Wrap
                     }
 
-                    // App title
+                    // App title - truncated for long URLs
                     WText {
                         Layout.fillWidth: true
                         text: root.appTitle || root.appId || Translation.tr("Unknown")
                         font.pixelSize: Looks.font.pixelSize.normal
                         color: Looks.colors.fg
-                        elide: Text.ElideRight
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 2
+                        elide: Text.ElideMiddle
+                        wrapMode: Text.NoWrap
+                        maximumLineCount: 1
                     }
 
                     // App ID (if different from title)
@@ -114,6 +117,7 @@ Item {
                         font.pixelSize: Looks.font.pixelSize.small
                         color: Looks.colors.subfg
                         visible: root.appId !== "" && root.appId !== root.appTitle
+                        elide: Text.ElideMiddle
                     }
                 }
             }

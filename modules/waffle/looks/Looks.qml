@@ -28,7 +28,7 @@ Singleton {
 
     property real backgroundTransparency: 0.13
     property real panelBackgroundTransparency: 0.12
-    property real panelLayerTransparency: root.dark ? 0.9 : 0.7
+    property real panelLayerTransparency: root.dark ? 0.6 : 0.5
     property real contentTransparency: root.dark ? 0.87 : 0.5
     function applyBackgroundTransparency(col) {
         return ColorUtils.applyAlpha(col, 1 - root.backgroundTransparency)
@@ -230,6 +230,9 @@ Singleton {
     transition: QtObject {
         id: transition
 
+        // Respect GameMode - disable animations when Appearance says so
+        readonly property bool enabled: Appearance.animationsEnabled
+        
         property int velocity: 850
 
         property QtObject easing: QtObject {
@@ -242,7 +245,7 @@ Singleton {
 
         property Component color: Component {
             ColorAnimation {
-                duration: 120
+                duration: transition.enabled ? 120 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
@@ -250,15 +253,15 @@ Singleton {
 
         property Component opacity: Component {
             NumberAnimation {
-                duration: 120
+                duration: transition.enabled ? 120 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
         }
 
-        property Component resize: Component { // TODO: better curve needed
+        property Component resize: Component {
             NumberAnimation {
-                duration: 200
+                duration: transition.enabled ? 200 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
@@ -266,7 +269,7 @@ Singleton {
 
         property Component enter: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? 250 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
@@ -274,7 +277,7 @@ Singleton {
 
         property Component exit: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? 250 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeOut
             }
@@ -282,7 +285,7 @@ Singleton {
 
         property Component move: Component {
             NumberAnimation {
-                duration: 170
+                duration: transition.enabled ? 170 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeInOut
             }
@@ -290,7 +293,7 @@ Singleton {
 
         property Component rotate: Component {
             NumberAnimation {
-                duration: 170
+                duration: transition.enabled ? 170 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeInOut
             }
@@ -298,7 +301,7 @@ Singleton {
 
         property Component anchor: Component {
             AnchorAnimation {
-                duration: 160
+                duration: transition.enabled ? 160 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
@@ -306,7 +309,7 @@ Singleton {
 
         property Component longMovement: Component {
             NumberAnimation {
-                duration: 1000
+                duration: transition.enabled ? 1000 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.easeIn
             }
@@ -314,7 +317,7 @@ Singleton {
 
         property Component scroll: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? 250 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: [0.0, 0.0, 0.25, 1.0, 1, 1]
             }
