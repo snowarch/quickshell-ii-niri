@@ -39,6 +39,7 @@ import qs.modules.waffle.startMenu
 import qs.modules.waffle.widgets
 import qs.modules.waffle.backdrop as WaffleBackdropModule
 import qs.modules.waffle.notificationPopup as WaffleNotificationPopupModule
+import qs.modules.waffle.taskview as WaffleTaskViewModule
 
 import QtQuick
 import Quickshell
@@ -51,6 +52,7 @@ ShellRoot {
     // Force singleton instantiation
     property var _idleService: Idle
     property var _gameModeService: GameMode
+    property var _windowPreviewService: WindowPreviewService
 
     Component.onCompleted: {
         console.log("[Shell] Initializing singletons");
@@ -164,6 +166,8 @@ ShellRoot {
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleClipboardModule.WaffleClipboard {} }
     // Waffle AltSwitcher - handles IPC when panelFamily === "waffle"
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleAltSwitcherModule.WaffleAltSwitcher {} }
+    // Waffle TaskView - handles IPC when panelFamily === "waffle"
+    LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleTaskViewModule.WaffleTaskView {} }
 
     // Close confirmation dialog (always loaded, handles IPC)
     LazyLoader { active: Config.ready; component: CloseConfirm {} }

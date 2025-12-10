@@ -269,6 +269,13 @@ Singleton {
         persistenceSupported: true
 
         onNotification: (notification) => {
+            // Filter out niri screenshot notifications (TaskView preview captures)
+            if (notification.appName === "niri" && 
+                (notification.summary?.toLowerCase().includes("screenshot") || 
+                 notification.body?.toLowerCase().includes("screenshot"))) {
+                return;
+            }
+            
             if (!_ingressAllowed(notification)) {
                 return;
             }
