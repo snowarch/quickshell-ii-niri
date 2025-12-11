@@ -2,35 +2,26 @@
 
 ii-niri includes automatic Discord/Vesktop theming that syncs with your wallpaper colors.
 
-## Included Themes
+## Included Theme
 
-### system24-ii
+### ii-system24
 A TUI-style Discord theme based on [refact0r/system24](https://github.com/refact0r/system24) with Material You colors from your wallpaper.
 
 Features:
-- Monospace font (DM Mono)
-- ASCII-style decorations
-- Panel labels
+- Oxanium font (ii-niri branding)
+- ASCII-style decorations and loader
+- Panel labels with uppercase styling
 - Minimal, terminal-like aesthetic
-
-### midnight-ii
-A clean, modern Discord theme based on [refact0r/midnight-discord](https://github.com/refact0r/midnight-discord) with Material You colors.
-
-Features:
-- System font
-- Rounded corners
-- More traditional Discord look
-- Same color sync as system24
+- Blur support for Wayland compositors
+- Full Material You color integration
 
 ## Setup
 
 1. Install [Vesktop](https://github.com/Vencord/Vesktop) (or any Vencord-based client)
 
-2. The themes are automatically installed to `~/.config/vesktop/themes/` during ii-niri setup
+2. The theme is automatically installed to `~/.config/vesktop/themes/` during ii-niri setup
 
-3. In Vesktop, go to Settings → Vencord → Themes and enable one of:
-   - `system24-ii` (TUI style)
-   - `midnight-ii` (modern style)
+3. In Vesktop, go to Settings → Vencord → Themes and enable `ii-system24`
 
 4. Colors will automatically update when you change your wallpaper!
 
