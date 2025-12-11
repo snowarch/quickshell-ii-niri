@@ -392,6 +392,13 @@ if [[ -f "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" ]]; then
   cp "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" "${XDG_CONFIG_HOME}/Kvantum/MaterialAdw/MaterialAdw.kvconfig"
 fi
 
+# Vesktop themes (Discord theming with Material You colors)
+if [[ -d "dots/.config/vesktop/themes" ]]; then
+  mkdir -p "${XDG_CONFIG_HOME}/vesktop/themes"
+  install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/vesktop/themes"
+  log_success "Vesktop themes installed (system24-ii, midnight-ii)"
+fi
+
 # Fontconfig
 if [[ -d "dots/.config/fontconfig" ]]; then
   install_dir__sync "dots/.config/fontconfig" "${XDG_CONFIG_HOME}/fontconfig"

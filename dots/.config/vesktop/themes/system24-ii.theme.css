@@ -1,0 +1,74 @@
+/**
+ * @name system24-ii
+ * @description System24 theme with ii-niri Material You colors. Auto-syncs with wallpaper.
+ * @author refact0r (theme), ii-niri (palette)
+ * @version 1.0.0
+ * @source https://github.com/refact0r/system24
+ */
+
+/* Import base system24 theme */
+@import url('https://refact0r.github.io/system24/build/system24.css');
+
+/* Import auto-generated Material You palette from ii-niri */
+@import url('./system24-palette.css');
+
+/* Font settings - using system24 defaults */
+body {
+    --font: 'DM Mono';
+    --code-font: 'DM Mono';
+    font-weight: 300;
+    letter-spacing: -0.05ch;
+
+    /* Sizes */
+    --gap: 12px;
+    --divider-thickness: 4px;
+    --border-thickness: 2px;
+    --border-hover-transition: 0.2s ease;
+
+    /* Animations */
+    --animations: on;
+    --list-item-transition: 0.2s ease;
+    --dms-icon-svg-transition: 0.4s ease;
+
+    /* Top bar */
+    --top-bar-height: var(--gap);
+    --top-bar-button-position: titlebar;
+    --top-bar-title-position: off;
+    --subtle-top-bar-title: off;
+
+    /* Window controls */
+    --custom-window-controls: off;
+    --window-control-size: 14px;
+
+    /* DMs button */
+    --custom-dms-icon: off;
+    --dms-icon-svg-url: url('');
+    --dms-icon-svg-size: 90%;
+    --dms-icon-color-before: var(--icon-secondary);
+    --dms-icon-color-after: var(--white);
+    --custom-dms-background: off;
+    --dms-background-image-url: url('');
+    --dms-background-image-size: cover;
+    --dms-background-color: linear-gradient(70deg, var(--blue-2), var(--purple-2), var(--red-2));
+
+    /* Background */
+    --background-image: off;
+    --background-image-url: url('');
+
+    /* Transparency */
+    --transparency-tweaks: off;
+    --remove-bg-layer: off;
+    --panel-blur: off;
+    --blur-amount: 12px;
+    --bg-floating: var(--bg-3);
+
+    /* Other */
+    --small-user-panel: on;
+    --unrounding: on;
+    --custom-spotify-bar: on;
+    --ascii-titles: on;
+    --ascii-loader: system24;
+    --panel-labels: on;
+    --label-color: var(--text-muted);
+    --label-font-weight: 500;
+}

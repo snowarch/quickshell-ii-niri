@@ -1,0 +1,61 @@
+/**
+ * @name midnight-ii
+ * @description Midnight theme with ii-niri Material You colors. Auto-syncs with wallpaper.
+ * @author refact0r (theme), ii-niri (palette)
+ * @version 1.0.0
+ * @source https://github.com/refact0r/midnight-discord
+ */
+
+/* Import base midnight theme */
+@import url('https://refact0r.github.io/midnight-discord/build/midnight.css');
+
+/* Import auto-generated Material You palette from ii-niri */
+/* Uses same palette as system24 since they share variables */
+@import url('./system24-palette.css');
+
+/* Midnight-specific settings */
+body {
+    /* Font - use system font for cleaner look */
+    --font: '';
+    --code-font: 'JetBrains Mono';
+    font-weight: 400;
+    letter-spacing: normal;
+
+    /* Sizes */
+    --gap: 12px;
+    --divider-thickness: 3px;
+    --border-thickness: 0px;
+    --border-hover-transition: 0.2s ease;
+
+    /* Animations */
+    --animations: on;
+    --list-item-transition: 0.2s ease;
+
+    /* Top bar */
+    --top-bar-height: 36px;
+    --top-bar-button-position: off;
+    --top-bar-title-position: off;
+
+    /* Window controls */
+    --custom-window-controls: off;
+    --window-control-size: 14px;
+
+    /* DMs button */
+    --custom-dms-icon: off;
+    --custom-dms-background: off;
+
+    /* Background */
+    --background-image: off;
+    --background-image-url: url('');
+
+    /* Transparency */
+    --transparency-tweaks: off;
+    --remove-bg-layer: off;
+    --panel-blur: off;
+    --blur-amount: 12px;
+    --bg-floating: var(--bg-3);
+
+    /* Other */
+    --small-user-panel: off;
+    --unrounding: off;
+}
