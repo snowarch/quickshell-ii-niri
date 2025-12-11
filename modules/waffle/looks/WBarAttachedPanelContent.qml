@@ -15,9 +15,15 @@ Item {
 
     required property Item contentItem
     property real visualMargin: 12
-    property int closeAnimDuration: 150
+    property int closeAnimDuration: 180
     property bool revealFromSides: false
     property bool revealFromLeft: true
+    
+    // Animation configuration
+    property real openScale: 0.94
+    property real closeScale: 0.97
+    property int openDuration: Looks.transition.duration.panel
+    property int slideOffset: 20  // Reduced slide distance for subtlety
 
     function close() {
         closeAnim.start();
@@ -29,7 +35,7 @@ Item {
     implicitWidth: contentItem.implicitWidth + visualMargin * 2
 
     focus: true
-    Keys.onPressed: event => { // Esc to close
+    Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape) {
             root.close();
         }
@@ -42,57 +48,118 @@ Item {
             right: (root.revealFromSides && root.revealFromLeft) ? undefined : parent.right
             top: (!root.revealFromSides && root.barAtBottom) ? undefined : parent.top
             bottom: (!root.revealFromSides && !root.barAtBottom) ? undefined : parent.bottom
-            // Opening anim
             bottomMargin: (!root.revealFromSides && root.barAtBottom) ? sourceEdgeMargin : root.visualMargin
             topMargin: (!root.revealFromSides && !root.barAtBottom) ? sourceEdgeMargin : root.visualMargin
             leftMargin: (root.revealFromSides && root.revealFromLeft) ? sideEdgeMargin : root.visualMargin
             rightMargin: (root.revealFromSides && !root.revealFromLeft) ? sideEdgeMargin : root.visualMargin
         }
 
-        Component.onCompleted: {
-            openAnim.start();
+        // Initial state for animation
+        property real sourceEdgeMargin: -root.slideOffset
+        property real sideEdgeMargin: -root.slideOffset
+        opacity: 0
+        scale: root.openScale
+        
+        // Transform origin based on reveal direction
+        transformOrigin: {
+            if (root.revealFromSides) {
+                return root.revealFromLeft ? Item.Left : Item.Right
+            } else {
+                return root.barAtBottom ? Item.Bottom : Item.Top
+            }
         }
 
-        property real sourceEdgeMargin: -(implicitHeight + root.visualMargin)
-        property real sideEdgeMargin: -(implicitWidth + root.visualMargin)
-        OpenAnim {
-            id: openAnim
-            properties: "sourceEdgeMargin, sideEdgeMargin"
+        Component.onCompleted: {
+            if (Looks.transition.enabled) {
+                openAnim.start()
+            } else {
+                sourceEdgeMargin = root.visualMargin
+                sideEdgeMargin = root.visualMargin
+                opacity = 1
+                scale = 1
+            }
         }
+
+        // Opening animation - slide + scale + fade
+        ParallelAnimation {
+            id: openAnim
+            
+            NumberAnimation {
+                target: panelContent
+                property: "sourceEdgeMargin"
+                to: root.visualMargin
+                duration: Looks.transition.enabled ? root.openDuration : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+            }
+            NumberAnimation {
+                target: panelContent
+                property: "sideEdgeMargin"
+                to: root.visualMargin
+                duration: Looks.transition.enabled ? root.openDuration : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+            }
+            NumberAnimation {
+                target: panelContent
+                property: "opacity"
+                to: 1
+                duration: Looks.transition.enabled ? (root.openDuration * 0.7) : 0
+                easing.type: Easing.OutQuad
+            }
+            NumberAnimation {
+                target: panelContent
+                property: "scale"
+                to: 1
+                duration: Looks.transition.enabled ? root.openDuration : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
+            }
+        }
+        
+        // Closing animation - faster, subtle scale down
         SequentialAnimation {
             id: closeAnim
+            
             ParallelAnimation {
-                CloseAnim {
+                NumberAnimation {
+                    target: panelContent
                     property: "sourceEdgeMargin"
-                    to: -(implicitHeight + root.visualMargin)
+                    to: -root.slideOffset * 0.5
+                    duration: Looks.transition.enabled ? root.closeAnimDuration : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.accelerate
                 }
-                CloseAnim {
+                NumberAnimation {
+                    target: panelContent
                     property: "sideEdgeMargin"
-                    to: -(implicitWidth + root.visualMargin)
+                    to: -root.slideOffset * 0.5
+                    duration: Looks.transition.enabled ? root.closeAnimDuration : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.accelerate
+                }
+                NumberAnimation {
+                    target: panelContent
+                    property: "opacity"
+                    to: 0
+                    duration: Looks.transition.enabled ? (root.closeAnimDuration * 0.8) : 0
+                    easing.type: Easing.InQuad
+                }
+                NumberAnimation {
+                    target: panelContent
+                    property: "scale"
+                    to: root.closeScale
+                    duration: Looks.transition.enabled ? root.closeAnimDuration : 0
+                    easing.type: Easing.InQuad
                 }
             }
             ScriptAction {
-                script: {
-                    root.closed();
-                }
+                script: root.closed()
             }
         }
+        
         implicitWidth: root.contentItem.implicitWidth
         implicitHeight: root.contentItem.implicitHeight
         children: [root.contentItem]
-    }
-
-    component OpenAnim: PropertyAnimation {
-        target: panelContent
-        to: root.visualMargin
-        duration: 200
-        easing.type: Easing.BezierSpline
-        easing.bezierCurve: Looks.transition.easing.bezierCurve.easeIn
-    }
-    component CloseAnim: PropertyAnimation {
-        target: panelContent
-        duration: root.closeAnimDuration
-        easing.type: Easing.BezierSpline
-        easing.bezierCurve: Looks.transition.easing.bezierCurve.easeOut
     }
 }

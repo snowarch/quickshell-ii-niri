@@ -34,9 +34,18 @@ WButton {
         radius: Looks.radius.medium
         border.width: 1
         border.color: root.colBackgroundBorder
+        
+        // Subtle scale on press for tactile feedback
+        scale: root.down ? 0.97 : 1.0
 
         Behavior on border.color {
             animation: Looks.transition.color.createObject(this)
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                easing.type: Easing.OutQuad
+            }
         }
     }
 }

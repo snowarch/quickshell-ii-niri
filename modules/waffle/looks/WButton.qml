@@ -99,8 +99,18 @@ Button {
         id: backgroundRect
         radius: Looks.radius.medium
         color: root.color
+        
+        // Subtle scale on press for tactile feedback
+        scale: root.down ? 0.98 : 1.0
+        
         Behavior on color {
             animation: Looks.transition.color.createObject(this)
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                easing.type: Easing.OutQuad
+            }
         }
     }
 

@@ -86,11 +86,25 @@ WBarAttachedPanelContent {
                     anchors.fill: parent
                     active: !root.searching && !root.showAllApps
                     opacity: active ? 1 : 0
+                    scale: active ? 1 : 0.97
                     visible: opacity > 0
                     sourceComponent: StartPageContent {
                         onAllAppsClicked: root.showAllApps = true
                     }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on opacity { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
+                        } 
+                    }
+                    Behavior on scale { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+                        } 
+                    }
                 }
 
                 Loader {
@@ -98,9 +112,23 @@ WBarAttachedPanelContent {
                     anchors.fill: parent
                     active: root.searching
                     opacity: active ? 1 : 0
+                    scale: active ? 1 : 0.97
                     visible: opacity > 0
                     sourceComponent: SearchPageContent { context: context }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on opacity { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
+                        } 
+                    }
+                    Behavior on scale { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+                        } 
+                    }
                 }
 
                 Loader {
@@ -108,9 +136,23 @@ WBarAttachedPanelContent {
                     anchors.fill: parent
                     active: root.showAllApps
                     opacity: active ? 1 : 0
+                    scale: active ? 1 : 0.97
                     visible: opacity > 0
                     sourceComponent: AllAppsContent { onBack: root.showAllApps = false }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on opacity { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
+                        } 
+                    }
+                    Behavior on scale { 
+                        NumberAnimation { 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+                        } 
+                    }
                 }
             }
         }
