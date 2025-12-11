@@ -239,7 +239,7 @@ Scope {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Waffle"
                         font.pixelSize: 20
-                        font.family: Looks.font.family
+                        font.family: Looks.font.family.ui
                         font.weight: Font.DemiBold
                         color: Looks.colors.fg
                     }
@@ -247,8 +247,8 @@ Scope {
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Windows 11 Style"
-                        font.pixelSize: Looks.font.size.small
-                        font.family: Looks.font.family
+                        font.pixelSize: Looks.font.pixelSize.small
+                        font.family: Looks.font.family.ui
                         color: Looks.colors.subfg
                     }
                 }
