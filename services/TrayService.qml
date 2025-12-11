@@ -69,75 +69,63 @@ Singleton {
         const appInfo = getProblematicAppInfo(item);
         if (!appInfo) return false;  // Not a problematic app, use normal activate
         
-        const id = (item.id ?? "").toLowerCase();
-        const title = (item.title ?? "").toLowerCase();
-        
-        // Try to find and focus existing window (Niri)
-        if (CompositorService.isNiri) {
-            const window = NiriService.windows.find(w => {
-                const appId = (w.app_id ?? "").toLowerCase();
-                const windowTitle = (w.title ?? "").toLowerCase();
-                return appId.includes(appInfo.match) || windowTitle.includes(appInfo.match);
-            });
-            
-            if (window) {
-                NiriService.focusWindow(window.id);
-                return true;
+        // Try to find and focus existing window using ToplevelManager
+        let toplevel = null;
+        for (const tl of ToplevelManager.toplevels.values) {
+            const appId = (tl.appId ?? "").toLowerCase();
+            const tlTitle = (tl.title ?? "").toLowerCase();
+            if (matchesApp(appId, appInfo) || matchesApp(tlTitle, appInfo)) {
+                toplevel = tl;
+                break;
             }
         }
         
-        // No window found - launch via gtk-launch
-        // Use fish shell as per project standards
-        const cmd = "gtk-launch " + appInfo.launch + " 2>/dev/null; or " + appInfo.launch + " &";
-        Quickshell.execDetached(["fish", "-c", cmd]);
+        if (toplevel) {
+            toplevel.activate();
+            return true;
+        }
+        
+        // No window found - launch app (use login shell for proper PATH including ~/.local/bin)
+        Quickshell.execDetached(["bash", "-lc", appInfo.launch]);
         return true;
     }
     
-    // Smart toggle: click to show/hide window
-    // For most apps: close window (they stay in tray), click again to reopen
-    // For focusOnly apps (like Discord): just focus (close crashes them)
+    // Smart toggle: click to focus existing window or launch app
+    // Always focuses/activates, never closes (user expectation for tray click)
     function smartToggle(item): bool {
         if (!item) return false;
         
         const id = (item.id ?? "").toLowerCase();
         const appInfo = getProblematicAppInfo(item);
-        const focusOnly = appInfo?.focusOnly ?? false;
         
-        if (CompositorService.isNiri) {
-            // Find window using ToplevelManager
-            let toplevel = null;
-            for (const tl of ToplevelManager.toplevels.values) {
-                const appId = (tl.appId ?? "").toLowerCase();
-                const tlTitle = (tl.title ?? "").toLowerCase();
-                
-                let isMatch = false;
-                if (appInfo) {
-                    isMatch = matchesApp(appId, appInfo) || matchesApp(tlTitle, appInfo);
-                } else {
-                    isMatch = appId.includes(id) || id.includes(appId) || 
-                              tlTitle.includes(id) || appId === id;
-                }
-                
-                if (isMatch) {
-                    toplevel = tl;
-                    break;
-                }
+        // Find window using ToplevelManager
+        let toplevel = null;
+        for (const tl of ToplevelManager.toplevels.values) {
+            const appId = (tl.appId ?? "").toLowerCase();
+            const tlTitle = (tl.title ?? "").toLowerCase();
+            
+            let isMatch = false;
+            if (appInfo) {
+                isMatch = matchesApp(appId, appInfo) || matchesApp(tlTitle, appInfo);
+            } else {
+                isMatch = appId.includes(id) || id.includes(appId) || 
+                          tlTitle.includes(id) || appId === id;
             }
             
-            if (toplevel) {
-                if (focusOnly) {
-                    toplevel.activate();
-                } else {
-                    toplevel.close();
-                }
-                return true;
+            if (isMatch) {
+                toplevel = tl;
+                break;
             }
+        }
+        
+        if (toplevel) {
+            toplevel.activate();
+            return true;
         }
         
         // No window found - launch app
         if (appInfo) {
-            const cmd = "gtk-launch \"" + appInfo.launch + "\" || \"" + appInfo.launch + "\" &";
-            Quickshell.execDetached(["bash", "-lc", cmd]);
+            Quickshell.execDetached(["bash", "-lc", appInfo.launch]);
             return true;
         }
         

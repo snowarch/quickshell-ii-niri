@@ -8,7 +8,8 @@ ContentPage {
     settingsPageIndex: 7
     settingsPageName: Translation.tr("Advanced")
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "colors"
         title: Translation.tr("Color generation")
 

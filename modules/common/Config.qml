@@ -889,6 +889,10 @@ Singleton {
                     property bool showQuickActions: true
                     property bool weatherHideLocation: false // Privacy: hide city name
                 }
+                property JsonObject workspaceNames: JsonObject {
+                    // Custom workspace names, keyed by workspace index (1-based)
+                    // Example: "1": "Main", "2": "Work", "3": "Gaming"
+                }
             }
             property JsonObject workSafety: JsonObject {
                 property JsonObject enable: JsonObject {

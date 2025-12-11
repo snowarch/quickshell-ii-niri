@@ -196,6 +196,34 @@ ForegroundNormal=${FG}
 ForegroundPositive=#69db7c
 ForegroundVisited=${PRIMARY}
 
+[Colors:Header][Inactive]
+BackgroundAlternate=${BG}
+BackgroundNormal=${BG}
+DecorationFocus=${PRIMARY}
+DecorationHover=${PRIMARY}
+ForegroundActive=${FG}
+ForegroundInactive=${FG_INACTIVE}
+ForegroundLink=${PRIMARY}
+ForegroundNegative=#ff6b6b
+ForegroundNeutral=#ffa94d
+ForegroundNormal=${FG}
+ForegroundPositive=#69db7c
+ForegroundVisited=${PRIMARY}
+
+[Colors:Menu]
+BackgroundAlternate=${BG_ALT}
+BackgroundNormal=${BG}
+DecorationFocus=${PRIMARY}
+DecorationHover=${PRIMARY}
+ForegroundActive=${FG}
+ForegroundInactive=${FG_INACTIVE}
+ForegroundLink=${PRIMARY}
+ForegroundNegative=#ff6b6b
+ForegroundNeutral=#ffa94d
+ForegroundNormal=${FG}
+ForegroundPositive=#69db7c
+ForegroundVisited=${PRIMARY}
+
 [General]
 ColorScheme=IINiriPreset
 

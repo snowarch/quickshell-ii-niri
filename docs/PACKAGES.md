@@ -152,20 +152,22 @@ Fonts, theming, and utilities.
 
 ### From AUR
 
-| Package | Purpose |
-|---------|---------|
-| `matugen-bin` | Material You colors |
-| `ttf-jetbrains-mono-nerd` | JetBrains Mono Nerd |
-| `ttf-material-symbols-variable-git` | Material icons |
-| `ttf-readex-pro` | Readex Pro font |
-| `ttf-rubik-vf` | Rubik variable font |
-| `otf-space-grotesk` | Space Grotesk font |
-| `ttf-twemoji` | Twitter emoji |
-| `adw-gtk-theme-git` | Adwaita GTK theme |
-| `capitaine-cursors` | Capitaine cursor theme |
-| `hyprpicker` | Color picker |
-| `xwayland-satellite` | Xwayland helper for legacy apps |
-| `songrec` | Music recognition |
+| Package | Purpose | Required |
+|---------|---------|----------|
+| `matugen-bin` | Material You colors | Yes |
+| `ttf-jetbrains-mono-nerd` | JetBrains Mono Nerd | Yes (monospace) |
+| `ttf-material-symbols-variable-git` | Material icons | Yes (UI icons) |
+| `ttf-readex-pro` | Readex Pro font | No (has fallback) |
+| `ttf-rubik-vf` | Rubik variable font | No (has fallback) |
+| `otf-space-grotesk` | Space Grotesk font | No (has fallback) |
+| `ttf-twemoji` | Twitter emoji | No (has fallback) |
+| `adw-gtk-theme-git` | Adwaita GTK theme | Yes |
+| `capitaine-cursors` | Capitaine cursor theme | Yes |
+| `hyprpicker` | Color picker | Yes |
+| `xwayland-satellite` | Xwayland helper for legacy apps | Yes |
+| `songrec` | Music recognition | No |
+
+> **Note:** Optional fonts will be downloaded directly from GitHub if AUR packages are unavailable (e.g., due to regional restrictions). The UI will use system fallback fonts if installation fails completely.
 
 ---
 

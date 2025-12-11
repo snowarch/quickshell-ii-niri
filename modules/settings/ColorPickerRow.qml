@@ -5,7 +5,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 
-RowLayout {
+Item {
     id: root
     required property string label
     required property string colorKey
@@ -14,38 +14,58 @@ RowLayout {
     property color currentColor: Config.options?.appearance?.customTheme?.[colorKey] ?? "#888888"
 
     Layout.fillWidth: true
-    spacing: 8
+    implicitHeight: column.implicitHeight
 
-    StyledText {
-        Layout.preferredWidth: 100
-        text: root.label
-        font.pixelSize: Appearance.font.pixelSize.smaller
-        color: Appearance.colors.colOnLayer1
-        elide: Text.ElideRight
-    }
+    ColumnLayout {
+        id: column
+        anchors.fill: parent
+        spacing: 4
 
-    RippleButton {
-        Layout.preferredWidth: 36
-        Layout.preferredHeight: 28
-        buttonRadius: Appearance.rounding.small
-        colBackground: root.currentColor
-        onClicked: colorDialog.open()
-
-        Rectangle {
-            anchors.fill: parent
-            radius: Appearance.rounding.small
-            color: "transparent"
-            border.color: Appearance.colors.colOutline
-            border.width: 1
+        StyledText {
+            text: root.label
+            font.pixelSize: Appearance.font.pixelSize.smallest
+            color: Appearance.colors.colSubtext
         }
-    }
 
-    StyledText {
-        Layout.fillWidth: true
-        text: root.currentColor.toString().toUpperCase().substring(0, 7)
-        font.pixelSize: Appearance.font.pixelSize.smallest
-        font.family: Appearance.font.family.monospace
-        color: Appearance.colors.colSubtext
+        RippleButton {
+            Layout.fillWidth: true
+            implicitHeight: 36
+            colBackground: Appearance.colors.colLayer2
+            colBackgroundHover: Appearance.colors.colLayer2Hover
+            colRipple: Appearance.colors.colLayer2Active
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 8
+
+                Rectangle {
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: root.currentColor
+                    border.width: 1
+                    border.color: Appearance.colors.colOutline
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.currentColor.toString().toUpperCase().substring(0, 7)
+                    font.pixelSize: Appearance.font.pixelSize.smallest
+                    font.family: Appearance.font.family.monospace
+                    elide: Text.ElideRight
+                }
+
+                MaterialSymbol {
+                    text: "edit"
+                    iconSize: Appearance.font.pixelSize.smaller
+                    color: Appearance.colors.colSubtext
+                }
+            }
+
+            onClicked: colorDialog.open()
+        }
     }
 
     ColorDialog {

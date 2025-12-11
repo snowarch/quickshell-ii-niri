@@ -57,6 +57,28 @@ apply_qt() {
   python "$CONFIG_DIR/scripts/kvantum/changeAdwColors.py" # apply config colors
 }
 
+apply_gtk_kde() {
+  local scss_file="$STATE_DIR/user/generated/material_colors.scss"
+  if [ ! -f "$scss_file" ]; then
+    return
+  fi
+  
+  # Extract colors from scss (format: $colorname: #hex;)
+  get_color() {
+    grep "^\$$1:" "$scss_file" | cut -d: -f2 | tr -d ' ;'
+  }
+  
+  local bg=$(get_color "background")
+  local fg=$(get_color "onBackground")
+  local primary=$(get_color "primary")
+  local on_primary=$(get_color "onPrimary")
+  local surface=$(get_color "surface")
+  local surface_dim=$(get_color "surfaceDim")
+  
+  # Call apply-gtk-theme.sh with extracted colors
+  "$SCRIPT_DIR/apply-gtk-theme.sh" "$bg" "$fg" "$primary" "$on_primary" "$surface" "$surface_dim"
+}
+
 # Check if terminal theming is enabled in config
 CONFIG_FILE="$XDG_CONFIG_HOME/illogical-impulse/config.json"
 if [ -f "$CONFIG_FILE" ]; then
@@ -70,3 +92,28 @@ else
 fi
 
 # apply_qt & # Qt theming is already handled by kde-material-colors
+
+# Apply GTK/KDE theming if enabled
+if [ -f "$CONFIG_FILE" ]; then
+  enable_apps_shell=$(jq -r '.appearance.wallpaperTheming.enableAppsAndShell // true' "$CONFIG_FILE")
+  enable_qt_apps=$(jq -r '.appearance.wallpaperTheming.enableQtApps // true' "$CONFIG_FILE")
+  if [ "$enable_apps_shell" != "false" ] || [ "$enable_qt_apps" != "false" ]; then
+    apply_gtk_kde &
+  fi
+else
+  apply_gtk_kde &
+fi
+
+# Apply SDDM theming if enabled
+apply_sddm() {
+  if [ -f "$CONFIG_DIR/scripts/sddm/sync-sddm-theme.py" ]; then
+    python3 "$CONFIG_DIR/scripts/sddm/sync-sddm-theme.py" &
+  fi
+}
+
+if [ -f "$CONFIG_FILE" ]; then
+  enable_sddm=$(jq -r '.appearance.wallpaperTheming.enableSddm // false' "$CONFIG_FILE")
+  if [ "$enable_sddm" = "true" ]; then
+    apply_sddm &
+  fi
+fi

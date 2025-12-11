@@ -37,17 +37,40 @@ BarButton {
                 }
             }
 
-            // Notification badge - Windows 11 style (simple, no effects)
+            // Notification badge - Windows 11 style with pop animation
             Rectangle {
                 id: notifBadge
                 readonly property int count: Notifications.list.length
                 readonly property bool showCount: Config.options?.waffles?.bar?.notifications?.showUnreadCount ?? true
-                visible: count > 0 && !Notifications.silent && showCount
+                readonly property bool shouldShow: count > 0 && !Notifications.silent && showCount
+                visible: shouldShow || scale > 0
                 anchors.verticalCenter: parent.verticalCenter
                 width: count > 9 ? 18 : (count > 0 ? 16 : 0)
                 height: 16
                 radius: 8
                 color: Looks.colors.accent
+                scale: shouldShow ? 1 : 0
+                opacity: shouldShow ? 1 : 0
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
+                    }
+                }
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
+                    }
+                }
+                Behavior on width {
+                    NumberAnimation {
+                        duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                        easing.type: Easing.OutQuad
+                    }
+                }
 
                 WText {
                     anchors.centerIn: parent

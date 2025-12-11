@@ -18,7 +18,8 @@ ContentPage {
         command: [Directories.aiTranslationScriptPath, translationProc.locale]
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "volume_up"
         title: Translation.tr("Audio")
 
@@ -66,7 +67,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "battery_android_full"
         title: Translation.tr("Battery")
 
@@ -146,7 +148,8 @@ ContentPage {
         }
     }
     
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "language"
         title: Translation.tr("Language")
 
@@ -201,7 +204,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "rule"
         title: Translation.tr("Policies")
 
@@ -272,7 +276,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "notification_sound"
         title: Translation.tr("Sounds")
         ConfigRow {
@@ -313,7 +318,8 @@ ContentPage {
         }
     }
     
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "nest_clock_farsight_analog"
         title: Translation.tr("Time")
 
@@ -363,7 +369,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "select_window"
         title: Translation.tr("Window Management")
 
@@ -380,7 +387,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "work_alert"
         title: Translation.tr("Work safety")
 

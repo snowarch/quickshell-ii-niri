@@ -16,7 +16,8 @@ ContentPage {
         return testFont.family.toLowerCase() === fontName.toLowerCase()
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "palette"
         title: Translation.tr("Color Themes")
 
@@ -47,14 +48,14 @@ ContentPage {
         Flow {
             id: themeFlow
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 8
 
             Repeater {
                 model: ThemePresets.presets
 
                 ThemePresetCard {
                     required property var modelData
-                    width: Math.max(160, (themeFlow.width - themeFlow.spacing * 2) / 3)
+                    width: Math.max(140, (themeFlow.width - themeFlow.spacing * 3) / 4)
                     preset: modelData
                     onClicked: ThemeService.setTheme(modelData.id)
                 }
@@ -62,8 +63,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: ThemeService.currentTheme === "custom"
+        expanded: true
         icon: "edit"
         title: Translation.tr("Custom Theme Editor")
 
@@ -74,7 +76,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "text_format"
         title: Translation.tr("Typography")
 
@@ -303,7 +306,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "folder"
         title: Translation.tr("Icon Theme")
 
@@ -318,7 +322,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "info"
         title: Translation.tr("About Themes")
 

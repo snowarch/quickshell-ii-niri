@@ -84,9 +84,8 @@ WBorderlessButton {
                 font.pixelSize: Looks.font.pixelSize.normal
             }
 
-            // Image preview
+            // Image preview - don't use Layout.fillWidth, let image determine its own size
             Loader {
-                Layout.fillWidth: true
                 active: root.isImage
                 sourceComponent: CliphistImage {
                     entry: root.entry
@@ -100,7 +99,7 @@ WBorderlessButton {
         // Action text on hover
         WText {
             visible: root.hovered && !deleteButton.hovered
-            text: Translation.tr("Paste")
+            text: Translation.tr("Copy")
             color: Looks.colors.accent
             font.pixelSize: Looks.font.pixelSize.normal
         }

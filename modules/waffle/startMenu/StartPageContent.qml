@@ -64,6 +64,7 @@ WPanelPageColumn {
                         required property string modelData
                         required property int index
                         appId: modelData
+                        animIndex: index
                     }
                 }
             }
@@ -99,6 +100,7 @@ WPanelPageColumn {
                             required property int index
                             appId: modelData.appId
                             appName: modelData.name
+                            animIndex: index
                         }
                     }
                 }
@@ -128,7 +130,7 @@ WPanelPageColumn {
     component AppButton: WBorderlessButton {
         id: appBtn
         required property string appId
-        required property int index
+        property int animIndex: 0  // For staggered animation
         readonly property var de: DesktopEntries.heuristicLookup(appId)
         implicitWidth: 88
         implicitHeight: 76
@@ -147,7 +149,7 @@ WPanelPageColumn {
         }
         SequentialAnimation {
             id: entryAnim
-            PauseAnimation { duration: Looks.transition.staggerDelay(appBtn.index, 25) }
+            PauseAnimation { duration: Looks.transition.staggerDelay(appBtn.animIndex, 25) }
             ParallelAnimation {
                 NumberAnimation { target: appBtn; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutQuad }
                 NumberAnimation { target: appBtn; property: "scale"; to: 1; duration: 200; easing.type: Easing.OutBack; easing.overshoot: 0.2 }
@@ -179,7 +181,7 @@ WPanelPageColumn {
         id: recBtn
         required property string appId
         required property string appName
-        required property int index
+        property int animIndex: 0  // For staggered animation
         readonly property var de: DesktopEntries.heuristicLookup(appId)
         implicitWidth: 260
         implicitHeight: 44
@@ -198,7 +200,7 @@ WPanelPageColumn {
         }
         SequentialAnimation {
             id: recEntryAnim
-            PauseAnimation { duration: 300 + Looks.transition.staggerDelay(recBtn.index, 40) }
+            PauseAnimation { duration: 300 + Looks.transition.staggerDelay(recBtn.animIndex, 40) }
             ParallelAnimation {
                 NumberAnimation { target: recBtn; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutQuad }
                 NumberAnimation { target: recTranslate; property: "x"; to: 0; duration: 220; easing.type: Easing.OutCubic }

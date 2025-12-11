@@ -12,8 +12,9 @@ ContentPage {
 
     property bool isIiActive: Config.options?.panelFamily !== "waffle"
 
-    ContentSection {
+    CollapsibleSection {
         visible: !root.isIiActive
+        expanded: true
         icon: "info"
         title: Translation.tr("Not Active")
 
@@ -26,8 +27,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "notifications"
         title: Translation.tr("Notifications")
         ConfigSwitch {
@@ -43,8 +45,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: true
         icon: "widgets"
         title: Translation.tr("Bar modules")
         // Edge modules: simple toggles
@@ -113,8 +116,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "spoke"
         title: Translation.tr("Positioning")
 
@@ -244,8 +248,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "shelf_auto_hide"
         title: Translation.tr("Tray")
 
@@ -286,8 +291,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "widgets"
         title: Translation.tr("Utility buttons")
 
@@ -369,8 +375,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "cloud"
         title: Translation.tr("Weather")
         
@@ -390,8 +397,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "workspaces"
         title: Translation.tr("Workspaces")
 

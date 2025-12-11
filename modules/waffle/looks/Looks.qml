@@ -235,32 +235,40 @@ Singleton {
         
         property int velocity: 850
 
-        // Fluent Design inspired easing curves
+        // Windows 11 / Fluent Design inspired easing curves
         property QtObject easing: QtObject {
             property QtObject bezierCurve: QtObject {
                 // Standard curves
                 readonly property list<real> easeInOut: [0.42, 0.00, 0.58, 1.00, 1, 1]
-                readonly property list<real> easeIn: [0.0, 1.0, 1.0, 1.0, 1, 1]
-                readonly property list<real> easeOut: [1.0, 0.0, 1.0, 1.0, 1, 1]
+                readonly property list<real> easeIn: [0.42, 0.0, 1.0, 1.0, 1, 1]
+                readonly property list<real> easeOut: [0.0, 0.0, 0.58, 1.0, 1, 1]
                 
-                // Fluent Design curves - more elegant and natural
+                // Fluent Design curves - Windows 11 style
                 readonly property list<real> decelerate: [0.0, 0.0, 0.0, 1.0, 1, 1]      // Fast start, smooth stop (entries)
-                readonly property list<real> accelerate: [0.9, 0.1, 1.0, 0.2, 1, 1]      // Smooth start, fast end (exits)
-                readonly property list<real> standard: [0.8, 0.0, 0.2, 1.0, 1, 1]        // Balanced movement
+                readonly property list<real> accelerate: [0.7, 0.0, 1.0, 0.5, 1, 1]      // Smooth start, fast end (exits)
+                readonly property list<real> standard: [0.4, 0.0, 0.2, 1.0, 1, 1]        // Balanced movement (Win11)
                 readonly property list<real> emphasize: [0.0, 0.0, 0.2, 1.0, 1, 1]       // Dramatic deceleration
-                readonly property list<real> spring: [0.175, 0.885, 0.32, 1.1, 1, 1]     // Slight overshoot
+                readonly property list<real> spring: [0.175, 0.885, 0.32, 1.075, 1, 1]   // Subtle overshoot
+                
+                // New Windows 11 specific curves
+                readonly property list<real> popIn: [0.0, 0.0, 0.0, 1.0, 1, 1]           // Pop-in effect for menus/tooltips
+                readonly property list<real> popOut: [0.5, 0.0, 1.0, 0.5, 1, 1]          // Quick pop-out
+                readonly property list<real> bounce: [0.34, 1.56, 0.64, 1.0, 1, 1]       // Playful bounce
+                readonly property list<real> smooth: [0.25, 0.1, 0.25, 1.0, 1, 1]        // Very smooth, natural
             }
         }
         
-        // Duration presets (in ms)
+        // Duration presets (in ms) - tuned for Windows 11 feel
         property QtObject duration: QtObject {
             readonly property int instant: 0
+            readonly property int ultraFast: 67      // ~4 frames at 60fps
             readonly property int fast: 100
             readonly property int normal: 150
             readonly property int medium: 200
             readonly property int slow: 300
-            readonly property int panel: 280
-            readonly property int overlay: 350
+            readonly property int panel: 250         // Slightly faster panels
+            readonly property int overlay: 300
+            readonly property int page: 350          // Page transitions
         }
 
         // === Basic transitions (improved) ===
@@ -411,12 +419,77 @@ Singleton {
             }
         }
         
+        // === Windows 11 specific transitions ===
+        
+        // For menu/popup reveal (scale + fade)
+        property Component menuReveal: Component {
+            ParallelAnimation {
+                NumberAnimation {
+                    property: "opacity"
+                    duration: transition.enabled ? transition.duration.normal : 0
+                    easing.type: Easing.OutQuad
+                }
+                NumberAnimation {
+                    property: "scale"
+                    duration: transition.enabled ? transition.duration.medium : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: transition.easing.bezierCurve.popIn
+                }
+            }
+        }
+        
+        // For button press feedback
+        property Component buttonPress: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        
+        // For smooth value changes (sliders, progress)
+        property Component smoothValue: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.smooth
+            }
+        }
+        
+        // For list item stagger animations
+        property Component listItem: Component {
+            SequentialAnimation {
+                PauseAnimation { duration: 0 }  // Will be set by staggerDelay
+                ParallelAnimation {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0; to: 1
+                        duration: transition.enabled ? transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
+                    }
+                    NumberAnimation {
+                        property: "y"
+                        from: 8
+                        duration: transition.enabled ? transition.duration.medium : 0
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: transition.easing.bezierCurve.decelerate
+                    }
+                }
+            }
+        }
+        
         // === Helper functions ===
         
         // Calculate stagger delay for list items
         function staggerDelay(index: int, baseDelay: int): int {
             if (!enabled) return 0
             return Math.min(index * baseDelay, 400)  // Cap at 400ms
+        }
+        
+        // Get duration based on distance (for natural feel)
+        function durationForDistance(distance: real, minDuration: int, maxDuration: int): int {
+            if (!enabled) return 0
+            const normalized = Math.min(Math.abs(distance) / 200, 1)
+            return minDuration + (maxDuration - minDuration) * normalized
         }
     }
 }

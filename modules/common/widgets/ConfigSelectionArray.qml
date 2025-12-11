@@ -51,7 +51,15 @@ Flow {
     }
 
     function focusFromSettingsSearch() {
-        // Focus is handled by the settings search system
+        // Expand parent CollapsibleSection if collapsed
+        var p = root.parent;
+        while (p) {
+            if (p.hasOwnProperty("expanded") && p.hasOwnProperty("collapsible")) {
+                p.expanded = true;
+                break;
+            }
+            p = p.parent;
+        }
         root.forceActiveFocus();
     }
 

@@ -23,7 +23,9 @@ ContentPage {
     })
 
     // Status section
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
+        collapsible: false
         icon: NiriKeybinds.loaded ? "check_circle" : "info"
         title: NiriKeybinds.loaded 
             ? Translation.tr("Keybinds loaded from config")
@@ -49,10 +51,11 @@ ContentPage {
         Repeater {
             model: root.categories
 
-            delegate: ContentSection {
+            delegate: CollapsibleSection {
                 required property var modelData
                 required property int index
                 Layout.fillWidth: true
+                expanded: false
                 
                 readonly property var categoryKeybinds: modelData.children?.[0]?.keybinds ?? []
                 

@@ -492,63 +492,313 @@ ColumnLayout {
         }
     }
 
-    // Actions row
+    // Preset categories for dropdown
+    readonly property var presetCategories: [
+        { name: "Angel (Dark)", colors: ThemePresets.angelColors },
+        { name: "Angel (Light)", colors: ThemePresets.angelLightColors },
+        { name: "Gruvbox Material", colors: ThemePresets.gruvboxMaterialColors },
+        { name: "Catppuccin Mocha", colors: ThemePresets.catppuccinMochaColors },
+        { name: "Catppuccin Latte", colors: ThemePresets.catppuccinLatteColors },
+        { name: "Nord", colors: ThemePresets.nordColors },
+        { name: "Material Black", colors: ThemePresets.materialBlackColors },
+        { name: "Kanagawa", colors: ThemePresets.kanagawaColors },
+        { name: "Kanagawa Dragon", colors: ThemePresets.kanagawaDragonColors },
+        { name: "Samurai", colors: ThemePresets.samuraiColors },
+        { name: "Tokyo Night", colors: ThemePresets.tokyoNightColors },
+        { name: "Sakura", colors: ThemePresets.sakuraColors },
+        { name: "Zen Garden", colors: ThemePresets.zenGardenColors }
+    ]
+    property string selectedPresetName: ""
+
+    // Actions row: Preset selector (like FontSelector) + Export/Import
     RowLayout {
+        id: actionsRow
         Layout.fillWidth: true
-        spacing: 8
+        spacing: 12
 
-        RippleButtonWithIcon {
+        // Preset selector (FontSelector style)
+        Item {
             Layout.fillWidth: true
-            materialIcon: "palette"
-            mainText: Translation.tr("From preset")
-            buttonRadius: Appearance.rounding.small
-            onClicked: presetMenu.open()
+            implicitHeight: presetColumn.implicitHeight
 
-            Menu {
-                id: presetMenu
-                y: parent.height
-                
-                Menu {
-                    title: "⭐ Signature"
-                    MenuItem { text: "Angel (Dark)"; onTriggered: copyPreset(ThemePresets.angelColors) }
-                    MenuItem { text: "Angel (Light)"; onTriggered: copyPreset(ThemePresets.angelLightColors) }
+            ColumnLayout {
+                id: presetColumn
+                anchors.fill: parent
+                spacing: 4
+
+                RowLayout {
+                    spacing: 4
+                    MaterialSymbol {
+                        text: "palette"
+                        iconSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                    StyledText {
+                        text: Translation.tr("Base Preset")
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
                 }
-                
-                Menu {
-                    title: "🎨 Classic"
-                    MenuItem { text: "Gruvbox Material"; onTriggered: copyPreset(ThemePresets.gruvboxMaterialColors) }
-                    MenuItem { text: "Catppuccin Mocha"; onTriggered: copyPreset(ThemePresets.catppuccinMochaColors) }
-                    MenuItem { text: "Catppuccin Latte"; onTriggered: copyPreset(ThemePresets.catppuccinLatteColors) }
-                    MenuItem { text: "Nord"; onTriggered: copyPreset(ThemePresets.nordColors) }
-                    MenuItem { text: "Material Black"; onTriggered: copyPreset(ThemePresets.materialBlackColors) }
+
+                RippleButton {
+                    id: presetButton
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    colBackground: Appearance.colors.colLayer1
+                    colBackgroundHover: Appearance.colors.colLayer1Hover
+                    colRipple: Appearance.colors.colLayer1Active
+
+                    contentItem: RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 8
+                        spacing: 8
+
+                        // Color preview dots
+                        Row {
+                            spacing: 3
+                            visible: root.selectedPresetName !== ""
+                            Repeater {
+                                model: {
+                                    let preset = root.presetCategories.find(p => p.name === root.selectedPresetName)
+                                    return preset ? [preset.colors.m3primary, preset.colors.m3secondary, preset.colors.m3tertiary] : []
+                                }
+                                Rectangle {
+                                    required property string modelData
+                                    width: 12
+                                    height: 12
+                                    radius: 6
+                                    color: modelData
+                                }
+                            }
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: root.selectedPresetName || Translation.tr("Select a preset...")
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            elide: Text.ElideRight
+                            color: root.selectedPresetName ? Appearance.m3colors.m3onSurface : Appearance.colors.colSubtext
+                        }
+
+                        MaterialSymbol {
+                            text: presetPopup.visible ? "expand_less" : "expand_more"
+                            iconSize: Appearance.font.pixelSize.normal
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
+
+                    onClicked: presetPopup.visible ? presetPopup.close() : presetPopup.open()
                 }
-                
-                Menu {
-                    title: "🗾 Japanese"
-                    MenuItem { text: "Kanagawa"; onTriggered: copyPreset(ThemePresets.kanagawaColors) }
-                    MenuItem { text: "Kanagawa Dragon"; onTriggered: copyPreset(ThemePresets.kanagawaDragonColors) }
-                    MenuItem { text: "Samurai"; onTriggered: copyPreset(ThemePresets.samuraiColors) }
-                    MenuItem { text: "Tokyo Night"; onTriggered: copyPreset(ThemePresets.tokyoNightColors) }
-                    MenuItem { text: "Sakura"; onTriggered: copyPreset(ThemePresets.sakuraColors) }
-                    MenuItem { text: "Zen Garden"; onTriggered: copyPreset(ThemePresets.zenGardenColors) }
+            }
+
+            Popup {
+                id: presetPopup
+                y: presetColumn.height + 4
+                width: parent.width
+                height: Math.min(300, presetListView.contentHeight + presetSearchField.height + 24)
+                padding: 8
+
+                background: Rectangle {
+                    color: Appearance.colors.colLayer2
+                    radius: Appearance.rounding.normal
+                    border.width: 1
+                    border.color: Appearance.colors.colLayer2Hover ?? Appearance.m3colors.m3outlineVariant
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 8
+
+                    TextField {
+                        id: presetSearchField
+                        Layout.fillWidth: true
+                        placeholderText: Translation.tr("Search presets...")
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        background: Rectangle {
+                            color: Appearance.colors.colLayer1
+                            radius: Appearance.rounding.small
+                        }
+                        color: Appearance.m3colors.m3onSurface
+                        placeholderTextColor: Appearance.colors.colSubtext
+                    }
+
+                    ListView {
+                        id: presetListView
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: {
+                            let search = presetSearchField.text.toLowerCase()
+                            if (search) {
+                                return root.presetCategories.filter(p => p.name.toLowerCase().includes(search))
+                            }
+                            return root.presetCategories
+                        }
+
+                        delegate: RippleButton {
+                            required property var modelData
+                            required property int index
+                            width: presetListView.width
+                            implicitHeight: 36
+                            colBackground: modelData.name === root.selectedPresetName 
+                                ? Appearance.colors.colPrimaryContainer 
+                                : "transparent"
+                            colBackgroundHover: Appearance.colors.colLayer1Hover
+                            colRipple: Appearance.colors.colLayer1Active
+
+                            contentItem: RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 12
+                                spacing: 8
+
+                                Row {
+                                    spacing: 3
+                                    Repeater {
+                                        model: [modelData.colors.m3primary, modelData.colors.m3secondary, modelData.colors.m3tertiary]
+                                        Rectangle {
+                                            required property string modelData
+                                            width: 14
+                                            height: 14
+                                            radius: 7
+                                            color: modelData
+                                        }
+                                    }
+                                }
+
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: modelData.name
+                                    font.pixelSize: Appearance.font.pixelSize.small
+                                    elide: Text.ElideRight
+                                    color: modelData.name === root.selectedPresetName 
+                                        ? Appearance.m3colors.m3onPrimaryContainer 
+                                        : Appearance.m3colors.m3onSurface
+                                }
+                            }
+
+                            onClicked: {
+                                root.selectedPresetName = modelData.name
+                                copyPreset(modelData.colors)
+                                presetPopup.close()
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        RippleButtonWithIcon {
+        // Export button
+        Item {
             Layout.fillWidth: true
-            materialIcon: "content_copy"
-            mainText: Translation.tr("Export")
-            buttonRadius: Appearance.rounding.small
-            onClicked: exportDialog.open()
+            implicitHeight: exportColumn.implicitHeight
+
+            ColumnLayout {
+                id: exportColumn
+                anchors.fill: parent
+                spacing: 4
+
+                RowLayout {
+                    spacing: 4
+                    MaterialSymbol {
+                        text: "upload"
+                        iconSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                    StyledText {
+                        text: Translation.tr("Export")
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                }
+
+                RippleButton {
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    colBackground: Appearance.colors.colLayer1
+                    colBackgroundHover: Appearance.colors.colLayer1Hover
+                    colRipple: Appearance.colors.colLayer1Active
+
+                    contentItem: RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 8
+                        spacing: 8
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Translation.tr("Copy to clipboard")
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            elide: Text.ElideRight
+                        }
+
+                        MaterialSymbol {
+                            text: "content_copy"
+                            iconSize: Appearance.font.pixelSize.normal
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
+
+                    onClicked: exportDialog.open()
+                }
+            }
         }
 
-        RippleButtonWithIcon {
+        // Import button
+        Item {
             Layout.fillWidth: true
-            materialIcon: "content_paste"
-            mainText: Translation.tr("Import")
-            buttonRadius: Appearance.rounding.small
-            onClicked: importDialog.open()
+            implicitHeight: importColumn.implicitHeight
+
+            ColumnLayout {
+                id: importColumn
+                anchors.fill: parent
+                spacing: 4
+
+                RowLayout {
+                    spacing: 4
+                    MaterialSymbol {
+                        text: "download"
+                        iconSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                    StyledText {
+                        text: Translation.tr("Import")
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                }
+
+                RippleButton {
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    colBackground: Appearance.colors.colLayer1
+                    colBackgroundHover: Appearance.colors.colLayer1Hover
+                    colRipple: Appearance.colors.colLayer1Active
+
+                    contentItem: RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 8
+                        spacing: 8
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Translation.tr("Paste from clipboard")
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            elide: Text.ElideRight
+                        }
+
+                        MaterialSymbol {
+                            text: "content_paste"
+                            iconSize: Appearance.font.pixelSize.normal
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
+
+                    onClicked: importDialog.open()
+                }
+            }
         }
     }
 
@@ -1094,52 +1344,56 @@ ColumnLayout {
         }
     }
 
-    // Color palette cards
+    // Color palette cards with human-friendly descriptions
     ColorPaletteCard {
-        title: Translation.tr("Primary")
-        icon: "looks_one"
+        title: Translation.tr("Accent Colors")
+        icon: "palette"
+        description: Translation.tr("Buttons, links, active states, and highlights")
         accentKey: "m3primary"
         colors: [
-            { label: "Primary", key: "m3primary" },
-            { label: "On Primary", key: "m3onPrimary" },
-            { label: "Container", key: "m3primaryContainer" },
-            { label: "On Container", key: "m3onPrimaryContainer" }
+            { label: "Accent", key: "m3primary", tip: "Main accent for buttons and links" },
+            { label: "Text", key: "m3onPrimary", tip: "Text color on accent buttons" },
+            { label: "Soft BG", key: "m3primaryContainer", tip: "Subtle accent backgrounds" },
+            { label: "Soft Text", key: "m3onPrimaryContainer", tip: "Text on subtle backgrounds" }
         ]
     }
 
     ColorPaletteCard {
         title: Translation.tr("Secondary")
-        icon: "looks_two"
+        icon: "filter_2"
+        description: Translation.tr("Chips, tags, less prominent actions")
         accentKey: "m3secondary"
         colors: [
-            { label: "Secondary", key: "m3secondary" },
-            { label: "On Secondary", key: "m3onSecondary" },
-            { label: "Container", key: "m3secondaryContainer" },
-            { label: "On Container", key: "m3onSecondaryContainer" }
+            { label: "Color", key: "m3secondary", tip: "Secondary accent color" },
+            { label: "Text", key: "m3onSecondary", tip: "Text on secondary" },
+            { label: "Soft BG", key: "m3secondaryContainer", tip: "Chip and tag backgrounds" },
+            { label: "Soft Text", key: "m3onSecondaryContainer", tip: "Text on chips and tags" }
         ]
     }
 
     ColorPaletteCard {
         title: Translation.tr("Tertiary")
-        icon: "looks_3"
+        icon: "filter_3"
+        description: Translation.tr("Complementary accent for variety")
         accentKey: "m3tertiary"
         colors: [
-            { label: "Tertiary", key: "m3tertiary" },
-            { label: "On Tertiary", key: "m3onTertiary" },
-            { label: "Container", key: "m3tertiaryContainer" },
-            { label: "On Container", key: "m3onTertiaryContainer" }
+            { label: "Color", key: "m3tertiary", tip: "Third accent color" },
+            { label: "Text", key: "m3onTertiary", tip: "Text on tertiary" },
+            { label: "Soft BG", key: "m3tertiaryContainer", tip: "Tertiary backgrounds" },
+            { label: "Soft Text", key: "m3onTertiaryContainer", tip: "Text on tertiary bg" }
         ]
     }
 
     ColorPaletteCard {
-        title: Translation.tr("Surface")
+        title: Translation.tr("Backgrounds")
         icon: "layers"
+        description: Translation.tr("Main backgrounds and text colors")
         accentKey: "m3surface"
         colors: [
-            { label: "Background", key: "m3background" },
-            { label: "Surface", key: "m3surface" },
-            { label: "On Surface", key: "m3onSurface" },
-            { label: "On Background", key: "m3onBackground" }
+            { label: "Base BG", key: "m3background", tip: "Deepest background layer" },
+            { label: "Surface", key: "m3surface", tip: "Card and panel backgrounds" },
+            { label: "Main Text", key: "m3onSurface", tip: "Primary text color" },
+            { label: "BG Text", key: "m3onBackground", tip: "Text on base background" }
         ]
     }
 
@@ -1264,34 +1518,37 @@ ColumnLayout {
 
     // Outline colors
     ColorPaletteCard {
-        title: Translation.tr("Outline")
+        title: Translation.tr("Borders & Shadows")
         icon: "border_style"
+        description: Translation.tr("Dividers, borders, and overlay effects")
         accentKey: "m3outline"
         colors: [
-            { label: "Outline", key: "m3outline" },
-            { label: "Variant", key: "m3outlineVariant" },
-            { label: "Shadow", key: "m3shadow" },
-            { label: "Scrim", key: "m3scrim" }
+            { label: "Border", key: "m3outline", tip: "Main border color" },
+            { label: "Subtle", key: "m3outlineVariant", tip: "Subtle dividers" },
+            { label: "Shadow", key: "m3shadow", tip: "Drop shadow color" },
+            { label: "Overlay", key: "m3scrim", tip: "Modal overlay background" }
         ]
     }
 
     ColorPaletteCard {
-        title: Translation.tr("Status")
+        title: Translation.tr("Status Colors")
         icon: "info"
+        description: Translation.tr("Error messages and success indicators")
         accentKey: "m3error"
         colors: [
-            { label: "Error", key: "m3error" },
-            { label: "On Error", key: "m3onError" },
-            { label: "Success", key: "m3success" },
-            { label: "On Success", key: "m3onSuccess" }
+            { label: "Error", key: "m3error", tip: "Error and warning color" },
+            { label: "Error Text", key: "m3onError", tip: "Text on error backgrounds" },
+            { label: "Success", key: "m3success", tip: "Success and confirmation" },
+            { label: "Success Text", key: "m3onSuccess", tip: "Text on success backgrounds" }
         ]
     }
 
-    // Color palette card component
+    // Color palette card component - with inline color picker
     component ColorPaletteCard: Rectangle {
         id: paletteCard
         required property string title
         required property string icon
+        property string description: ""
         required property string accentKey
         required property var colors
 
@@ -1303,10 +1560,10 @@ ColumnLayout {
         ColumnLayout {
             id: paletteColumn
             anchors.fill: parent
-            anchors.margins: 8
+            anchors.margins: 10
             spacing: 8
 
-            // Header with color swatches
+            // Header with description
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
@@ -1325,47 +1582,123 @@ ColumnLayout {
                     }
                 }
 
-                StyledText {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    text: paletteCard.title
-                    font.pixelSize: Appearance.font.pixelSize.small
-                    font.weight: Font.Medium
-                    color: Appearance.colors.colOnLayer1
-                }
+                    spacing: 2
 
-                // Mini swatches
-                Repeater {
-                    model: paletteCard.colors
+                    StyledText {
+                        text: paletteCard.title
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        font.weight: Font.Medium
+                        color: Appearance.colors.colOnLayer1
+                    }
 
-                    Rectangle {
-                        required property var modelData
-                        width: 16
-                        height: 16
-                        radius: Appearance.rounding.unsharpen
-                        color: Config.options.appearance.customTheme?.[modelData.key] ?? "#888"
-                        border.width: 1
-                        border.color: Appearance.colors.colOutlineVariant
+                    StyledText {
+                        visible: paletteCard.description !== ""
+                        text: paletteCard.description
+                        font.pixelSize: Appearance.font.pixelSize.smallest
+                        color: Appearance.colors.colSubtext
                     }
                 }
             }
 
-            // Color rows
-            GridLayout {
+            // Horizontal color swatches (FontSelector style)
+            RowLayout {
                 Layout.fillWidth: true
-                columns: 2
-                columnSpacing: 8
-                rowSpacing: 4
+                spacing: 8
 
                 Repeater {
                     model: paletteCard.colors
 
-                    ColorPickerRow {
+                    Item {
+                        id: swatchItem
                         required property var modelData
+                        required property int index
                         Layout.fillWidth: true
-                        label: modelData.label
-                        colorKey: modelData.key
-                        onColorChanged: root.applyToShell()
+                        implicitHeight: swatchColumn.implicitHeight
+
+                        ColumnLayout {
+                            id: swatchColumn
+                            anchors.fill: parent
+                            spacing: 4
+
+                            // Label
+                            StyledText {
+                                text: modelData.label
+                                font.pixelSize: Appearance.font.pixelSize.smallest
+                                color: Appearance.colors.colSubtext
+                            }
+
+                            // Color button (like FontSelector dropdown)
+                            RippleButton {
+                                id: swatchButton
+                                Layout.fillWidth: true
+                                implicitHeight: 40
+                                colBackground: Appearance.colors.colLayer2
+                                colBackgroundHover: Appearance.colors.colLayer2Hover
+                                colRipple: Appearance.colors.colLayer2Active
+
+                                contentItem: RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
+
+                                    // Color preview circle
+                                    Rectangle {
+                                        width: 20
+                                        height: 20
+                                        radius: 10
+                                        color: Config.options.appearance.customTheme?.[modelData.key] ?? "#888"
+                                        border.width: 1
+                                        border.color: Appearance.colors.colOutline
+                                    }
+
+                                    // Hex value
+                                    StyledText {
+                                        Layout.fillWidth: true
+                                        text: (Config.options.appearance.customTheme?.[modelData.key] ?? "#888").toString().toUpperCase().substring(0, 7)
+                                        font.pixelSize: Appearance.font.pixelSize.smallest
+                                        font.family: Appearance.font.family.monospace
+                                        elide: Text.ElideRight
+                                    }
+
+                                    // Edit icon
+                                    MaterialSymbol {
+                                        text: "edit"
+                                        iconSize: Appearance.font.pixelSize.small
+                                        color: Appearance.colors.colSubtext
+                                    }
+                                }
+
+                                onClicked: {
+                                    paletteCard.dialogKey = modelData.key
+                                    paletteCard.dialogColor = Config.options.appearance.customTheme?.[modelData.key] ?? "#888"
+                                    colorPicker.open()
+                                }
+
+                                StyledToolTip {
+                                    text: modelData.tip ?? ""
+                                }
+                            }
+                        }
                     }
+                }
+            }
+
+        }
+
+        // Color dialog
+        property string dialogKey: ""
+        property color dialogColor: "#888"
+
+        ColorDialog {
+            id: colorPicker
+            selectedColor: paletteCard.dialogColor
+            onAccepted: {
+                if (paletteCard.dialogKey !== "") {
+                    Config.options.appearance.customTheme[paletteCard.dialogKey] = selectedColor.toString()
+                    root.applyToShell()
                 }
             }
         }

@@ -132,9 +132,9 @@ ShellRoot {
     PanelLoader { identifier: "iiBackground"; component: Background {} }
     PanelLoader { identifier: "iiBackdrop"; extraCondition: Config.options?.background?.backdrop?.enable ?? false; component: Backdrop {} }
     PanelLoader { identifier: "iiCheatsheet"; component: Cheatsheet {} }
-    PanelLoader { identifier: "iiDock"; extraCondition: (Config.options?.dock?.enable ?? true) || (Config.options?.panelFamily === "waffle" && (Config.options?.waffles?.modules?.dock ?? false)); component: Dock {} }
+    PanelLoader { identifier: "iiDock"; extraCondition: Config.options?.dock?.enable ?? true; component: Dock {} }
     PanelLoader { identifier: "iiLock"; component: Lock {} }
-    PanelLoader { identifier: "iiMediaControls"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.mediaControls ?? false); component: MediaControls {} }
+    PanelLoader { identifier: "iiMediaControls"; component: MediaControls {} }
     PanelLoader { identifier: "iiNotificationPopup"; component: NotificationPopup {} }
     PanelLoader { identifier: "iiOnScreenDisplay"; component: OnScreenDisplay {} }
     PanelLoader { identifier: "iiOnScreenKeyboard"; component: OnScreenKeyboard {} }
@@ -142,10 +142,10 @@ ShellRoot {
     PanelLoader { identifier: "iiOverview"; component: Overview {} }
     PanelLoader { identifier: "iiPolkit"; component: Polkit {} }
     PanelLoader { identifier: "iiRegionSelector"; component: RegionSelector {} }
-    PanelLoader { identifier: "iiScreenCorners"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.screenCorners ?? false); component: ScreenCorners {} }
+    PanelLoader { identifier: "iiScreenCorners"; component: ScreenCorners {} }
     PanelLoader { identifier: "iiSessionScreen"; component: SessionScreen {} }
-    PanelLoader { identifier: "iiSidebarLeft"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarLeft ?? false); component: SidebarLeft {} }
-    PanelLoader { identifier: "iiSidebarRight"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarRight ?? false); component: SidebarRight {} }
+    PanelLoader { identifier: "iiSidebarLeft"; component: SidebarLeft {} }
+    PanelLoader { identifier: "iiSidebarRight"; component: SidebarRight {} }
     PanelLoader { identifier: "iiVerticalBar"; extraCondition: Config.options?.bar?.vertical ?? false; component: VerticalBar {} }
     PanelLoader { identifier: "iiWallpaperSelector"; component: WallpaperSelector {} }
     // Material ii AltSwitcher - handles IPC when panelFamily !== "waffle"

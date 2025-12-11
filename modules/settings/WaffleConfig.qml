@@ -14,8 +14,14 @@ ContentPage {
 
     property bool isWaffleActive: Config.options?.panelFamily === "waffle"
 
-    ContentSection {
+    // Helper to check if a module is enabled
+    function isPanelEnabled(panelId: string): bool {
+        return Config.options?.enabledPanels?.includes(panelId) ?? false
+    }
+
+    CollapsibleSection {
         visible: !root.isWaffleActive
+        expanded: true
         icon: "info"
         title: Translation.tr("Not Active")
 
@@ -29,8 +35,9 @@ ContentPage {
     }
 
     // Wallpaper section
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wBackground")
+        expanded: true
         icon: "wallpaper"
         title: Translation.tr("Wallpaper")
 
@@ -77,8 +84,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wBackground")
+        expanded: false
         icon: "auto_awesome"
         title: Translation.tr("Wallpaper Effects")
 
@@ -126,8 +134,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("iiBackdrop")
+        expanded: false
         icon: "layers"
         title: Translation.tr("Backdrop (Niri Overview)")
 
@@ -236,8 +245,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wBar")
+        expanded: false
         icon: "toolbar"
         title: Translation.tr("Taskbar")
 
@@ -270,9 +280,10 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         id: themingSection
         visible: root.isWaffleActive
+        expanded: false
         icon: "palette"
         title: Translation.tr("Theming")
 
@@ -347,8 +358,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isWaffleActive
+        expanded: false
         icon: "widgets"
         title: Translation.tr("Behavior")
 
@@ -360,7 +372,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "swap_horiz"
         title: Translation.tr("Family Transition")
 
@@ -381,8 +394,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wStartMenu")
+        expanded: false
         icon: "grid_view"
         title: Translation.tr("Start Menu")
 
@@ -408,8 +422,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isWaffleActive
+        expanded: false
         icon: "tune"
         title: Translation.tr("Tweaks")
 
@@ -428,8 +443,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wNotificationCenter")
+        expanded: false
         icon: "calendar_month"
         title: Translation.tr("Calendar")
 
@@ -441,8 +457,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("iiAltSwitcher")
+        expanded: false
         icon: "swap_horiz"
         title: Translation.tr("Alt+Tab Switcher")
 
@@ -541,8 +558,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        visible: root.isWaffleActive
+    CollapsibleSection {
+        visible: root.isWaffleActive && root.isPanelEnabled("wWidgets")
+        expanded: false
         icon: "widgets"
         title: Translation.tr("Widgets Panel")
 

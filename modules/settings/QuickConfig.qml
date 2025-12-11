@@ -63,7 +63,8 @@ ContentPage {
     }
 
     // Wallpaper selection
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "format_paint"
         title: Translation.tr("Wallpaper & Colors")
         Layout.fillWidth: true
@@ -375,7 +376,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "screenshot_monitor"
         title: Translation.tr("Bar & screen")
 
@@ -498,7 +500,8 @@ ContentPage {
     }
 
     // Quick Actions
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "bolt"
         title: Translation.tr("Quick Actions")
 

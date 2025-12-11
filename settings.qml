@@ -638,6 +638,11 @@ ApplicationWindow {
     function doSpotlightForControl(control) {
         if (!control) return;
         
+        // Expand the section containing the control and collapse others
+        if (typeof SettingsSearchRegistry !== "undefined") {
+            SettingsSearchRegistry.expandSectionForControl(control);
+        }
+        
         // Find the parent Flickable (ContentPage/StyledFlickable)
         var flick = findParentFlickable(control);
         if (!flick) {

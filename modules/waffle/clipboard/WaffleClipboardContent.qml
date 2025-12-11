@@ -236,13 +236,17 @@ Item {
                             focus: true
 
                             Keys.onUpPressed: event => {
-                                if (clipboardList.currentIndex > 0)
+                                if (clipboardList.currentIndex > 0) {
                                     clipboardList.currentIndex--
+                                    clipboardList.positionViewAtIndex(clipboardList.currentIndex, ListView.Contain)
+                                }
                                 event.accepted = true
                             }
                             Keys.onDownPressed: event => {
-                                if (clipboardList.currentIndex < clipboardList.count - 1)
+                                if (clipboardList.currentIndex < clipboardList.count - 1) {
                                     clipboardList.currentIndex++
+                                    clipboardList.positionViewAtIndex(clipboardList.currentIndex, ListView.Contain)
+                                }
                                 event.accepted = true
                             }
                             Keys.onReturnPressed: event => {

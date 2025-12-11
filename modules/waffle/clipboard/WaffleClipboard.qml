@@ -21,22 +21,6 @@ Scope {
         }
     }
 
-    // Click-outside-to-close overlay
-    LazyLoader {
-        active: GlobalStates.waffleClipboardOpen
-        component: PanelWindow {
-            anchors { top: true; bottom: true; left: true; right: true }
-            WlrLayershell.namespace: "quickshell:wClipboardBg"
-            WlrLayershell.layer: WlrLayer.Top
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            color: "transparent"
-            MouseArea {
-                anchors.fill: parent
-                onClicked: GlobalStates.waffleClipboardOpen = false
-            }
-        }
-    }
-
     Loader {
         id: panelLoader
         active: GlobalStates.waffleClipboardOpen
@@ -59,6 +43,19 @@ Scope {
                 target: GlobalStates
                 function onWaffleClipboardOpenChanged() {
                     if (!GlobalStates.waffleClipboardOpen) content.close()
+                }
+            }
+
+            // Click-outside detection
+            MouseArea {
+                anchors.fill: parent
+                onClicked: mouse => {
+                    const localPos = mapToItem(content, mouse.x, mouse.y)
+                    const outside = (localPos.x < 0 || localPos.x > content.width
+                            || localPos.y < 0 || localPos.y > content.height)
+                    if (outside) {
+                        GlobalStates.waffleClipboardOpen = false
+                    }
                 }
             }
 
