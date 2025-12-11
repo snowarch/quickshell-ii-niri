@@ -5,15 +5,15 @@ ii-niri includes automatic Discord/Vesktop theming that syncs with your wallpape
 ## Included Theme
 
 ### ii-system24
-A TUI-style Discord theme based on [refact0r/system24](https://github.com/refact0r/system24) with Material You colors from your wallpaper.
+A Material Design Discord theme based on [refact0r/system24](https://github.com/refact0r/system24) with Material You colors from your wallpaper.
 
 Features:
 - Oxanium font (ii-niri branding)
-- ASCII-style decorations and loader
-- Panel labels with uppercase styling
-- Minimal, terminal-like aesthetic
-- Blur support for Wayland compositors
+- Material Design styling (rounded corners, proper spacing)
+- Compact server icons and scrollbars
 - Full Material You color integration
+- Auto-sync with wallpaper changes
+- Auto-sync with theme preset changes
 
 ## Setup
 
@@ -21,26 +21,46 @@ Features:
 
 2. The theme is automatically installed to `~/.config/vesktop/themes/` during ii-niri setup
 
-3. In Vesktop, go to Settings → Vencord → Themes and enable `ii-system24`
+3. In Vesktop, go to Settings → Vencord → Themes and enable `system24`
 
-4. Colors will automatically update when you change your wallpaper!
+4. Colors will automatically update when you change your wallpaper or theme preset!
 
 ## How It Works
 
+### Wallpaper Changes (Auto mode)
 When you change your wallpaper:
-
 1. `switchwall.sh` runs matugen to generate Material You colors
-2. `system24_palette.py` converts those colors to Discord CSS variables
-3. The palette is saved to `~/.config/vesktop/themes/system24-palette.css`
-4. Both themes import this palette, so they update automatically
+2. `system24_palette.py` generates the complete theme with embedded palette
+3. `reload-vesktop.fish` sends Ctrl+R to Vesktop to reload
+
+### Theme Preset Changes
+When you change theme preset in Settings:
+1. `apply-gtk-theme.sh` applies GTK/KDE colors
+2. It also calls `system24_palette.py` to regenerate Vesktop theme
+3. `reload-vesktop.fish` reloads Vesktop automatically
+
+### Color Mapping
+
+| system24 Variable | Material You Source |
+|-------------------|---------------------|
+| `--accent-*` | `primary` color ladder |
+| `--accent-new` | `primary` (for NEW badge) |
+| `--bg-*` | `surface_container_*` variants |
+| `--text-*` | `on_surface` / `on_surface_variant` |
+| `--red-*` | `error` color ladder |
+| `--green-*` | `tertiary` color ladder |
+| `--blue-*` | `secondary` color ladder |
 
 ## Manual Regeneration
 
 If colors get out of sync, regenerate manually:
 
 ```fish
-# Using the Python script directly
+# Regenerate theme
 python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py
+
+# Reload Vesktop
+fish ~/.config/quickshell/ii/scripts/colors/reload-vesktop.fish
 
 # Or trigger a full wallpaper refresh
 ~/.config/quickshell/ii/scripts/colors/switchwall.sh --noswitch
@@ -50,7 +70,7 @@ python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py
 
 ### Changing Fonts
 
-Edit the theme file in `~/.config/vesktop/themes/`:
+Edit `scripts/colors/system24_palette.py` and change the font variables:
 
 ```css
 body {
@@ -59,47 +79,29 @@ body {
 }
 ```
 
-### Transparency/Blur
-
-For transparent panels (requires compositor support):
-
-```css
-body {
-    --transparency-tweaks: on;
-    --panel-blur: on;
-    --blur-amount: 12px;
-    
-    /* Make backgrounds semi-transparent */
-    --bg-4: hsla(220, 15%, 10%, 0.7);
-    --bg-3: hsla(220, 15%, 13%, 0.7);
-}
-```
-
-### Background Image
-
-```css
-body {
-    --background-image: on;
-    --background-image-url: url('file:///path/to/image.png');
-}
-```
+Then regenerate the theme.
 
 ## Troubleshooting
 
 ### Colors not updating
-- Check that `~/.config/vesktop/themes/system24-palette.css` exists
+- Check that `~/.config/vesktop/themes/system24.theme.css` exists
 - Verify the theme is enabled in Vesktop settings
-- Try restarting Vesktop after wallpaper change
+- Try Ctrl+R in Vesktop to force reload
 
 ### Theme not appearing
-- Ensure the `.theme.css` files are in `~/.config/vesktop/themes/`
+- Ensure the `.theme.css` file is in `~/.config/vesktop/themes/`
 - Check Vesktop console for CSS errors (Ctrl+Shift+I)
 
 ### Wrong colors
-- Run `switchwall.sh --noswitch` to regenerate without changing wallpaper
+- Run `python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py` to regenerate
 - Check `~/.local/state/quickshell/user/generated/colors.json` exists
+
+### Hot-reload not working
+- The theme palette is embedded in the main file, so Ctrl+R should work
+- If Vesktop window is not focused, the reload script may not work
+- Try manually pressing Ctrl+R in Vesktop
 
 ## Credits
 
-- [refact0r](https://github.com/refact0r) for system24 and midnight themes
+- [refact0r](https://github.com/refact0r) for system24 theme base
 - [Vencord](https://github.com/Vencord) for the Discord mod platform

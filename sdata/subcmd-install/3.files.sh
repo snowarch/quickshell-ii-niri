@@ -396,7 +396,7 @@ fi
 if [[ -d "dots/.config/vesktop/themes" ]]; then
   mkdir -p "${XDG_CONFIG_HOME}/vesktop/themes"
   install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/vesktop/themes"
-  log_success "Vesktop themes installed (system24-ii, midnight-ii)"
+  log_success "Vesktop Material You theme installed"
 fi
 
 # Fontconfig
@@ -690,11 +690,40 @@ if [[ "${INSTALL_FIRSTRUN}" == true && -f "${DEFAULT_WALLPAPER}" ]]; then
     # Use --config to ensure correct config file is used
     if matugen image "${DEFAULT_WALLPAPER}" --mode dark --config "${XDG_CONFIG_HOME}/matugen/config.toml" 2>&1; then
       log_success "Theme colors generated"
+      
+      # Generate Darkly.colors for Qt file dialogs (Darkly style needs this)
+      if [[ -f "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" ]]; then
+        bash "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" 2>/dev/null || true
+        log_success "Qt Darkly theme colors generated"
+      fi
     else
       log_warning "Matugen failed to generate colors. Theme may not work correctly."
     fi
   else
     log_warning "Matugen not installed. GTK/Qt theming will not be applied."
+  fi
+fi
+
+#####################################################################################
+# Migrate: Generate Darkly.colors for existing users (Qt file dialogs fix)
+#####################################################################################
+DARKLY_COLORS_FILE="${HOME}/.local/share/color-schemes/Darkly.colors"
+if [[ ! -f "${DARKLY_COLORS_FILE}" ]]; then
+  if ! ${quiet:-false}; then
+    echo -e "${STY_CYAN}Generating Darkly color scheme for Qt file dialogs...${STY_RST}"
+  fi
+  
+  # Ensure directory exists
+  mkdir -p "$(dirname "${DARKLY_COLORS_FILE}")"
+  
+  # Try to regenerate from existing material colors
+  MATERIAL_COLORS="${XDG_STATE_HOME}/quickshell/user/generated/material_colors.scss"
+  if [[ -f "${MATERIAL_COLORS}" && -f "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" ]]; then
+    # Run the apply script which will generate Darkly.colors
+    bash "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" 2>/dev/null || true
+    if [[ -f "${DARKLY_COLORS_FILE}" ]]; then
+      log_success "Darkly color scheme generated for Qt apps"
+    fi
   fi
 fi
 
