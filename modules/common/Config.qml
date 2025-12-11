@@ -183,6 +183,7 @@ Singleton {
                     property bool enableAppsAndShell: true
                     property bool enableQtApps: true
                     property bool enableTerminal: true
+                    property bool enableVesktop: true
                     property JsonObject terminalGenerationProps: JsonObject {
                         property real harmony: 0.6
                         property real harmonizeThreshold: 100
@@ -593,9 +594,9 @@ Singleton {
 
             property JsonObject overview: JsonObject {
                 property bool enable: true
-                property real scale: 0.18 // Relative to screen size
-                property real rows: 2
-                property real columns: 5
+                property real scale: 0.17 // Relative to screen size
+                property real rows: 3
+                property real columns: 1
                 property bool centerIcons: true
                 property bool backgroundBlurEnable: true
                 property int backgroundBlurRadius: 22
