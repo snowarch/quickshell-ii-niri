@@ -93,22 +93,23 @@ Item {
     
     SequentialAnimation {
         id: windowEntryAnim
-        PauseAnimation { duration: 80 + root.workspaceSlot * 40 + root.indexInWorkspace * 20 }
+        PauseAnimation { duration: Looks.transition.staggerDelay(root.workspaceSlot * 3 + root.indexInWorkspace, 30) }
         ParallelAnimation {
             NumberAnimation { 
                 target: root
                 property: "opacity"
                 to: 1
-                duration: Looks.transition.enabled ? 150 : 0
-                easing.type: Easing.OutCubic 
+                duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
             }
             NumberAnimation { 
                 target: root
                 property: "scale"
                 to: 1
-                duration: Looks.transition.enabled ? 150 : 0
-                easing.type: Easing.OutBack
-                easing.overshoot: 0.3
+                duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
             }
         }
     }
@@ -116,29 +117,33 @@ Item {
     Behavior on x {
         enabled: !root.Drag.active
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 200 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
         }
     }
     Behavior on y {
         enabled: !root.Drag.active
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 200 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
         }
     }
     Behavior on width {
         enabled: !root.Drag.active
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 200 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
         }
     }
     Behavior on height {
         enabled: !root.Drag.active
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 200 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
         }
     }
 
@@ -192,7 +197,7 @@ Item {
                         text: root.highlightText(root.windowData?.title ?? "")
                         textFormat: Text.StyledText
                         font.pixelSize: Looks.font.pixelSize.small
-                        font.family: Looks.font.family.main
+                        font.family: Looks.font.family.ui
                         color: Looks.colors.fg
                         elide: Text.ElideRight
                     }
@@ -254,7 +259,8 @@ Item {
                     
                     Behavior on opacity { 
                         NumberAnimation { 
-                            duration: Looks.transition.enabled ? 200 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                 }
@@ -272,7 +278,8 @@ Item {
 
                     Behavior on opacity { 
                         NumberAnimation { 
-                            duration: Looks.transition.enabled ? 200 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                 }
@@ -282,7 +289,8 @@ Item {
                     target: WindowPreviewService
                     function onPreviewUpdated(updatedId: int): void {
                         if (updatedId === previewArea.windowId) {
-                            previewArea.previewUrl = WindowPreviewService.getPreviewUrl(updatedId)
+                            const url = WindowPreviewService.getPreviewUrl(updatedId)
+                            previewArea.previewUrl = url
                         }
                     }
                     function onCaptureComplete(): void {
@@ -294,12 +302,26 @@ Item {
                     }
                 }
                 
+                // Also watch for previewCache changes directly
+                Connections {
+                    target: WindowPreviewService
+                    function onPreviewCacheChanged(): void {
+                        if (!previewArea.previewUrl) {
+                            const url = WindowPreviewService.getPreviewUrl(previewArea.windowId)
+                            if (url) previewArea.previewUrl = url
+                        }
+                    }
+                }
+                
                 // Check if preview already exists on load
                 Component.onCompleted: {
-                    const url = WindowPreviewService.getPreviewUrl(windowId)
-                    if (url) {
-                        previewUrl = url
-                    }
+                    // Delay slightly to ensure service is ready
+                    Qt.callLater(() => {
+                        const url = WindowPreviewService.getPreviewUrl(windowId)
+                        if (url) {
+                            previewUrl = url
+                        }
+                    })
                 }
             }
         }
@@ -317,7 +339,8 @@ Item {
             
             Behavior on border.color { 
                 ColorAnimation { 
-                    duration: Looks.transition.enabled ? 100 : 0 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.OutQuad
                 } 
             }
 
@@ -414,7 +437,8 @@ Item {
                 
                 Behavior on color { 
                     ColorAnimation { 
-                        duration: Looks.transition.enabled ? 100 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
 

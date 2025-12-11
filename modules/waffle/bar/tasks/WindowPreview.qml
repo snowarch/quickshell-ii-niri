@@ -93,7 +93,8 @@ Button {
                 id: screencopyView
                 anchors.centerIn: parent
                 captureSource: root.toplevel
-                live: root.toplevel !== null && root.toplevel !== undefined
+                // Pause live capture during recording to avoid lag
+                live: root.toplevel !== null && root.toplevel !== undefined && !RecorderStatus.isRecording
                 paintCursor: true
                 constraintSize: Qt.size(root.previewWidthConstraint, root.previewHeightConstraint)
                 visible: screencopyView.valid

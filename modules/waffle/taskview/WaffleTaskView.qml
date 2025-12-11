@@ -14,15 +14,8 @@ import qs.modules.waffle.looks
 Scope {
     id: root
 
-    // Clear previews when TaskView closes
-    Connections {
-        target: GlobalStates
-        function onWaffleTaskViewOpenChanged(): void {
-            if (!GlobalStates.waffleTaskViewOpen) {
-                WindowPreviewService.clearPreviews()
-            }
-        }
-    }
+    // Previews are cached and cleaned up automatically when windows close
+    // No need to clear on TaskView close - improves performance on re-open
 
     function openTaskView(): void {
         if (GlobalStates.waffleTaskViewOpen) return

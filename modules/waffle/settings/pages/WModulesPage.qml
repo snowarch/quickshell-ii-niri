@@ -117,5 +117,13 @@ WSettingsPage {
             checked: root.isPanelEnabled("wWidgets")
             onCheckedChanged: root.setPanelEnabled("wWidgets", checked)
         }
+
+        WSettingsSwitch {
+            label: Translation.tr("Task View") + " ⚠️"
+            icon: "desktop"
+            description: Translation.tr("Experimental - Work in progress")
+            checked: root.isPanelEnabled("wTaskView")
+            onCheckedChanged: root.setPanelEnabled("wTaskView", checked)
+        }
     }
 }

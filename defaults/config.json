@@ -748,6 +748,15 @@
     "iiVerticalBar",
     "iiWallpaperSelector",
     "iiAltSwitcher",
-    "iiClipboard"
+    "iiClipboard",
+    "wBar",
+    "wBackground",
+    "wBackdrop",
+    "wStartMenu",
+    "wActionCenter",
+    "wNotificationCenter",
+    "wNotificationPopup",
+    "wOnScreenDisplay",
+    "wWidgets"
   ]
 }

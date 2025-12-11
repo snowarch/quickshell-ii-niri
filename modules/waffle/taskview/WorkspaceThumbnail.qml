@@ -49,21 +49,23 @@ Item {
     
     SequentialAnimation {
         id: entryAnim
-        PauseAnimation { duration: root.workspaceIndex * 40 }
+        PauseAnimation { duration: Looks.transition.staggerDelay(root.workspaceIndex, 35) }
         ParallelAnimation {
             NumberAnimation { 
                 target: root
                 property: "opacity"
                 to: 1
-                duration: Looks.transition.enabled ? 180 : 0
-                easing.type: Easing.OutCubic 
+                duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
             }
             NumberAnimation { 
                 target: entryTranslate
                 property: "y"
                 to: 0
-                duration: Looks.transition.enabled ? 180 : 0
-                easing.type: Easing.OutCubic 
+                duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
             }
         }
     }
@@ -110,7 +112,8 @@ Item {
                 
                 Behavior on color { 
                     ColorAnimation { 
-                        duration: Looks.transition.enabled ? 120 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
                 
@@ -179,8 +182,9 @@ Item {
             
             Behavior on width { 
                 NumberAnimation { 
-                    duration: Looks.transition.enabled ? 150 : 0
-                    easing.type: Easing.OutCubic 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
                 } 
             }
         }
@@ -212,18 +216,20 @@ Item {
             
             Behavior on opacity { 
                 NumberAnimation { 
-                    duration: Looks.transition.enabled ? 150 : 0
-                    easing.type: Easing.OutCubic 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                    easing.type: Easing.OutQuad
                 } 
             }
             Behavior on color { 
                 ColorAnimation { 
-                    duration: Looks.transition.enabled ? 120 : 0 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                    easing.type: Easing.OutQuad
                 } 
             }
             Behavior on border.color { 
                 ColorAnimation { 
-                    duration: Looks.transition.enabled ? 100 : 0 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.OutQuad
                 } 
             }
 
@@ -263,7 +269,8 @@ Item {
                 color: Qt.rgba(0, 0, 0, thumbnailArea.containsMouse ? 0.15 : (root.isActive ? 0.2 : 0.3))
                 Behavior on color { 
                     ColorAnimation { 
-                        duration: Looks.transition.enabled ? 120 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
             }
@@ -277,7 +284,8 @@ Item {
                 opacity: thumbnailArea.containsMouse ? 1 : 0.6
                 Behavior on opacity { 
                     NumberAnimation { 
-                        duration: Looks.transition.enabled ? 120 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
                 
@@ -291,12 +299,14 @@ Item {
                     border.color: thumbnailArea.containsMouse ? Looks.colors.accent : ColorUtils.transparentize(Looks.colors.fg, 0.6)
                     Behavior on color { 
                         ColorAnimation { 
-                            duration: Looks.transition.enabled ? 120 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                     Behavior on border.color { 
                         ColorAnimation { 
-                            duration: Looks.transition.enabled ? 120 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                     
@@ -308,7 +318,8 @@ Item {
                         color: thumbnailArea.containsMouse ? Looks.colors.accent : Looks.colors.fg
                         Behavior on color { 
                             ColorAnimation { 
-                                duration: Looks.transition.enabled ? 120 : 0 
+                                duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                                easing.type: Easing.OutQuad
                             } 
                         }
                     }
@@ -344,7 +355,8 @@ Item {
                 
                 Behavior on color { 
                     ColorAnimation { 
-                        duration: Looks.transition.enabled ? 100 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
                 

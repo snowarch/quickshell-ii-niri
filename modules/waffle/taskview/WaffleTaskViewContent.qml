@@ -300,18 +300,20 @@ Item {
     }
 
     opacity: GlobalStates.waffleTaskViewOpen ? 1 : 0
-    scale: GlobalStates.waffleTaskViewOpen ? 1 : 0.95
+    scale: GlobalStates.waffleTaskViewOpen ? 1 : 0.96
     
     Behavior on opacity { 
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 150 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
         } 
     }
     Behavior on scale { 
         NumberAnimation { 
-            duration: Looks.transition.enabled ? 150 : 0
-            easing.type: Easing.OutCubic 
+            duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
         } 
     }
 
@@ -423,8 +425,9 @@ Item {
             
             Behavior on x {
                 NumberAnimation { 
-                    duration: Looks.transition.enabled ? 250 : 0
-                    easing.type: Easing.OutCubic 
+                    duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
                 }
             }
 
@@ -483,7 +486,8 @@ Item {
                 
                 Behavior on opacity { 
                     NumberAnimation { 
-                        duration: Looks.transition.enabled ? 150 : 0 
+                        duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
                     } 
                 }
                 
@@ -498,12 +502,14 @@ Item {
                     
                     Behavior on color { 
                         ColorAnimation { 
-                            duration: Looks.transition.enabled ? 120 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                     Behavior on border.color { 
                         ColorAnimation { 
-                            duration: Looks.transition.enabled ? 120 : 0 
+                            duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                            easing.type: Easing.OutQuad
                         } 
                     }
                     
@@ -656,7 +662,8 @@ Item {
         
         Behavior on border.color { 
             ColorAnimation { 
-                duration: Looks.transition.enabled ? 120 : 0 
+                duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                easing.type: Easing.OutQuad
             } 
         }
         

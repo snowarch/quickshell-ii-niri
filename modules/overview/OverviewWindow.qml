@@ -93,7 +93,8 @@ Item { // Window
         id: windowPreview
         anchors.fill: parent
         captureSource: GlobalStates.overviewOpen ? root.toplevel : null
-        live: true
+        // Pause during recording to avoid lag
+        live: !RecorderStatus.isRecording
 
         // Color overlay for interactions
         Rectangle {

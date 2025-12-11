@@ -395,6 +395,22 @@ fi
 # Vesktop themes (Discord theming with Material You colors)
 if [[ -d "dots/.config/vesktop/themes" ]]; then
   mkdir -p "${XDG_CONFIG_HOME}/vesktop/themes"
+  
+  # Migrate: Remove old theme files from previous versions
+  OLD_VESKTOP_THEMES=(
+    "midnight-ii.theme.css"
+    "system24-ii.theme.css"
+    "system24-palette.css"
+    "ii-palette.css"
+    "ii-system24.theme.css"
+  )
+  for old_theme in "${OLD_VESKTOP_THEMES[@]}"; do
+    if [[ -f "${XDG_CONFIG_HOME}/vesktop/themes/${old_theme}" ]]; then
+      rm -f "${XDG_CONFIG_HOME}/vesktop/themes/${old_theme}"
+      log_success "Removed old Vesktop theme: ${old_theme}"
+    fi
+  done
+  
   install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/vesktop/themes"
   log_success "Vesktop Material You theme installed"
 fi
