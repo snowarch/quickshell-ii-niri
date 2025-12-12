@@ -33,17 +33,49 @@ Button {
     property bool enableTooltip: true
     property bool buttonHovered: false
 
+    // Wallhaven tags are expensive (detail endpoint). Fetch them only when the user shows intent.
+    property bool tagsRequested: false
+
+    Timer {
+        id: tagFetchTimer
+        interval: 450
+        repeat: false
+        onTriggered: {
+            if (!root.aspectCrop)
+                return
+            if (!root.imageData || !root.imageData.id)
+                return
+            if (root.imageData.tags && root.imageData.tags.length > 0)
+                return
+            root.tagsRequested = true
+            Wallhaven.ensureWallpaperTags(root.imageData.id)
+        }
+    }
+
     readonly property string _tagText: {
         if (root.imageData && root.imageData.tags && root.imageData.tags.length > 0)
             return root.imageData.tags
         if (root.fallbackTags && root.fallbackTags.length > 0)
             return root.fallbackTags
-        if (root.aspectCrop)
+        if (root.aspectCrop && root.tagsRequested)
             return Translation.tr("Loading tags…")
         return ""
     }
 
     hoverEnabled: true
+
+    onHoveredChanged: {
+        if (!root.aspectCrop)
+            return
+        if (root.hovered) {
+            // Only start the timer if tags are not already present.
+            if (!(root.imageData && root.imageData.tags && root.imageData.tags.length > 0)) {
+                tagFetchTimer.restart()
+            }
+        } else {
+            tagFetchTimer.stop()
+        }
+    }
     
     Process {
         id: downloadProcess

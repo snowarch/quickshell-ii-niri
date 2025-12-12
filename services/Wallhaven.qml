@@ -20,6 +20,55 @@ QtObject {
     property var responses: []
     property int runningRequests: 0
 
+    // Wallhaven rate limiting (HTTP 429) can trigger easily when paging quickly.
+    // Keep a simple cooldown to prevent request spam and make UI behavior predictable.
+    property int nowMs: 0
+    property int rateLimitedUntilMs: 0
+    readonly property bool isRateLimited: nowMs < rateLimitedUntilMs
+
+    property Timer wallhavenClock: Timer {
+        interval: 500
+        repeat: true
+        running: true
+        onTriggered: root.nowMs = Date.now()
+    }
+
+    Component.onCompleted: {
+        root.nowMs = Date.now()
+    }
+
+    // Throttling
+    property int minSearchIntervalMs: 1200
+    property int minTagIntervalMs: 1200
+    property int _nextSearchAllowedMs: 0
+    property int _nextTagAllowedMs: 0
+
+    // Pending search request (coalesced)
+    property var pendingSearch: null
+
+    property Timer pendingSearchTimer: Timer {
+        interval: 300
+        repeat: true
+        running: true
+        onTriggered: {
+            if (!root.pendingSearch)
+                return
+            if (root.isRateLimited)
+                return
+            if (root.runningRequests > 0)
+                return
+            if (root.nowMs < root._nextSearchAllowedMs)
+                return
+
+            const next = root.pendingSearch
+            root.pendingSearch = null
+            root.makeRequest(next.tags, next.nsfw, next.limit, next.page)
+        }
+    }
+
+    // Tag fetch queue
+    property var tagQueue: ([])
+
     property var wallpaperTagCache: ({})
     property var wallpaperTagRequests: ({})
 
@@ -64,7 +113,34 @@ QtObject {
         if (wallpaperTagRequests[id])
             return
 
+        // Queue tag fetches to avoid request storms.
+        if (tagQueue.indexOf(id) === -1) {
+            tagQueue = [...tagQueue, id]
+        }
+    }
+
+    function _fetchNextTag(): void {
+        if (root.isRateLimited)
+            return
+        if (root.nowMs < root._nextTagAllowedMs)
+            return
+        if (!tagQueue || tagQueue.length === 0)
+            return
+
+        // Pop front
+        const id = tagQueue[0]
+        tagQueue = tagQueue.slice(1)
+
+        if (!id || id.length === 0)
+            return
+        if (wallpaperTagCache[id] !== undefined)
+            return
+        if (wallpaperTagRequests[id])
+            return
+
         wallpaperTagRequests[id] = true
+        root._nextTagAllowedMs = root.nowMs + root.minTagIntervalMs
+
         var url = _detailUrl(id)
         var xhr = new XMLHttpRequest()
         xhr.open("GET", url)
@@ -89,6 +165,13 @@ QtObject {
                     console.log("[Wallhaven] Failed to parse detail response:", e)
                     wallpaperTagCache[id] = ""
                 }
+            } else if (xhr.status === 429) {
+                // Backoff and retry later
+                root.rateLimitedUntilMs = root.nowMs + 30000
+                wallpaperTagCache[id] = undefined
+                if (tagQueue.indexOf(id) === -1) {
+                    tagQueue = [...tagQueue, id]
+                }
             } else {
                 // Cache empty to avoid retry storms
                 wallpaperTagCache[id] = ""
@@ -99,8 +182,18 @@ QtObject {
         } catch (e) {
             console.log("[Wallhaven] Error sending detail request:", e)
             wallpaperTagRequests[id] = false
-            wallpaperTagCache[id] = ""
+            // Retry later
+            if (tagQueue.indexOf(id) === -1) {
+                tagQueue = [...tagQueue, id]
+            }
         }
+    }
+
+    property Timer tagQueueTimer: Timer {
+        interval: 350
+        repeat: true
+        running: true
+        onTriggered: root._fetchNextTag()
     }
 
     // Config-driven options
@@ -172,6 +265,21 @@ QtObject {
         // nsfw/limit/page kept for API parity with Booru.makeRequest
         if (nsfw === undefined)
             nsfw = allowNsfw
+
+        // Coalesce requests: if something is already running or we are rate limited,
+        // keep only the latest request and retry automatically.
+        if (root.isRateLimited || runningRequests > 0 || root.nowMs < root._nextSearchAllowedMs) {
+            root.pendingSearch = {
+                tags: tags,
+                nsfw: nsfw,
+                limit: limit,
+                page: page
+            }
+            return
+        }
+
+        root._nextSearchAllowedMs = root.nowMs + root.minSearchIntervalMs
+
         var url = _buildSearchUrl(tags, nsfw, limit, page)
         console.log("[Wallhaven] Making request to", url)
 
@@ -193,6 +301,12 @@ QtObject {
                 runningRequests = Math.max(0, runningRequests - 1)
                 responses = [...responses, newResponse]
                 root.responseFinished()
+
+                if (root.pendingSearch && !root.isRateLimited) {
+                    const next = root.pendingSearch
+                    root.pendingSearch = null
+                    Qt.callLater(() => root.makeRequest(next.tags, next.nsfw, next.limit, next.page))
+                }
             }
 
             if (xhr.status === 200) {
@@ -237,13 +351,6 @@ QtObject {
                     })
                     newResponse.images = images
                     newResponse.message = images.length > 0 ? "" : failMessage
-
-                    // Fetch real tags per wallpaper (always-on)
-                    for (let i = 0; i < images.length; ++i) {
-                        if (images[i] && images[i].id) {
-                            root.ensureWallpaperTags(images[i].id)
-                        }
-                    }
                 } catch (e) {
                     console.log("[Wallhaven] Failed to parse response:", e)
                     newResponse.message = failMessage
@@ -252,7 +359,13 @@ QtObject {
                 }
             } else {
                 console.log("[Wallhaven] Request failed with status:", xhr.status)
-                newResponse.message = failMessage
+                if (xhr.status === 429) {
+                    // 30s cooldown (simple backoff). Keep message user-friendly.
+                    root.rateLimitedUntilMs = root.nowMs + 30000
+                    newResponse.message = Translation.tr("Wallhaven rate-limited (HTTP 429). Please wait ~30s and try again.")
+                } else {
+                    newResponse.message = failMessage
+                }
                 finish()
             }
         }

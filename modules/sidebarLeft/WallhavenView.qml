@@ -32,6 +32,29 @@ Item {
     property int _pendingScrollToPage: -1
     property string _pendingScrollTagsKey: ""
 
+    function _tryScrollToPendingPage() {
+        if (root._pendingScrollToPage <= 0)
+            return
+        for (let i = 0; i < root.responses.length; ++i) {
+            const r = root.responses[i]
+            if (!r || r.provider !== "wallhaven")
+                continue
+            if (parseInt(r.page) !== root._pendingScrollToPage)
+                continue
+            if (root._tagsKey(r.tags) !== root._pendingScrollTagsKey)
+                continue
+
+            // Defer to next tick so delegates have a chance to size themselves.
+            Qt.callLater(() => {
+                wallhavenResponseListView.positionViewAtIndex(i, ListView.Beginning)
+            })
+
+            root._pendingScrollToPage = -1
+            root._pendingScrollTagsKey = ""
+            break
+        }
+    }
+
     function _tagsKey(tags) {
         return (tags || []).join(" ")
     }
@@ -40,6 +63,7 @@ Item {
         target: Wallhaven
         function onResponseFinished() {
             pullLoading = false
+            root._tryScrollToPendingPage()
         }
     }
 
@@ -222,8 +246,8 @@ Item {
             layer.enabled: true
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
-                    width: swipeView.width
-                    height: swipeView.height
+                    width: wallhavenResponseListView.width
+                    height: wallhavenResponseListView.height
                     radius: Appearance.rounding.small
                 }
             }
@@ -243,11 +267,18 @@ Item {
                 touchpadScrollFactor: (Config.options?.interactions?.scrolling?.touchpadScrollFactor ?? 1.0) * 1.4
                 mouseScrollFactor: (Config.options?.interactions?.scrolling?.mouseScrollFactor ?? 1.0) * 1.4
 
-                Behavior on contentY {
-                    enabled: !wallhavenResponseListView.dragging && !wallhavenResponseListView.moving
-                    NumberAnimation {
-                        duration: 120
-                        easing.type: Easing.OutCubic
+                footer: Item {
+                    // Allow scrolling past the last response so paging buttons aren't covered
+                    // by the input bar at the bottom.
+                    implicitHeight: tagInputContainer.implicitHeight + 16
+                }
+                footerPositioning: ListView.InlineFooter
+
+                onContentHeightChanged: {
+                    // When a new page response lands, delegates need a tick to size.
+                    // Retrying on contentHeightChanged makes auto-scroll reliable.
+                    if (root._pendingScrollToPage > 0) {
+                        Qt.callLater(() => root._tryScrollToPendingPage())
                     }
                 }
 
@@ -275,22 +306,7 @@ Item {
                             wallhavenResponseListView.lastResponseLength = root.responses.length
 
                             // If a next-page click requested an auto-scroll, position the new page section.
-                            if (root._pendingScrollToPage > 0) {
-                                for (let i = 0; i < root.responses.length; ++i) {
-                                    const r = root.responses[i]
-                                    if (!r || r.provider !== "wallhaven")
-                                        continue
-                                    if (parseInt(r.page) !== root._pendingScrollToPage)
-                                        continue
-                                    if (root._tagsKey(r.tags) !== root._pendingScrollTagsKey)
-                                        continue
-
-                                    wallhavenResponseListView.positionViewAtIndex(i, ListView.Center)
-                                    root._pendingScrollToPage = -1
-                                    root._pendingScrollTagsKey = ""
-                                    break
-                                }
-                            }
+                            root._tryScrollToPendingPage()
                         }
                     }
                 }
@@ -317,6 +333,7 @@ Item {
                             return
                         root._pendingScrollToPage = parseInt(resp.page) + 1
                         root._pendingScrollTagsKey = root._tagsKey(resp.tags)
+                        Qt.callLater(() => root._tryScrollToPendingPage())
                     }
                 }
 
@@ -326,27 +343,6 @@ Item {
                         root.pullLoading = true
                         root.handleInput(`${root.commandPrefix}next`)
                     }
-                }
-            }
-
-            MouseArea {
-                z: 2
-                anchors.fill: wallhavenResponseListView
-                acceptedButtons: Qt.NoButton
-                propagateComposedEvents: true
-                onWheel: function(wheelEvent) {
-                    // Ensure wheel works immediately across page boundaries / delegates.
-                    wallhavenResponseListView.forceActiveFocus()
-
-                    const threshold = 120
-                    const delta = wheelEvent.angleDelta.y / threshold
-                    const scrollFactor = Math.abs(wheelEvent.angleDelta.y) >= threshold
-                        ? wallhavenResponseListView.mouseScrollFactor
-                        : wallhavenResponseListView.touchpadScrollFactor
-
-                    const maxY = Math.max(0, wallhavenResponseListView.contentHeight - wallhavenResponseListView.height)
-                    wallhavenResponseListView.contentY = Math.max(0, Math.min(wallhavenResponseListView.contentY - delta * scrollFactor, maxY))
-                    wheelEvent.accepted = true
                 }
             }
 
