@@ -869,7 +869,7 @@ Singleton {
                     property string locale: ""
                 }
                 property JsonObject theming: JsonObject {
-                    property bool useMaterialColors: false // Use Material ii colors instead of W11 grey
+                    property bool useMaterialColors: true // Use Material ii colors instead of W11 grey
                     property JsonObject font: JsonObject {
                         property string family: "Noto Sans"
                         property real scale: 1.0 // Font size multiplier (0.8 - 1.5)
