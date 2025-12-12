@@ -353,7 +353,14 @@ switch() {
     source "$(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate"
     python3 "$SCRIPT_DIR/generate_colors_material.py" "${generate_colors_material_args[@]}" \
         > "$STATE_DIR"/user/generated/material_colors.scss
-    python3 "$SCRIPT_DIR/system24_palette.py"
+    
+    # Generate Vesktop theme if enabled
+    enable_vesktop=$(jq -r '.appearance.wallpaperTheming.enableVesktop // true' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "true")
+    if [[ "$enable_vesktop" != "false" ]]; then
+        python3 "$SCRIPT_DIR/system24_palette.py"
+        # Note: Vesktop auto-reloads CSS changes, no manual reload needed
+    fi
+    
     "$SCRIPT_DIR"/applycolor.sh
     deactivate
 

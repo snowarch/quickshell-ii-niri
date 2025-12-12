@@ -13,8 +13,9 @@ ContentPage {
 
     property bool isIiActive: Config.options?.panelFamily !== "waffle"
 
-    ContentSection {
+    CollapsibleSection {
         visible: !root.isIiActive
+        expanded: true
         icon: "info"
         title: Translation.tr("Waffle Mode")
 
@@ -27,8 +28,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "sync_alt"
         title: Translation.tr("Parallax")
 
@@ -85,8 +87,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: true
         icon: "wallpaper"
         title: Translation.tr("Wallpaper effects")
 
@@ -366,8 +369,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "clock_loader_40"
         title: Translation.tr("Widget: Clock")
 
@@ -757,8 +761,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "weather_mix"
         title: Translation.tr("Widget: Weather")
 

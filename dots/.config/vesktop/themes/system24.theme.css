@@ -1,0 +1,212 @@
+/**
+ * @name ii-niri Material
+ * @description Material Design Discord theme with Material You colors.
+ * @author refact0r (system24 base), ii-niri (Material adaptation)
+ * @version 2.2.0
+ * @source https://github.com/end-4/ii-niri
+ */
+
+@import url('https://refact0r.github.io/system24/build/system24.css');
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap');
+
+body {
+    --font: 'Oxanium';
+    --code-font: 'Oxanium';
+    font-weight: 400;
+    letter-spacing: -0.02ch;
+    --gap: 8px;
+    --divider-thickness: 2px;
+    --border-thickness: 0px;
+    --border-hover-transition: 0.15s ease;
+    --animations: on;
+    --list-item-transition: 0.12s ease;
+    --dms-icon-svg-transition: 0.2s ease;
+    --top-bar-height: var(--gap);
+    --top-bar-button-position: titlebar;
+    --top-bar-title-position: off;
+    --subtle-top-bar-title: off;
+    --custom-window-controls: off;
+    --window-control-size: 14px;
+    --custom-dms-icon: off;
+    --dms-icon-svg-size: 80%;
+    --dms-icon-color-before: var(--text-0);
+    --dms-icon-color-after: var(--text-0);
+    --custom-dms-background: color;
+    --dms-background-color: var(--accent-2);
+    --background-image: off;
+    --transparency-tweaks: off;
+    --remove-bg-layer: off;
+    --panel-blur: off;
+    --blur-amount: 0px;
+    --bg-floating: var(--bg-1);
+    --small-user-panel: on;
+    --unrounding: off;
+    --custom-spotify-bar: on;
+    --ascii-titles: off;
+    --ascii-loader: off;
+    --panel-labels: off;
+    --label-color: var(--text-4);
+    --label-font-weight: 500;
+}
+
+/* Material You Palette - Auto-generated */
+:root:root {
+    --accent-1: #ddddcd;
+    --accent-2: #c8c8af;
+    --accent-3: #bebea0;
+    --accent-4: #b3b391;
+    --accent-5: #a9a982;
+    --accent-new: #c8c8af;
+    --active: rgba(200, 200, 175, 0.20);
+    --active-2: rgba(200, 200, 175, 0.30);
+    --bg-1: #2a2a27;
+    --bg-2: #20201d;
+    --bg-3: #1c1c19;
+    --bg-4: #141311;
+    --bg-floating: #353532;
+    --blue-1: #e9e9e2;
+    --blue-2: #dad9ce;
+    --blue-3: #c8c7b7;
+    --blue-4: #b6b5a0;
+    --blue-5: #a7a58c;
+    --border: rgba(146, 144, 141, 0.30);
+    --border-hover: #c8c8af;
+    --border-light: rgba(146, 144, 141, 0.15);
+    --brand-360: #d9d9c7;
+    --brand-400: #d0d0bb;
+    --brand-500: #c8c8af;
+    --brand-560: #bcbc9d;
+    --brand-600: #afaf8b;
+    --button-border: rgba(146, 144, 141, 0.12);
+    --colors: on;
+    --dnd: #ffb4ab;
+    --green-1: #e5e6d6;
+    --green-2: #d7d8bf;
+    --green-3: #c7c9a6;
+    --green-4: #b7ba8d;
+    --green-5: #a9ac76;
+    --hover: rgba(200, 200, 175, 0.10);
+    --idle: #c8c7b7;
+    --mention: linear-gradient(to right, color-mix(in hsl, #c8c8af, transparent 70%) 40%, transparent);
+    --mention-hover: linear-gradient(to right, color-mix(in hsl, #c8c8af, transparent 85%) 40%, transparent);
+    --message-hover: rgba(200, 200, 175, 0.08);
+    --offline: #c9c6c2;
+    --online: #c7c9a6;
+    --orange-1: #f1e9e2;
+    --orange-2: #e5d7ca;
+    --orange-3: #d8c2ae;
+    --orange-4: #cbad92;
+    --orange-5: #bf9b7a;
+    --purple-1: #e8e8df;
+    --purple-2: #d9d9cb;
+    --purple-3: #c8c8b3;
+    --purple-4: #b7b79b;
+    --purple-5: #a8a887;
+    --red-1: #fff8f7;
+    --red-2: #ffd8d4;
+    --red-3: #ffb4ab;
+    --red-4: #ff9082;
+    --red-5: #ff705e;
+    --reply: linear-gradient(to right, color-mix(in hsl, #c9c6c2, transparent 85%) 40%, transparent);
+    --reply-hover: linear-gradient(to right, color-mix(in hsl, #c9c6c2, transparent 92%) 40%, transparent);
+    --streaming: #dbdcc6;
+    --text-0: #303220;
+    --text-1: #e5e2de;
+    --text-2: #dfdcd8;
+    --text-3: #dad7d3;
+    --text-4: #c9c6c2;
+    --text-5: #92908d;
+    --yellow-1: #f0f0e9;
+    --yellow-2: #e2e2d4;
+    --yellow-3: #d2d2bb;
+    --yellow-4: #c2c2a2;
+    --yellow-5: #b4b48d;
+}
+
+/* Material Design System */
+html { font-size: 13px !important; }
+
+.guilds__2b93a, .wrapper_fea3ef { width: 52px !important; }
+.wrapper_d281dd, .childWrapper__01b9c, .childWrapper_a6ce15 {
+    width: 36px !important; height: 36px !important; border-radius: 12px !important;
+}
+.wrapper_d281dd:hover, .childWrapper__01b9c:hover { border-radius: 10px !important; }
+.listItem__48528 { width: 44px !important; height: 44px !important; margin: 0 0 2px 0 !important; }
+.pill_c3735b { left: 0 !important; width: 4px !important; }
+.pill_c3735b .item_c96c45 {
+    width: 3px !important; border-radius: 0 3px 3px 0 !important; background: var(--accent-2) !important;
+}
+.tutorialContainer_ff5f24 .childWrapper__01b9c,
+.tutorialContainer_ff5f24 .wrapper_d281dd { background: var(--accent-2) !important; }
+.tutorialContainer_ff5f24 svg, .tutorialContainer_ff5f24 path {
+    fill: var(--text-0) !important; color: var(--text-0) !important;
+}
+.expandedFolderBackground__1bec6 { border-radius: 12px !important; background: var(--bg-2) !important; }
+.sidebar_e031be { width: 200px !important; }
+.containerDefault_ae2ea4, .containerDefault__3187b {
+    border-radius: 8px !important; margin: 1px 8px !important; padding: 6px 8px !important;
+}
+.name_d8bfb3, .channelName__4d7e3 { font-size: 13px !important; }
+.containerDefault__321f3 { padding: 16px 8px 4px !important; }
+.name__4eb92 { font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.02em !important; }
+.members__573eb { width: 200px !important; }
+.member_aa4760, .memberInner_aa4760 { border-radius: 8px !important; margin: 1px 8px !important; }
+.message_ccca67 { border-radius: 8px !important; }
+.cozy_f5c119 { padding: 0.2rem 0.75rem !important; }
+.scrollableContainer__33e06 { border-radius: 12px !important; }
+.button_dd4f85, .lookFilled_dd4f85 { border-radius: 20px !important; }
+.lookOutlined_dd4f85 { border-radius: 8px !important; }
+.input_f8bc55, .inputDefault__80165 { border-radius: 8px !important; }
+.searchBar__8f956 { border-radius: 8px !important; }
+.popout_c5b389, .modal_d3e7d4, .root_f9a4c9 {
+    border-radius: 12px !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+.menu_dc52c6 { border-radius: 8px !important; padding: 4px !important; }
+.item_a0 { border-radius: 6px !important; }
+.tooltip_b6c360 { border-radius: 6px !important; }
+.avatar_b2ca13, .wrapper__3ed10 { border-radius: 50% !important; }
+.panels_a4d4d9 { padding: 0 6px 6px !important; }
+.container__93316 { border-radius: 8px !important; }
+::-webkit-scrollbar { width: 4px !important; height: 4px !important; }
+::-webkit-scrollbar-thumb { border-radius: 2px !important; background: var(--text-5) !important; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-4) !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+.contentRegion__3d1e4 { border-radius: 12px 0 0 12px !important; }
+.card_dc5ddd { border-radius: 8px !important; }
+.emojiPicker_b50b99 { border-radius: 12px !important; }
+.scroller__3d071, .thin_eed6a8 { border: none !important; }
+.divider__01aed { margin: 8px 0 !important; height: 1px !important; }
+
+/* Number badges - notification counts */
+.numberBadge__50328 {
+    background: var(--accent-2) !important;
+    color: var(--text-0) !important;
+}
+
+/* Mention badge */
+.mentionsBadge__436a7 {
+    background: var(--accent-2) !important;
+    color: var(--text-0) !important;
+}
+
+/* Typing indicator */
+.dots_c64498 {
+    color: var(--accent-2) !important;
+}
+
+/* Unread message divider */
+[class*="divider"][class*="isUnread"],
+[class*="divider"][class*="isUnread"]::before,
+[class*="divider"][class*="isUnread"]::after {
+    background-color: var(--accent-2) !important;
+    border-color: var(--accent-2) !important;
+}
+[class*="unreadPill"] {
+    background: var(--accent-2) !important;
+    color: var(--text-0) !important;
+}
+
+/* NEW badge text - the span inside unreadMentionsBar */
+[class*="unreadMentionsBar"] > span[class*="text"] {
+    color: var(--text-0) !important;
+}

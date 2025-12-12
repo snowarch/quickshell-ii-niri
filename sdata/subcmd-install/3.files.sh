@@ -78,7 +78,10 @@ function auto_backup_configs(){
   esac
   if $backup;then
     backup_clashing_targets dots/.config $XDG_CONFIG_HOME "${BACKUP_DIR}/.config"
-    printf "${STY_BLUE}Backup finished: ${BACKUP_DIR}${STY_RST}\n"
+    # Only show message if backup dir was actually created
+    if [[ -d "${BACKUP_DIR}" ]]; then
+      printf "${STY_BLUE}Backup finished: ${BACKUP_DIR}${STY_RST}\n"
+    fi
   fi
 }
 
@@ -360,16 +363,34 @@ for gtkver in gtk-3.0 gtk-4.0; do
 done
 
 # KDE settings (for Dolphin and Qt apps)
+# These are controlled by ii-niri for theming - always overwrite
 if [[ -f "defaults/kde/kdeglobals" ]]; then
-  install_file__auto_backup "defaults/kde/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
+  install_file "defaults/kde/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
 elif [[ -f "dots/.config/kdeglobals" ]]; then
-  install_file__auto_backup "dots/.config/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
+  install_file "dots/.config/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
 fi
 if [[ -f "defaults/kde/dolphinrc" ]]; then
-  install_file__auto_backup "defaults/kde/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
+  install_file "defaults/kde/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 elif [[ -f "dots/.config/dolphinrc" ]]; then
-  install_file__auto_backup "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
+  install_file "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 fi
+
+# Clean Dolphin state file so it respects dolphinrc panel settings on first launch
+# Dolphin stores panel visibility state in dolphinstaterc which overrides dolphinrc
+if [[ -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc" ]]; then
+  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
+  log_success "Cleaned Dolphin state for fresh panel layout"
+fi
+
+# Clean up obsolete .new files from previous installs
+# These files are no longer created - kdeglobals and dolphinrc are always overwritten
+for obsolete_new in "${XDG_CONFIG_HOME}/kdeglobals.new" \
+                    "${XDG_CONFIG_HOME}/dolphinrc.new"; do
+  if [[ -f "$obsolete_new" ]]; then
+    rm -f "$obsolete_new"
+    log_success "Cleaned obsolete ${obsolete_new##*/}"
+  fi
+done
 
 # Kvantum (Qt theming)
 if [[ -d "dots/.config/Kvantum" ]]; then
@@ -390,6 +411,29 @@ fi
 mkdir -p "${XDG_CONFIG_HOME}/Kvantum/MaterialAdw"
 if [[ -f "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" ]]; then
   cp "${XDG_CONFIG_HOME}/Kvantum/Colloid/ColloidDark.kvconfig" "${XDG_CONFIG_HOME}/Kvantum/MaterialAdw/MaterialAdw.kvconfig"
+fi
+
+# Vesktop themes (Discord theming with Material You colors)
+if [[ -d "dots/.config/vesktop/themes" ]]; then
+  mkdir -p "${XDG_CONFIG_HOME}/vesktop/themes"
+  
+  # Migrate: Remove old theme files from previous versions
+  OLD_VESKTOP_THEMES=(
+    "midnight-ii.theme.css"
+    "system24-ii.theme.css"
+    "system24-palette.css"
+    "ii-palette.css"
+    "ii-system24.theme.css"
+  )
+  for old_theme in "${OLD_VESKTOP_THEMES[@]}"; do
+    if [[ -f "${XDG_CONFIG_HOME}/vesktop/themes/${old_theme}" ]]; then
+      rm -f "${XDG_CONFIG_HOME}/vesktop/themes/${old_theme}"
+      log_success "Removed old Vesktop theme: ${old_theme}"
+    fi
+  done
+  
+  install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/vesktop/themes"
+  log_success "Vesktop Material You theme installed"
 fi
 
 # Fontconfig
@@ -683,11 +727,40 @@ if [[ "${INSTALL_FIRSTRUN}" == true && -f "${DEFAULT_WALLPAPER}" ]]; then
     # Use --config to ensure correct config file is used
     if matugen image "${DEFAULT_WALLPAPER}" --mode dark --config "${XDG_CONFIG_HOME}/matugen/config.toml" 2>&1; then
       log_success "Theme colors generated"
+      
+      # Generate Darkly.colors for Qt file dialogs (Darkly style needs this)
+      if [[ -f "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" ]]; then
+        bash "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" 2>/dev/null || true
+        log_success "Qt Darkly theme colors generated"
+      fi
     else
       log_warning "Matugen failed to generate colors. Theme may not work correctly."
     fi
   else
     log_warning "Matugen not installed. GTK/Qt theming will not be applied."
+  fi
+fi
+
+#####################################################################################
+# Migrate: Generate Darkly.colors for existing users (Qt file dialogs fix)
+#####################################################################################
+DARKLY_COLORS_FILE="${HOME}/.local/share/color-schemes/Darkly.colors"
+if [[ ! -f "${DARKLY_COLORS_FILE}" ]]; then
+  if ! ${quiet:-false}; then
+    echo -e "${STY_CYAN}Generating Darkly color scheme for Qt file dialogs...${STY_RST}"
+  fi
+  
+  # Ensure directory exists
+  mkdir -p "$(dirname "${DARKLY_COLORS_FILE}")"
+  
+  # Try to regenerate from existing material colors
+  MATERIAL_COLORS="${XDG_STATE_HOME}/quickshell/user/generated/material_colors.scss"
+  if [[ -f "${MATERIAL_COLORS}" && -f "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" ]]; then
+    # Run the apply script which will generate Darkly.colors
+    bash "${II_TARGET}/scripts/colors/apply-gtk-theme.sh" 2>/dev/null || true
+    if [[ -f "${DARKLY_COLORS_FILE}" ]]; then
+      log_success "Darkly color scheme generated for Qt apps"
+    fi
   fi
 fi
 
@@ -788,10 +861,10 @@ fi
 if ! ${quiet:-false}; then
 
   # Check for .new files that need manual review
+  # Note: kdeglobals.new and dolphinrc.new are no longer created (always overwritten)
   NEW_FILES=()
   for f in "${XDG_CONFIG_HOME}/niri/config.kdl.new" \
-           "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new" \
-           "${XDG_CONFIG_HOME}/kdeglobals.new"; do
+           "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new"; do
     if [[ -f "$f" ]]; then
       NEW_FILES+=("$f")
     fi

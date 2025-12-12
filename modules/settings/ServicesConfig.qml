@@ -9,7 +9,8 @@ ContentPage {
     settingsPageIndex: 6
     settingsPageName: Translation.tr("Services")
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "bedtime"
         title: Translation.tr("Idle & Sleep")
 
@@ -75,7 +76,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "neurology"
         title: Translation.tr("AI")
 
@@ -92,7 +94,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "music_cast"
         title: Translation.tr("Music Recognition")
 
@@ -126,7 +129,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "cell_tower"
         title: Translation.tr("Networking")
 
@@ -141,7 +145,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "memory"
         title: Translation.tr("Resources")
 
@@ -162,7 +167,8 @@ ContentPage {
         
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "search"
         title: Translation.tr("Search")
 
@@ -255,7 +261,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "system_update"
         title: Translation.tr("Updates")
 
@@ -307,7 +314,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "weather_mix"
         title: Translation.tr("Weather")
         

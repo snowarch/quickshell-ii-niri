@@ -81,36 +81,27 @@ WBarAttachedPanelContent {
                 Layout.fillWidth: true
                 clip: true
 
-                Loader {
+                WPageLoader {
                     id: startPageLoader
                     anchors.fill: parent
-                    active: !root.searching && !root.showAllApps
-                    opacity: active ? 1 : 0
-                    visible: opacity > 0
+                    shown: !root.searching && !root.showAllApps
                     sourceComponent: StartPageContent {
                         onAllAppsClicked: root.showAllApps = true
                     }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
                 }
 
-                Loader {
+                WPageLoader {
                     id: searchPageLoader
                     anchors.fill: parent
-                    active: root.searching
-                    opacity: active ? 1 : 0
-                    visible: opacity > 0
+                    shown: root.searching
                     sourceComponent: SearchPageContent { context: context }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
                 }
 
-                Loader {
+                WPageLoader {
                     id: allAppsLoader
                     anchors.fill: parent
-                    active: root.showAllApps
-                    opacity: active ? 1 : 0
-                    visible: opacity > 0
+                    shown: root.showAllApps
                     sourceComponent: AllAppsContent { onBack: root.showAllApps = false }
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
                 }
             }
         }

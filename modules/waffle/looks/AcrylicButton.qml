@@ -34,9 +34,25 @@ WButton {
         radius: Looks.radius.medium
         border.width: 1
         border.color: root.colBackgroundBorder
+        
+        // Windows 11 style press feedback
+        scale: root.down ? 0.96 : 1.0
+        opacity: root.down ? 0.85 : 1.0
 
         Behavior on border.color {
             animation: Looks.transition.color.createObject(this)
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
         }
     }
 }

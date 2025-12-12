@@ -55,6 +55,7 @@ Singleton {
     property bool waffleWidgetsOpen: false
     property bool waffleAltSwitcherOpen: false
     property bool waffleClipboardOpen: false
+    property bool waffleTaskViewOpen: false
 
     // Panel family transition animation state
     property bool familyTransitionActive: false
@@ -105,6 +106,16 @@ Singleton {
             waffleActionCenterOpen = false
             waffleNotificationCenterOpen = false
             waffleWidgetsOpen = false
+            waffleTaskViewOpen = false
+        }
+    }
+    onWaffleTaskViewOpenChanged: {
+        if (waffleTaskViewOpen && !_allowMultiple) {
+            searchOpen = false
+            waffleActionCenterOpen = false
+            waffleNotificationCenterOpen = false
+            waffleWidgetsOpen = false
+            waffleClipboardOpen = false
         }
     }
 

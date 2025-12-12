@@ -31,5 +31,21 @@ Button {
         id: background
         radius: Looks.radius.medium
         color: root.color
+        
+        // Subtle scale on press for tactile feedback
+        scale: root.down ? 0.97 : 1.0
+        
+        Behavior on color {
+            ColorAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
     }
 }

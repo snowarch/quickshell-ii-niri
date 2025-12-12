@@ -39,6 +39,7 @@ import qs.modules.waffle.startMenu
 import qs.modules.waffle.widgets
 import qs.modules.waffle.backdrop as WaffleBackdropModule
 import qs.modules.waffle.notificationPopup as WaffleNotificationPopupModule
+import qs.modules.waffle.taskview as WaffleTaskViewModule
 
 import QtQuick
 import Quickshell
@@ -51,6 +52,7 @@ ShellRoot {
     // Force singleton instantiation
     property var _idleService: Idle
     property var _gameModeService: GameMode
+    property var _windowPreviewService: WindowPreviewService
 
     Component.onCompleted: {
         console.log("[Shell] Initializing singletons");
@@ -130,9 +132,9 @@ ShellRoot {
     PanelLoader { identifier: "iiBackground"; component: Background {} }
     PanelLoader { identifier: "iiBackdrop"; extraCondition: Config.options?.background?.backdrop?.enable ?? false; component: Backdrop {} }
     PanelLoader { identifier: "iiCheatsheet"; component: Cheatsheet {} }
-    PanelLoader { identifier: "iiDock"; extraCondition: (Config.options?.dock?.enable ?? true) || (Config.options?.panelFamily === "waffle" && (Config.options?.waffles?.modules?.dock ?? false)); component: Dock {} }
+    PanelLoader { identifier: "iiDock"; extraCondition: Config.options?.dock?.enable ?? true; component: Dock {} }
     PanelLoader { identifier: "iiLock"; component: Lock {} }
-    PanelLoader { identifier: "iiMediaControls"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.mediaControls ?? false); component: MediaControls {} }
+    PanelLoader { identifier: "iiMediaControls"; component: MediaControls {} }
     PanelLoader { identifier: "iiNotificationPopup"; component: NotificationPopup {} }
     PanelLoader { identifier: "iiOnScreenDisplay"; component: OnScreenDisplay {} }
     PanelLoader { identifier: "iiOnScreenKeyboard"; component: OnScreenKeyboard {} }
@@ -140,10 +142,10 @@ ShellRoot {
     PanelLoader { identifier: "iiOverview"; component: Overview {} }
     PanelLoader { identifier: "iiPolkit"; component: Polkit {} }
     PanelLoader { identifier: "iiRegionSelector"; component: RegionSelector {} }
-    PanelLoader { identifier: "iiScreenCorners"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.screenCorners ?? false); component: ScreenCorners {} }
+    PanelLoader { identifier: "iiScreenCorners"; component: ScreenCorners {} }
     PanelLoader { identifier: "iiSessionScreen"; component: SessionScreen {} }
-    PanelLoader { identifier: "iiSidebarLeft"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarLeft ?? false); component: SidebarLeft {} }
-    PanelLoader { identifier: "iiSidebarRight"; extraCondition: Config.options?.panelFamily !== "waffle" || (Config.options?.waffles?.modules?.sidebarRight ?? false); component: SidebarRight {} }
+    PanelLoader { identifier: "iiSidebarLeft"; component: SidebarLeft {} }
+    PanelLoader { identifier: "iiSidebarRight"; component: SidebarRight {} }
     PanelLoader { identifier: "iiVerticalBar"; extraCondition: Config.options?.bar?.vertical ?? false; component: VerticalBar {} }
     PanelLoader { identifier: "iiWallpaperSelector"; component: WallpaperSelector {} }
     // Material ii AltSwitcher - handles IPC when panelFamily !== "waffle"
@@ -164,6 +166,8 @@ ShellRoot {
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleClipboardModule.WaffleClipboard {} }
     // Waffle AltSwitcher - handles IPC when panelFamily === "waffle"
     LazyLoader { active: Config.ready && Config.options?.panelFamily === "waffle"; component: WaffleAltSwitcherModule.WaffleAltSwitcher {} }
+    // Waffle TaskView - experimental, disabled by default
+    PanelLoader { identifier: "wTaskView"; component: WaffleTaskViewModule.WaffleTaskView {} }
 
     // Close confirmation dialog (always loaded, handles IPC)
     LazyLoader { active: Config.ready; component: CloseConfirm {} }
@@ -194,6 +198,7 @@ ShellRoot {
         "waffle": [
             "wBar", "wBackground", "wBackdrop", "wStartMenu", "wActionCenter", "wNotificationCenter", "wNotificationPopup", "wOnScreenDisplay", "wWidgets",
             // Shared modules that work with waffle
+            // Note: wTaskView is experimental and NOT included by default
             // Note: wAltSwitcher is always loaded when waffle is active (not in this list)
             "iiCheatsheet", "iiLock", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
             "iiRegionSelector", "iiScreenCorners", "iiSessionScreen", "iiWallpaperSelector", "iiClipboard"

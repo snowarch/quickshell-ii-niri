@@ -103,7 +103,19 @@ Scope {
                     id: wallpaperImg
                     anchors.fill: parent
                     source: {
-                        const path = Config.options?.background?.wallpaperPath ?? ""
+                        // Use target family's wallpaper
+                        let path = ""
+                        if (root._isWaffle) {
+                            // Going to Waffle - use waffle wallpaper (or main if shared)
+                            const wBg = Config.options?.waffles?.background ?? {}
+                            const useMain = wBg.useMainWallpaper ?? true
+                            path = useMain 
+                                ? (Config.options?.background?.wallpaperPath ?? "")
+                                : (wBg.wallpaperPath ?? Config.options?.background?.wallpaperPath ?? "")
+                        } else {
+                            // Going to Material - use main wallpaper
+                            path = Config.options?.background?.wallpaperPath ?? ""
+                        }
                         if (!path) return ""
                         return path.startsWith("file://") ? path : "file://" + path
                     }
@@ -121,13 +133,12 @@ Scope {
                     saturation: 0.3
                 }
 
-                // Subtle tint overlay
+                // Subtle tint overlay (only for Material, Waffle uses clean blur)
                 Rectangle {
                     anchors.fill: parent
-                    color: root._isWaffle 
-                        ? (Looks.dark ? "#000000" : "#FFFFFF")
-                        : Appearance.m3colors.m3background
-                    opacity: 0.3
+                    color: Appearance.m3colors.m3background
+                    opacity: root._isWaffle ? 0 : 0.3
+                    visible: !root._isWaffle
                 }
             }
 
@@ -140,7 +151,7 @@ Scope {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // WAFFLE - 4 tiles expand from center
+    // WAFFLE - Fluent Reveal: Acrylic panel emerges from center
     // ═══════════════════════════════════════════════════════════════════════
     Component {
         id: waffleTransition
@@ -149,74 +160,68 @@ Scope {
             id: waffleRoot
             anchors.fill: parent
             
-            readonly property real centerX: width / 2
-            readonly property real centerY: height / 2
             property bool expanded: false
             property bool showContent: false
             
             Component.onCompleted: Qt.callLater(() => expanded = true)
             
             Timer {
-                interval: 200
+                interval: 250
                 running: waffleRoot.expanded
                 onTriggered: waffleRoot.showContent = true
             }
             
-            // 4 expanding tiles
-            Repeater {
-                model: 4
+            // Acrylic panel - the main element
+            Rectangle {
+                id: acrylicPanel
+                anchors.centerIn: parent
+                width: waffleRoot.expanded && !root._phase ? 280 : 56
+                height: waffleRoot.expanded && !root._phase ? 200 : 56
+                radius: waffleRoot.expanded ? Looks.radius.xLarge : 28
+                color: ColorUtils.transparentize(Looks.colors.bg0, 0.12)
+                border.width: 1
+                border.color: ColorUtils.transparentize(Looks.colors.fg, 0.88)
+                opacity: root._phase ? 0 : 1
+                scale: root._phase ? 0.92 : 1
                 
+                Behavior on width { NumberAnimation { duration: root._phase ? 280 : root.enterDuration; easing.type: Easing.OutCubic } }
+                Behavior on height { NumberAnimation { duration: root._phase ? 280 : root.enterDuration; easing.type: Easing.OutCubic } }
+                Behavior on radius { NumberAnimation { duration: root.enterDuration * 0.5; easing.type: Easing.OutQuad } }
+                Behavior on opacity { NumberAnimation { duration: root._phase ? 250 : 100 } }
+                Behavior on scale { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+                
+                // Accent line at bottom
                 Rectangle {
-                    id: tile
-                    required property int index
-                    
-                    readonly property bool isLeft: index % 2 === 0
-                    readonly property bool isTop: index < 2
-                    
-                    x: waffleRoot.expanded && !root._phase
-                        ? (isLeft ? 0 : waffleRoot.centerX + 2)
-                        : waffleRoot.centerX - 24
-                    y: waffleRoot.expanded && !root._phase
-                        ? (isTop ? 0 : waffleRoot.centerY + 2)
-                        : waffleRoot.centerY - 24
-                    width: waffleRoot.expanded && !root._phase
-                        ? waffleRoot.centerX - 2
-                        : 48
-                    height: waffleRoot.expanded && !root._phase
-                        ? waffleRoot.centerY - 2
-                        : 48
-                    
-                    radius: waffleRoot.expanded ? 0 : 4
-                    color: ColorUtils.transparentize(Looks.colors.bg0, 0.15)
-                    border.width: 1
-                    border.color: ColorUtils.transparentize(Looks.colors.fg, 0.92)
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: waffleRoot.showContent && !root._phase ? 60 : 0
+                    height: 3
+                    radius: 1.5
+                    color: Looks.colors.accent
                     opacity: root._phase ? 0 : 1
                     
-                    Behavior on x { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
-                    Behavior on y { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
-                    Behavior on width { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
-                    Behavior on height { NumberAnimation { duration: root._phase ? root.exitDuration * 0.6 : root.enterDuration; easing.type: Easing.OutExpo } }
-                    Behavior on radius { NumberAnimation { duration: root.enterDuration * 0.5; easing.type: Easing.OutQuad } }
-                    Behavior on opacity { NumberAnimation { duration: root.exitDuration; easing.type: Easing.OutQuad } }
+                    Behavior on width { NumberAnimation { duration: root._phase ? 150 : 300; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
             
-            // Center content
+            // Content
             Column {
                 anchors.centerIn: parent
-                spacing: 16
+                spacing: 14
                 opacity: root._phase ? 0 : (waffleRoot.showContent ? 1 : 0)
-                scale: root._phase ? 0.9 : (waffleRoot.showContent ? 1 : 0.8)
+                scale: root._phase ? 0.95 : (waffleRoot.showContent ? 1 : 0.9)
                 
-                Behavior on opacity { NumberAnimation { duration: root._phase ? 200 : 250; easing.type: Easing.OutQuad } }
-                Behavior on scale { NumberAnimation { duration: root._phase ? 200 : 300; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: root._phase ? 150 : 220; easing.type: Easing.OutQuad } }
+                Behavior on scale { NumberAnimation { duration: root._phase ? 150 : 280; easing.type: Easing.OutCubic } }
                 
+                // Windows logo
                 Image {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 48
-                    height: 48
+                    width: 52
+                    height: 52
                     source: `${Looks.iconsPath}/start-here.svg`
-                    sourceSize: Qt.size(48, 48)
+                    sourceSize: Qt.size(52, 52)
                     
                     layer.enabled: true
                     layer.effect: MultiEffect {
@@ -225,42 +230,26 @@ Scope {
                     }
                 }
                 
+                // Text
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 4
+                    spacing: 2
                     
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Waffle"
-                        font.pixelSize: 22
-                        font.family: Looks.font.family
+                        font.pixelSize: 20
+                        font.family: Looks.font.family.ui
                         font.weight: Font.DemiBold
                         color: Looks.colors.fg
-                        
-                        layer.enabled: true
-                        layer.effect: MultiEffect {
-                            shadowEnabled: true
-                            shadowColor: Looks.dark ? "#000000" : "#FFFFFF"
-                            shadowBlur: 0.8
-                            shadowVerticalOffset: 1
-                        }
                     }
                     
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Windows 11 Style"
-                        font.pixelSize: Looks.font.size.small
-                        font.family: Looks.font.family
-                        color: Looks.colors.fg
-                        opacity: 0.7
-                        
-                        layer.enabled: true
-                        layer.effect: MultiEffect {
-                            shadowEnabled: true
-                            shadowColor: Looks.dark ? "#000000" : "#FFFFFF"
-                            shadowBlur: 0.6
-                            shadowVerticalOffset: 1
-                        }
+                        font.pixelSize: Looks.font.pixelSize.small
+                        font.family: Looks.font.family.ui
+                        color: Looks.colors.subfg
                     }
                 }
             }

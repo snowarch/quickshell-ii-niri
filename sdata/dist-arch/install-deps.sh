@@ -102,21 +102,56 @@ AUR_PACKAGES=(
   illogical-impulse-python
 )
 
-# Add optional AUR packages
+# Critical fonts (UI breaks without these)
+CRITICAL_FONTS=(
+  ttf-material-symbols-variable-git
+  ttf-jetbrains-mono-nerd
+)
+
+# Optional fonts (have system fallbacks)
+OPTIONAL_FONTS=(
+  otf-space-grotesk
+  ttf-readex-pro
+  ttf-rubik-vf
+  ttf-twemoji
+)
+
+# Direct download URLs for optional fonts (from official GitHub repos)
+# These are used as fallback when AUR packages are unavailable
+declare -A FONT_FALLBACK_URLS=(
+  ["otf-space-grotesk"]="https://github.com/floriankarsten/space-grotesk/raw/master/fonts/ttf/SpaceGrotesk%5Bwght%5D.ttf"
+  ["ttf-readex-pro"]="https://raw.githubusercontent.com/ThomasJockin/readexpro/master/fonts/variable/Readexpro%5BHEXP%2Cwght%5D.ttf"
+  ["ttf-rubik-vf"]="https://github.com/googlefonts/rubik/raw/main/fonts/variable/Rubik%5Bwght%5D.ttf"
+)
+
+# Function to install font from direct URL
+install_font_fallback() {
+  local font_name="$1"
+  local url="${FONT_FALLBACK_URLS[$font_name]}"
+  
+  if [[ -z "$url" ]]; then
+    return 1
+  fi
+  
+  local font_dir="$HOME/.local/share/fonts"
+  mkdir -p "$font_dir"
+  
+  echo -e "${STY_BLUE}Downloading $font_name from fallback URL...${STY_RST}"
+  if curl -fsSL -o "$font_dir/${font_name}.ttf" "$url" 2>/dev/null; then
+    fc-cache -f "$font_dir" 2>/dev/null
+    echo -e "${STY_GREEN}Installed $font_name from fallback${STY_RST}"
+    return 0
+  fi
+  return 1
+}
+
+# Add other AUR packages based on flags
 if $INSTALL_FONTS; then
   AUR_PACKAGES+=(
     matugen-bin
-    otf-space-grotesk
-    ttf-jetbrains-mono-nerd
-    ttf-material-symbols-variable-git
-    ttf-readex-pro
-    ttf-rubik-vf
-    ttf-twemoji
     adw-gtk-theme-git
     capitaine-cursors
     whitesur-icon-theme-git
-    
-    # KDE/Qt theming
     darkly
   )
 fi
@@ -132,7 +167,33 @@ fi
 installflags="--needed"
 $ask || installflags="$installflags --noconfirm"
 
+# Install main AUR packages
 v $AUR_HELPER -S $installflags "${AUR_PACKAGES[@]}"
+
+# Install fonts separately with proper error handling
+if $INSTALL_FONTS; then
+  echo -e "${STY_CYAN}[$0]: Installing critical fonts...${STY_RST}"
+  
+  # Critical fonts - must succeed
+  for font in "${CRITICAL_FONTS[@]}"; do
+    if ! $AUR_HELPER -S $installflags "$font" 2>/dev/null; then
+      echo -e "${STY_RED}CRITICAL: Failed to install $font. UI icons may not work.${STY_RST}"
+      echo -e "${STY_YELLOW}Try installing manually: $AUR_HELPER -S $font${STY_RST}"
+    fi
+  done
+  
+  echo -e "${STY_CYAN}[$0]: Installing optional fonts...${STY_RST}"
+  
+  # Optional fonts - try AUR first, then fallback
+  for font in "${OPTIONAL_FONTS[@]}"; do
+    if ! $AUR_HELPER -S $installflags "$font" 2>/dev/null; then
+      echo -e "${STY_YELLOW}AUR package $font not available, trying fallback...${STY_RST}"
+      if ! install_font_fallback "$font"; then
+        echo -e "${STY_YELLOW}Could not install $font. System will use fallback fonts.${STY_RST}"
+      fi
+    fi
+  done
+fi
 
 #####################################################################################
 # Optional: Python environment setup

@@ -21,7 +21,7 @@
     "extraBackgroundTint": true,
     "fakeScreenRounding": 0,
     "palette": {
-      "type": "angel"
+      "type": "auto"
     },
     "transparency": {
       "automatic": true,
@@ -386,7 +386,7 @@
     "maxPanelWidthRatio": 1,
     "respectBar": true,
     "rows": 3,
-    "scale": 0.15,
+    "scale": 0.17,
     "scrimDim": 10,
     "scrollWorkspaceSteps": 1,
     "showWorkspaceNumbers": false,
@@ -702,7 +702,7 @@
       "locale": ""
     },
     "theming": {
-      "useMaterialColors": false,
+      "useMaterialColors": true,
       "font": {
         "family": "Noto Sans",
         "scale": 1.0
@@ -748,6 +748,15 @@
     "iiVerticalBar",
     "iiWallpaperSelector",
     "iiAltSwitcher",
-    "iiClipboard"
+    "iiClipboard",
+    "wBar",
+    "wBackground",
+    "wBackdrop",
+    "wStartMenu",
+    "wActionCenter",
+    "wNotificationCenter",
+    "wNotificationPopup",
+    "wOnScreenDisplay",
+    "wWidgets"
   ]
 }

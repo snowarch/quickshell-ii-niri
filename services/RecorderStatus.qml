@@ -24,13 +24,10 @@ Singleton {
 
     Process {
         id: checkProcess
-        command: ["bash", "-lc", "pgrep -x wf-recorder >/dev/null && echo 1 || echo 0"]
-        stdout: StdioCollector {
-            id: outputCollector
-            onStreamFinished: {
-                const text = outputCollector.text.trim()
-                root.isRecording = (text === "1")
-            }
+        command: ["pgrep", "-x", "wf-recorder"]
+        onExited: (exitCode, exitStatus) => {
+            // pgrep returns 0 if process found, 1 if not found
+            root.isRecording = (exitCode === 0)
         }
     }
 }

@@ -4,6 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.modules.common
+import qs.services
 
 Singleton {
     id: root
@@ -951,15 +952,72 @@ Singleton {
     }
     
     function applyGtkTheme(c): void {
-        const script = Directories.scriptPath + "/colors/apply-gtk-theme.sh";
-        Quickshell.execDetached([
-            script,
-            c.m3background,
-            c.m3onBackground,
-            c.m3primary,
-            c.m3onPrimary,
-            c.m3surface,
-            c.m3surfaceDim
-        ]);
+        // First, generate colors.json for Vesktop theme generation
+        generateColorsJson(c);
+        
+        // Small delay to ensure colors.json is written before apply-gtk-theme.sh reads it
+        Qt.callLater(() => {
+            const script = Directories.scriptPath + "/colors/apply-gtk-theme.sh";
+            Quickshell.execDetached([
+                script,
+                c.m3background,
+                c.m3onBackground,
+                c.m3primary,
+                c.m3onPrimary,
+                c.m3surface,
+                c.m3surfaceDim
+            ]);
+        });
+    }
+    
+    function generateColorsJson(c): void {
+        console.log("[ThemePresets] Generating colors.json for Vesktop");
+        
+        // Generate colors.json in the format expected by system24_palette.py
+        const colorsJson = {
+            primary: c.m3primary,
+            on_primary: c.m3onPrimary,
+            primary_container: c.m3primaryContainer,
+            on_primary_container: c.m3onPrimaryContainer,
+            secondary: c.m3secondary,
+            on_secondary: c.m3onSecondary,
+            secondary_container: c.m3secondaryContainer,
+            on_secondary_container: c.m3onSecondaryContainer,
+            tertiary: c.m3tertiary,
+            on_tertiary: c.m3onTertiary,
+            tertiary_container: c.m3tertiaryContainer,
+            on_tertiary_container: c.m3onTertiaryContainer,
+            error: c.m3error,
+            on_error: c.m3onError,
+            error_container: c.m3errorContainer,
+            on_error_container: c.m3onErrorContainer,
+            background: c.m3background,
+            on_background: c.m3onBackground,
+            surface: c.m3surface,
+            on_surface: c.m3onSurface,
+            surface_variant: c.m3surfaceVariant,
+            on_surface_variant: c.m3onSurfaceVariant,
+            surface_container: c.m3surfaceContainer,
+            surface_container_low: c.m3surfaceContainerLow,
+            surface_container_high: c.m3surfaceContainerHigh,
+            surface_container_highest: c.m3surfaceContainerHighest,
+            outline: c.m3outline,
+            outline_variant: c.m3outlineVariant,
+            inverse_surface: c.m3inverseSurface,
+            inverse_on_surface: c.m3inverseOnSurface,
+            inverse_primary: c.m3inversePrimary,
+            shadow: c.m3shadow,
+            scrim: c.m3scrim,
+            surface_tint: c.m3surfaceTint
+        };
+        
+        const outputPath = Directories.generatedMaterialThemePath;
+        const jsonStr = JSON.stringify(colorsJson, null, 2);
+        
+        // Write JSON using echo - escape for shell
+        const escapedJson = jsonStr.replace(/'/g, "'\\''");
+        Quickshell.execDetached(["/bin/sh", "-c", `echo '${escapedJson}' > "${outputPath}"`]);
+        
+        console.log("[ThemePresets] colors.json written to:", outputPath);
     }
 }

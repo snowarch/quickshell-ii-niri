@@ -8,7 +8,8 @@ ContentPage {
     settingsPageIndex: 7
     settingsPageName: Translation.tr("Advanced")
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "colors"
         title: Translation.tr("Color generation")
 
@@ -43,6 +44,17 @@ ContentPage {
             }
             StyledToolTip {
                 text: Translation.tr("Generate terminal color scheme from wallpaper (requires Shell & utilities)")
+            }
+        }
+        ConfigSwitch {
+            buttonIcon: "chat"
+            text: Translation.tr("Vesktop/Discord")
+            checked: Config.options.appearance.wallpaperTheming.enableVesktop
+            onCheckedChanged: {
+                Config.options.appearance.wallpaperTheming.enableVesktop = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Generate Discord theme from wallpaper colors (requires Vesktop with system24 theme)")
             }
         }
         ConfigRow {

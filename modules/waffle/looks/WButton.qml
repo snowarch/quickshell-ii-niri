@@ -99,8 +99,25 @@ Button {
         id: backgroundRect
         radius: Looks.radius.medium
         color: root.color
+        
+        // Windows 11 style press feedback - subtle but noticeable
+        scale: root.down ? 0.96 : 1.0
+        opacity: root.down ? 0.9 : 1.0
+        
         Behavior on color {
             animation: Looks.transition.color.createObject(this)
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
         }
     }
 

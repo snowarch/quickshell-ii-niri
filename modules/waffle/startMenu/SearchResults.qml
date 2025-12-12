@@ -75,7 +75,9 @@ RowLayout {
         spacing: 4
         currentIndex: root.context.currentIndex
         highlightFollowsCurrentItem: true
-        highlightMoveDuration: 100
+        // Use Looks.transition for consistent animation timing
+        highlightMoveDuration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+        highlightMoveVelocity: -1  // Disable velocity-based animation, use duration only
 
         model: {
             const allResults = LauncherSearch.results;

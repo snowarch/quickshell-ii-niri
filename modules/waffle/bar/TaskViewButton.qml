@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import org.kde.kirigami as Kirigami
 import qs
 import qs.services
@@ -13,13 +14,10 @@ AppButton {
     pressedScale: checked ? 5/6 : 1
     separateLightDark: true
 
-    checked: CompositorService.isNiri ? NiriService.inOverview : GlobalStates.overviewOpen
+    checked: GlobalStates.waffleTaskViewOpen
     onClicked: {
-        if (CompositorService.isNiri) {
-            NiriService.toggleOverview()
-        } else {
-            GlobalStates.overviewOpen = !GlobalStates.overviewOpen
-        }
+        // Use IPC to toggle TaskView - this triggers preview capture before opening
+        Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "taskview", "toggle"])
     }
 
     BarToolTip {

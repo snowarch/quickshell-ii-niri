@@ -15,8 +15,9 @@ WChoiceButton {
     required property LauncherSearchResult entry
     property bool firstEntry: false
 
-    checked: focus
-    animateChoiceHighlight: false
+    // Use ListView.isCurrentItem for proper tracking with keyboard navigation
+    checked: ListView.isCurrentItem
+    animateChoiceHighlight: true
     implicitWidth: contentLayout.implicitWidth + leftPadding + rightPadding
     implicitHeight: contentLayout.implicitHeight + topPadding + bottomPadding
 

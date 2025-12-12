@@ -28,7 +28,7 @@ Singleton {
 
     property real backgroundTransparency: 0.13
     property real panelBackgroundTransparency: 0.12
-    property real panelLayerTransparency: root.dark ? 0.9 : 0.7
+    property real panelLayerTransparency: root.dark ? 0.6 : 0.5
     property real contentTransparency: root.dark ? 0.87 : 0.5
     function applyBackgroundTransparency(col) {
         return ColorUtils.applyAlpha(col, 1 - root.backgroundTransparency)
@@ -230,94 +230,266 @@ Singleton {
     transition: QtObject {
         id: transition
 
+        // Respect GameMode - disable animations when Appearance says so
+        readonly property bool enabled: Appearance.animationsEnabled
+        
         property int velocity: 850
 
+        // Windows 11 / Fluent Design inspired easing curves
         property QtObject easing: QtObject {
             property QtObject bezierCurve: QtObject {
-                readonly property list<real> easeInOut: [0.42,0.00,0.58,1.00,1,1]
-                readonly property list<real> easeIn: [0,1,1,1,1,1]
-                readonly property list<real> easeOut: [1,0,1,1,1,1]
+                // Standard curves
+                readonly property list<real> easeInOut: [0.42, 0.00, 0.58, 1.00, 1, 1]
+                readonly property list<real> easeIn: [0.42, 0.0, 1.0, 1.0, 1, 1]
+                readonly property list<real> easeOut: [0.0, 0.0, 0.58, 1.0, 1, 1]
+                
+                // Fluent Design curves - Windows 11 style
+                readonly property list<real> decelerate: [0.0, 0.0, 0.0, 1.0, 1, 1]      // Fast start, smooth stop (entries)
+                readonly property list<real> accelerate: [0.7, 0.0, 1.0, 0.5, 1, 1]      // Smooth start, fast end (exits)
+                readonly property list<real> standard: [0.4, 0.0, 0.2, 1.0, 1, 1]        // Balanced movement (Win11)
+                readonly property list<real> emphasize: [0.0, 0.0, 0.2, 1.0, 1, 1]       // Dramatic deceleration
+                readonly property list<real> spring: [0.175, 0.885, 0.32, 1.075, 1, 1]   // Subtle overshoot
+                
+                // New Windows 11 specific curves
+                readonly property list<real> popIn: [0.0, 0.0, 0.0, 1.0, 1, 1]           // Pop-in effect for menus/tooltips
+                readonly property list<real> popOut: [0.5, 0.0, 1.0, 0.5, 1, 1]          // Quick pop-out
+                readonly property list<real> bounce: [0.34, 1.56, 0.64, 1.0, 1, 1]       // Playful bounce
+                readonly property list<real> smooth: [0.25, 0.1, 0.25, 1.0, 1, 1]        // Very smooth, natural
             }
         }
+        
+        // Duration presets (in ms) - tuned for Windows 11 feel
+        property QtObject duration: QtObject {
+            readonly property int instant: 0
+            readonly property int ultraFast: 67      // ~4 frames at 60fps
+            readonly property int fast: 100
+            readonly property int normal: 150
+            readonly property int medium: 200
+            readonly property int slow: 300
+            readonly property int panel: 250         // Slightly faster panels
+            readonly property int overlay: 300
+            readonly property int page: 350          // Page transitions
+        }
 
+        // === Basic transitions (improved) ===
+        
         property Component color: Component {
             ColorAnimation {
-                duration: 120
+                duration: transition.enabled ? transition.duration.normal : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
         property Component opacity: Component {
             NumberAnimation {
-                duration: 120
+                duration: transition.enabled ? transition.duration.normal : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
-        property Component resize: Component { // TODO: better curve needed
+        property Component resize: Component {
             NumberAnimation {
-                duration: 200
+                duration: transition.enabled ? transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
         property Component enter: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? transition.duration.panel : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.decelerate
             }
         }
 
         property Component exit: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeOut
+                easing.bezierCurve: transition.easing.bezierCurve.accelerate
             }
         }
 
         property Component move: Component {
             NumberAnimation {
-                duration: 170
+                duration: transition.enabled ? transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeInOut
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
         property Component rotate: Component {
             NumberAnimation {
-                duration: 170
+                duration: transition.enabled ? transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeInOut
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
         property Component anchor: Component {
             AnchorAnimation {
-                duration: 160
+                duration: transition.enabled ? transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.standard
             }
         }
 
         property Component longMovement: Component {
             NumberAnimation {
-                duration: 1000
+                duration: transition.enabled ? 800 : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: transition.easing.bezierCurve.easeIn
+                easing.bezierCurve: transition.easing.bezierCurve.emphasize
             }
         }
 
         property Component scroll: Component {
             NumberAnimation {
-                duration: 250
+                duration: transition.enabled ? transition.duration.slow : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: [0.0, 0.0, 0.25, 1.0, 1, 1]
+                easing.bezierCurve: transition.easing.bezierCurve.decelerate
             }
+        }
+        
+        // === Panel/Overlay transitions (new) ===
+        
+        // For panels sliding in from edges
+        property Component panelSlide: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.decelerate
+            }
+        }
+        
+        // For panel scale animations
+        property Component panelScale: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.spring
+            }
+        }
+        
+        // For panel opacity
+        property Component panelFade: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.standard
+            }
+        }
+        
+        // For overlay backgrounds
+        property Component overlayFade: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.overlay : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.decelerate
+            }
+        }
+        
+        // === Item/List transitions (new) ===
+        
+        // For list items appearing
+        property Component itemEnter: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.medium : 0
+                easing.type: Easing.OutBack
+                easing.overshoot: 0.3
+            }
+        }
+        
+        // For hover state changes
+        property Component hover: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.normal : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.standard
+            }
+        }
+        
+        // For press/active state changes
+        property Component press: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.fast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        
+        // === Windows 11 specific transitions ===
+        
+        // For menu/popup reveal (scale + fade)
+        property Component menuReveal: Component {
+            ParallelAnimation {
+                NumberAnimation {
+                    property: "opacity"
+                    duration: transition.enabled ? transition.duration.normal : 0
+                    easing.type: Easing.OutQuad
+                }
+                NumberAnimation {
+                    property: "scale"
+                    duration: transition.enabled ? transition.duration.medium : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: transition.easing.bezierCurve.popIn
+                }
+            }
+        }
+        
+        // For button press feedback
+        property Component buttonPress: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.ultraFast : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+        
+        // For smooth value changes (sliders, progress)
+        property Component smoothValue: Component {
+            NumberAnimation {
+                duration: transition.enabled ? transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: transition.easing.bezierCurve.smooth
+            }
+        }
+        
+        // For list item stagger animations
+        property Component listItem: Component {
+            SequentialAnimation {
+                PauseAnimation { duration: 0 }  // Will be set by staggerDelay
+                ParallelAnimation {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0; to: 1
+                        duration: transition.enabled ? transition.duration.normal : 0
+                        easing.type: Easing.OutQuad
+                    }
+                    NumberAnimation {
+                        property: "y"
+                        from: 8
+                        duration: transition.enabled ? transition.duration.medium : 0
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: transition.easing.bezierCurve.decelerate
+                    }
+                }
+            }
+        }
+        
+        // === Helper functions ===
+        
+        // Calculate stagger delay for list items
+        function staggerDelay(index: int, baseDelay: int): int {
+            if (!enabled) return 0
+            return Math.min(index * baseDelay, 400)  // Cap at 400ms
+        }
+        
+        // Get duration based on distance (for natural feel)
+        function durationForDistance(distance: real, minDuration: int, maxDuration: int): int {
+            if (!enabled) return 0
+            const normalized = Math.min(Math.abs(distance) / 200, 1)
+            return minDuration + (maxDuration - minDuration) * normalized
         }
     }
 }

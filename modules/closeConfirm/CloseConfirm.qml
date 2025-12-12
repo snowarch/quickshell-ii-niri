@@ -114,8 +114,11 @@ Scope {
                 exclusionMode: ExclusionMode.Ignore
 
                 Loader {
+                    id: contentLoader
                     anchors.fill: parent
+                    focus: true
                     sourceComponent: Config.options?.panelFamily === "waffle" ? waffleContent : iiContent
+                    onLoaded: if (item) item.forceActiveFocus()
 
                     Component {
                         id: iiContent

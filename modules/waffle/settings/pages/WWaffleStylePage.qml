@@ -16,6 +16,11 @@ WSettingsPage {
     pageDescription: Translation.tr("Windows 11 style customization")
     
     property bool isWaffleActive: Config.options?.panelFamily === "waffle"
+
+    // Helper to check if a module is enabled
+    function isPanelEnabled(panelId: string): bool {
+        return (Config.options?.enabledPanels ?? []).includes(panelId)
+    }
     
     // Warning when not active
     WSettingsCard {
@@ -52,10 +57,18 @@ WSettingsPage {
             checked: Config.options?.waffles?.theming?.useMaterialColors ?? false
             onCheckedChanged: Config.setNestedValue("waffles.theming.useMaterialColors", checked)
         }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Vesktop/Discord theming")
+            icon: "chat"
+            description: Translation.tr("Generate Discord theme from wallpaper colors")
+            checked: Config.options?.appearance?.wallpaperTheming?.enableVesktop ?? true
+            onCheckedChanged: Config.setNestedValue("appearance.wallpaperTheming.enableVesktop", checked)
+        }
     }
     
     WSettingsCard {
-        visible: root.isWaffleActive
+        visible: root.isWaffleActive && root.isPanelEnabled("iiAltSwitcher")
         title: Translation.tr("Alt+Tab Switcher")
         icon: "apps"
         
@@ -133,7 +146,7 @@ WSettingsPage {
     }
     
     WSettingsCard {
-        visible: root.isWaffleActive
+        visible: root.isWaffleActive && root.isPanelEnabled("wWidgets")
         title: Translation.tr("Widgets Panel")
         icon: "apps"
         
@@ -220,7 +233,7 @@ WSettingsPage {
     }
     
     WSettingsCard {
-        visible: root.isWaffleActive
+        visible: root.isWaffleActive && root.isPanelEnabled("wNotificationCenter")
         title: Translation.tr("Calendar")
         icon: "calendar-ltr"
         

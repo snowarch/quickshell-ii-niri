@@ -50,7 +50,8 @@ ContentPage {
         Config.options.enabledPanels = [...defaultPanels[family]]
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "extension"
         title: Translation.tr("Shell Modules")
 
@@ -93,7 +94,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "style"
         title: Translation.tr("Panel Style")
 
@@ -166,8 +168,9 @@ ContentPage {
     }
 
     // ==================== MATERIAL II ====================
-    ContentSection {
+    CollapsibleSection {
         visible: !modulesPage.isWaffle
+        expanded: true
         icon: "dashboard"
         title: Translation.tr("Core")
 
@@ -236,8 +239,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: !modulesPage.isWaffle
+        expanded: false
         icon: "notifications"
         title: Translation.tr("Feedback")
 
@@ -266,8 +270,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: !modulesPage.isWaffle
+        expanded: false
         icon: "build"
         title: Translation.tr("Utilities")
 
@@ -344,8 +349,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: !modulesPage.isWaffle
+        expanded: false
         icon: "more_horiz"
         title: Translation.tr("Optional")
 
@@ -375,8 +381,9 @@ ContentPage {
     }
 
     // ==================== WAFFLE ====================
-    ContentSection {
+    CollapsibleSection {
         visible: modulesPage.isWaffle
+        expanded: true
         icon: "window"
         title: Translation.tr("Waffle Core")
 
@@ -445,8 +452,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: modulesPage.isWaffle
+        expanded: false
         icon: "share"
         title: Translation.tr("Shared Modules")
 

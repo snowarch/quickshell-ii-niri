@@ -13,25 +13,36 @@ WSettingsPage {
     settingsPageIndex: 6
     pageTitle: Translation.tr("Modules")
     pageIcon: "settings-cog-multiple"
-    pageDescription: Translation.tr("Panel style and optional modules")
-    
+    pageDescription: Translation.tr("Panel style and modules")
+
     property bool isWaffleActive: Config.options?.panelFamily === "waffle"
-    
+
+    // Helper functions for enabledPanels management
+    function isPanelEnabled(panelId: string): bool {
+        return (Config.options?.enabledPanels ?? []).includes(panelId)
+    }
+
+    function setPanelEnabled(panelId: string, enabled: bool): void {
+        let panels = [...(Config.options?.enabledPanels ?? [])]
+        const idx = panels.indexOf(panelId)
+
+        if (enabled && idx === -1) {
+            panels.push(panelId)
+        } else if (!enabled && idx !== -1) {
+            panels.splice(idx, 1)
+        }
+
+        Config.options.enabledPanels = panels
+    }
+
     WSettingsCard {
         title: Translation.tr("Panel Style")
         icon: "desktop"
-        
-        WText {
-            Layout.fillWidth: true
-            text: Translation.tr("Choose between Material Design (ii) and Windows 11 (Waffle) styles. Changing this will reload the shell.")
-            font.pixelSize: Looks.font.pixelSize.normal
-            color: Looks.colors.subfg
-            wrapMode: Text.WordWrap
-        }
-        
+
         WSettingsDropdown {
             label: Translation.tr("Panel family")
             icon: "desktop"
+            description: Translation.tr("Changing this will reload the shell")
             currentValue: Config.options?.panelFamily ?? "waffle"
             options: [
                 { value: "ii", displayName: Translation.tr("Material (ii)") },
@@ -44,167 +55,75 @@ WSettingsPage {
             }
         }
     }
-    
-    // Material modules available in Waffle
+
+    // Waffle modules
     WSettingsCard {
         visible: root.isWaffleActive
-        title: Translation.tr("Material Modules in Waffle")
-        icon: "options"
-        
-        WText {
-            Layout.fillWidth: true
-            text: Translation.tr("Enable Material ii modules while using Waffle style. These provide additional functionality not available in Windows 11 style.")
-            font.pixelSize: Looks.font.pixelSize.normal
-            color: Looks.colors.subfg
-            wrapMode: Text.WordWrap
-        }
-        
-        WSettingsSwitch {
-            label: Translation.tr("Left Sidebar")
-            icon: "panel-left"
-            description: Translation.tr("AI chat, wallpaper selector, translator")
-            checked: Config.options?.waffles?.modules?.sidebarLeft ?? false
-            onCheckedChanged: Config.setNestedValue("waffles.modules.sidebarLeft", checked)
-        }
-        
-        WSettingsSwitch {
-            label: Translation.tr("Right Sidebar")
-            icon: "panel-right"
-            description: Translation.tr("Quick settings, calendar, notifications (Material style)")
-            checked: Config.options?.waffles?.modules?.sidebarRight ?? false
-            onCheckedChanged: Config.setNestedValue("waffles.modules.sidebarRight", checked)
-        }
-        
-        WSettingsSwitch {
-            label: Translation.tr("Dock")
-            icon: "apps"
-            description: Translation.tr("macOS-style dock with pinned apps")
-            checked: Config.options?.waffles?.modules?.dock ?? false
-            onCheckedChanged: Config.setNestedValue("waffles.modules.dock", checked)
-        }
-        
-        WSettingsSwitch {
-            label: Translation.tr("Media Controls Overlay")
-            icon: "music-note-2"
-            description: Translation.tr("Floating media player controls")
-            checked: Config.options?.waffles?.modules?.mediaControls ?? false
-            onCheckedChanged: Config.setNestedValue("waffles.modules.mediaControls", checked)
-        }
-        
-        WSettingsSwitch {
-            label: Translation.tr("Screen Corners")
-            icon: "desktop"
-            description: Translation.tr("Hot corners and rounded screen corners")
-            checked: Config.options?.waffles?.modules?.screenCorners ?? false
-            onCheckedChanged: Config.setNestedValue("waffles.modules.screenCorners", checked)
-        }
-    }
-    
-    // Waffle-specific modules
-    WSettingsCard {
-        visible: root.isWaffleActive
-        title: Translation.tr("Waffle Modules")
+        title: Translation.tr("Panels")
         icon: "desktop"
-        
-        WText {
-            Layout.fillWidth: true
-            text: Translation.tr("These modules are part of the Windows 11 style and are enabled by default.")
-            font.pixelSize: Looks.font.pixelSize.normal
-            color: Looks.colors.subfg
-            wrapMode: Text.WordWrap
-        }
-        
-        WSettingsRow {
+
+        WSettingsSwitch {
             label: Translation.tr("Taskbar")
             icon: "desktop"
-            description: Translation.tr("Windows 11 style taskbar")
-            
-            WText {
-                text: Translation.tr("Always enabled")
-                font.pixelSize: Looks.font.pixelSize.small
-                color: Looks.colors.subfg
-            }
+            checked: root.isPanelEnabled("wBar")
+            onCheckedChanged: root.setPanelEnabled("wBar", checked)
         }
-        
-        WSettingsRow {
+
+        WSettingsSwitch {
+            label: Translation.tr("Background")
+            icon: "image"
+            checked: root.isPanelEnabled("wBackground")
+            onCheckedChanged: root.setPanelEnabled("wBackground", checked)
+        }
+
+        WSettingsSwitch {
             label: Translation.tr("Start Menu")
             icon: "apps"
-            description: Translation.tr("Windows 11 style start menu")
-            
-            WText {
-                text: Translation.tr("Always enabled")
-                font.pixelSize: Looks.font.pixelSize.small
-                color: Looks.colors.subfg
-            }
+            checked: root.isPanelEnabled("wStartMenu")
+            onCheckedChanged: root.setPanelEnabled("wStartMenu", checked)
         }
-        
-        WSettingsRow {
+
+        WSettingsSwitch {
             label: Translation.tr("Action Center")
             icon: "settings"
-            description: Translation.tr("Quick settings and toggles")
-            
-            WText {
-                text: Translation.tr("Always enabled")
-                font.pixelSize: Looks.font.pixelSize.small
-                color: Looks.colors.subfg
-            }
+            checked: root.isPanelEnabled("wActionCenter")
+            onCheckedChanged: root.setPanelEnabled("wActionCenter", checked)
         }
-        
-        WSettingsRow {
+
+        WSettingsSwitch {
             label: Translation.tr("Notification Center")
             icon: "alert"
-            description: Translation.tr("Notification history and calendar")
-            
-            WText {
-                text: Translation.tr("Always enabled")
-                font.pixelSize: Looks.font.pixelSize.small
-                color: Looks.colors.subfg
-            }
+            checked: root.isPanelEnabled("wNotificationCenter")
+            onCheckedChanged: root.setPanelEnabled("wNotificationCenter", checked)
         }
-        
+
+        WSettingsSwitch {
+            label: Translation.tr("Notification Popups")
+            icon: "alert"
+            checked: root.isPanelEnabled("wNotificationPopup")
+            onCheckedChanged: root.setPanelEnabled("wNotificationPopup", checked)
+        }
+
+        WSettingsSwitch {
+            label: Translation.tr("OSD")
+            icon: "speaker-2"
+            checked: root.isPanelEnabled("wOnScreenDisplay")
+            onCheckedChanged: root.setPanelEnabled("wOnScreenDisplay", checked)
+        }
+
         WSettingsSwitch {
             label: Translation.tr("Widgets Panel")
             icon: "apps"
-            description: Translation.tr("Weather, system info, media controls")
-            checked: Config.options?.waffles?.modules?.widgets ?? true
-            onCheckedChanged: Config.setNestedValue("waffles.modules.widgets", checked)
+            checked: root.isPanelEnabled("wWidgets")
+            onCheckedChanged: root.setPanelEnabled("wWidgets", checked)
         }
-        
+
         WSettingsSwitch {
-            label: Translation.tr("Desktop Backdrop")
-            icon: "image"
-            description: Translation.tr("Blurred backdrop for overview")
-            checked: Config.options?.waffles?.background?.backdrop?.enable ?? true
-            onCheckedChanged: Config.setNestedValue("waffles.background.backdrop.enable", checked)
-        }
-    }
-    
-    // Shared modules info
-    WSettingsCard {
-        title: Translation.tr("Shared Modules")
-        icon: "link"
-        
-        WText {
-            Layout.fillWidth: true
-            text: Translation.tr("These modules work with both panel styles and are always available:")
-            font.pixelSize: Looks.font.pixelSize.normal
-            color: Looks.colors.subfg
-            wrapMode: Text.WordWrap
-        }
-        
-        WText {
-            Layout.fillWidth: true
-            text: "• " + Translation.tr("Overview (Super key)") + "\n" +
-                  "• " + Translation.tr("Clipboard Manager") + "\n" +
-                  "• " + Translation.tr("Lock Screen") + "\n" +
-                  "• " + Translation.tr("Session Screen (logout/shutdown)") + "\n" +
-                  "• " + Translation.tr("On-Screen Display (volume/brightness)") + "\n" +
-                  "• " + Translation.tr("Cheatsheet (keybindings)") + "\n" +
-                  "• " + Translation.tr("Wallpaper Selector")
-            font.pixelSize: Looks.font.pixelSize.normal
-            color: Looks.colors.fg
-            wrapMode: Text.WordWrap
-            lineHeight: 1.4
+            label: Translation.tr("Task View") + " ⚠️"
+            icon: "desktop"
+            description: Translation.tr("Experimental - Work in progress")
+            checked: root.isPanelEnabled("wTaskView")
+            onCheckedChanged: root.setPanelEnabled("wTaskView", checked)
         }
     }
 }

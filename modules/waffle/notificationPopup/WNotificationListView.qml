@@ -23,57 +23,67 @@ ListView {
         dragDistance = 0
     }
 
-    // Smooth add transition - disabled for performance
+    // Smooth add transition - slide in from right with scale
     add: Transition {
-        enabled: false
+        enabled: Looks.transition.enabled
         ParallelAnimation {
             NumberAnimation { 
                 property: "opacity"
                 from: 0; to: 1
-                duration: 200
-                easing.type: Easing.OutCubic
+                duration: Looks.transition.duration.medium
+                easing.type: Easing.OutQuad
             }
             NumberAnimation { 
                 property: "x"
-                from: 50; to: 0
-                duration: 250
-                easing.type: Easing.OutCubic
+                from: 40; to: 0
+                duration: Looks.transition.duration.panel
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
             }
             NumberAnimation {
                 property: "scale"
-                from: 0.95; to: 1
-                duration: 200
-                easing.type: Easing.OutCubic
+                from: 0.92; to: 1
+                duration: Looks.transition.duration.panel
+                easing.type: Easing.OutBack
+                easing.overshoot: 0.15
             }
         }
     }
 
-    // Smooth remove transition - disabled for performance
+    // Smooth remove transition - slide out to right
     remove: Transition {
-        enabled: false
+        enabled: Looks.transition.enabled
         ParallelAnimation {
             NumberAnimation { 
                 property: "opacity"
                 from: 1; to: 0
-                duration: 150
-                easing.type: Easing.InCubic
+                duration: Looks.transition.duration.normal
+                easing.type: Easing.InQuad
             }
             NumberAnimation { 
                 property: "x"
-                from: 0; to: 80
-                duration: 200
-                easing.type: Easing.InCubic
+                from: 0; to: 60
+                duration: Looks.transition.duration.medium
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.accelerate
+            }
+            NumberAnimation {
+                property: "scale"
+                from: 1; to: 0.95
+                duration: Looks.transition.duration.medium
+                easing.type: Easing.InQuad
             }
         }
     }
 
-    // Smooth reposition - disabled for performance
+    // Smooth reposition when items move
     displaced: Transition {
-        enabled: false
+        enabled: Looks.transition.enabled
         NumberAnimation { 
             properties: "x,y"
-            duration: 200
-            easing.type: Easing.OutCubic
+            duration: Looks.transition.duration.medium
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
         }
     }
 

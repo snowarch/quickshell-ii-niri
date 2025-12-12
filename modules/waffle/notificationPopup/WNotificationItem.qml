@@ -65,10 +65,26 @@ Item {
         x: dragManager.dragDiffX
         color: "transparent"
         radius: Looks.radius.medium
+        
+        // Subtle rotation during swipe for natural feel
+        rotation: dragManager.dragDiffX * 0.02
+        transformOrigin: Item.Bottom
 
         Behavior on x {
-            enabled: false
-            animation: Looks.transition.move.createObject(this)
+            enabled: !dragManager.dragging
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
+            }
+        }
+        Behavior on rotation {
+            enabled: !dragManager.dragging
+            NumberAnimation {
+                duration: Looks.transition.enabled ? Looks.transition.duration.panel : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.spring
+            }
         }
 
         ColumnLayout {
@@ -85,7 +101,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 6
 
-                // Critical indicator
+                // Critical indicator with pulse animation
                 Rectangle {
                     visible: root.isCritical
                     implicitWidth: 6
@@ -94,10 +110,10 @@ Item {
                     color: Looks.colors.danger
 
                     SequentialAnimation on opacity {
-                        running: false
+                        running: root.isCritical && Looks.transition.enabled
                         loops: Animation.Infinite
-                        NumberAnimation { to: 0.4; duration: 600 }
-                        NumberAnimation { to: 1; duration: 600 }
+                        NumberAnimation { to: 0.4; duration: 800; easing.type: Easing.InOutQuad }
+                        NumberAnimation { to: 1; duration: 800; easing.type: Easing.InOutQuad }
                     }
                 }
 

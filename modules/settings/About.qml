@@ -12,7 +12,8 @@ ContentPage {
     settingsPageIndex: 11
     settingsPageName: Translation.tr("About")
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: true
         icon: "computer"
         title: Translation.tr("System")
 
@@ -94,7 +95,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "deployed_code"
         title: "ii on Niri"
 
@@ -177,7 +179,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "favorite"
         title: Translation.tr("Based on")
 

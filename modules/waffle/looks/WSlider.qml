@@ -51,8 +51,18 @@ Slider {
             topLeftRadius: root.trackWidth / 2
             bottomLeftRadius: root.trackWidth / 2
             color: Looks.colors.accent
-            implicitHeight: root.trackWidth
+            implicitHeight: root.pressed ? root.trackWidth + 2 : root.trackWidth
             width: background.width * root.visualPosition
+            
+            Behavior on implicitHeight {
+                NumberAnimation {
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.OutQuad
+                }
+            }
+            Behavior on color {
+                animation: Looks.transition.color.createObject(this)
+            }
         }
 
         Rectangle {
@@ -64,8 +74,15 @@ Slider {
             topRightRadius: root.trackWidth / 2
             bottomRightRadius: root.trackWidth / 2
             color: Looks.colors.controlBg
-            implicitHeight: root.trackWidth
+            implicitHeight: root.pressed ? root.trackWidth + 2 : root.trackWidth
             width: background.width * (1 - root.visualPosition)
+            
+            Behavior on implicitHeight {
+                NumberAnimation {
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.OutQuad
+                }
+            }
         }
     }
 

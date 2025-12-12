@@ -11,6 +11,68 @@ Singleton {
     // Cada entrada: { id, control, pageIndex, pageName, section, label, description, keywords }
     property var entries: []
     property int _nextId: 0
+    
+    // Lista de CollapsibleSection registradas para manejo de expand/collapse
+    property var collapsibleSections: []
+    
+    function registerCollapsibleSection(section) {
+        if (!section) return;
+        var newList = collapsibleSections.slice();
+        newList.push(section);
+        collapsibleSections = newList;
+    }
+    
+    function unregisterCollapsibleSection(section) {
+        if (!section) return;
+        var newList = [];
+        for (var i = 0; i < collapsibleSections.length; i++) {
+            if (collapsibleSections[i] !== section) {
+                newList.push(collapsibleSections[i]);
+            }
+        }
+        collapsibleSections = newList;
+    }
+    
+    // Verifica si control es descendiente de section
+    function _isDescendantOf(control, section) {
+        var p = control;
+        while (p) {
+            if (p === section) return true;
+            p = p.parent;
+        }
+        return false;
+    }
+    
+    // Colapsa todas las secciones excepto la que contiene el control
+    // Retorna la sección que fue expandida (o null)
+    function expandSectionForControl(control) {
+        if (!control) return null;
+        
+        var targetSection = null;
+        
+        // Primero encontrar qué sección contiene el control
+        for (var i = 0; i < collapsibleSections.length; i++) {
+            var section = collapsibleSections[i];
+            if (section && _isDescendantOf(control, section)) {
+                targetSection = section;
+                break;
+            }
+        }
+        
+        // Ahora colapsar todas excepto la target y expandir la target
+        for (var j = 0; j < collapsibleSections.length; j++) {
+            var s = collapsibleSections[j];
+            if (!s) continue;
+            
+            if (s === targetSection) {
+                s.expanded = true;
+            } else {
+                s.expanded = false;
+            }
+        }
+        
+        return targetSection;
+    }
 
     // Genera keywords automáticos a partir del texto
     function _generateKeywords(label: string, section: string, description: string): list<string> {

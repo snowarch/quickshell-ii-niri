@@ -13,7 +13,8 @@ ContentPage {
 
     property bool isIiActive: Config.options?.panelFamily !== "waffle"
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "point_scan"
         title: Translation.tr("Crosshair overlay")
 
@@ -52,7 +53,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "layers"
         title: Translation.tr("Overlay widgets")
 
@@ -150,7 +152,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "forum"
         title: Translation.tr("Overlay: Discord")
 
@@ -165,8 +168,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "keyboard_tab"
         title: Translation.tr("Alt-Tab switcher (Material ii)")
 
@@ -326,8 +330,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "call_to_action"
         title: Translation.tr("Dock")
 
@@ -484,7 +489,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "lock"
         title: Translation.tr("Lock screen")
 
@@ -606,7 +612,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "notifications"
         title: Translation.tr("Notifications")
 
@@ -680,7 +687,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "screenshot_frame_2"
         title: Translation.tr("Region selector (screen snipping/Google Lens)")
 
@@ -774,8 +782,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "side_navigation"
         title: Translation.tr("Sidebars")
 
@@ -1043,7 +1052,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "voting_chip"
         title: Translation.tr("On-screen display")
 
@@ -1063,8 +1073,9 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
         visible: root.isIiActive
+        expanded: false
         icon: "overview_key"
         title: Translation.tr("Overview")
 
@@ -1445,7 +1456,8 @@ ContentPage {
         }
     }
 
-    ContentSection {
+    CollapsibleSection {
+        expanded: false
         icon: "wallpaper_slideshow"
         title: Translation.tr("Wallpaper selector")
 

@@ -13,6 +13,7 @@ SURFACE_DIM="${6:-#11111b}"
 GTK4_CSS="$HOME/.config/gtk-4.0/gtk.css"
 GTK3_CSS="$HOME/.config/gtk-3.0/gtk.css"
 KDEGLOBALS="$HOME/.config/kdeglobals"
+DARKLY_COLORS="$HOME/.local/share/color-schemes/Darkly.colors"
 SHELL_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/illogical-impulse/config.json"
 
 # Read config options
@@ -196,8 +197,36 @@ ForegroundNormal=${FG}
 ForegroundPositive=#69db7c
 ForegroundVisited=${PRIMARY}
 
+[Colors:Header][Inactive]
+BackgroundAlternate=${BG}
+BackgroundNormal=${BG}
+DecorationFocus=${PRIMARY}
+DecorationHover=${PRIMARY}
+ForegroundActive=${FG}
+ForegroundInactive=${FG_INACTIVE}
+ForegroundLink=${PRIMARY}
+ForegroundNegative=#ff6b6b
+ForegroundNeutral=#ffa94d
+ForegroundNormal=${FG}
+ForegroundPositive=#69db7c
+ForegroundVisited=${PRIMARY}
+
+[Colors:Menu]
+BackgroundAlternate=${BG_ALT}
+BackgroundNormal=${BG}
+DecorationFocus=${PRIMARY}
+DecorationHover=${PRIMARY}
+ForegroundActive=${FG}
+ForegroundInactive=${FG_INACTIVE}
+ForegroundLink=${PRIMARY}
+ForegroundNegative=#ff6b6b
+ForegroundNeutral=#ffa94d
+ForegroundNormal=${FG}
+ForegroundPositive=#69db7c
+ForegroundVisited=${PRIMARY}
+
 [General]
-ColorScheme=IINiriPreset
+ColorScheme=Darkly
 
 [Icons]
 Theme=${icon_theme}
@@ -222,10 +251,169 @@ mkdir -p "$(dirname "$GTK4_CSS")" "$(dirname "$GTK3_CSS")"
 generate_gtk_css > "$GTK4_CSS"
 generate_gtk_css > "$GTK3_CSS"
 
+# Helper to convert hex to RGB
+hex_to_rgb() {
+    local hex="${1#\#}"
+    local r=$((0x${hex:0:2}))
+    local g=$((0x${hex:2:2}))
+    local b=$((0x${hex:4:2}))
+    echo "$r,$g,$b"
+}
+
+# Generate Darkly.colors for Qt style override
+generate_darkly_colors() {
+    local bg_rgb=$(hex_to_rgb "$BG")
+    local bg_alt_rgb=$(hex_to_rgb "$BG_ALT")
+    local bg_dark_rgb=$(hex_to_rgb "$BG_DARK")
+    local fg_rgb=$(hex_to_rgb "$FG")
+    local fg_inactive_rgb=$(hex_to_rgb "$FG_INACTIVE")
+    local primary_rgb=$(hex_to_rgb "$PRIMARY")
+    local on_primary_rgb=$(hex_to_rgb "$ON_PRIMARY")
+    local surface_rgb=$(hex_to_rgb "$SURFACE")
+    
+    cat << EOF
+[ColorEffects:Disabled]
+Color=${bg_rgb}
+ColorAmount=0.5
+ColorEffect=3
+ContrastAmount=0.5
+ContrastEffect=0
+IntensityAmount=0
+IntensityEffect=0
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=${bg_dark_rgb}
+ColorAmount=0.4
+ColorEffect=3
+ContrastAmount=0.4
+ContrastEffect=0
+Enable=true
+IntensityAmount=-0.2
+IntensityEffect=0
+
+[Colors:Button]
+BackgroundAlternate=${bg_alt_rgb}
+BackgroundNormal=${surface_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${fg_rgb}
+ForegroundInactive=${fg_inactive_rgb}
+ForegroundLink=${primary_rgb}
+ForegroundNegative=218,68,83
+ForegroundNeutral=246,116,0
+ForegroundNormal=${fg_rgb}
+ForegroundPositive=36,173,89
+ForegroundVisited=${primary_rgb}
+
+[Colors:Complementary]
+BackgroundAlternate=${bg_dark_rgb}
+BackgroundNormal=${bg_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${fg_rgb}
+ForegroundInactive=${fg_inactive_rgb}
+ForegroundLink=${primary_rgb}
+ForegroundNegative=237,21,21
+ForegroundNeutral=201,206,59
+ForegroundNormal=${fg_rgb}
+ForegroundPositive=17,209,22
+ForegroundVisited=${primary_rgb}
+
+[Colors:Selection]
+BackgroundAlternate=${primary_rgb}
+BackgroundNormal=${primary_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${on_primary_rgb}
+ForegroundInactive=${on_primary_rgb}
+ForegroundLink=${on_primary_rgb}
+ForegroundNegative=${on_primary_rgb}
+ForegroundNeutral=${on_primary_rgb}
+ForegroundNormal=${on_primary_rgb}
+ForegroundPositive=${on_primary_rgb}
+ForegroundVisited=${on_primary_rgb}
+
+[Colors:Tooltip]
+BackgroundAlternate=${bg_alt_rgb}
+BackgroundNormal=${bg_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${fg_rgb}
+ForegroundInactive=${fg_inactive_rgb}
+ForegroundLink=${primary_rgb}
+ForegroundNegative=218,68,83
+ForegroundNeutral=246,116,0
+ForegroundNormal=${fg_rgb}
+ForegroundPositive=36,173,89
+ForegroundVisited=${primary_rgb}
+
+[Colors:View]
+BackgroundAlternate=${bg_rgb}
+BackgroundNormal=${bg_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${fg_rgb}
+ForegroundInactive=${fg_inactive_rgb}
+ForegroundLink=${primary_rgb}
+ForegroundNegative=218,68,83
+ForegroundNeutral=246,116,0
+ForegroundNormal=${fg_rgb}
+ForegroundPositive=36,173,89
+ForegroundVisited=${primary_rgb}
+
+[Colors:Window]
+BackgroundAlternate=${bg_alt_rgb}
+BackgroundNormal=${bg_rgb}
+DecorationFocus=${primary_rgb}
+DecorationHover=${primary_rgb}
+ForegroundActive=${fg_rgb}
+ForegroundInactive=${fg_inactive_rgb}
+ForegroundLink=${primary_rgb}
+ForegroundNegative=218,68,83
+ForegroundNeutral=246,116,0
+ForegroundNormal=${fg_rgb}
+ForegroundPositive=36,173,89
+ForegroundVisited=${primary_rgb}
+
+[General]
+ColorScheme=Darkly
+Name=Darkly
+shadeSortColumn=true
+
+[KDE]
+contrast=0
+
+[WM]
+activeBackground=${bg_rgb}
+activeBlend=255,255,255
+activeForeground=${fg_rgb}
+inactiveBackground=${bg_rgb}
+inactiveBlend=${fg_inactive_rgb}
+inactiveForeground=${fg_inactive_rgb}
+EOF
+}
+
 # Apply KDE if enabled
 if [[ "$enable_qt_apps" != "false" ]]; then
     generate_kdeglobals > "$KDEGLOBALS"
+    
+    # Generate Darkly color scheme for Qt style
+    mkdir -p "$(dirname "$DARKLY_COLORS")"
+    generate_darkly_colors > "$DARKLY_COLORS"
 fi
 
 # Restart Nautilus
 nautilus -q 2>/dev/null &
+
+# Regenerate Vesktop theme from current colors (if enabled)
+enable_vesktop="true"
+if [[ -f "$SHELL_CONFIG_FILE" ]] && command -v jq &>/dev/null; then
+    enable_vesktop=$(jq -r '.appearance.wallpaperTheming.enableVesktop // true' "$SHELL_CONFIG_FILE")
+fi
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+if [[ "$enable_vesktop" != "false" && -f "$SCRIPT_DIR/system24_palette.py" ]]; then
+    python3 "$SCRIPT_DIR/system24_palette.py" 2>/dev/null
+    # Note: Vesktop auto-reloads CSS changes, no manual reload needed
+fi

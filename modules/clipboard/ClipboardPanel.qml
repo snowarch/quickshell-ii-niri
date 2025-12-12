@@ -302,6 +302,22 @@ Scope {
                             GlobalStates.clipboardOpen = false
                             event.accepted = true
                         }
+                        Keys.onUpPressed: function(event) {
+                            listView.movePrevious()
+                            event.accepted = true
+                        }
+                        Keys.onDownPressed: function(event) {
+                            listView.moveNext()
+                            event.accepted = true
+                        }
+                        Keys.onReturnPressed: function(event) {
+                            listView.activateCurrent()
+                            event.accepted = true
+                        }
+                        Keys.onEnterPressed: function(event) {
+                            listView.activateCurrent()
+                            event.accepted = true
+                        }
                     }
 
                     IconToolbarButton {
@@ -427,19 +443,17 @@ Scope {
                         function moveNext() {
                             const total = count
                             if (total === 0) return
-                            if (currentIndex < 0)
-                                currentIndex = 0
-                            else
-                                currentIndex = (currentIndex + 1) % total
+                            if (currentIndex < total - 1)
+                                currentIndex++
+                            positionViewAtIndex(currentIndex, ListView.Contain)
                         }
 
                         function movePrevious() {
                             const total = count
                             if (total === 0) return
-                            if (currentIndex < 0)
-                                currentIndex = total - 1
-                            else
-                                currentIndex = (currentIndex - 1 + total) % total
+                            if (currentIndex > 0)
+                                currentIndex--
+                            positionViewAtIndex(currentIndex, ListView.Contain)
                         }
 
                         function activateCurrent() {

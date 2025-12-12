@@ -183,6 +183,7 @@ Singleton {
                     property bool enableAppsAndShell: true
                     property bool enableQtApps: true
                     property bool enableTerminal: true
+                    property bool enableVesktop: true
                     property JsonObject terminalGenerationProps: JsonObject {
                         property real harmony: 0.6
                         property real harmonizeThreshold: 100
@@ -593,9 +594,9 @@ Singleton {
 
             property JsonObject overview: JsonObject {
                 property bool enable: true
-                property real scale: 0.18 // Relative to screen size
-                property real rows: 2
-                property real columns: 5
+                property real scale: 0.17 // Relative to screen size
+                property real rows: 3
+                property real columns: 1
                 property bool centerIcons: true
                 property bool backgroundBlurEnable: true
                 property int backgroundBlurRadius: 22
@@ -868,7 +869,7 @@ Singleton {
                     property string locale: ""
                 }
                 property JsonObject theming: JsonObject {
-                    property bool useMaterialColors: false // Use Material ii colors instead of W11 grey
+                    property bool useMaterialColors: true // Use Material ii colors instead of W11 grey
                     property JsonObject font: JsonObject {
                         property string family: "Noto Sans"
                         property real scale: 1.0 // Font size multiplier (0.8 - 1.5)
@@ -888,6 +889,10 @@ Singleton {
                     property bool showMedia: true
                     property bool showQuickActions: true
                     property bool weatherHideLocation: false // Privacy: hide city name
+                }
+                property JsonObject workspaceNames: JsonObject {
+                    // Custom workspace names, keyed by workspace index (1-based)
+                    // Example: "1": "Main", "2": "Work", "3": "Gaming"
                 }
             }
             property JsonObject workSafety: JsonObject {
