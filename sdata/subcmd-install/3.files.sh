@@ -78,7 +78,10 @@ function auto_backup_configs(){
   esac
   if $backup;then
     backup_clashing_targets dots/.config $XDG_CONFIG_HOME "${BACKUP_DIR}/.config"
-    printf "${STY_BLUE}Backup finished: ${BACKUP_DIR}${STY_RST}\n"
+    # Only show message if backup dir was actually created
+    if [[ -d "${BACKUP_DIR}" ]]; then
+      printf "${STY_BLUE}Backup finished: ${BACKUP_DIR}${STY_RST}\n"
+    fi
   fi
 }
 
@@ -360,15 +363,16 @@ for gtkver in gtk-3.0 gtk-4.0; do
 done
 
 # KDE settings (for Dolphin and Qt apps)
+# These are controlled by ii-niri for theming - always overwrite
 if [[ -f "defaults/kde/kdeglobals" ]]; then
-  install_file__auto_backup "defaults/kde/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
+  install_file "defaults/kde/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
 elif [[ -f "dots/.config/kdeglobals" ]]; then
-  install_file__auto_backup "dots/.config/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
+  install_file "dots/.config/kdeglobals" "${XDG_CONFIG_HOME}/kdeglobals"
 fi
 if [[ -f "defaults/kde/dolphinrc" ]]; then
-  install_file__auto_backup "defaults/kde/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
+  install_file "defaults/kde/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 elif [[ -f "dots/.config/dolphinrc" ]]; then
-  install_file__auto_backup "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
+  install_file "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 fi
 
 # Clean Dolphin state file so it respects dolphinrc panel settings on first launch
@@ -377,6 +381,16 @@ if [[ -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc" ]]; then
   rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
   log_success "Cleaned Dolphin state for fresh panel layout"
 fi
+
+# Clean up obsolete .new files from previous installs
+# These files are no longer created - kdeglobals and dolphinrc are always overwritten
+for obsolete_new in "${XDG_CONFIG_HOME}/kdeglobals.new" \
+                    "${XDG_CONFIG_HOME}/dolphinrc.new"; do
+  if [[ -f "$obsolete_new" ]]; then
+    rm -f "$obsolete_new"
+    log_success "Cleaned obsolete ${obsolete_new##*/}"
+  fi
+done
 
 # Kvantum (Qt theming)
 if [[ -d "dots/.config/Kvantum" ]]; then
@@ -847,10 +861,10 @@ fi
 if ! ${quiet:-false}; then
 
   # Check for .new files that need manual review
+  # Note: kdeglobals.new and dolphinrc.new are no longer created (always overwritten)
   NEW_FILES=()
   for f in "${XDG_CONFIG_HOME}/niri/config.kdl.new" \
-           "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new" \
-           "${XDG_CONFIG_HOME}/kdeglobals.new"; do
+           "${XDG_CONFIG_HOME}/illogical-impulse/config.json.new"; do
     if [[ -f "$f" ]]; then
       NEW_FILES+=("$f")
     fi
