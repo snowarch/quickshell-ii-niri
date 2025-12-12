@@ -414,6 +414,6 @@ fi
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 if [[ "$enable_vesktop" != "false" && -f "$SCRIPT_DIR/system24_palette.py" ]]; then
-    python3 "$SCRIPT_DIR/system24_palette.py" 2>/dev/null
+    python3 "$SCRIPT_DIR/system24_palette.py"
     # Note: Vesktop auto-reloads CSS changes, no manual reload needed
 fi

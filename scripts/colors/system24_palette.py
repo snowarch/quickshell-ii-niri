@@ -32,6 +32,32 @@ OUTPUT_FILE = Path(
     )
 ).expanduser()
 
+
+def _resolve_output_files() -> list[Path]:
+    """Return a list of paths to write the theme to.
+
+    Different builds/packaging may use different XDG config folder casing
+    (e.g. ~/.config/vesktop vs ~/.config/Vesktop).
+    If SYSTEM24_PALETTE_CSS is set, it remains authoritative.
+    """
+
+    explicit = os.environ.get("SYSTEM24_PALETTE_CSS")
+    if explicit:
+        return [Path(explicit).expanduser()]
+
+    candidates = [
+        Path("~/.config/vesktop/themes/system24.theme.css").expanduser(),
+        Path("~/.config/Vesktop/themes/system24.theme.css").expanduser(),
+    ]
+
+    existing_dirs = [p for p in candidates if p.parent.exists()]
+    if existing_dirs:
+        # If both exist, write to both. If only one exists, write there.
+        return existing_dirs
+
+    # Fallback to the historical default
+    return [OUTPUT_FILE]
+
 # Template for the full theme file
 THEME_TEMPLATE = '''/**
  * @name ii-niri Material
@@ -41,6 +67,12 @@ THEME_TEMPLATE = '''/**
  * @source https://github.com/end-4/ii-niri
  */
 
+/*
+ * Base theme import:
+ * - Prefer a local copy if present (more reliable on flaky networks / CSP).
+ * - Keep the remote import as fallback.
+ */
+@import url('system24.local.css');
 @import url('https://refact0r.github.io/system24/build/system24.css');
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap');
 
@@ -49,21 +81,21 @@ body {{
     --code-font: 'Oxanium';
     font-weight: 400;
     letter-spacing: -0.02ch;
-    --gap: 8px;
-    --divider-thickness: 2px;
-    --border-thickness: 0px;
-    --border-hover-transition: 0.15s ease;
+    --gap: 12px;
+    --divider-thickness: 4px;
+    --border-thickness: 2px;
+    --border-hover-transition: 0.2s ease;
     --animations: on;
-    --list-item-transition: 0.12s ease;
-    --dms-icon-svg-transition: 0.2s ease;
-    --top-bar-height: var(--gap);
-    --top-bar-button-position: titlebar;
+    --list-item-transition: 0.2s ease;
+    --dms-icon-svg-transition: 0.4s ease;
+    --top-bar-height: 36px;
+    --top-bar-button-position: off;
     --top-bar-title-position: off;
     --subtle-top-bar-title: off;
     --custom-window-controls: off;
     --window-control-size: 14px;
     --custom-dms-icon: off;
-    --dms-icon-svg-size: 80%;
+    --dms-icon-svg-size: 90%;
     --dms-icon-color-before: var(--text-0);
     --dms-icon-color-after: var(--text-0);
     --custom-dms-background: color;
@@ -88,90 +120,6 @@ body {{
 {palette_css}
 
 /* Material Design System */
-html {{ font-size: 16px !important; }}
-
-.guilds__2b93a, .wrapper_fea3ef {{ width: 52px !important; }}
-.wrapper_d281dd, .childWrapper__01b9c, .childWrapper_a6ce15 {{
-    width: 36px !important; height: 36px !important; border-radius: 12px !important;
-}}
-.wrapper_d281dd:hover, .childWrapper__01b9c:hover {{ border-radius: 10px !important; }}
-.listItem__48528 {{ width: 44px !important; height: 44px !important; margin: 0 0 2px 0 !important; }}
-.pill_c3735b {{ left: 0 !important; width: 4px !important; }}
-.pill_c3735b .item_c96c45 {{
-    width: 3px !important; border-radius: 0 3px 3px 0 !important; background: var(--accent-2) !important;
-}}
-.tutorialContainer_ff5f24 .childWrapper__01b9c,
-.tutorialContainer_ff5f24 .wrapper_d281dd {{ background: var(--accent-2) !important; }}
-.tutorialContainer_ff5f24 svg, .tutorialContainer_ff5f24 path {{
-    fill: var(--text-0) !important; color: var(--text-0) !important;
-}}
-.expandedFolderBackground__1bec6 {{ border-radius: 12px !important; background: var(--bg-2) !important; }}
-.containerDefault_ae2ea4, .containerDefault__3187b {{
-    border-radius: 8px !important; margin: 1px 8px !important; padding: 6px 8px !important;
-}}
-.name_d8bfb3, .channelName__4d7e3 {{ font-size: 13px !important; }}
-.containerDefault__321f3 {{ padding: 16px 8px 4px !important; }}
-.name__4eb92 {{ font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.02em !important; }}
-.member_aa4760, .memberInner_aa4760 {{ border-radius: 8px !important; margin: 1px 8px !important; }}
-.message_ccca67 {{ border-radius: 8px !important; }}
-.cozy_f5c119 {{ padding: 0.2rem 0.75rem !important; }}
-.scrollableContainer__33e06 {{ border-radius: 12px !important; }}
-.button_dd4f85, .lookFilled_dd4f85 {{ border-radius: 20px !important; }}
-.lookOutlined_dd4f85 {{ border-radius: 8px !important; }}
-.input_f8bc55, .inputDefault__80165 {{ border-radius: 8px !important; }}
-.searchBar__8f956 {{ border-radius: 8px !important; }}
-.popout_c5b389, .modal_d3e7d4, .root_f9a4c9 {{
-    border-radius: 12px !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
-}}
-.menu_dc52c6 {{ border-radius: 8px !important; padding: 4px !important; }}
-.item_a0 {{ border-radius: 6px !important; }}
-.tooltip_b6c360 {{ border-radius: 6px !important; }}
-.avatar_b2ca13, .wrapper__3ed10 {{ border-radius: 50% !important; }}
-.panels_a4d4d9 {{ padding: 0 6px 6px !important; }}
-.container__93316 {{ border-radius: 8px !important; }}
-::-webkit-scrollbar {{ width: 4px !important; height: 4px !important; }}
-::-webkit-scrollbar-thumb {{ border-radius: 2px !important; background: var(--text-5) !important; }}
-::-webkit-scrollbar-thumb:hover {{ background: var(--text-4) !important; }}
-::-webkit-scrollbar-track {{ background: transparent !important; }}
-.contentRegion__3d1e4 {{ border-radius: 12px 0 0 12px !important; }}
-.card_dc5ddd {{ border-radius: 8px !important; }}
-.emojiPicker_b50b99 {{ border-radius: 12px !important; }}
-.scroller__3d071, .thin_eed6a8 {{ border: none !important; }}
-.divider__01aed {{ margin: 8px 0 !important; height: 1px !important; }}
-
-/* Number badges - notification counts */
-.numberBadge__50328 {{
-    background: var(--accent-2) !important;
-    color: var(--text-0) !important;
-}}
-
-/* Mention badge */
-.mentionsBadge__436a7 {{
-    background: var(--accent-2) !important;
-    color: var(--text-0) !important;
-}}
-
-/* Typing indicator */
-.dots_c64498 {{
-    color: var(--accent-2) !important;
-}}
-
-/* Unread message divider */
-[class*="divider"][class*="isUnread"],
-[class*="divider"][class*="isUnread"]::before,
-[class*="divider"][class*="isUnread"]::after {{
-    background-color: var(--accent-2) !important;
-    border-color: var(--accent-2) !important;
-}}
-[class*="unreadPill"] {{
-    background: var(--accent-2) !important;
-    color: var(--text-0) !important;
-}}
-
-/* NEW badge text - the span inside unreadMentionsBar */
-[class*="unreadMentionsBar"] > span[class*="text"] {{
-    color: var(--text-0) !important;
-}}
 '''
 
 
@@ -370,10 +318,13 @@ def _build_palette(colors: Dict[str, str]) -> Dict[str, str]:
 
 def _write_palette(palette: Dict[str, str]) -> None:
     """Write the complete theme file with embedded palette."""
-    _ensure_parent(OUTPUT_FILE)
+    output_files = _resolve_output_files()
+    for out in output_files:
+        _ensure_parent(out)
     
     # Build palette CSS block
-    palette_lines = [":root:root {"]
+    # Apply variables to multiple roots to cover Discord/Vesktop variations.
+    palette_lines = [":root, :root:root, body, #app-mount {"]
     for key in sorted(palette.keys()):
         palette_lines.append(f"    {key}: {palette[key]};")
     palette_lines.append("}")
@@ -382,10 +333,10 @@ def _write_palette(palette: Dict[str, str]) -> None:
     # Generate full theme with embedded palette
     content = THEME_TEMPLATE.format(palette_css=palette_css)
     
-    with OUTPUT_FILE.open("w", encoding="utf-8") as fh:
-        fh.write(content)
-    
-    print(f"Generated: {OUTPUT_FILE}")
+    for out in output_files:
+        with out.open("w", encoding="utf-8") as fh:
+            fh.write(content)
+        print(f"Generated: {out}")
 
 
 def main() -> None:
