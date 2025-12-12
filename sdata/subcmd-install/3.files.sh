@@ -379,11 +379,12 @@ elif [[ -f "dots/.config/dolphinrc" ]]; then
   install_file "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 fi
 
-# Clean Dolphin state file so it respects dolphinrc panel settings on first launch
-# Dolphin stores panel visibility state in dolphinstaterc which overrides dolphinrc
-if [[ -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc" ]]; then
-  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
-  log_success "Cleaned Dolphin state for fresh panel layout"
+# Install Dolphin state file with clean panel layout (only Places panel visible)
+# Dolphin stores panel visibility in dolphinstaterc which overrides dolphinrc
+if [[ -f "defaults/kde/dolphinstaterc" ]]; then
+  mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}"
+  install_file "defaults/kde/dolphinstaterc" "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
+  log_success "Dolphin panel layout configured"
 fi
 
 # Clean up obsolete .new files from previous installs
