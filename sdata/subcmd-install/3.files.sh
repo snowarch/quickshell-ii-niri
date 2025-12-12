@@ -125,6 +125,10 @@ case "${SKIP_QUICKSHELL}" in
     fi
     
     log_success "Quickshell ii config installed"
+    
+    # Install Python packages now that requirements.txt is in place
+    showfun install-python-packages
+    v install-python-packages
     ;;
 esac
 
