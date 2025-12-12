@@ -31,13 +31,13 @@ Features:
 When you change your wallpaper:
 1. `switchwall.sh` runs matugen to generate Material You colors
 2. `system24_palette.py` generates the complete theme with embedded palette
-3. `reload-vesktop.fish` sends Ctrl+R to Vesktop to reload
+3. Vesktop should auto-reload theme changes (if it doesn't, use Ctrl+R)
 
 ### Theme Preset Changes
 When you change theme preset in Settings:
 1. `apply-gtk-theme.sh` applies GTK/KDE colors
 2. It also calls `system24_palette.py` to regenerate Vesktop theme
-3. `reload-vesktop.fish` reloads Vesktop automatically
+3. Vesktop should auto-reload theme changes (if it doesn't, use Ctrl+R)
 
 ### Color Mapping
 
@@ -58,9 +58,6 @@ If colors get out of sync, regenerate manually:
 ```fish
 # Regenerate theme
 python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py
-
-# Reload Vesktop
-fish ~/.config/quickshell/ii/scripts/colors/reload-vesktop.fish
 
 # Or trigger a full wallpaper refresh
 ~/.config/quickshell/ii/scripts/colors/switchwall.sh --noswitch
@@ -85,6 +82,7 @@ Then regenerate the theme.
 
 ### Colors not updating
 - Check that `~/.config/vesktop/themes/system24.theme.css` exists
+- Some installs use `~/.config/Vesktop/themes/` (capital V)
 - Verify the theme is enabled in Vesktop settings
 - Try Ctrl+R in Vesktop to force reload
 
@@ -92,9 +90,20 @@ Then regenerate the theme.
 - Ensure the `.theme.css` file is in `~/.config/vesktop/themes/`
 - Check Vesktop console for CSS errors (Ctrl+Shift+I)
 
+### Visual inconsistencies / theme looks half-applied
+- This theme relies on the System24 base CSS. If the remote `@import` fails (network/CSP), you may only get colors but not layout/styling.
+- Open DevTools (Ctrl+Shift+I) and check:
+  - Network tab for failed `system24.css` requests
+  - Console tab for `@import`/CSP related errors
+- Optional: place a local copy of System24 at `~/.config/vesktop/themes/system24.local.css` (same folder as the theme). If present, ii-niri will import it first.
+
 ### Wrong colors
 - Run `python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py` to regenerate
 - Check `~/.local/state/quickshell/user/generated/colors.json` exists
+
+### Debugging generation failures
+- Run `python3 ~/.config/quickshell/ii/scripts/colors/system24_palette.py` in a terminal and check for errors
+- If you're using preset themes (Settings), `apply-gtk-theme.sh` no longer suppresses Python errors, so `qs log -c ii` (or your shell logs) should show failures
 
 ### Hot-reload not working
 - The theme palette is embedded in the main file, so Ctrl+R should work
