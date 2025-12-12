@@ -13,6 +13,7 @@ Options:
   -y, --yes           Skip confirmation prompts (auto-yes)
   -q, --quiet         Minimal output (for scripts/CI)
   --firstrun          Force first-run behavior (backup existing configs)
+  --reset-dolphin-layout  Reset Dolphin panel layout state (dolphinstaterc)
   --skip-deps         Skip dependency installation
   --skip-setups       Skip service/permission setup
   --skip-files        Skip config file installation
@@ -38,6 +39,7 @@ Examples:
 ask=true
 quiet=false
 INSTALL_FIRSTRUN=""
+RESET_DOLPHIN_LAYOUT=false
 SKIP_ALLDEPS=${SKIP_ALLDEPS:-false}
 SKIP_ALLSETUPS=${SKIP_ALLSETUPS:-false}
 SKIP_ALLFILES=${SKIP_ALLFILES:-false}
@@ -65,6 +67,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --firstrun)
       INSTALL_FIRSTRUN=true
+      shift
+      ;;
+    --reset-dolphin-layout)
+      RESET_DOLPHIN_LAYOUT=true
       shift
       ;;
     --skip-deps)

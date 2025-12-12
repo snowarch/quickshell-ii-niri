@@ -379,12 +379,22 @@ elif [[ -f "dots/.config/dolphinrc" ]]; then
   install_file "dots/.config/dolphinrc" "${XDG_CONFIG_HOME}/dolphinrc"
 fi
 
-# Install Dolphin state file with clean panel layout (only Places panel visible)
-# Dolphin stores panel visibility in dolphinstaterc which overrides dolphinrc
-if [[ -f "defaults/kde/dolphinstaterc" ]]; then
-  mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}"
-  install_file "defaults/kde/dolphinstaterc" "${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
-  log_success "Dolphin panel layout configured"
+# Dolphin panel layout state
+# Dolphin stores panel visibility in dolphinstaterc which overrides dolphinrc.
+# Policy:
+# - Fresh install: apply our clean layout so users don't get all panels enabled.
+# - Update: preserve user's custom layout by default.
+# - User can force reset via --reset-dolphin-layout.
+DOLPHIN_STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/dolphinstaterc"
+if [[ "${INSTALL_FIRSTRUN}" == true || "${RESET_DOLPHIN_LAYOUT}" == true ]]; then
+  if [[ -f "defaults/kde/dolphinstaterc" ]]; then
+    mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}"
+    install_file "defaults/kde/dolphinstaterc" "${DOLPHIN_STATE_FILE}"
+    log_success "Dolphin panel layout state reset"
+  elif [[ -f "${DOLPHIN_STATE_FILE}" ]]; then
+    rm -f "${DOLPHIN_STATE_FILE}"
+    log_success "Dolphin panel layout state cleaned"
+  fi
 fi
 
 # Clean up obsolete .new files from previous installs
@@ -421,6 +431,7 @@ fi
 # Vesktop themes (Discord theming with Material You colors)
 if [[ -d "dots/.config/vesktop/themes" ]]; then
   mkdir -p "${XDG_CONFIG_HOME}/vesktop/themes"
+  mkdir -p "${XDG_CONFIG_HOME}/Vesktop/themes"
   
   # Migrate: Remove old theme files from previous versions
   OLD_VESKTOP_THEMES=(
@@ -435,10 +446,26 @@ if [[ -d "dots/.config/vesktop/themes" ]]; then
       rm -f "${XDG_CONFIG_HOME}/vesktop/themes/${old_theme}"
       log_success "Removed old Vesktop theme: ${old_theme}"
     fi
+    if [[ -f "${XDG_CONFIG_HOME}/Vesktop/themes/${old_theme}" ]]; then
+      rm -f "${XDG_CONFIG_HOME}/Vesktop/themes/${old_theme}"
+      log_success "Removed old Vesktop theme: ${old_theme} (Vesktop/)"
+    fi
   done
   
   install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/vesktop/themes"
+  install_dir "dots/.config/vesktop/themes" "${XDG_CONFIG_HOME}/Vesktop/themes"
   log_success "Vesktop Material You theme installed"
+
+  # Best-effort verification (helps diagnose "update didn't apply" reports)
+  VESKTOP_THEME_A="${XDG_CONFIG_HOME}/vesktop/themes/system24.theme.css"
+  VESKTOP_THEME_B="${XDG_CONFIG_HOME}/Vesktop/themes/system24.theme.css"
+  if [[ ! -f "$VESKTOP_THEME_A" && ! -f "$VESKTOP_THEME_B" ]]; then
+    log_warning "Vesktop theme file was not found after install"
+    echo -e "${STY_YELLOW}Expected one of:${STY_RST}"
+    echo -e "  ${STY_YELLOW}$VESKTOP_THEME_A${STY_RST}"
+    echo -e "  ${STY_YELLOW}$VESKTOP_THEME_B${STY_RST}"
+    echo -e "${STY_YELLOW}If Vesktop uses a different config dir, install manually or set SYSTEM24_PALETTE_CSS to your path.${STY_RST}"
+  fi
 fi
 
 # Fontconfig

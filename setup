@@ -4,6 +4,10 @@
 # illogical-impulse on Niri - Installation and management
 # ============================================================================
 
+if [[ -z "${BASH_VERSION:-}" ]]; then
+  exec /usr/bin/env bash "$0" "$@"
+fi
+
 cd "$(dirname "$0")"
 REPO_ROOT="$(pwd)"
 
