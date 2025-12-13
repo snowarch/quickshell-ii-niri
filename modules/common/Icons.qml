@@ -73,10 +73,16 @@ Singleton {
     })
 
     
-    function getWeatherIcon(code) {
+    function getWeatherIcon(code, isNight) {
+        const night = isNight ?? false
         const key = String(code)
         if (weatherIconMap.hasOwnProperty(key)) {
-            return weatherIconMap[key]
+            const icon = weatherIconMap[key]
+            if (night) {
+                if (icon === "clear_day") return "clear_night"
+                if (icon === "partly_cloudy_day") return "partly_cloudy_night"
+            }
+            return icon
         }
     }
 }

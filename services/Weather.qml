@@ -11,6 +11,7 @@ import qs.modules.common
 Singleton {
     id: root
 
+    readonly property bool enabled: Config.options?.bar?.weather?.enable ?? false
     readonly property int fetchInterval: (Config.options?.bar?.weather?.fetchInterval ?? 10) * 60 * 1000
     readonly property string city: Config.options?.bar?.weather?.city ?? ""
     readonly property bool useUSCS: Config.options?.bar?.weather?.useUSCS ?? false
@@ -25,7 +26,9 @@ Singleton {
         uv: "0",
         humidity: "0%",
         sunrise: "--:--",
+        sunriseIso: "",
         sunset: "--:--",
+        sunsetIso: "",
         windDir: "N",
         wCode: "0",
         city: "City",
@@ -36,6 +39,23 @@ Singleton {
         temp: "--°C",
         tempFeelsLike: "--°C"
     })
+
+    function isNightNow(): bool {
+        const now = new Date();
+
+        const sunriseIso = root.data?.sunriseIso ?? "";
+        const sunsetIso = root.data?.sunsetIso ?? "";
+        if (sunriseIso.length > 0 && sunsetIso.length > 0) {
+            const sunrise = new Date(sunriseIso);
+            const sunset = new Date(sunsetIso);
+            if (!isNaN(sunrise.getTime()) && !isNaN(sunset.getTime())) {
+                return now < sunrise || now > sunset;
+            }
+        }
+
+        const h = now.getHours();
+        return h < 6 || h >= 18;
+    }
 
     // WMO Weather codes to wttr.in codes (for icon compatibility)
     function _wmoToWttr(code: int): string {
@@ -82,8 +102,10 @@ Singleton {
         result.windDir = root._degToCompass(current.wind_direction_10m ?? 0);
         result.press = Math.round(current.surface_pressure ?? 1013) + " hPa";
         result.uv = daily?.uv_index_max?.[0]?.toFixed(1) ?? "0";
-        result.sunrise = root._formatTime(daily?.sunrise?.[0]);
-        result.sunset = root._formatTime(daily?.sunset?.[0]);
+        result.sunriseIso = daily?.sunrise?.[0] ?? "";
+        result.sunsetIso = daily?.sunset?.[0] ?? "";
+        result.sunrise = root._formatTime(result.sunriseIso);
+        result.sunset = root._formatTime(result.sunsetIso);
 
         // Visibility not available in Open-Meteo free tier, use placeholder
         result.visib = "10 km";
@@ -138,7 +160,7 @@ Singleton {
     }
 
     Component.onCompleted: {
-        if (root.gpsActive) {
+        if (root.enabled && root.gpsActive) {
             console.info("[WeatherService] Starting GPS service.");
             positionSource.start();
         }
@@ -250,7 +272,7 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.enabled
         repeat: true
         interval: root.fetchInterval > 0 ? root.fetchInterval : 600000
         triggeredOnStart: true
