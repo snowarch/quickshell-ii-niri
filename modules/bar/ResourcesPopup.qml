@@ -7,6 +7,11 @@ import QtQuick.Layouts
 StyledPopup {
     id: root
 
+    onActiveChanged: {
+        if (root.active)
+            ResourceUsage.ensureRunning()
+    }
+
     // Helper function to format KB to GB
     function formatKB(kb) {
         return (kb / (1024 * 1024)).toFixed(1) + " GB";

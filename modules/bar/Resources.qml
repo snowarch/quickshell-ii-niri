@@ -11,6 +11,8 @@ MouseArea {
     implicitHeight: Appearance.sizes.barHeight
     hoverEnabled: true
 
+    Component.onCompleted: ResourceUsage.ensureRunning()
+
     RowLayout {
         id: rowLayout
 

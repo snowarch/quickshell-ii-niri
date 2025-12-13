@@ -17,6 +17,23 @@ Item {
     property bool showOverflowMenu: true
     property var activeMenu: null
 
+    Timer {
+        id: overflowAutoCloseTimer
+        interval: 700
+        repeat: false
+        onTriggered: root.trayOverflowOpen = false
+    }
+
+    function updateOverflowAutoClose(): void {
+        if (!root.trayOverflowOpen) {
+            overflowAutoCloseTimer.stop();
+            return;
+        }
+        const hovering = trayOverflowButton.hovered || overflowPopup.popupHovered
+        if (hovering) overflowAutoCloseTimer.stop();
+        else overflowAutoCloseTimer.restart();
+    }
+
     // Signal to close all tray menus before opening a new one
     signal closeAllTrayMenus()
 
@@ -68,16 +85,10 @@ Item {
         focusGrab.active = false;
     }
 
-    onTrayOverflowOpenChanged: {
-        if (root.trayOverflowOpen) {
-            root.grabFocus();
-        }
-    }
-
     CompositorFocusGrab {
         id: focusGrab
-        active: false
-        windows: [trayOverflowLayout.QsWindow?.window, root.activeMenu]
+        active: (root.trayOverflowOpen && overflowPopup.QsWindow?.window !== null) || root.activeMenu !== null
+        windows: [overflowPopup.QsWindow?.window, root.activeMenu]
         onCleared: {
             root.trayOverflowOpen = false;
             if (root.activeMenu) {
@@ -99,6 +110,8 @@ Item {
             visible: root.showOverflowMenu && root.unpinnedItems.length > 0
             toggled: root.trayOverflowOpen
             property bool containsMouse: hovered
+
+            onHoveredChanged: root.updateOverflowAutoClose()
 
             downAction: () => root.trayOverflowOpen = !root.trayOverflowOpen
 
@@ -126,8 +139,13 @@ Item {
             StyledPopup {
                 id: overflowPopup
                 hoverTarget: trayOverflowButton
+                hoverActivates: false
                 active: root.trayOverflowOpen && root.unpinnedItems.length > 0
-                popupBackgroundMargin: 300 // This should be plenty... makes sure tooltips don't get cutoff (easily)
+                popupBackgroundMargin: 0
+                closeOnOutsideClick: false
+                onRequestClose: root.trayOverflowOpen = false
+                onPopupHoveredChanged: root.updateOverflowAutoClose()
+                onActiveChanged: root.updateOverflowAutoClose()
 
                 GridLayout {
                     id: trayOverflowLayout
