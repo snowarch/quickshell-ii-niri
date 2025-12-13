@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Widgets
+import org.kde.kirigami as Kirigami
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
-import qs.modules.common.functions
 
 Item {
     id: root
@@ -13,6 +14,9 @@ Item {
     required property var targetWindow
     signal confirm()
     signal cancel()
+
+    readonly property string appId: targetWindow?.app_id ?? ""
+    readonly property string appTitle: targetWindow?.title ?? ""
 
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape) {
@@ -26,6 +30,7 @@ Item {
 
     // Scrim
     Rectangle {
+        id: bg
         anchors.fill: parent
         color: Appearance.colors.colScrim
         opacity: 0
@@ -40,145 +45,71 @@ Item {
         }
     }
 
-    // Dialog card
-    Rectangle {
-        id: dialog
+    // Dialog using Material WindowDialog
+    WindowDialog {
         anchors.centerIn: parent
-        width: 340
-        height: dialogContent.height + Appearance.rounding.large * 2
-        radius: Appearance.rounding.windowRounding
-        color: Appearance.colors.colLayer0
-        border.width: 1
-        border.color: Appearance.colors.colLayer0Border
+        backgroundWidth: 340
+        show: false
+        Component.onCompleted: show = true
 
-        // Entry animation
-        scale: 0.9
-        opacity: 0
-        Component.onCompleted: { scale = 1; opacity = 1 }
-        Behavior on scale {
-            animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
-        }
-        Behavior on opacity {
-            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-        }
+        // App icon row
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 16
 
-        MouseArea { anchors.fill: parent }
-
-        ColumnLayout {
-            id: dialogContent
-            anchors {
-                fill: parent
-                margins: Appearance.rounding.large
-            }
-            spacing: Appearance.sizes.spacingLarge
-
-            // Icon circle - smaller
-            Rectangle {
-                Layout.alignment: Qt.AlignHCenter
-                width: Appearance.font.pixelSize.huge + Appearance.sizes.spacingMedium
-                height: width
-                radius: width / 2
-                color: Appearance.colors.colPrimaryContainer
-
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "close"
-                    iconSize: Appearance.font.pixelSize.large
-                    color: Appearance.colors.colOnPrimaryContainer
-                }
+            Kirigami.Icon {
+                Layout.preferredWidth: 48
+                Layout.preferredHeight: 48
+                source: root.appId
+                fallback: "application-x-executable"
+                roundToIconSize: false
             }
 
-            // Title
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: Translation.tr("Close Window?")
-                font {
-                    family: Appearance.font.family.title
-                    pixelSize: Appearance.font.pixelSize.title
-                    variableAxes: Appearance.font.variableAxes.title
-                }
-                color: Appearance.m3colors.m3onSurface
-            }
-
-            // App info card
-            Rectangle {
-                Layout.alignment: Qt.AlignHCenter
+            ColumnLayout {
                 Layout.fillWidth: true
-                implicitHeight: appInfoColumn.implicitHeight + Appearance.sizes.spacingMedium * 2
-                radius: Appearance.rounding.normal
-                color: Appearance.colors.colLayer1
+                spacing: 4
 
-                ColumnLayout {
-                    id: appInfoColumn
-                    anchors.fill: parent
-                    anchors.margins: Appearance.sizes.spacingMedium
-                    spacing: Appearance.sizes.spacingSmall / 2
+                WindowDialogTitle {
+                    Layout.fillWidth: true
+                    text: Translation.tr("Close this window?")
+                }
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: root.targetWindow?.app_id ?? Translation.tr("Unknown")
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        font.weight: Font.Medium
-                        color: Appearance.colors.colPrimary
-                        elide: Text.ElideMiddle
-                    }
+                // App title
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.appTitle || root.appId || Translation.tr("Unknown")
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    color: Appearance.m3colors.m3onSurface
+                    elide: Text.ElideMiddle
+                    maximumLineCount: 1
+                }
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: root.targetWindow?.title ?? ""
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colSubtext
-                        elide: Text.ElideMiddle
-                        visible: text !== "" && text !== (root.targetWindow?.app_id ?? "")
-                        maximumLineCount: 1
-                    }
+                // App ID (if different)
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.appId
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: Appearance.colors.colSubtext
+                    visible: root.appId !== "" && root.appId !== root.appTitle
+                    elide: Text.ElideMiddle
                 }
             }
+        }
 
-            // Buttons
-            RowLayout {
-                id: buttonsRow
-                Layout.alignment: Qt.AlignHCenter
-                spacing: Appearance.sizes.spacingMedium
+        // Buttons
+        WindowDialogButtonRow {
+            Item { Layout.fillWidth: true }
 
-                RippleButton {
-                    Layout.preferredWidth: Appearance.sizes.searchWidthCollapsed / 2
-                    Layout.preferredHeight: Appearance.sizes.baseBarHeight - Appearance.sizes.spacingSmall
-                    buttonRadius: Appearance.rounding.normal
-                    colBackground: Appearance.colors.colLayer2
-                    colBackgroundHover: Appearance.colors.colLayer2Hover
-                    colRipple: Appearance.colors.colLayer2Active
+            DialogButton {
+                buttonText: Translation.tr("Cancel")
+                onClicked: root.cancel()
+            }
 
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: Translation.tr("Cancel")
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.m3colors.m3onSurface
-                    }
-
-                    onClicked: root.cancel()
-                }
-
-                RippleButton {
-                    Layout.preferredWidth: Appearance.sizes.searchWidthCollapsed / 2
-                    Layout.preferredHeight: Appearance.sizes.baseBarHeight - Appearance.sizes.spacingSmall
-                    buttonRadius: Appearance.rounding.normal
-                    colBackground: Appearance.colors.colPrimary
-                    colBackgroundHover: Appearance.colors.colPrimaryHover
-                    colRipple: Appearance.colors.colPrimaryActive
-
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: Translation.tr("Close")
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        font.weight: Font.Medium
-                        color: Appearance.colors.colOnPrimary
-                    }
-
-                    onClicked: root.confirm()
-                }
+            DialogButton {
+                buttonText: Translation.tr("Close")
+                colText: Appearance.colors.colError
+                colEnabled: Appearance.colors.colError
+                onClicked: root.confirm()
             }
         }
     }
