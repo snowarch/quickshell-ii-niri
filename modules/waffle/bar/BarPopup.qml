@@ -23,6 +23,7 @@ Loader {
     property Item anchorItem: parent
     property real visualMargin: 12
     readonly property bool barAtBottom: Config.options.waffles.bar.bottom
+    property bool popupBelow: false  // Force popup to appear below anchor
     property real ambientShadowWidth: 1
 
     onFocusCleared: {
@@ -62,8 +63,8 @@ Loader {
         anchor {
             adjustment: PopupAdjustment.ResizeY | PopupAdjustment.SlideX
             item: root.anchorItem
-            gravity: root.barAtBottom ? Edges.Top : Edges.Bottom
-            edges: root.barAtBottom ? Edges.Top : Edges.Bottom
+            gravity: root.popupBelow ? Edges.Bottom : (root.barAtBottom ? Edges.Top : Edges.Bottom)
+            edges: root.popupBelow ? Edges.Bottom : (root.barAtBottom ? Edges.Top : Edges.Bottom)
         }
 
         CompositorFocusGrab {
@@ -106,24 +107,60 @@ Loader {
         implicitHeight: realContent.implicitHeight + (root.ambientShadowWidth * 2) + (root.visualMargin * 2)
 
         property real sourceEdgeMargin: -implicitHeight
-        PropertyAnimation {
+        ParallelAnimation {
             id: openAnim
-            target: popupWindow
-            property: "sourceEdgeMargin"
-            to: (root.ambientShadowWidth + root.visualMargin)
-            duration: 200
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: Looks.transition.easing.bezierCurve.easeIn
-        }
-        SequentialAnimation {
-            id: closeAnim
             PropertyAnimation {
                 target: popupWindow
                 property: "sourceEdgeMargin"
-                to: -implicitHeight
-                duration: 150
+                to: (root.ambientShadowWidth + root.visualMargin)
+                duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Looks.transition.easing.bezierCurve.easeOut
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.decelerate
+            }
+            NumberAnimation {
+                target: realContent
+                property: "opacity"
+                to: 1
+                duration: Looks.transition.enabled ? Looks.transition.duration.normal : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
+            }
+            NumberAnimation {
+                target: realContent
+                property: "scale"
+                to: 1
+                duration: Looks.transition.enabled ? Looks.transition.duration.medium : 0
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Looks.transition.easing.bezierCurve.popIn
+            }
+        }
+        SequentialAnimation {
+            id: closeAnim
+            ParallelAnimation {
+                PropertyAnimation {
+                    target: popupWindow
+                    property: "sourceEdgeMargin"
+                    to: -implicitHeight
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.accelerate
+                }
+                NumberAnimation {
+                    target: realContent
+                    property: "opacity"
+                    to: 0
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.standard
+                }
+                NumberAnimation {
+                    target: realContent
+                    property: "scale"
+                    to: 0.98
+                    duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Looks.transition.easing.bezierCurve.popOut
+                }
             }
             ScriptAction {
                 script: {
@@ -141,6 +178,8 @@ Loader {
         Rectangle {
             id: realContent
             z: 1
+            opacity: 0
+            scale: 0.98
             anchors {
                 left: parent.left
                 right: parent.right

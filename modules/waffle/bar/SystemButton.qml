@@ -5,9 +5,17 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.waffle.looks
+import Quickshell.Services.Pipewire
 
 BarButton {
     id: root
+
+    // Screen share detection: niri in any link
+    readonly property bool screenShareActive: (Pipewire.links?.values ?? []).some(link => {
+        const src = link?.source?.name ?? "";
+        const tgt = link?.target?.name ?? "";
+        return src === "niri" || tgt === "niri";
+    })
 
     checked: GlobalStates.waffleActionCenterOpen
     onClicked: {
@@ -30,7 +38,8 @@ BarButton {
             // Mic indicator (only when in use)
             IconHoverArea {
                 id: micHoverArea
-                visible: Audio.micBeingAccessed
+                readonly property bool micInUse: Privacy.micActive || (Audio?.micBeingAccessed ?? false)
+                visible: micInUse
                 iconItem: Item {
                     anchors.verticalCenter: parent.verticalCenter
                     implicitWidth: 20
@@ -50,7 +59,7 @@ BarButton {
                         anchors { top: parent.top; right: parent.right; topMargin: -1; rightMargin: -1 }
 
                         SequentialAnimation on opacity {
-                            running: Audio.micBeingAccessed && !(Audio.source?.audio?.muted ?? true)
+                            running: micHoverArea.micInUse && !(Audio.source?.audio?.muted ?? true)
                             loops: Animation.Infinite
                             NumberAnimation { to: 0.5; duration: 1200 }
                             NumberAnimation { to: 1.0; duration: 1200 }
@@ -58,6 +67,16 @@ BarButton {
                     }
                 }
                 onClicked: Audio.toggleMicMute()
+            }
+
+            // Screen sharing indicator (only when active)
+            IconHoverArea {
+                id: screenShareHoverArea
+                visible: root.screenShareActive
+                iconItem: FluentIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon: "eye-filled"
+                }
             }
 
             IconHoverArea {
@@ -108,6 +127,10 @@ BarButton {
     BarToolTip {
         extraVisibleCondition: root.shouldShowTooltip && micHoverArea.containsMouse
         text: Translation.tr("Microphone: %1").arg((Audio.source?.audio?.muted ?? false) ? Translation.tr("Muted") : Translation.tr("In use"))
+    }
+    BarToolTip {
+        extraVisibleCondition: root.shouldShowTooltip && screenShareHoverArea.containsMouse
+        text: Translation.tr("Screen sharing: Active")
     }
     BarToolTip {
         extraVisibleCondition: root.shouldShowTooltip && internetHoverArea.containsMouse
