@@ -26,7 +26,7 @@ QtObject {
     property int rateLimitedUntilMs: 0
     readonly property bool isRateLimited: nowMs < rateLimitedUntilMs
 
-    readonly property bool _active: (Config.options?.sidebar?.wallhaven?.enable ?? false) && (GlobalStates?.sidebarLeftOpen ?? false)
+    readonly property bool _active: (Config.options?.sidebar?.wallhaven?.enable ?? true) && (GlobalStates?.sidebarLeftOpen ?? false)
 
     property Timer wallhavenClock: Timer {
         interval: 500
