@@ -41,7 +41,7 @@ Singleton {
 
     function launchTaskManager() {
         const cmd = Config.options?.apps?.taskManager ?? "missioncenter"
-        Quickshell.execDetached(["fish", "-c", cmd])
+        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
     }
 
     function hibernate() {

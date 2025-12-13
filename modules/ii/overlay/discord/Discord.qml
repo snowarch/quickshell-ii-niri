@@ -36,7 +36,7 @@ StyledOverlayWidget {
                     onClicked: {
                         GlobalStates.overlayOpen = false
                         const cmd = Config.options?.apps?.discord ?? "discord"
-                        Quickshell.execDetached(["fish", "-c", cmd])
+                        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
                     }
                 }
 

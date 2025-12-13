@@ -37,14 +37,14 @@ AppButton {
                 text: Translation.tr("Terminal"),
                 action: () => {
                     const cmd = Config.options?.apps?.terminal ?? "foot"
-                    Quickshell.execDetached(["fish", "-c", cmd])
+                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
                 }
             },
             {
                 text: Translation.tr("Task Manager"),
                 action: () => {
                     const cmd = Config.options?.apps?.taskManager ?? "missioncenter"
-                    Quickshell.execDetached(["fish", "-c", cmd])
+                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
                 }
             },
             {

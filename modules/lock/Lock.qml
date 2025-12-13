@@ -85,7 +85,7 @@ Scope {
             
             // Refocus last focused window on unlock (hack)
             if (CompositorService.isHyprland) {
-                Quickshell.execDetached(["fish", "-c", "sleep 0.2; hyprctl --batch 'dispatch togglespecialworkspace; dispatch togglespecialworkspace'"])
+                Quickshell.execDetached(["/usr/bin/fish", "-c", "sleep 0.2; hyprctl --batch 'dispatch togglespecialworkspace; dispatch togglespecialworkspace'"])
             }
 
             // Reset
@@ -227,7 +227,7 @@ Scope {
 
                 onPressed: {
                     if (Config.options?.lock?.useHyprlock ?? false) {
-                        Quickshell.execDetached(["fish", "-c", "pidof hyprlock; or hyprlock"]);
+                        Quickshell.execDetached(["/usr/bin/fish", "-c", "pidof hyprlock; or hyprlock"]);
                         return;
                     }
                     GlobalStates.screenLocked = true;

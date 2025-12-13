@@ -118,7 +118,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 const dark = newValue === "dark"
-                Quickshell.execDetached(["fish", "-c", `${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`])
+                Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`])
             }
         }
     }
@@ -145,7 +145,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 Config.setNestedValue("appearance.palette.type", newValue)
-                Quickshell.execDetached(["fish", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`])
+                Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`])
             }
         }
     }

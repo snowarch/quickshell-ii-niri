@@ -18,7 +18,7 @@ QuickToggleButton {
     }
     altAction: () => {
         const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-        Quickshell.execDetached(["fish", "-c", cmd])
+        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
         GlobalStates.sidebarRightOpen = false
     }
     StyledToolTip {
