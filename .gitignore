@@ -7,6 +7,7 @@ AGENTS.md
 *.swp
 *~
 .context
+.dots
 
 # Docs (internal)
 docs/OPTIMIZATION.md
