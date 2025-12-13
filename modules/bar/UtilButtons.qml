@@ -5,6 +5,7 @@ import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 
@@ -13,6 +14,13 @@ Item {
     property bool borderless: Config.options.bar.borderless
     implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 2
     implicitHeight: rowLayout.implicitHeight
+
+    // Screen share: any video node linked
+    readonly property bool screenShareActive: (Pipewire.links?.values ?? []).some(link => {
+        const src = link?.source?.name ?? "";
+        const tgt = link?.target?.name ?? "";
+        return src === "niri" || tgt === "niri";
+    })
 
     RowLayout {
         id: rowLayout
@@ -106,14 +114,15 @@ Item {
         }
 
         Loader {
-            active: Config.options.bar.utilButtons.showMicToggle || Audio.micBeingAccessed
+            readonly property bool micInUse: Privacy.micActive || (Audio?.micBeingAccessed ?? false)
+            active: Config.options.bar.utilButtons.showMicToggle || micInUse
             visible: active
             sourceComponent: CircleUtilButton {
                 id: micButton
                 Layout.alignment: Qt.AlignVCenter
                 
                 readonly property bool isMuted: Pipewire.defaultAudioSource?.audio?.muted ?? false
-                readonly property bool isInUse: Audio.micBeingAccessed
+                readonly property bool isInUse: (Privacy.micActive || (Audio?.micBeingAccessed ?? false))
                 
                 onClicked: Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SOURCE@", "toggle"])
                 
@@ -131,19 +140,13 @@ Item {
                             : Appearance.colors.colOnLayer2
                     }
                     
-                    // Recording indicator dot
                     Rectangle {
                         visible: micButton.isInUse && !micButton.isMuted
                         width: 6
                         height: 6
                         radius: 3
                         color: Appearance.colors.colError
-                        anchors {
-                            top: parent.top
-                            right: parent.right
-                            topMargin: 0
-                            rightMargin: 0
-                        }
+                        anchors { top: parent.top; right: parent.right }
                         
                         SequentialAnimation on opacity {
                             running: micButton.isInUse && !micButton.isMuted
@@ -152,6 +155,22 @@ Item {
                             NumberAnimation { to: 1.0; duration: 800 }
                         }
                     }
+                }
+            }
+        }
+
+        Loader {
+            active: root.screenShareActive
+            visible: active
+            sourceComponent: CircleUtilButton {
+                Layout.alignment: Qt.AlignVCenter
+                
+                MaterialSymbol {
+                    horizontalAlignment: Qt.AlignHCenter
+                    fill: 1
+                    text: "visibility"
+                    iconSize: Appearance.font.pixelSize.large
+                    color: Appearance.colors.colError
                 }
             }
         }
