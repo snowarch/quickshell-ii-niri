@@ -48,16 +48,18 @@ BarIconButton {
 
         contentItem: ColumnLayout {
             spacing: 2
+            Layout.minimumWidth: 180
 
             WButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 180
                 horizontalPadding: 12
                 verticalPadding: 8
                 inset: 2
                 contentItem: RowLayout {
                     spacing: 8
                     FluentIcon { icon: "arrow-sync"; implicitSize: 16 }
-                    WText { text: Translation.tr("Update now"); Layout.fillWidth: true }
+                    WText { text: Translation.tr("Update now") }
                 }
                 onClicked: {
                     menu.close()
@@ -67,13 +69,14 @@ BarIconButton {
 
             WButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 180
                 horizontalPadding: 12
                 verticalPadding: 8
                 inset: 2
                 contentItem: RowLayout {
                     spacing: 8
                     FluentIcon { icon: "arrow-clockwise"; implicitSize: 16 }
-                    WText { text: Translation.tr("Check for updates"); Layout.fillWidth: true }
+                    WText { text: Translation.tr("Check for updates") }
                 }
                 onClicked: {
                     menu.close()
@@ -91,17 +94,18 @@ BarIconButton {
 
             WButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 180
                 horizontalPadding: 12
                 verticalPadding: 8
                 inset: 2
                 contentItem: RowLayout {
                     spacing: 8
                     FluentIcon { icon: "settings"; implicitSize: 16 }
-                    WText { text: Translation.tr("Settings"); Layout.fillWidth: true }
+                    WText { text: Translation.tr("Settings") }
                 }
                 onClicked: {
                     menu.close()
-                    GlobalStates.settingsState.openPage(2)
+                    Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "settings", "open"])
                 }
             }
         }

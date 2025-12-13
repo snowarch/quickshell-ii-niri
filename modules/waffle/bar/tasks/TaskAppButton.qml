@@ -74,6 +74,36 @@ AppButton {
         });
     }
 
+    function fluentIconForDesktopAction(iconName, actionName): string {
+        const icon = String(iconName ?? "").toLowerCase();
+        const name = String(actionName ?? "").toLowerCase();
+
+        if (name.includes("new") && (name.includes("window") || name.includes("instance") || name.includes("tab"))) {
+            return "add";
+        }
+        if (name.includes("open") || name.includes("launch")) {
+            return "arrow-enter-left";
+        }
+        if (name.includes("private") || name.includes("incognito")) {
+            return "shield";
+        }
+        if (name.includes("settings") || name.includes("preferences") || icon.includes("settings")) {
+            return "settings";
+        }
+        if (name.includes("quit") || name.includes("exit") || name.includes("close")) {
+            return "dismiss";
+        }
+
+        // Never return arbitrary desktop-action icons: that would fall back to non-Fluent
+        // system icons if we don't have a matching Fluent asset.
+        if (icon.includes("settings") || icon.includes("preferences")) return "settings";
+        if (icon.includes("new") || icon.includes("add")) return "add";
+        if (icon.includes("open") || icon.includes("launch")) return "arrow-enter-left";
+        if (icon.includes("close") || icon.includes("quit") || icon.includes("exit")) return "dismiss";
+
+        return "app-generic";
+    }
+
     // Track if this app was active (focused) - use the toplevel activated state
     // which is more reliable than checking NiriService during click
     readonly property bool wasActive: root.active
@@ -194,7 +224,7 @@ AppButton {
 
         model: [
             ...((root.desktopEntry?.actions.length > 0) ? root.desktopEntry.actions.map(action =>({
-                iconName: action.icon,
+                iconName: root.fluentIconForDesktopAction(action.icon, action.name),
                 text: action.name,
                 action: () => {
                     action.execute()

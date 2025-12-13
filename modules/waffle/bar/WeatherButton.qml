@@ -24,7 +24,7 @@ BarButton {
         anchors.centerIn: parent
 
         MaterialSymbol {
-            text: Icons.getWeatherIcon(Weather.data.wCode) ?? "cloud"
+            text: Icons.getWeatherIcon(Weather.data?.wCode, Weather.isNightNow()) ?? "cloud"
             iconSize: 20
             color: Looks.colors.fg
             Layout.alignment: Qt.AlignVCenter
