@@ -12,18 +12,20 @@ GroupButton {
     buttonRadius: (altAction && toggled) ? Appearance?.rounding.normal : Math.min(baseHeight, baseWidth) / 2
     buttonRadiusPressed: Appearance?.rounding?.small
 
-    contentItem: MaterialSymbol {
-        anchors.centerIn: parent
-        iconSize: 22
-        fill: toggled ? 1 : 0
-        color: toggled ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer1
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        text: buttonIcon
+    contentItem: Item {
+        // Item fills the button area, icon is centered inside
+        MaterialSymbol {
+            anchors.centerIn: parent
+            iconSize: 22
+            fill: button.toggled ? 1 : 0
+            color: button.toggled ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer1
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: button.buttonIcon
 
-        Behavior on color {
-            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+            Behavior on color {
+                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+            }
         }
     }
-
 }
