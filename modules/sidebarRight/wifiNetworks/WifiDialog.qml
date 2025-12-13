@@ -25,16 +25,21 @@ WindowDialog {
         Layout.leftMargin: -Appearance.rounding.large
         Layout.rightMargin: -Appearance.rounding.large
     }
-    ListView {
+    StyledListView {
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.topMargin: -15
         Layout.bottomMargin: -16
         Layout.leftMargin: -Appearance.rounding.large
         Layout.rightMargin: -Appearance.rounding.large
+        leftMargin: 8
+        rightMargin: 8
+        topMargin: 8
+        bottomMargin: 8
 
         clip: true
-        spacing: 0
+        spacing: 4
+        animateAppearance: false
 
         model: ScriptModel {
             values: [...Network.wifiNetworks].sort((a, b) => {
@@ -51,6 +56,8 @@ WindowDialog {
             anchors {
                 left: parent?.left
                 right: parent?.right
+                leftMargin: 8
+                rightMargin: 8
             }
         }
     }

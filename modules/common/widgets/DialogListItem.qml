@@ -18,8 +18,8 @@ RippleButton {
         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
     }
 
-    colBackground: ColorUtils.transparentize(Appearance.colors.colLayer3)
-    colBackgroundHover: active ? colBackground : Appearance.colors.colLayer3Hover
-    colRipple: Appearance.colors.colLayer3Active
-    buttonRadius: 0
+    colBackground: active ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer2
+    colBackgroundHover: active ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer2Hover
+    colRipple: active ? Appearance.colors.colPrimaryContainerActive : Appearance.colors.colLayer2Active
+    buttonRadius: Appearance.rounding.normal
 }
