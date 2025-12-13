@@ -26,10 +26,12 @@ QtObject {
     property int rateLimitedUntilMs: 0
     readonly property bool isRateLimited: nowMs < rateLimitedUntilMs
 
+    readonly property bool _active: (Config.options?.sidebar?.wallhaven?.enable ?? true) && (GlobalStates?.sidebarLeftOpen ?? false)
+
     property Timer wallhavenClock: Timer {
         interval: 500
         repeat: true
-        running: true
+        running: root._active
         onTriggered: root.nowMs = Date.now()
     }
 
@@ -49,7 +51,7 @@ QtObject {
     property Timer pendingSearchTimer: Timer {
         interval: 300
         repeat: true
-        running: true
+        running: root._active
         onTriggered: {
             if (!root.pendingSearch)
                 return
@@ -192,7 +194,7 @@ QtObject {
     property Timer tagQueueTimer: Timer {
         interval: 350
         repeat: true
-        running: true
+        running: root._active
         onTriggered: root._fetchNextTag()
     }
 

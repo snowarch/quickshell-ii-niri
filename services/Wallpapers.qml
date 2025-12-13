@@ -91,24 +91,25 @@ Singleton {
     Process {
         id: validateDirProc
         property string nicePath: ""
+        property bool _pendingFileCheck: false
         function setDirectoryIfValid(path) {
             validateDirProc.nicePath = FileUtils.trimFileProtocol(path).replace(/\/+$/, "")
             if (/^\/*$/.test(validateDirProc.nicePath)) validateDirProc.nicePath = "/";
-            validateDirProc.exec([
-                "bash", "-c",
-                `if [ -d "${validateDirProc.nicePath}" ]; then echo dir; elif [ -f "${validateDirProc.nicePath}" ]; then echo file; else echo invalid; fi`
-            ])
+            validateDirProc._pendingFileCheck = false
+            validateDirProc.exec(["test", "-d", validateDirProc.nicePath])
         }
-        stdout: StdioCollector {
-            onStreamFinished: {
+        onExited: (exitCode, exitStatus) => {
+            if (!validateDirProc._pendingFileCheck) {
+                if (exitCode === 0) {
                     root.directory = Qt.resolvedUrl(validateDirProc.nicePath)
-                const result = text.trim()
-                if (result === "dir") {
-                } else if (result === "file") {
-                    root.directory = Qt.resolvedUrl(FileUtils.parentDirectory(validateDirProc.nicePath))
-                } else {
-                    // Ignore
+                    return
                 }
+                validateDirProc._pendingFileCheck = true
+                validateDirProc.exec(["test", "-f", validateDirProc.nicePath])
+                return
+            }
+            if (exitCode === 0) {
+                root.directory = Qt.resolvedUrl(FileUtils.parentDirectory(validateDirProc.nicePath))
             }
         }
     }
@@ -150,10 +151,14 @@ Singleton {
         // console.log("[Wallpapers] Updating thumbnails")
         if (!["normal", "large", "x-large", "xx-large"].includes(size)) throw new Error("Invalid thumbnail size");
         thumbgenProc.directory = root.directory
+        thumbgenProc._size = size
         thumbgenProc.running = false
+        thumbgenFallbackProc.running = false
         thumbgenProc.command = [
-            "bash", "-c",
-            `${thumbgenScriptPath} --size ${size} --machine_progress -d ${FileUtils.trimFileProtocol(root.directory)} || ${generateThumbnailsMagickScriptPath} --size ${size} -d ${root.directory}`,
+            thumbgenScriptPath,
+            "--size", size,
+            "--machine_progress",
+            "-d", FileUtils.trimFileProtocol(root.directory)
         ]
         root.thumbnailGenerationProgress = 0
         thumbgenProc.running = true
@@ -161,6 +166,7 @@ Singleton {
     Process {
         id: thumbgenProc
         property string directory
+        property string _size: ""
         stdout: SplitParser {
             onRead: data => {
                 // print("thumb gen proc:", data)
@@ -177,6 +183,22 @@ Singleton {
                 }
             }
         }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                thumbgenFallbackProc.command = [
+                    generateThumbnailsMagickScriptPath,
+                    "--size", thumbgenProc._size,
+                    "-d", FileUtils.trimFileProtocol(thumbgenProc.directory)
+                ]
+                thumbgenFallbackProc.running = true
+                return
+            }
+            root.thumbnailGenerated(thumbgenProc.directory)
+        }
+    }
+
+    Process {
+        id: thumbgenFallbackProc
         onExited: (exitCode, exitStatus) => {
             root.thumbnailGenerated(thumbgenProc.directory)
         }

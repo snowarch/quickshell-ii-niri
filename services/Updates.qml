@@ -15,8 +15,8 @@ Singleton {
     property bool available: false
     property int count: 0
     
-    readonly property bool updateAdvised: available && count > Config.options.updates.adviseUpdateThreshold
-    readonly property bool updateStronglyAdvised: available && count > Config.options.updates.stronglyAdviseUpdateThreshold
+    readonly property bool updateAdvised: available && count > (Config.options?.updates?.adviseUpdateThreshold ?? 75)
+    readonly property bool updateStronglyAdvised: available && count > (Config.options?.updates?.stronglyAdviseUpdateThreshold ?? 200)
 
     function load() {}
     function refresh() {
@@ -26,7 +26,7 @@ Singleton {
     }
 
     Timer {
-        interval: Config.options.updates.checkInterval * 60 * 1000
+        interval: (Config.options?.updates?.checkInterval ?? 120) * 60 * 1000
         repeat: true
         running: Config.ready
         onTriggered: {
@@ -35,9 +35,23 @@ Singleton {
         }
     }
 
+    Timer {
+        id: availabilityDefer
+        interval: 1500
+        repeat: false
+        onTriggered: checkAvailabilityProc.running = true
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) availabilityDefer.start()
+        }
+    }
+
     Process {
         id: checkAvailabilityProc
-        running: true
+        running: false
         command: ["which", "checkupdates"]
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0);
@@ -47,10 +61,16 @@ Singleton {
 
     Process {
         id: checkUpdatesProc
-        command: ["bash", "-c", "checkupdates | wc -l"]
+        command: ["checkupdates"]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.count = parseInt(text.trim());
+                const t = (text ?? "").trim();
+                root.count = t.length > 0 ? t.split("\n").length : 0;
+            }
+        }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.error("[Updates] checkupdates failed", exitCode, exitStatus)
             }
         }
     }
