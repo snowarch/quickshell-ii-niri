@@ -228,13 +228,7 @@ MouseArea {
                 }
                 
                 function getWeatherIconWithTime(code: string): string {
-                    const baseIcon = Icons.getWeatherIcon(code) ?? "cloud"
-                    const isNight = isNightTime()
-                    if (isNight) {
-                        if (baseIcon === "clear_day") return "clear_night"
-                        if (baseIcon === "partly_cloudy_day") return "partly_cloudy_night"
-                    }
-                    return baseIcon
+                    return Icons.getWeatherIcon(code, Weather.isNightNow()) ?? "cloud"
                 }
                 
                 MaterialSymbol {

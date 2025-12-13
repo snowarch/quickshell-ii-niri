@@ -15,6 +15,8 @@ import Quickshell.Hyprland
 Scope {
     id: overviewScope
     property bool dontAutoCancelSearch: false
+
+    Component.onCompleted: CompositorService.setSortingConsumer("overview", GlobalStates.overviewOpen)
     Variants {
         id: overviewVariants
         model: Quickshell.screens
@@ -105,6 +107,7 @@ Scope {
             Connections {
                 target: GlobalStates
                 function onOverviewOpenChanged() {
+                    CompositorService.setSortingConsumer("overview", GlobalStates.overviewOpen)
                     if (!GlobalStates.overviewOpen) {
                         // Al cerrar, limpiar completamente la búsqueda
                         searchWidget.cancelSearch();

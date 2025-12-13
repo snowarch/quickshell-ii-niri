@@ -49,6 +49,8 @@ Item {
         width: Math.min(300, themeButton.width)
         height: Math.min(280, themeList.contentHeight + searchField.height + 24)
         padding: 8
+
+        onOpened: IconThemeService.ensureInitialized()
         
         background: Rectangle {
             color: Appearance.colors.colLayer2

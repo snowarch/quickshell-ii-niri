@@ -16,6 +16,8 @@ Scope {
     readonly property bool isTop: position.startsWith("top")
     readonly property bool isLeft: position.endsWith("Left")
 
+    Component.onCompleted: Notifications.ensureInitialized()
+
     PanelWindow {
         id: root
         // Hide during GameMode to avoid input interference
