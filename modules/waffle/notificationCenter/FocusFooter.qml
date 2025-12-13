@@ -27,7 +27,7 @@ FooterRectangle {
         SmallBorderedIconButton {
             visible: !TimerService.pomodoroRunning
             icon.name: "subtract"
-            onClicked: Config.options.time.pomodoro.focus -= 300 // 5 mins
+            onClicked: Config.setNestedValue("time.pomodoro.focus", (Config.options?.time?.pomodoro?.focus ?? 1500) - 300)
         }
 
         WTextWithFixedWidth {
@@ -41,7 +41,7 @@ FooterRectangle {
         SmallBorderedIconButton {
             visible: !TimerService.pomodoroRunning
             icon.name: "add"
-            onClicked: Config.options.time.pomodoro.focus += 300 // 5 mins
+            onClicked: Config.setNestedValue("time.pomodoro.focus", (Config.options?.time?.pomodoro?.focus ?? 1500) + 300)
         }
 
         WText {
