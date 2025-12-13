@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs.services
 import qs.modules.common
 import qs.modules.common.functions
@@ -13,4 +14,10 @@ QuickToggleModel {
     toggled: Network.wifiStatus !== "disabled"
     mainAction: () => Network.toggleWifi()
     hasMenu: true
+    altAction: () => {
+        const cmd = Network.ethernet
+            ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor")
+            : (Config.options?.apps?.network ?? "nm-connection-editor")
+        Quickshell.execDetached(["bash", "-c", cmd])
+    }
 }

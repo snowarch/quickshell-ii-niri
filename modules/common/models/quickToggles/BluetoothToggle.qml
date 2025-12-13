@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Bluetooth
 import qs.services
 import qs.modules.common
@@ -20,4 +21,8 @@ QuickToggleModel {
         Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter?.enabled
     }
     hasMenu: true
+    altAction: () => {
+        const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
+        Quickshell.execDetached(["bash", "-c", cmd])
+    }
 }
