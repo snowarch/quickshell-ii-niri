@@ -62,6 +62,23 @@ Singleton {
     property int pomodoroSecondsLeft: pomodoroLapDuration
     property int pomodoroCycle: Persistent.states?.timer?.pomodoro?.cycle ?? 0
 
+    // When focusTime changes and timer is not running, reset pomodoroSecondsLeft
+    onFocusTimeChanged: {
+        if (!pomodoroRunning && !pomodoroBreak) {
+            pomodoroSecondsLeft = focusTime
+        }
+    }
+    onBreakTimeChanged: {
+        if (!pomodoroRunning && pomodoroBreak && !pomodoroLongBreak) {
+            pomodoroSecondsLeft = breakTime
+        }
+    }
+    onLongBreakTimeChanged: {
+        if (!pomodoroRunning && pomodoroLongBreak) {
+            pomodoroSecondsLeft = longBreakTime
+        }
+    }
+
     property bool stopwatchRunning: Persistent.states?.timer?.stopwatch?.running ?? false
     property int stopwatchTime: 0
     property int stopwatchStart: Persistent.states?.timer?.stopwatch?.start ?? 0
