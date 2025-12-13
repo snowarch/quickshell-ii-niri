@@ -18,6 +18,20 @@ WBarAttachedPanelContent {
     revealFromSides: true
     revealFromLeft: true
 
+    Component.onCompleted: {
+        if (GlobalStates.waffleWidgetsOpen)
+            ResourceUsage.ensureRunning()
+    }
+
+    Connections {
+        target: GlobalStates
+        function onWaffleWidgetsOpenChanged() {
+            if (GlobalStates.waffleWidgetsOpen) {
+                ResourceUsage.ensureRunning()
+            }
+        }
+    }
+
     readonly property bool barAtBottom: Config.options.waffles.bar.bottom
 
     contentItem: ColumnLayout {

@@ -12,7 +12,7 @@ import qs.modules.waffle.looks
 WChoiceButton {
     id: root
 
-    required property LauncherSearchResult entry
+    property var entry
     property bool firstEntry: false
 
     // Use ListView.isCurrentItem for proper tracking with keyboard navigation
@@ -27,7 +27,7 @@ WChoiceButton {
 
     function execute() {
         GlobalStates.searchOpen = false;
-        root.entry.execute();
+        root.entry?.execute?.();
     }
 
     contentItem: RowLayout {
@@ -51,7 +51,7 @@ WChoiceButton {
         WText {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
-            text: root.entry.name
+            text: root.entry?.name ?? ""
             font.pixelSize: Looks.font.pixelSize.large
             maximumLineCount: 2
         }
@@ -59,7 +59,7 @@ WChoiceButton {
         WText {
             Layout.fillWidth: true
             visible: root.firstEntry
-            text: root.entry.type
+            text: root.entry?.type ?? ""
             color: Looks.colors.accentUnfocused
         }
     }

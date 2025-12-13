@@ -27,6 +27,7 @@ WFadeLoader 1.0 WFadeLoader.qml
 WPanelIconButton 1.0 WPanelIconButton.qml
 WPanelPageColumn 1.0 WPanelPageColumn.qml
 WPanelSeparator 1.0 WPanelSeparator.qml
+WTaskbarSeparator 1.0 WTaskbarSeparator.qml
 WPopupToolTip 1.0 WPopupToolTip.qml
 WRectangularShadow 1.0 WRectangularShadow.qml
 WAmbientShadow 1.0 WAmbientShadow.qml

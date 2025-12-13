@@ -192,7 +192,7 @@ MouseArea {
                     MaterialSymbol {
                         anchors.verticalCenter: parent.verticalCenter
                         text: {
-                            const icon = Icons.getWeatherIcon(Weather.data?.wCode ?? "113")
+                            const icon = Icons.getWeatherIcon(Weather.data?.wCode ?? "113", Weather.isNightNow())
                             return icon ? icon : "cloud"
                         }
                         iconSize: 48

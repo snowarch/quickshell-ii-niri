@@ -210,6 +210,11 @@ Singleton {
             // Delegates to root.fontFamily for reactive updates
             readonly property string ui: root.fontFamily
         }
+        property QtObject variableAxes: QtObject {
+            property var ui: ({
+                "wdth": 25
+            })
+        }
         property QtObject weight: QtObject {
             property int thin: Font.Normal
             property int regular: Font.Medium
@@ -275,7 +280,7 @@ Singleton {
         
         property Component color: Component {
             ColorAnimation {
-                duration: transition.enabled ? transition.duration.normal : 0
+                duration: transition.enabled ? 70 : 0
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: transition.easing.bezierCurve.standard
             }

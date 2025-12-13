@@ -38,7 +38,7 @@ RowLayout {
         Layout.preferredWidth: 260
         Layout.leftMargin: 1
         Layout.rightMargin: 1
-        entry: resultList.model[resultList.currentIndex] ?? searchResultComp.createObject()
+        entry: resultList.model[resultList.currentIndex] ?? null
     }
 
     component ResultList: WListView {
@@ -117,7 +117,7 @@ RowLayout {
     component ResultPreview: Rectangle {
         id: resultPreview
 
-        property LauncherSearchResult entry
+        property var entry
 
         Layout.fillHeight: true
         color: Looks.colors.bg1

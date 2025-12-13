@@ -124,6 +124,32 @@ WSettingsPage {
     }
     
     WSettingsCard {
+        visible: root.isWaffleActive && root.isPanelEnabled("wTaskView")
+        title: Translation.tr("Task View")
+        icon: "desktop"
+        
+        WSettingsDropdown {
+            label: Translation.tr("View mode")
+            icon: "options"
+            description: Translation.tr("Carousel shows all desktops equally. Centered focus highlights the selected desktop while others appear smaller.")
+            currentValue: Config.options?.waffles?.taskView?.mode ?? "carousel"
+            options: [
+                { value: "carousel", displayName: Translation.tr("Carousel") },
+                { value: "centered", displayName: Translation.tr("Centered focus") }
+            ]
+            onSelected: newValue => Config.setNestedValue("waffles.taskView.mode", newValue)
+        }
+        
+        WSettingsSwitch {
+            label: Translation.tr("Close on window select")
+            icon: "dismiss"
+            description: Translation.tr("Close Task View when clicking a window")
+            checked: Config.options?.waffles?.taskView?.closeOnSelect ?? false
+            onCheckedChanged: Config.setNestedValue("waffles.taskView.closeOnSelect", checked)
+        }
+    }
+    
+    WSettingsCard {
         visible: root.isWaffleActive
         title: Translation.tr("Behavior")
         icon: "settings"
