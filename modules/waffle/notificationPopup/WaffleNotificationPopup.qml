@@ -12,6 +12,8 @@ import qs.modules.waffle.looks
 
 Scope {
     id: root
+
+    Component.onCompleted: Notifications.ensureInitialized()
     
     // Position from shared notifications config
     readonly property string position: Config.options?.notifications?.position ?? "bottomRight"

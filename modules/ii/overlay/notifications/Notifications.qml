@@ -14,6 +14,8 @@ import qs.modules.sidebarRight.notifications
 StyledOverlayWidget {
     id: root
 
+    Component.onCompleted: Notifications.ensureInitialized()
+
     // Evitar que arrastrar una notificación mueva todo el widget
     draggable: GlobalStates.overlayOpen && !notificationsHoverArea.containsMouse
 

@@ -10,6 +10,8 @@ Item {
     id: root
     clip: true
 
+    Component.onCompleted: Notifications.ensureInitialized()
+
     NotificationListView { // Scrollable window
         id: listview
         anchors.left: parent.left

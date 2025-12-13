@@ -10,6 +10,8 @@ import qs.modules.common.widgets
 Scope {
     id: root
 
+    Component.onCompleted: Notifications.ensureInitialized()
+
     Connections {
         target: GlobalStates
         function onWaffleNotificationCenterOpenChanged() {
