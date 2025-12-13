@@ -19,7 +19,7 @@ BarIconButton {
 
     function runUpdate(): void {
         const cmd = Config.options?.apps?.update ?? "foot -e sudo pacman -Syu"
-        Quickshell.execDetached(["bash", "-c", cmd])
+        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
     }
 
     onClicked: runUpdate()

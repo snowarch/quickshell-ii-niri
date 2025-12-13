@@ -36,13 +36,15 @@ AppButton {
             {
                 text: Translation.tr("Terminal"),
                 action: () => {
-                    Quickshell.execDetached(["bash", "-c", Config.options.apps.terminal]);
+                    const cmd = Config.options?.apps?.terminal ?? "foot"
+                    Quickshell.execDetached(["fish", "-c", cmd])
                 }
             },
             {
                 text: Translation.tr("Task Manager"),
                 action: () => {
-                    Quickshell.execDetached(["bash", "-c", Config.options.apps.taskManager]);
+                    const cmd = Config.options?.apps?.taskManager ?? "missioncenter"
+                    Quickshell.execDetached(["fish", "-c", cmd])
                 }
             },
             {

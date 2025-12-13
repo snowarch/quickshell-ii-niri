@@ -17,7 +17,8 @@ QuickToggleButton {
         Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter?.enabled
     }
     altAction: () => {
-        Quickshell.execDetached([Config.options?.apps?.bluetooth ?? "blueman-manager"])
+        const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
+        Quickshell.execDetached(["fish", "-c", cmd])
         GlobalStates.sidebarRightOpen = false
     }
     StyledToolTip {

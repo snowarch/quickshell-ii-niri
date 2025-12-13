@@ -210,7 +210,7 @@ Item { // Wrapper
                 }
                 cleanedCommand = cleanedCommand.trim();
                 if (!cleanedCommand.length) return;
-                const term = Config.options.apps.terminal || "ghostty";
+                const term = Config.options?.apps?.terminal ?? "ghostty";
                 if (term.indexOf("ghostty") !== -1) {
                     Quickshell.execDetached([term, "-e", "sh", "-lc", cleanedCommand]);
                 } else {

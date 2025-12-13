@@ -35,7 +35,8 @@ StyledOverlayWidget {
                     name: "Open Discord"
                     onClicked: {
                         GlobalStates.overlayOpen = false
-                        Quickshell.execDetached(["bash", "-lc", Config.options.apps.discord])
+                        const cmd = Config.options?.apps?.discord ?? "discord"
+                        Quickshell.execDetached(["fish", "-c", cmd])
                     }
                 }
 

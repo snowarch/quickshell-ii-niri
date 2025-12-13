@@ -590,7 +590,8 @@ WBarAttachedPanelContent {
                             iconName: "terminal"
                             label: Translation.tr("Terminal")
                             onClicked: {
-                                Quickshell.execDetached([Config.options.apps?.terminal ?? "foot"])
+                                const cmd = Config.options?.apps?.terminal ?? "foot"
+                                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
                                 GlobalStates.waffleWidgetsOpen = false
                             }
                         }

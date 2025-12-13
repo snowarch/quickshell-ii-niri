@@ -40,7 +40,8 @@ Singleton {
     }
 
     function launchTaskManager() {
-        Quickshell.execDetached(["bash", "-c", `${Config.options.apps.taskManager}`]);
+        const cmd = Config.options?.apps?.taskManager ?? "missioncenter"
+        Quickshell.execDetached(["fish", "-c", cmd])
     }
 
     function hibernate() {

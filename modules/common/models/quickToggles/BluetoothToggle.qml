@@ -23,6 +23,6 @@ QuickToggleModel {
     hasMenu: true
     altAction: () => {
         const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-        Quickshell.execDetached(["bash", "-c", cmd])
+        Quickshell.execDetached(["fish", "-c", cmd])
     }
 }

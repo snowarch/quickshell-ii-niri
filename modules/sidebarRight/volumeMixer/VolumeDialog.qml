@@ -30,7 +30,8 @@ WindowDialog {
         DialogButton {
             buttonText: Translation.tr("Details")
             onClicked: {
-                Quickshell.execDetached([Config.options?.apps?.volumeMixer ?? "pavucontrol"]);
+                const cmd = Config.options?.apps?.volumeMixer ?? "pavucontrol"
+                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd]);
                 GlobalStates.sidebarRightOpen = false;
             }
         }

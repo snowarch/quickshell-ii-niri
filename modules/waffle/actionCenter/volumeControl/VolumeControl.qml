@@ -53,30 +53,16 @@ Item {
         WPanelSeparator {}
 
         FooterRectangle {
-            WButton {
-                id: moreSettingsButton
+            FooterMoreButton {
                 anchors {
                     verticalCenter: parent.verticalCenter
                     left: parent.left
                 }
-                implicitHeight: 40
-                implicitWidth: contentItem.implicitWidth + 30
-                color: "transparent"
-
+                text: Translation.tr("More volume settings")
                 onClicked: {
-                    Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "sidebarLeft", "toggle"]);
-                    Quickshell.execDetached(["bash", "-c", Config.options.apps.volumeMixer]);
-                }
-
-                contentItem: Item {
-                    anchors.centerIn: parent
-                    implicitWidth: buttonText.implicitWidth
-                    WText {
-                        id: buttonText
-                        anchors.centerIn: parent
-                        text: Translation.tr("More volume settings")
-                        color: moreSettingsButton.pressed ? Looks.colors.fg : Looks.colors.fg1
-                    }
+                    GlobalStates.waffleActionCenterOpen = false
+                    const cmd = Config.options?.apps?.volumeMixer ?? "pavucontrol"
+                    Quickshell.execDetached(["fish", "-c", cmd])
                 }
             }
         }

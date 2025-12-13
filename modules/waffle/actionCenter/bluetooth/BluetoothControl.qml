@@ -106,9 +106,9 @@ Item {
                 }
                 text: Translation.tr("More Bluetooth settings")
                 onClicked: {
-                    GlobalStates.actionCenterOpen = false
+                    GlobalStates.waffleActionCenterOpen = false
                     const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-                    Quickshell.execDetached([cmd])
+                    Quickshell.execDetached(["fish", "-c", cmd])
                 }
             }
             WBorderlessButton {

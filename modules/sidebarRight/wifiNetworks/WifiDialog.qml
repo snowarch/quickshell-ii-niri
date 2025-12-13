@@ -59,7 +59,8 @@ WindowDialog {
         DialogButton {
             buttonText: Translation.tr("Details")
             onClicked: {
-                Quickshell.execDetached([Network.ethernet ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor") : (Config.options?.apps?.network ?? "nm-connection-editor")]);
+                const cmd = Network.ethernet ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor") : (Config.options?.apps?.network ?? "nm-connection-editor")
+                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd]);
                 GlobalStates.sidebarRightOpen = false;
             }
         }
