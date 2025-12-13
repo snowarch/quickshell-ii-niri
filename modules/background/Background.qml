@@ -40,7 +40,7 @@ Variants {
             }
             return false
         }
-        visible: GlobalStates.screenLocked || !hasFullscreenWindow || !Config?.options.background.hideWhenFullscreen
+        visible: GlobalStates.screenLocked || !hasFullscreenWindow || !(Config.options?.background?.hideWhenFullscreen ?? false)
 
         // Workspaces
         property HyprlandMonitor monitor: CompositorService.isHyprland ? Hyprland.monitorFor(modelData) : null
@@ -133,9 +133,22 @@ Variants {
         onWallpaperPathChanged: bgRoot.updateZoomScale()
 
         function updateZoomScale() {
-            getWallpaperSizeProc.path = bgRoot.wallpaperPath;
-            getWallpaperSizeProc.running = true;
+            wallpaperSizeDebounce.restart()
         }
+
+        Timer {
+            id: wallpaperSizeDebounce
+            interval: 350
+            repeat: false
+            onTriggered: {
+                if (!bgRoot.wallpaperPath || bgRoot.wallpaperPath.length === 0) return;
+                if (bgRoot.wallpaperIsVideo) return;
+                if (bgRoot.wallpaperSafetyTriggered) return;
+                getWallpaperSizeProc.path = bgRoot.wallpaperPath;
+                getWallpaperSizeProc.running = true;
+            }
+        }
+
         Process {
             id: getWallpaperSizeProc
             property string path: bgRoot.wallpaperPath
@@ -211,7 +224,9 @@ Variants {
             Loader {
                 id: blurAlwaysLoader
                 z: 1
-                active: Config.options.background?.effects?.enableBlur
+                active: Appearance.effectsEnabled
+                        && (bgRoot.blurProgress > 0)
+                        && (Config.options.background?.effects?.enableBlur ?? false)
                         && !Config.options?.performance?.lowPower
                         && (Config.options.background?.effects?.blurRadius ?? 0) > 0
                         && !blurLoader.active

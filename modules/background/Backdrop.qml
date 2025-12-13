@@ -58,6 +58,8 @@ Variants {
                         ? backdropWindow.effectiveWallpaperPath 
                         : "file://" + backdropWindow.effectiveWallpaperPath)
                     : ""
+                asynchronous: true
+                cache: true
             }
 
             MultiEffect {
@@ -65,7 +67,7 @@ Variants {
                 anchors.fill: parent
                 source: wallpaper
                 visible: wallpaper.status === Image.Ready
-                blurEnabled: backdropWindow.backdropBlurRadius > 0
+                blurEnabled: Appearance.effectsEnabled && backdropWindow.backdropBlurRadius > 0
                 blur: backdropWindow.backdropBlurRadius / 100.0
                 blurMax: 64
                 saturation: backdropWindow.backdropSaturation
