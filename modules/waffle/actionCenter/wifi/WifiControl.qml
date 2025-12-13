@@ -100,7 +100,7 @@ Item {
                     const cmd = Network.ethernet
                         ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor")
                         : (Config.options?.apps?.network ?? "nm-connection-editor")
-                    Quickshell.execDetached(["bash", "-c", cmd])
+                    Quickshell.execDetached([cmd])
                 }
             }
             WBorderlessButton {

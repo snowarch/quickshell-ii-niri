@@ -67,6 +67,7 @@ Rectangle {
             }
 
             StyledSlider {
+                id: slider
                 Layout.fillWidth: true
                 value: root.node?.audio.volume ?? 0
                 onMoved: {
@@ -77,6 +78,15 @@ Rectangle {
                     }
                 }
                 configuration: StyledSlider.Configuration.S
+                // Sync when volume changes externally
+                Connections {
+                    target: root.node?.audio ?? null
+                    function onVolumeChanged() {
+                        if (!slider.pressed) {
+                            slider.value = root.node?.audio.volume ?? 0
+                        }
+                    }
+                }
             }
         }
 

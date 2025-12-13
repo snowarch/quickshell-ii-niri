@@ -108,7 +108,7 @@ Item {
                 onClicked: {
                     GlobalStates.actionCenterOpen = false
                     const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-                    Quickshell.execDetached(["bash", "-c", cmd])
+                    Quickshell.execDetached([cmd])
                 }
             }
             WBorderlessButton {

@@ -59,6 +59,7 @@ RowLayout {
     }
 
     WSlider {
+        id: volumeSlider
         Layout.fillWidth: true
         value: root.node?.audio.volume ?? 0
         onMoved: {
@@ -66,6 +67,15 @@ RowLayout {
                 Audio.setSinkVolume(value)
             } else {
                 root.node.audio.volume = value
+            }
+        }
+        // Sync when volume changes externally
+        Connections {
+            target: root.node?.audio ?? null
+            function onVolumeChanged() {
+                if (!volumeSlider.pressed) {
+                    volumeSlider.value = root.node?.audio.volume ?? 0
+                }
             }
         }
     }

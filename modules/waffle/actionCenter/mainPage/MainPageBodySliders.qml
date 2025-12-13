@@ -39,10 +39,13 @@ ColumnLayout {
             onMoved: {
                 root.brightnessMonitor?.setBrightness(value)
             }
-            // Prevent binding from overwriting during interaction
-            onPressedChanged: {
-                if (pressed) {
-                    value = value // Break binding temporarily
+            // Sync when brightness changes externally (keybinds)
+            Connections {
+                target: root.brightnessMonitor ?? null
+                function onBrightnessChanged() {
+                    if (!brightnessSlider.pressed) {
+                        brightnessSlider.value = root.brightnessMonitor?.brightness ?? 0
+                    }
                 }
             }
         }
@@ -68,10 +71,13 @@ ColumnLayout {
             onMoved: {
                 Audio.setSinkVolume(value)
             }
-            // Prevent binding from overwriting during interaction
-            onPressedChanged: {
-                if (pressed) {
-                    value = value // Break binding temporarily
+            // Sync when volume changes externally (keybinds, other apps)
+            Connections {
+                target: Audio.sink?.audio ?? null
+                function onVolumeChanged() {
+                    if (!volumeSlider.pressed) {
+                        volumeSlider.value = Audio.sink?.audio?.volume ?? 0
+                    }
                 }
             }
         }
