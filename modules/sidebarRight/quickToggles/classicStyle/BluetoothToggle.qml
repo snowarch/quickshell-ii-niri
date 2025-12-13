@@ -16,11 +16,7 @@ QuickToggleButton {
     onClicked: {
         Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter?.enabled
     }
-    altAction: () => {
-        const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
-        GlobalStates.sidebarRightOpen = false
-    }
+    // altAction is set by parent (ClassicQuickPanel opens dialog, others may open external app)
     StyledToolTip {
         text: Translation.tr("%1 | Right-click to configure").arg(
             (BluetoothStatus.firstActiveDevice?.name ?? Translation.tr("Bluetooth"))

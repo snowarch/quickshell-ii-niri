@@ -43,6 +43,14 @@ GroupButton {
 
     signal openMenu()
 
+    // TapHandler for right-click - needs to be here because contentItem has MouseAreas
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onTapped: {
+            if (root.altAction) root.altAction();
+        }
+    }
+
     padding: 6
     horizontalPadding: padding
     verticalPadding: padding

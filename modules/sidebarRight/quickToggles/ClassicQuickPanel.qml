@@ -21,14 +21,10 @@ AbstractQuickPanel {
         color: Appearance.colors.colLayer1
 
         NetworkToggle {
-            altAction: () => {
-                root.openWifiDialog();
-            }
+            altAction: () => root.openWifiDialog()
         }
         BluetoothToggle {
-            altAction: () => {
-                root.openBluetoothDialog();
-            }
+            altAction: () => root.openBluetoothDialog()
         }
         NightLight {}
         GameMode {}
