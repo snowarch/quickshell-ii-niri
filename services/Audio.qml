@@ -61,7 +61,7 @@ Singleton {
 
     // Set sink volume safely. When protection is enabled, large jumps can be rejected as "Illegal increment".
     // To keep UX consistent with brightness (click anywhere), we optionally ramp in small steps.
-    function setSinkVolume(target: real, ramp: bool = true): void {
+    function setSinkVolume(target, ramp = true) {
         if (!root.sink?.audio) return;
 
         const maxAllowed = (Config.options?.audio?.protection?.maxAllowed ?? 100) / 100;
