@@ -902,6 +902,10 @@ Singleton {
                     // Custom workspace names, keyed by workspace index (1-based)
                     // Example: "1": "Main", "2": "Work", "3": "Gaming"
                 }
+                property JsonObject taskView: JsonObject {
+                    property string mode: "carousel" // "carousel" or "centered"
+                    property bool closeOnSelect: false // Close TaskView when clicking a window
+                }
             }
             property JsonObject workSafety: JsonObject {
                 property JsonObject enable: JsonObject {

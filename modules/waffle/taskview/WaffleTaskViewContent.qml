@@ -40,6 +40,10 @@ Item {
     readonly property real hintsHeight: 18
     readonly property real totalHeight: thumbnailHeight + labelHeight + labelSpacing + hintsSpacing + hintsHeight + dotsHeight
     
+    // View mode: "carousel" or "centered"
+    readonly property string viewMode: Config.options?.waffles?.taskView?.mode ?? "carousel"
+    readonly property bool isCenteredMode: viewMode === "centered"
+    
     // Search filter
     property string searchQuery: ""
     readonly property var filteredWindowItems: {
@@ -242,6 +246,20 @@ Item {
         function onWaffleTaskViewOpenChanged(): void {
             if (GlobalStates.waffleTaskViewOpen) {
                 root.refreshCache()
+            }
+        }
+    }
+    
+    Connections {
+        target: NiriService
+        function onWindowsChanged(): void {
+            // Only refresh if window count changed (window closed/opened), not on focus change
+            if (GlobalStates.waffleTaskViewOpen) {
+                const currentCount = (NiriService.windows ?? []).length
+                const cachedCount = root.cachedWindowItems.length
+                if (currentCount !== cachedCount) {
+                    root.refreshCache()
+                }
             }
         }
     }
@@ -455,6 +473,11 @@ Item {
                             return !root.cachedWindowItems.some(w => w.workspaceSlot === index)
                         }
                         isEmpty: !root.cachedWindowItems.some(w => w.workspaceSlot === index)
+                        
+                        // Centered mode properties
+                        viewMode: root.viewMode
+                        distanceFromSelected: Math.abs(index - root.selectedSlot)
+                        relativePosition: index - root.selectedSlot
 
                         onClicked: {
                             if (index === root.selectedSlot) {

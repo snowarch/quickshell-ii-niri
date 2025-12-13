@@ -60,15 +60,10 @@ Scope {
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton
+                z: -1  // Below everything so workspace clicks work
                 onClicked: mouse => {
                     if (content.isDragging) return
-                    
-                    const localPos = mapToItem(blurStrip, mouse.x, mouse.y)
-                    const outside = (localPos.x < 0 || localPos.x > blurStrip.width
-                            || localPos.y < 0 || localPos.y > blurStrip.height)
-                    if (outside) {
-                        GlobalStates.waffleTaskViewOpen = false
-                    }
+                    GlobalStates.waffleTaskViewOpen = false
                 }
             }
 

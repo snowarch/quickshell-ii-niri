@@ -33,6 +33,14 @@ Item {
     property bool isKeyboardFocused: false
     property string searchQuery: ""
     
+    // Track focus state - compare with currently focused window
+    property int _focusedWindowId: {
+        const wins = NiriService.windows ?? []
+        const focused = wins.find(w => w.is_focused)
+        return focused?.id ?? -1
+    }
+    readonly property bool isFocused: windowData?.id === _focusedWindowId
+    
     readonly property bool isMaximized: tileWidth > 0 && tileWidth >= (screenWidth - 60)
     
     function highlightText(text: string): string {
@@ -150,6 +158,11 @@ Item {
     Item {
         id: windowContainer
         anchors.fill: parent
+        opacity: root.isFocused || root.hovered ? 1.0 : 0.7
+        
+        Behavior on opacity {
+            NumberAnimation { duration: 150 }
+        }
 
         WRectangularShadow {
             target: windowRect
@@ -265,15 +278,16 @@ Item {
                     }
                 }
 
-                // Preview image - centered with equal margins
+                // Preview image - fill container
                 Image {
                     id: windowPreview
                     source: previewArea.previewUrl
-                    fillMode: Image.PreserveAspectFit
+                    fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    anchors.centerIn: parent
-                    width: parent.width - 8
-                    height: parent.height - 8
+                    smooth: true
+                    mipmap: true
+                    anchors.fill: parent
+                    anchors.margins: 2
                     opacity: status === Image.Ready ? 1 : 0
 
                     Behavior on opacity { 
@@ -332,8 +346,10 @@ Item {
             anchors.fill: parent
             radius: Looks.radius.medium
             color: "transparent"
-            border.width: root.Drag.active || root.windowData?.is_focused || root.isKeyboardFocused || root.hovered ? 2 : 1
-            border.color: root.Drag.active || root.windowData?.is_focused || root.isKeyboardFocused ? Looks.colors.accent : 
+            // Only show focus highlight if this window is focused AND in the currently selected workspace
+            readonly property bool showFocusHighlight: root.isFocused && root.isCurrentWorkspace
+            border.width: root.Drag.active || showFocusHighlight || root.isKeyboardFocused || root.hovered ? 2 : 1
+            border.color: root.Drag.active || showFocusHighlight || root.isKeyboardFocused ? Looks.colors.accent : 
                           root.hovered ? ColorUtils.transparentize(Looks.colors.accent, 0.5) : Looks.colors.bg2Border
             z: 10
             
@@ -371,11 +387,19 @@ Item {
                         return
                     }
                     
+                    // Right-click opens context menu (no drag)
                     if (mouse.button === Qt.RightButton) {
+                        // Close any other open menu first
+                        if (GlobalStates.activeTaskViewMenu && GlobalStates.activeTaskViewMenu !== contextMenu) {
+                            GlobalStates.activeTaskViewMenu.active = false
+                        }
+                        GlobalStates.activeTaskViewMenu = contextMenu
                         contextMenu.active = true
+                        mouse.accepted = true
                         return
                     }
                     
+                    // Only left button starts drag
                     pressX = mouse.x
                     pressY = mouse.y
                     wasDragging = false
@@ -389,7 +413,8 @@ Item {
                 }
 
                 onPositionChanged: mouse => {
-                    if (root.Drag.active) {
+                    // Only track drag for left button
+                    if (root.Drag.active && mouse.buttons & Qt.LeftButton) {
                         const dx = Math.abs(mouse.x - pressX)
                         const dy = Math.abs(mouse.y - pressY)
                         if (dx > 10 || dy > 10) wasDragging = true
@@ -407,10 +432,20 @@ Item {
                     root.x = Qt.binding(() => root.baseX)
                     root.y = Qt.binding(() => root.baseY)
                     
-                    // Left click without drag = focus window and center workspace (don't close TaskView)
+                    // Left click without drag = focus window and center on its workspace
                     if (mouse.button === Qt.LeftButton && !wasActualDrag) {
-                        NiriService.focusWindow(root.windowData?.id)
                         root.focusRequested(root.workspaceSlot)
+                        NiriService.focusWindow(root.windowData?.id)
+                        if (Config.options?.waffles?.taskView?.closeOnSelect) {
+                            GlobalStates.waffleTaskViewOpen = false
+                        }
+                    }
+                }
+                
+                onDoubleClicked: mouse => {
+                    if (mouse.button === Qt.LeftButton) {
+                        NiriService.focusWindow(root.windowData?.id)
+                        GlobalStates.waffleTaskViewOpen = false
                     }
                 }
             }
@@ -421,32 +456,25 @@ Item {
                 text: (root.windowData?.app_id ?? "Unknown") + (root.isMaximized ? " (Maximized)" : "")
             }
 
-            // Close button
+            // Close button in titleBar corner
             Rectangle {
                 id: closeBtn
                 anchors.right: parent.right
                 anchors.top: parent.top
-                anchors.rightMargin: 1
-                anchors.topMargin: 1
-                width: root.titleBarHeight - 2
-                height: root.titleBarHeight - 2
-                radius: closeBtnArea.containsMouse ? 0 : Looks.radius.small
-                color: closeBtnArea.containsMouse ? Looks.colors.danger : ColorUtils.transparentize(Looks.colors.bg0Opaque, 0.5)
+                width: root.titleBarHeight
+                height: root.titleBarHeight
+                radius: 0
+                topRightRadius: Looks.radius.medium
+                color: closeBtnArea.containsMouse ? Looks.colors.danger : "transparent"
                 visible: root.hovered && !root.Drag.active
-                z: 10
+                z: 20
                 
-                Behavior on color { 
-                    ColorAnimation { 
-                        duration: Looks.transition.enabled ? Looks.transition.duration.fast : 0
-                        easing.type: Easing.OutQuad
-                    } 
-                }
+                Behavior on color { ColorAnimation { duration: 100 } }
 
                 WText {
                     anchors.centerIn: parent
                     text: "✕"
                     font.pixelSize: 10
-                    font.weight: Font.Medium
                     color: closeBtnArea.containsMouse ? "white" : Looks.colors.fg
                 }
 
@@ -454,10 +482,7 @@ Item {
                     id: closeBtnArea
                     anchors.fill: parent
                     hoverEnabled: true
-                    onEntered: {
-                        root.hovered = true
-                        root.closeHovered = true
-                    }
+                    onEntered: { root.hovered = true; root.closeHovered = true }
                     onExited: root.closeHovered = false
                     onClicked: NiriService.closeWindow(root.windowData?.id)
                 }
@@ -465,39 +490,37 @@ Item {
             
         }
         
-        // Context menu - waffle style
+        // Context menu - waffle style, positioned below thumbnail
         BarMenu {
             id: contextMenu
-            closeOnHoverLost: false  // Don't close when mouse leaves
+            anchorItem: windowContainer
+            popupBelow: true
+            closeOnFocusLost: false
+            closeOnHoverLost: true
+            anchorHovered: root.hovered
+            
+            onActiveChanged: {
+                if (!active && GlobalStates.activeTaskViewMenu === contextMenu) {
+                    GlobalStates.activeTaskViewMenu = null
+                }
+            }
             
             model: [
                 {
-                    iconName: "window",
-                    text: Translation.tr("Focus & Close"),
+                    iconName: "open",
+                    text: Translation.tr("Switch to Window"),
                     action: () => {
+                        contextMenu.active = false
                         NiriService.focusWindow(root.windowData?.id)
                         GlobalStates.waffleTaskViewOpen = false
-                    }
-                },
-                {
-                    iconName: root.isMaximized ? "arrow-minimize" : "arrow-maximize",
-                    text: root.isMaximized ? Translation.tr("Restore") : Translation.tr("Maximize"),
-                    action: () => {
-                        root.niriAction("maximize-column", root.windowData?.id ?? 0)
-                    }
-                },
-                {
-                    iconName: "align-center-horizontal",
-                    text: Translation.tr("Center"),
-                    action: () => {
-                        root.niriAction("center-column", root.windowData?.id ?? 0)
                     }
                 },
                 { type: "separator" },
                 {
                     iconName: "dismiss",
-                    text: Translation.tr("Close"),
+                    text: Translation.tr("Close Window"),
                     action: () => {
+                        contextMenu.active = false
                         NiriService.closeWindow(root.windowData?.id)
                     }
                 }
