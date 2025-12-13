@@ -53,11 +53,18 @@ ColumnLayout {
         }
         
         WSlider {
+            id: volumeSlider
             Layout.fillWidth: true
             value: Audio.sink?.audio?.volume ?? 0
             scrollable: true
             onMoved: {
                 Audio.setSinkVolume(value)
+            }
+            // Prevent binding from overwriting during interaction
+            onPressedChanged: {
+                if (pressed) {
+                    value = value // Break binding temporarily
+                }
             }
         }
 

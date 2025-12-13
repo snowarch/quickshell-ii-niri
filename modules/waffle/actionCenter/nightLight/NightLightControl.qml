@@ -77,9 +77,9 @@ Item {
             name: Translation.tr("Automatic")
             description: Translation.tr("Turn on from sunset to sunrise")
             iconName: "auto"
-            checked: Config.options.light.night.automatic
+            checked: Config.options?.light?.night?.automatic ?? false
             onCheckedChanged: {
-                Config.options.light.night.automatic = checked;
+                Config.setNestedValue("light.night.automatic", checked)
             }
         }
 
@@ -105,9 +105,9 @@ Item {
             name: Translation.tr("Enable")
             description: Translation.tr("Balance brightness based on content")
             iconName: "flash-off"
-            checked: Config.options.light.antiFlashbang.enable
+            checked: Config.options?.light?.antiFlashbang?.enable ?? false
             onCheckedChanged: {
-                Config.options.light.antiFlashbang.enable = checked;
+                Config.setNestedValue("light.antiFlashbang.enable", checked)
             }
         }
     }
@@ -148,8 +148,8 @@ Item {
                 Layout.fillWidth: true
                 from: 6500
                 to: 1200
-                value: Config.options.light.night.colorTemperature
-                onMoved: Config.options.light.night.colorTemperature = value
+                value: Config.options?.light?.night?.colorTemperature ?? 4500
+                onMoved: Config.setNestedValue("light.night.colorTemperature", value)
                 tooltipContent: Math.round((value - from) / (to - from) * 100)
             }
         }

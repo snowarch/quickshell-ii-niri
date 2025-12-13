@@ -21,6 +21,11 @@ Singleton {
         if (root.enabled) {
             Qt.callLater(() => root.getData())
         }
+
+        if (root.enabled && root.gpsActive) {
+            console.info("[WeatherService] Starting GPS service.");
+            positionSource.start();
+        }
     }
 
     Connections {
@@ -178,13 +183,6 @@ Singleton {
 
         fetcher.command = ["curl", "-s", "--max-time", "10", url];
         fetcher.running = true;
-    }
-
-    Component.onCompleted: {
-        if (root.enabled && root.gpsActive) {
-            console.info("[WeatherService] Starting GPS service.");
-            positionSource.start();
-        }
     }
 
     // Geocoding process

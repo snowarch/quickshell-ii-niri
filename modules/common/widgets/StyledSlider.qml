@@ -61,9 +61,24 @@ Slider {
     from: 0
     to: 1
 
-    Behavior on value { // This makes the adjusted value (like volume) shift smoothly
+    // Track if user is interacting to prevent binding from overwriting
+    property bool _userInteracting: false
+
+    Behavior on value {
+        enabled: !root._userInteracting // Disable animation during user interaction
         SmoothedAnimation {
             velocity: Appearance.animation.elementMoveFast.velocity
+        }
+    }
+
+    // Emit moved() for both drag AND click-to-seek
+    onPressedChanged: {
+        if (pressed) {
+            root._userInteracting = true
+        } else {
+            // User released - emit moved with final value
+            root._userInteracting = false
+            root.moved()
         }
     }
 

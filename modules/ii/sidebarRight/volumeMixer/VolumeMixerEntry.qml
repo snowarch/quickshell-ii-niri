@@ -69,7 +69,13 @@ Rectangle {
             StyledSlider {
                 Layout.fillWidth: true
                 value: root.node?.audio.volume ?? 0
-                onMoved: root.node.audio.volume = value
+                onMoved: {
+                    if (root.node === Audio.sink) {
+                        Audio.setSinkVolume(value)
+                    } else if (root.node?.audio) {
+                        root.node.audio.volume = value
+                    }
+                }
                 configuration: StyledSlider.Configuration.S
             }
         }

@@ -13,7 +13,20 @@ Singleton {
     property bool blockWrites: false
 
     function setNestedValue(nestedKey, value) {
-        let keys = nestedKey.split(".");
+        let keys = [];
+        if (Array.isArray(nestedKey)) {
+            keys = nestedKey;
+        } else if (typeof nestedKey === "string") {
+            keys = nestedKey.split(".");
+        } else {
+            console.warn("[Config] setNestedValue called with invalid nestedKey:", nestedKey);
+            return;
+        }
+
+        if (keys.length === 0) {
+            console.warn("[Config] setNestedValue called with empty key");
+            return;
+        }
         let obj = root.options;
         let parents = [obj];
 
