@@ -44,7 +44,7 @@ Item {
     Rectangle {
         id: dialog
         anchors.centerIn: parent
-        width: dialogContent.width + Appearance.rounding.large * 2
+        width: 340
         height: dialogContent.height + Appearance.rounding.large * 2
         radius: Appearance.rounding.windowRounding
         color: Appearance.colors.colLayer0
@@ -66,7 +66,10 @@ Item {
 
         ColumnLayout {
             id: dialogContent
-            anchors.centerIn: parent
+            anchors {
+                fill: parent
+                margins: Appearance.rounding.large
+            }
             spacing: Appearance.sizes.spacingLarge
 
             // Icon circle - smaller
@@ -100,8 +103,7 @@ Item {
             // App info card
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Math.min(buttonsRow.width, 320)
-                Layout.maximumWidth: 320
+                Layout.fillWidth: true
                 implicitHeight: appInfoColumn.implicitHeight + Appearance.sizes.spacingMedium * 2
                 radius: Appearance.rounding.normal
                 color: Appearance.colors.colLayer1
@@ -130,8 +132,7 @@ Item {
                         color: Appearance.colors.colSubtext
                         elide: Text.ElideMiddle
                         visible: text !== "" && text !== (root.targetWindow?.app_id ?? "")
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 2
+                        maximumLineCount: 1
                     }
                 }
             }

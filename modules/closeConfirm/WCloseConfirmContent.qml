@@ -86,6 +86,7 @@ Item {
                 // Text content
                 ColumnLayout {
                     Layout.fillWidth: true
+                    Layout.maximumWidth: 360 - 48 - 16 - 48 // dialog width - icon - spacing - margins
                     spacing: 8
 
                     // Title
