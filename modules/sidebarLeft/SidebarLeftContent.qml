@@ -12,10 +12,10 @@ Item {
     required property var scopeRoot
     property int sidebarPadding: 10
     anchors.fill: parent
-    property bool aiChatEnabled: Config.options.policies.ai !== 0
-    property bool translatorEnabled: Config.options.sidebar.translator.enable
-    property bool animeEnabled: Config.options.policies.weeb !== 0
-    property bool animeCloset: Config.options.policies.weeb === 2
+    property bool aiChatEnabled: (Config.options?.policies?.ai ?? 0) !== 0
+    property bool translatorEnabled: (Config.options?.sidebar?.translator?.enable ?? false)
+    property bool animeEnabled: (Config.options?.policies?.weeb ?? 0) !== 0
+    property bool animeCloset: (Config.options?.policies?.weeb ?? 0) === 2
     property bool wallhavenEnabled: Config.options.sidebar?.wallhaven?.enable !== false
     property var tabButtonList: [
         ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),
@@ -73,6 +73,12 @@ Item {
                 anchors.fill: parent
                 spacing: 10
                 currentIndex: tabBar.currentIndex
+
+                onCurrentIndexChanged: {
+                    if (root.aiChatEnabled && swipeView.currentIndex === 0) {
+                        Ai.ensureInitialized()
+                    }
+                }
 
                 clip: true
                 layer.enabled: true

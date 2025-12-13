@@ -28,8 +28,8 @@ Scope {
         }
         return Quickshell.screens[0];
     }
-    property bool packageManagerRunning: false
-    property bool downloadRunning: false
+    readonly property bool packageManagerRunning: SessionWarnings.packageManagerRunning
+    readonly property bool downloadRunning: SessionWarnings.downloadRunning
 
     component DescriptionLabel: Rectangle {
         id: descriptionLabel
@@ -53,37 +53,11 @@ Scope {
         }
     }
 
-    function detectRunningStuff() {
-        packageManagerRunning = false;
-        downloadRunning = false;
-        detectPackageManagerProc.running = false;
-        detectPackageManagerProc.running = true;
-        detectDownloadProc.running = false;
-        detectDownloadProc.running = true;
-    }
-
-    Process {
-        id: detectPackageManagerProc
-        command: ["pidof", "pacman", "yay", "paru", "dnf", "zypper", "apt", "apx", "xbps", "flatpak", "snap", "apk",
-            "yum", "epsi", "pikman"]
-        onExited: (exitCode, exitStatus) => {
-            root.packageManagerRunning = (exitCode === 0);
-        }
-    }
-
-    Process {
-        id: detectDownloadProc
-        command: ["bash", "-c", "pidof curl wget aria2c yt-dlp 2>/dev/null"]
-        onExited: (exitCode, exitStatus) => {
-            root.downloadRunning = (exitCode === 0);
-        }
-    }
-
     Loader {
         id: sessionLoader
         active: GlobalStates.sessionOpen
         onActiveChanged: {
-            if (sessionLoader.active) root.detectRunningStuff();
+            if (sessionLoader.active) SessionWarnings.refresh();
         }
 
         Connections {

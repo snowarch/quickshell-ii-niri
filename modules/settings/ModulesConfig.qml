@@ -22,7 +22,7 @@ ContentPage {
             "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
         ],
         "waffle": [
-            "wBar", "wBackground", "wStartMenu", "wActionCenter", "wNotificationCenter", "wNotificationPopup", "wOnScreenDisplay", "wWidgets",
+            "wBar", "wBackground", "wStartMenu", "wActionCenter", "wNotificationCenter", "wNotificationPopup", "wOnScreenDisplay", "wWidgets", "wLock", "wPolkit", "wSessionScreen",
             "iiBackdrop", "iiCheatsheet", "iiLock", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", 
             "iiRegionSelector", "iiSessionScreen", "iiWallpaperSelector", "iiAltSwitcher", "iiClipboard"
         ]
