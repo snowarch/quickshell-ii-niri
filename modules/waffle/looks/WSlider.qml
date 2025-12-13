@@ -47,14 +47,16 @@ Slider {
             id: wheelHandler
             target: background
             enabled: root.scrollable
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: (event) => {
+                root._userInteracting = true
                 if (event.angleDelta.y > 0) {
                     root.value = Math.min(root.value + root.stepSize, 1)
-                    root.moved()
                 } else if (event.angleDelta.y < 0) {
                     root.value = Math.max(root.value - root.stepSize, 0)
-                    root.moved()
                 }
+                root._userInteracting = false
+                root.moved()
             }
         }
 

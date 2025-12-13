@@ -9,7 +9,7 @@ OSDValue {
     property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
     iconName: "weather-sunny"
     value: brightnessMonitor?.brightness ?? 0
-    showNumber: false
+    showNumber: true
 
     Connections {
         target: Brightness

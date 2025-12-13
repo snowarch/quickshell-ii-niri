@@ -31,11 +31,19 @@ ColumnLayout {
         }
         
         WSlider {
+            id: brightnessSlider
             Layout.fillWidth: true
             value: root.brightnessMonitor?.brightness ?? 0
             scrollable: true
+            tooltipContent: `${Math.round(value * 100)}%`
             onMoved: {
                 root.brightnessMonitor?.setBrightness(value)
+            }
+            // Prevent binding from overwriting during interaction
+            onPressedChanged: {
+                if (pressed) {
+                    value = value // Break binding temporarily
+                }
             }
         }
 
