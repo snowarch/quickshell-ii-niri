@@ -3,6 +3,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.modules.common
+import qs.modules.common.functions
 
 Singleton {
     id: root
@@ -10,17 +12,56 @@ Singleton {
     property var availableThemes: []
     property string currentTheme: ""
 
-    Component.onCompleted: {
+    property bool _initialized: false
+
+    function ensureInitialized(): void {
+        if (root._initialized)
+            return;
+        root._initialized = true;
         currentThemeProc.running = true
         listThemesProc.running = true
     }
 
     function setTheme(themeName) {
-        Quickshell.execDetached(["bash", "-c", 
-            "gsettings set org.gnome.desktop.interface icon-theme '" + themeName + "' && " +
-            "sed -i 's/^Theme=.*/Theme=" + themeName + "/' ~/.config/kdeglobals 2>/dev/null; " +
-            "qs kill -c ii; sleep 0.3; qs -c ii &"
-        ])
+        if (!themeName || String(themeName).trim().length === 0)
+            return;
+
+        gsettingsSetProc.themeName = String(themeName).trim()
+        gsettingsSetProc.running = true
+    }
+
+    Timer {
+        id: restartDelay
+        interval: 300
+        repeat: false
+        onTriggered: Quickshell.execDetached(["qs", "-c", "ii"])
+    }
+
+    Process {
+        id: gsettingsSetProc
+        property string themeName: ""
+        command: ["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", gsettingsSetProc.themeName]
+        onExited: (exitCode, exitStatus) => {
+            // Best-effort KDE sync
+            kdeGlobalsSedProc.themeName = gsettingsSetProc.themeName
+            kdeGlobalsSedProc.running = true
+        }
+    }
+
+    Process {
+        id: kdeGlobalsSedProc
+        property string themeName: ""
+        command: [
+            "sed",
+            "-i",
+            `s/^Theme=.*/Theme=${kdeGlobalsSedProc.themeName}/`,
+            `${FileUtils.trimFileProtocol(Directories.home)}/.config/kdeglobals`
+        ]
+        onExited: (exitCode, exitStatus) => {
+            // Restart shell (same as previous behavior but without chaining)
+            Quickshell.execDetached(["qs", "kill", "-c", "ii"])
+            restartDelay.start()
+        }
     }
 
     Process {
@@ -35,20 +76,39 @@ Singleton {
 
     Process {
         id: listThemesProc
-        command: ["bash", "-c", "find /usr/share/icons ~/.local/share/icons -maxdepth 1 -type d 2>/dev/null | xargs -I{} basename {} | sort -u | grep -vE '^(icons|default|hicolor|locolor)$' | grep -v cursors"]
+        command: [
+            "find",
+            "/usr/share/icons",
+            `${FileUtils.trimFileProtocol(Directories.home)}/.local/share/icons`,
+            "-maxdepth",
+            "1",
+            "-type",
+            "d"
+        ]
         
         property var themes: []
         
         stdout: SplitParser {
             onRead: line => {
-                const name = line.trim()
-                if (name) listThemesProc.themes.push(name)
+                const p = line.trim()
+                if (!p)
+                    return
+                const parts = p.split("/")
+                const name = parts[parts.length - 1]
+                if (!name)
+                    return
+                if (["icons", "default", "hicolor", "locolor"].includes(name))
+                    return
+                if (name === "cursors")
+                    return
+                listThemesProc.themes.push(name)
             }
         }
         
         onRunningChanged: {
             if (!running && themes.length > 0) {
-                root.availableThemes = themes
+                const uniqueSorted = Array.from(new Set(themes)).sort()
+                root.availableThemes = uniqueSorted
                 themes = []
             }
         }

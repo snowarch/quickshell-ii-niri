@@ -11,6 +11,9 @@ import Quickshell.Io
  */
 Singleton {
     id: root
+
+    property bool _runningRequested: false
+    property bool _initRequested: false
 	property real memoryTotal: 1
 	property real memoryFree: 0
 	property real memoryUsed: memoryTotal - memoryFree
@@ -33,7 +36,7 @@ Singleton {
     property string maxAvailableSwapString: kbToGbString(ResourceUsage.swapTotal)
     property string maxAvailableCpuString: "--"
 
-    readonly property int historyLength: Config?.options.resources.historyLength ?? 60
+    readonly property int historyLength: Config.options?.resources?.historyLength ?? 60
     property list<real> cpuUsageHistory: []
     property list<real> memoryUsageHistory: []
     property list<real> swapUsageHistory: []
@@ -67,9 +70,20 @@ Singleton {
     }
 
 
+	function ensureRunning(): void {
+		root._runningRequested = true
+		if (!root._initRequested) {
+			root._initRequested = true
+			detectTempSensors.running = true
+			findCpuMaxFreqProc.running = true
+		}
+		pollTimer.restart()
+	}
+
 	Timer {
+		id: pollTimer
 		interval: Config.options?.resources?.updateInterval ?? 3000
-	    running: true 
+	    running: root._runningRequested
 	    repeat: true
 		onTriggered: {
 	        // Reload files
@@ -125,7 +139,7 @@ Singleton {
     property string _gpuTempPath: ""
 
     Component.onCompleted: {
-        detectTempSensors.running = true
+        // Lazy: only start monitoring when a panel/widget requests it.
     }
 
     Process {
@@ -170,7 +184,7 @@ Singleton {
     Process {
         id: findCpuMaxFreqProc
         command: ["bash", "-c", "lscpu | grep 'CPU max MHz' | awk '{print $4}'"]
-        running: true
+        running: false
         stdout: StdioCollector {
             id: outputCollector
             onStreamFinished: {

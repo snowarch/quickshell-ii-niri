@@ -22,6 +22,10 @@ Singleton {
     property var sortedToplevels: sortedToplevelsCache
     property var sortedToplevelsCache: []
 
+    property var _sortingConsumers: ({})
+    property int _sortingConsumersCount: 0
+    readonly property bool sortingActive: root.isNiri || root._sortingConsumersCount > 0
+
     property bool _sortScheduled: false
     property bool _refreshScheduled: false
     property bool _hasRefreshedOnce: false
@@ -53,25 +57,47 @@ Singleton {
     }
 
     function scheduleSort() {
+        if (root.isHyprland && !root.sortingActive) return
         if (_sortScheduled) return
         _sortScheduled = true
         sortTimer.restart()
     }
 
     function scheduleRefresh() {
+        if (!root.sortingActive) return
         if (!isHyprland) return
         if (_refreshScheduled) return
         _refreshScheduled = true
         refreshTimer.restart()
     }
 
+    function setSortingConsumer(name: string, active: bool): void {
+        if (!name || name.length === 0)
+            return;
+        const prev = !!root._sortingConsumers[name]
+        if (prev === active)
+            return;
+        root._sortingConsumers[name] = active
+
+        let count = 0
+        for (const k in root._sortingConsumers) {
+            if (root._sortingConsumers[k]) count++
+        }
+        root._sortingConsumersCount = count
+
+        if (root.isHyprland && root.sortingActive) {
+            root.scheduleSort()
+        }
+    }
+
     Connections {
         target: ToplevelManager.toplevels
+        enabled: !root.isHyprland || root.sortingActive
         function onValuesChanged() { root.scheduleSort() }
     }
     Connections {
         target: Hyprland.toplevels
-        enabled: root.isHyprland
+        enabled: root.isHyprland && root.sortingActive
         function onValuesChanged() {
             root._hasRefreshedOnce = false
             root.scheduleSort()
@@ -79,12 +105,12 @@ Singleton {
     }
     Connections {
         target: Hyprland.workspaces
-        enabled: root.isHyprland
+        enabled: root.isHyprland && root.sortingActive
         function onValuesChanged() { root.scheduleSort() }
     }
     Connections {
         target: Hyprland
-        enabled: root.isHyprland
+        enabled: root.isHyprland && root.sortingActive
         function onFocusedWorkspaceChanged() { root.scheduleSort() }
     }
     Connections {
@@ -94,7 +120,9 @@ Singleton {
     }
     Component.onCompleted: {
         detectCompositor()
-        scheduleSort()
+        if (root.isNiri) {
+            scheduleSort()
+        }
     }
 
     function computeSortedToplevels() {

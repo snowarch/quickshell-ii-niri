@@ -46,13 +46,13 @@ Singleton {
     }
 
     function resetFilePathNextTime() {
-        resetFilePathNextWallpaperChange.enabled = true
+        resetFilePathNextWallpaperChange.enabled = !!(Config.options?.background)
     }
 
     Connections {
         id: resetFilePathNextWallpaperChange
         enabled: false
-        target: Config.options.background
+        target: Config.options?.background ?? null
         function onWallpaperPathChanged() {
             root.filePath = ""
             root.filePath = Directories.generatedMaterialThemePath

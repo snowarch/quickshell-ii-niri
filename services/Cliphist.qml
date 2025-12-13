@@ -86,11 +86,21 @@ Singleton {
     Process {
         id: deleteProc
         property string entry: ""
-        command: ["bash", "-c", `echo '${StringUtils.shellSingleQuoteEscape(deleteProc.entry)}' | ${root.cliphistBinary} delete`]
+        command: [root.cliphistBinary, "delete"]
+        stdinEnabled: true
         function deleteEntry(entry) {
             deleteProc.entry = entry;
             deleteProc.running = true;
             deleteProc.entry = "";
+        }
+        onRunningChanged: {
+            if (deleteProc.running) {
+                deleteProc.write(deleteProc.entry)
+                deleteProc.write("\n")
+                deleteProc.stdinEnabled = false
+            } else {
+                deleteProc.stdinEnabled = true
+            }
         }
         onExited: (exitCode, exitStatus) => {
             root.refresh();
@@ -122,7 +132,7 @@ Singleton {
 
     Timer {
         id: delayedUpdateTimer
-        interval: Config.options.hacks.arbitraryRaceConditionDelay
+        interval: Config.options?.hacks?.arbitraryRaceConditionDelay ?? 100
         repeat: false
         onTriggered: {
             root.refresh()

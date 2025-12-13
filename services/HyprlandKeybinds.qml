@@ -29,6 +29,8 @@ Singleton {
     Connections {
         target: Hyprland
 
+        enabled: CompositorService.isHyprland
+
         function onRawEvent(event) {
             if (event.name == "configreloaded") {
                 getDefaultKeybinds.running = true
@@ -39,7 +41,7 @@ Singleton {
 
     Process {
         id: getDefaultKeybinds
-        running: true
+        running: false
         command: [root.keybindParserPath, "--path", root.defaultKeybindConfigPath]
         
         stdout: SplitParser {
@@ -55,7 +57,7 @@ Singleton {
 
     Process {
         id: getUserKeybinds
-        running: true
+        running: false
         command: [root.keybindParserPath, "--path", root.userKeybindConfigPath]
         
         stdout: SplitParser {
@@ -67,6 +69,30 @@ Singleton {
                 }
             }
         }
+    }
+
+    Timer {
+        id: initTimer
+        interval: 600
+        repeat: false
+        onTriggered: {
+            if (!CompositorService.isHyprland) return
+            getDefaultKeybinds.running = true
+            getUserKeybinds.running = true
+        }
+    }
+
+    Connections {
+        target: CompositorService
+        function onIsHyprlandChanged() {
+            if (CompositorService.isHyprland) {
+                initTimer.start()
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        if (CompositorService.isHyprland) initTimer.start()
     }
 }
 

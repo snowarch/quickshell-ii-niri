@@ -26,9 +26,23 @@ Singleton {
 	property bool hasPlasmaIntegration: false
 	Process {
 		id: plasmaIntegrationCheckProc
-		running: true
+		running: false
 		command: ["bash", "-c", "command -v plasma-browser-integration-host"]
 		onExited: (exitCode) => { root.hasPlasmaIntegration = (exitCode === 0); }
+	}
+
+	Timer {
+		id: plasmaCheckDefer
+		interval: 1200
+		repeat: false
+		onTriggered: plasmaIntegrationCheckProc.running = true
+	}
+
+	Connections {
+		target: Config
+		function onReadyChanged() {
+			if (Config.ready) plasmaCheckDefer.start()
+		}
 	}
 	
 	function isRealPlayer(player) {

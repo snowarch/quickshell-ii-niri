@@ -56,14 +56,16 @@ Singleton {
             Process {
                 id: microtexProcess${hash}
                 running: true
-                command: [ "bash", "-c", 
-                    "cd ${root.microtexBinaryDir} && ./${root.microtexBinaryName} -headless '-input=${StringUtils.shellSingleQuoteEscape(StringUtils.escapeBackslashes(expression))}' "
-                    + "'-output=${imagePath}' " 
-                    + "'-textsize=${Appearance.font.pixelSize.normal}' "
-                    + "'-padding=${renderPadding}' "
-                    // + "'-background=${Appearance.m3colors.m3tertiary}' "
-                    + "'-foreground=${Appearance.colors.colOnLayer1}' "
-                    + "-maxwidth=0.85 "
+                command: [
+                    "${root.microtexBinaryDir}/${root.microtexBinaryName}",
+                    "-headless",
+                    "-input=${StringUtils.escapeBackslashes(expression)}",
+                    "-output=${imagePath}",
+                    "-textsize=${Appearance.font.pixelSize.normal}",
+                    "-padding=${renderPadding}",
+                    // "-background=${Appearance.m3colors.m3tertiary}",
+                    "-foreground=${Appearance.colors.colOnLayer1}",
+                    "-maxwidth=0.85"
                 ]
                 // stdout: SplitParser {
                 //     onRead: data => { console.log("MicroTeX: " + data) }

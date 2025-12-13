@@ -9,18 +9,17 @@ Singleton {
     id: root
 
     function togglePin(appId) {
-        if (Config.options.dock.pinnedApps.indexOf(appId) !== -1) {
-            Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.filter(id => id !== appId)
-        } else {
-            Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.concat([appId])
-        }
+        const pinned = Config.options?.dock?.pinnedApps ?? []
+        const exists = pinned.indexOf(appId) !== -1
+        const next = exists ? pinned.filter(id => id !== appId) : pinned.concat([appId])
+        Config.setNestedValue(["dock", "pinnedApps"], next)
     }
 
     property list<var> apps: {
         var map = new Map();
 
         // Pinned apps
-        const pinnedApps = Config.options?.dock.pinnedApps ?? [];
+        const pinnedApps = Config.options?.dock?.pinnedApps ?? [];
         for (const appId of pinnedApps) {
             if (!map.has(appId.toLowerCase())) map.set(appId.toLowerCase(), ({
                 pinned: true,

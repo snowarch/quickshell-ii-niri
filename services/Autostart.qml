@@ -11,9 +11,10 @@ Singleton {
     id: root
 
     property bool hasRun: false
+    property bool _systemdUnitsRefreshRequested: false
     readonly property bool globalEnabled: Config.options?.autostart?.enable ?? false
 
-    readonly property var entries: (Config.options.autostart && Config.options.autostart.entries)
+    readonly property var entries: (Config.options?.autostart && Config.options?.autostart?.entries)
         ? Config.options.autostart.entries
         : []
 
@@ -34,7 +35,7 @@ Singleton {
         if (!globalEnabled)
             return;
 
-        const cfg = Config.options.autostart;
+        const cfg = Config.options?.autostart;
         if (!cfg || !cfg.entries)
             return;
 
@@ -65,8 +66,20 @@ Singleton {
         if (id.length === 0)
             return;
 
-        const cmd = `gtk-launch ${id} || ${id} &`;
-        Quickshell.execDetached(["bash", "-lc", cmd]);
+        startDesktopProc.desktopId = id
+        startDesktopProc.running = true
+    }
+
+    Process {
+        id: startDesktopProc
+        property string desktopId: ""
+        command: ["gtk-launch", startDesktopProc.desktopId]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0 && startDesktopProc.desktopId.length > 0) {
+                Quickshell.execDetached([startDesktopProc.desktopId])
+            }
+            startDesktopProc.desktopId = ""
+        }
     }
 
     function startCommand(command) {
@@ -148,6 +161,25 @@ Singleton {
     function refreshSystemdUnits() {
         systemdListProc.buffer = []
         systemdListProc.running = true
+    }
+
+    function requestRefreshSystemdUnits(): void {
+        root._systemdUnitsRefreshRequested = true
+        refreshTimer.restart()
+    }
+
+    Timer {
+        id: refreshTimer
+        interval: 1200
+        repeat: false
+        onTriggered: {
+            if (!root._systemdUnitsRefreshRequested)
+                return;
+            if (!(Config.ready ?? false))
+                return;
+            root._systemdUnitsRefreshRequested = false
+            root.refreshSystemdUnits()
+        }
     }
 
     Process {
@@ -258,7 +290,8 @@ Singleton {
 
     Component.onCompleted: {
         load()
-        refreshSystemdUnits()
+        // Defer systemd scanning to keep shell startup smooth.
+        root.requestRefreshSystemdUnits()
     }
 
     Connections {
@@ -267,6 +300,9 @@ Singleton {
             if (Config.ready && !root.hasRun) {
                 root.startFromConfig();
                 root.hasRun = true;
+            }
+            if (Config.ready) {
+                root.requestRefreshSystemdUnits()
             }
         }
     }

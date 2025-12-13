@@ -88,7 +88,7 @@ Singleton {
         property int rawMaxBrightness: 100
         property real brightness
         property real brightnessMultiplier: 1.0
-        property real multipliedBrightness: Math.max(0, Math.min(1, brightness * (Config.options.light.antiFlashbang.enable ? brightnessMultiplier : 1)))
+        property real multipliedBrightness: Math.max(0, Math.min(1, brightness * ((Config.options?.light?.antiFlashbang?.enable ?? false) ? brightnessMultiplier : 1)))
         property bool ready: false
         property bool animateChanges: !monitor.isDdc
 
@@ -185,7 +185,7 @@ Singleton {
             property string screenName: modelData.name
             property string screenshotPath: `${root.screenshotDir}/screenshot-${screenName}.png`
             Connections {
-                enabled: Config.options.light.antiFlashbang.enable && Appearance.m3colors.darkmode && CompositorService.isHyprland
+                enabled: (Config.options?.light?.antiFlashbang?.enable ?? false) && Appearance.m3colors.darkmode && CompositorService.isHyprland
                 target: CompositorService.isHyprland ? Hyprland : null
                 function onRawEvent(event) {
                     if (["activewindowv2", "windowtitlev2"].includes(event.name)) {

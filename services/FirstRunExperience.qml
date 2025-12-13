@@ -22,7 +22,7 @@ Singleton {
         Quickshell.execDetached(["rm", "-f", root.firstRunFilePath])
     }
     function disableNextTime() {
-        Quickshell.execDetached(["bash", "-c", `echo '${root.firstRunFileContent}' > '${root.firstRunFilePath}'`])
+        firstRunFileView.setText(root.firstRunFileContent)
     }
 
     function handleFirstRun(): void {

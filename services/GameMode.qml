@@ -71,7 +71,7 @@ Singleton {
     }
 
     function _saveState() {
-        saveProcess.running = true
+        saveTimer.restart()
     }
 
     function _loadState() {
@@ -157,10 +157,20 @@ Singleton {
     }
 
     // State persistence - write via process
-    Process {
-        id: saveProcess
-        command: ["bash", "-c", "mkdir -p ~/.local/state/quickshell/user && echo " + (root._manualActive ? "1" : "0") + " > " + root._stateFile]
-        onExited: console.log("[GameMode] State saved:", root._manualActive)
+    Timer {
+        id: saveTimer
+        interval: 1
+        repeat: false
+        onTriggered: {
+            Quickshell.execDetached(["mkdir", "-p", `${FileUtils.trimFileProtocol(Directories.state)}/user`])
+            stateFileWriter.setText(root._manualActive ? "1" : "0")
+            console.log("[GameMode] State saved:", root._manualActive)
+        }
+    }
+
+    FileView {
+        id: stateFileWriter
+        path: Qt.resolvedUrl(root._stateFile)
     }
 
     // React to window changes
@@ -188,11 +198,19 @@ Singleton {
     // Initial setup
     Component.onCompleted: {
         console.log("[GameMode] Service starting...")
-        // Ensure state directory exists and load state
-        Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.local/state/quickshell/user"])
-        
-        // Load saved state after short delay
-        initTimer.start()
+        startupDeferTimer.start()
+    }
+
+    Timer {
+        id: startupDeferTimer
+        interval: 800
+        repeat: false
+        onTriggered: {
+            // Ensure state directory exists and load state
+            Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.local/state/quickshell/user"])
+            // Load saved state after short delay
+            initTimer.start()
+        }
     }
 
     Timer {

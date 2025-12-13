@@ -6,6 +6,7 @@ import qs
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import Quickshell.Services.Notifications
 import qs.services
 
@@ -17,6 +18,7 @@ import qs.services
  */
 Singleton {
 	id: root
+    property bool _initialized: false
     component Notif: QtObject {
         id: wrapper
         required property int notificationId // Could just be `id` but it conflicts with the default prop in QtObject
@@ -289,7 +291,7 @@ Singleton {
 			root.list = [...root.list, newNotifObject];
 
             // Sonido de notificación opcional
-            if (Config.options.sounds.notifications) {
+            if ((Config.options?.sounds?.notifications ?? false) && !root.silent) {
                 var soundName = "message-new-instant";
                 if (notification.urgency === NotificationUrgency.Critical) {
                     soundName = "dialog-warning";
@@ -371,6 +373,61 @@ Singleton {
         triggerListChange();
     }
 
+    function _isViewLikeAction(text): bool {
+        const t = String(text ?? "").toLowerCase();
+        return t === "view" || t === "open" || t === "show" || t === "go" ||
+               t === "ver" || t === "abrir" || t === "mostrar" || t === "ir" ||
+               t.includes("view") || t.includes("open") || t.includes("show") ||
+               t.includes("abrir") || t.includes("ver") || t.includes("mostrar");
+    }
+
+    function _focusOrLaunchFromNotifServerNotif(notifServerNotif): void {
+        if (!notifServerNotif) return;
+
+        const appName = String(notifServerNotif.appName ?? "");
+        const appIcon = String(notifServerNotif.appIcon ?? "");
+        const summary = String(notifServerNotif.summary ?? "");
+
+        const patterns = [appIcon, appName, summary]
+            .filter(s => s && s.length > 0)
+            .map(s => s.toLowerCase());
+
+        if (CompositorService.isNiri) {
+            for (const w of (NiriService.windows ?? [])) {
+                const wAppId = String(w.app_id ?? "").toLowerCase();
+                const wTitle = String(w.title ?? "").toLowerCase();
+                if (patterns.some(p => wAppId.includes(p) || wTitle.includes(p))) {
+                    NiriService.focusWindow(w.id);
+                    return;
+                }
+            }
+        }
+
+        for (const tl of (ToplevelManager.toplevels?.values ?? [])) {
+            const tlAppId = String(tl.appId ?? "").toLowerCase();
+            const tlTitle = String(tl.title ?? "").toLowerCase();
+            if (patterns.some(p => tlAppId.includes(p) || tlTitle.includes(p))) {
+                if (tl.activate) tl.activate();
+                return;
+            }
+        }
+
+        const lookupKeys = [appIcon, appName]
+            .filter(s => s && s.length > 0);
+        for (const key of lookupKeys) {
+            const de = DesktopEntries.heuristicLookup(key);
+            if (de) {
+                de.execute();
+                return;
+            }
+        }
+
+        if (appIcon && appIcon.length > 0) {
+            const cmd = "gtk-launch \"" + appIcon + "\" || \"" + appIcon + "\"";
+            Quickshell.execDetached(["bash", "-lc", cmd]);
+        }
+    }
+
     function attemptInvokeAction(id, notifIdentifier) {
         console.log("[Notifications] Attempting to invoke action with identifier: " + notifIdentifier + " for notification ID: " + id);
         const notifServerIndex = notifServer.trackedNotifications.values.findIndex((notif) => notif.id + root.idOffset === id);
@@ -380,6 +437,10 @@ Singleton {
             const action = notifServerNotif.actions.find((action) => action.identifier === notifIdentifier);
             // console.log("Action found: " + JSON.stringify(action));
             action.invoke()
+
+            if (root._isViewLikeAction(action?.text)) {
+                root._focusOrLaunchFromNotifServerNotif(notifServerNotif)
+            }
         } 
         else {
             console.log("Notification not found in server: " + id)
@@ -394,6 +455,13 @@ Singleton {
 
     function refresh() {
         notifFileView.reload()
+    }
+
+    function ensureInitialized(): void {
+        if (root._initialized)
+            return;
+        root._initialized = true;
+        root.refresh()
     }
 
     // Enviar algunas notificaciones de prueba para previsualizar posición/sonido
@@ -446,7 +514,7 @@ Singleton {
     }
 
     Component.onCompleted: {
-        refresh()
+        // Lazy: load persistent notifications only when a UI needs them.
     }
 
     FileView {

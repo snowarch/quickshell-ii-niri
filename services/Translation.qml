@@ -23,7 +23,7 @@ Singleton {
     property string generatedTranslationsDir: Directories.shellConfig + "/translations"
 
     property string languageCode: {
-        var configLang = Config?.options.language.ui ?? "auto";
+        var configLang = Config.options?.language?.ui ?? "auto";
 
         if (configLang !== "auto")
             return configLang;
@@ -97,7 +97,7 @@ Singleton {
         signal languagesScanned(var languages)
 
         command: ["find", translationScanner.translationsDir, "-name", "*.json", "-exec", "basename", "{}", ".json", ";"]
-        running: true
+        running: false
 
         stdout: StdioCollector {
             id: languagesCollector
@@ -111,6 +111,25 @@ Singleton {
         onExited: (exitCode, exitStatus) => {
             if (exitCode !== 0) {
                 translationScanner.languagesScanned(["en_US"]);
+            }
+        }
+    }
+
+    Timer {
+        id: scanDefer
+        interval: 600
+        repeat: false
+        onTriggered: {
+            scanLanguagesProcess.running = true
+            scanGeneratedLanguagesProcess.running = true
+        }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) {
+                scanDefer.start()
             }
         }
     }

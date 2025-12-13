@@ -21,12 +21,12 @@ Singleton {
 
     function setTheme(themeId) {
         console.log("[ThemeService] setTheme called with:", themeId);
-        Config.options.appearance.theme = themeId;
+        Config.setNestedValue(["appearance", "theme"], themeId)
         console.log("[ThemeService] Config updated, now applying theme");
         if (themeId === "auto") {
             console.log("[ThemeService] Auto theme, regenerating from wallpaper");
             // Force regeneration of colors from wallpaper
-            Quickshell.execDetached(["bash", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`]);
+            Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch"]);
         } else {
             console.log("[ThemeService] Manual theme, calling ThemePresets.applyPreset");
             ThemePresets.applyPreset(themeId);

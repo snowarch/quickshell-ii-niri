@@ -17,21 +17,21 @@ Singleton {
     property bool active: false
 
     function fetchAvailability() {
-        fetchAvailabilityProc.running = true
+        whichProc.running = true
     }
 
     function fetchActiveState() {
-        fetchActiveStateProc.running = true
+        pidofProc.running = true
     }
 
     function disable() {
         root.active = false
-        Quickshell.execDetached(["bash", "-c", "pkill easyeffects || flatpak pkill com.github.wwmm.easyeffects"])
+        pkillProc.running = true
     }
 
     function enable() {
         root.active = true
-        Quickshell.execDetached(["bash", "-c", "easyeffects --gapplication-service || flatpak run com.github.wwmm.easyeffects --gapplication-service"])
+        enableNativeProc.running = true
     }
 
     function toggle() {
@@ -42,21 +42,104 @@ Singleton {
         }
     }
 
-    Process {
-        id: fetchAvailabilityProc
-        running: true
-        command: ["bash", "-c", "command -v easyeffects || flatpak info com.github.wwmm.easyeffects > /dev/null 2>&1"]
-        onExited: (exitCode, exitStatus) => {
-            root.available = exitCode === 0
+    Timer {
+        id: initTimer
+        interval: 1200
+        repeat: false
+        onTriggered: {
+            root.fetchAvailability()
+            root.fetchActiveState()
+        }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) {
+                initTimer.start()
+            }
         }
     }
 
     Process {
-        id: fetchActiveStateProc
-        running: true
-        command: ["bash", "-c", "pidof easyeffects || flatpak ps | grep com.github.wwmm.easyeffects > /dev/null 2>&1"]
+        id: whichProc
+        running: false
+        command: ["which", "easyeffects"]
         onExited: (exitCode, exitStatus) => {
-            root.active = exitCode === 0
+            if (exitCode === 0) {
+                root.available = true
+            } else {
+                flatpakInfoProc.running = true
+            }
         }
+    }
+
+    Process {
+        id: flatpakInfoProc
+        running: false
+        command: ["flatpak", "info", "com.github.wwmm.easyeffects"]
+        onExited: (exitCode, exitStatus) => {
+            root.available = (exitCode === 0)
+        }
+    }
+
+    Process {
+        id: pidofProc
+        running: false
+        command: ["pidof", "easyeffects"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                root.active = true
+            } else {
+                flatpakPsProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: flatpakPsProc
+        running: false
+        command: ["flatpak", "ps", "--columns=application"]
+        stdout: StdioCollector {
+            id: flatpakPsCollector
+            onStreamFinished: {
+                const t = (flatpakPsCollector.text ?? "");
+                root.active = t.split("\n").some(l => l.trim() === "com.github.wwmm.easyeffects")
+            }
+        }
+    }
+
+    Process {
+        id: pkillProc
+        running: false
+        command: ["pkill", "easyeffects"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                flatpakKillProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: flatpakKillProc
+        running: false
+        command: ["flatpak", "kill", "com.github.wwmm.easyeffects"]
+    }
+
+    Process {
+        id: enableNativeProc
+        running: false
+        command: ["easyeffects", "--gapplication-service"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                enableFlatpakProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: enableFlatpakProc
+        running: false
+        command: ["flatpak", "run", "com.github.wwmm.easyeffects", "--gapplication-service"]
     }
 }

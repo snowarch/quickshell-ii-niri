@@ -17,10 +17,12 @@ Singleton {
     property PwNode sink: Pipewire.defaultAudioSink
     property PwNode source: Pipewire.defaultAudioSource
     readonly property real hardMaxValue: 2.00 // People keep joking about setting volume to 5172% so...
-    property string audioTheme: Config.options.sounds.theme
+    property string audioTheme: Config.options?.sounds?.theme ?? "freedesktop"
     property real value: sink?.audio.volume ?? 0
-    property bool micBeingAccessed: Pipewire.links.values.filter(link =>
-        !link.source.isStream && !link.source.isSink && link.target.isStream
+    property bool micBeingAccessed: (Pipewire.links?.values ?? []).filter(link =>
+        !(link?.source?.isStream ?? true)
+            && !(link?.source?.isSink ?? true)
+            && (link?.target?.isStream ?? false)
     ).length > 0
     function friendlyDeviceName(node) {
         return node ? (node.nickname || node.description || Translation.tr("Unknown")) : Translation.tr("Unknown");
@@ -91,7 +93,7 @@ Singleton {
         property bool lastReady: false
         property real lastVolume: 0
         function onVolumeChanged() {
-            if (!Config.options.audio.protection.enable) return;
+            if (!(Config.options?.audio?.protection?.enable ?? false)) return;
             if (!sink?.audio) return;
             const newVolume = sink.audio.volume;
             // when resuming from suspend, we should not write volume to avoid pipewire volume reset issues
@@ -105,8 +107,8 @@ Singleton {
                 lastReady = true;
                 return;
             }
-            const maxAllowedIncrease = Config.options.audio.protection.maxAllowedIncrease / 100; 
-            const maxAllowed = Config.options.audio.protection.maxAllowed / 100;
+            const maxAllowedIncrease = (Config.options?.audio?.protection?.maxAllowedIncrease ?? 0) / 100; 
+            const maxAllowed = (Config.options?.audio?.protection?.maxAllowed ?? 100) / 100;
 
             if (newVolume - lastVolume > maxAllowedIncrease) {
                 sink.audio.volume = lastVolume;
@@ -136,6 +138,13 @@ Singleton {
             oggPath
         ];
         Quickshell.execDetached(command);
+
+        // Fallback: try canberra (theme lookup by sound name)
+        Quickshell.execDetached([
+            "/usr/bin/canberra-gtk-play",
+            "-i",
+            soundName
+        ])
     }
 
     // IPC handlers for external control (keybinds, etc.)

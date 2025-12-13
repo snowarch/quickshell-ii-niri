@@ -16,7 +16,7 @@ Singleton {
     id: root
     property string from: Config.options?.light?.night?.from ?? "19:00" 
     property string to: Config.options?.light?.night?.to ?? "06:30"
-    property bool automatic: Config.options?.light?.night?.automatic && (Config?.ready ?? true)
+    property bool automatic: (Config.options?.light?.night?.automatic ?? false) && (Config.ready ?? true)
     property int colorTemperature: Config.options?.light?.night?.colorTemperature ?? 5000
     property bool shouldBeOn
     property bool firstEvaluation: true
@@ -39,6 +39,29 @@ Singleton {
         root.manualActive = undefined;
         root.firstEvaluation = true;
         reEvaluate();
+    }
+
+    Process {
+        id: pidofProc
+        running: false
+        command: ["pidof", "hyprsunset"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                startProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: startProc
+        running: false
+        command: ["hyprsunset", "--temperature", `${root.colorTemperature}`]
+    }
+
+    Process {
+        id: pkillProc
+        running: false
+        command: ["pkill", "hyprsunset"]
     }
 
     function inBetween(t, from, to) {
@@ -85,7 +108,7 @@ Singleton {
             return;
         root.active = true;
         // console.log("[Hyprsunset] Enabling");
-        Quickshell.execDetached(["bash", "-c", `pidof hyprsunset || hyprsunset --temperature ${root.colorTemperature}`]);
+        pidofProc.running = true
     }
 
     function disable() {
@@ -93,7 +116,7 @@ Singleton {
             return;
         root.active = false;
         // console.log("[Hyprsunset] Disabling");
-        Quickshell.execDetached(["bash", "-c", `pkill hyprsunset`]);
+        pkillProc.running = true
     }
 
     function fetchState() {
@@ -105,7 +128,7 @@ Singleton {
     Process {
         id: fetchProc
         running: CompositorService.isHyprland
-        command: ["bash", "-c", "hyprctl hyprsunset temperature"]
+        command: ["hyprctl", "hyprsunset", "temperature"]
         stdout: StdioCollector {
             id: stateCollector
             onStreamFinished: {
@@ -138,11 +161,11 @@ Singleton {
 
     // Change temp
     Connections {
-        target: Config.options.light.night
+        target: Config.options?.light?.night ?? null
+        enabled: !!(Config.options?.light?.night)
         function onColorTemperatureChanged() {
             if (!CompositorService.isHyprland || !root.active) return;
-            Hyprland.dispatch(`hyprctl hyprsunset temperature ${Config.options.light.night.colorTemperature}`);
-            Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", `${Config.options.light.night.colorTemperature}`]);
+            Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", `${Config.options?.light?.night?.colorTemperature ?? root.colorTemperature}`]);
         }
     }
 }

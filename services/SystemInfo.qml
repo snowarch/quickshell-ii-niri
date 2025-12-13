@@ -30,6 +30,7 @@ Singleton {
         repeat: false
         onTriggered: {
             getUsername.running = true
+            getDesktopEnvironment.running = true
             fileOsRelease.reload()
             const textOsRelease = fileOsRelease.text()
 
@@ -97,7 +98,7 @@ Singleton {
 
     Process {
         id: getDesktopEnvironment
-        running: true
+        running: false
         command: ["bash", "-c", "echo $XDG_CURRENT_DESKTOP,$WAYLAND_DISPLAY"]
         stdout: StdioCollector {
             id: deCollector

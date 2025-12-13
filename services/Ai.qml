@@ -18,6 +18,8 @@ import qs.services.ai
 Singleton {
     id: root
 
+    property bool _initialized: false
+
     property Component aiMessageComponent: AiMessageData {}
     property Component aiModelComponent: AiModel {}
     property Component geminiApiStrategy: GeminiApiStrategy {}
@@ -80,7 +82,7 @@ Singleton {
 
     // Gemini: https://ai.google.dev/gemini-api/docs/function-calling
     // OpenAI: https://platform.openai.com/docs/guides/function-calling
-    property string currentTool: Config?.options.ai.tool ?? "search"
+    property string currentTool: Config.options?.ai?.tool ?? "search"
     property var tools: {
         "gemini": {
             "functions": [{"functionDeclarations": [
@@ -254,7 +256,7 @@ Singleton {
     // - key_get_description: Description of pricing and how to get an API key
     // - api_format: The API format of the model. Can be "openai" or "gemini". Default is "openai".
     // - extraParams: Extra parameters to be passed to the model. This is a JSON object.
-    property var models: Config.options.policies.ai === 2 ? {} : {
+    property var models: (Config.options?.policies?.ai ?? 0) === 2 ? {} : {
         "gemini-2.0-flash": aiModelComponent.createObject(this, {
             "name": "Gemini 2.0 Flash",
             "icon": "google-gemini-symbolic",
@@ -360,7 +362,7 @@ Singleton {
         target: Config
         function onReadyChanged() {
             if (!Config.ready) return;
-            (Config?.options.ai?.extraModels ?? []).forEach(model => {
+            (Config.options?.ai?.extraModels ?? []).forEach(model => {
                 const safeModelName = root.safeModelName(model["model"]);
                 root.addModel(safeModelName, model)
             });
@@ -370,8 +372,22 @@ Singleton {
     property string requestScriptFilePath: "/tmp/quickshell/ai/request.sh"
     property string pendingFilePath: ""
 
+    function ensureInitialized(): void {
+        if (root._initialized)
+            return;
+        root._initialized = true;
+
+        getOllamaModels.running = true
+        getDefaultPrompts.running = true
+        getUserPrompts.running = true
+        getSavedChats.running = true
+
+        // Do necessary setup for model
+        setModel(currentModelId, false, false);
+    }
+
     Component.onCompleted: {
-        setModel(currentModelId, false, false); // Do necessary setup for model
+        // Lazy: initialize only when UI actually uses the AI service.
     }
 
     function guessModelLogo(model) {
@@ -401,7 +417,7 @@ Singleton {
 
     Process {
         id: getOllamaModels
-        running: true
+        running: false
         command: ["bash", "-c", `${Directories.scriptPath}/ai/show-installed-ollama-models.sh`.replace(/file:\/\//, "")]
         stdout: SplitParser {
             onRead: data => {
@@ -433,7 +449,7 @@ Singleton {
 
     Process {
         id: getDefaultPrompts
-        running: true
+        running: false
         command: ["ls", "-1", Directories.defaultAiPrompts]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -447,7 +463,7 @@ Singleton {
 
     Process {
         id: getUserPrompts
-        running: true
+        running: false
         command: ["ls", "-1", Directories.userAiPrompts]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -461,7 +477,7 @@ Singleton {
 
     Process {
         id: getSavedChats
-        running: true
+        running: false
         command: ["ls", "-1", Directories.aiChats]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -478,13 +494,13 @@ Singleton {
         watchChanges: false;
         onLoadedChanged: {
             if (!promptLoader.loaded) return;
-            Config.options.ai.systemPrompt = promptLoader.text();
-            root.addMessage(Translation.tr("Loaded the following system prompt\n\n---\n\n%1").arg(Config.options.ai.systemPrompt), root.interfaceRole);
+            Config.setNestedValue(["ai", "systemPrompt"], promptLoader.text())
+            root.addMessage(Translation.tr("Loaded the following system prompt\n\n---\n\n%1").arg(Config.options?.ai?.systemPrompt ?? ""), root.interfaceRole);
         }
     }
 
     function printPrompt() {
-        root.addMessage(Translation.tr("The current system prompt is\n\n---\n\n%1").arg(Config.options.ai.systemPrompt), root.interfaceRole);
+        root.addMessage(Translation.tr("The current system prompt is\n\n---\n\n%1").arg(Config.options?.ai?.systemPrompt ?? ""), root.interfaceRole);
     }
 
     function loadPrompt(filePath) {
@@ -533,14 +549,14 @@ Singleton {
         if (modelList.indexOf(modelId) !== -1) {
             const model = models[modelId]
             // See if policy prevents online models
-            if (Config.options.policies.ai === 2 && !model.endpoint.includes("localhost")) {
+            if ((Config.options?.policies?.ai ?? 0) === 2 && !model.endpoint.includes("localhost")) {
                 root.addMessage(
                     Translation.tr("Online models disallowed\n\nControlled by `policies.ai` config option"),
                     root.interfaceRole
-                );
-                return;
+                )
+                return
             }
-            if (setPersistentState) Persistent.states.ai.model = modelId;
+            if (setPersistentState) Config.setNestedValue(["ai", "model"], modelId);
             if (feedback) root.addMessage(Translation.tr("Model set to %1").arg(model.name), root.interfaceRole);
             if (model.requires_key) {
                 // If key not there show advice
@@ -558,7 +574,7 @@ Singleton {
             root.addMessage(Translation.tr("Invalid tool. Supported tools:\n- %1").arg(root.availableTools.join("\n- ")), root.interfaceRole);
             return false;
         }
-        Config.options.ai.tool = tool;
+        Config.setNestedValue(["ai", "tool"], tool)
         return true;
     }
     

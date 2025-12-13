@@ -4,6 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.modules.common
 
 Singleton {
     id: root
@@ -12,8 +13,8 @@ Singleton {
 
     Timer {
         id: pollTimer
-        interval: 1000
-        running: true
+        interval: 2000
+        running: Config.ready
         repeat: true
         onTriggered: {
             if (!checkProcess.running) {
