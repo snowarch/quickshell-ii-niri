@@ -60,8 +60,7 @@ Rectangle {
                 materialSymbol: "volume_up"
                 value: Audio.sink && Audio.sink.audio ? Audio.sink.audio.volume : 0
                 onMoved: {
-                    if (Audio.sink && Audio.sink.audio)
-                        Audio.sink.audio.volume = value
+                    Audio.setSinkVolume(value)
                 }
             }
         }

@@ -24,21 +24,22 @@ Slider {
         }
     }
 
-    background: MouseArea {
+    background: Item {
         id: background
         anchors.fill: parent
 
-        onWheel: (event) => {
-            if (!root.scrollable) {
-                event.accepted = false;
-                return;
-            }
-            if (event.angleDelta.y > 0) {
-                root.value = Math.min(root.value + root.stepSize, 1)
-                root.moved()
-            } else {
-                root.value = Math.max(root.value - root.stepSize, 0)
-                root.moved()
+        WheelHandler {
+            id: wheelHandler
+            target: background
+            enabled: root.scrollable
+            onWheel: (event) => {
+                if (event.angleDelta.y > 0) {
+                    root.value = Math.min(root.value + root.stepSize, 1)
+                    root.moved()
+                } else if (event.angleDelta.y < 0) {
+                    root.value = Math.max(root.value - root.stepSize, 0)
+                    root.moved()
+                }
             }
         }
 

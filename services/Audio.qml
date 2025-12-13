@@ -59,6 +59,24 @@ Singleton {
         Audio.sink.audio.muted = !Audio.sink.audio.muted
     }
 
+    // Set sink volume safely. When protection is enabled, large jumps can be rejected as "Illegal increment".
+    // To keep UX consistent with brightness (click anywhere), we optionally ramp in small steps.
+    function setSinkVolume(target: real, ramp: bool = true): void {
+        if (!root.sink?.audio) return;
+
+        const maxAllowed = (Config.options?.audio?.protection?.maxAllowed ?? 100) / 100;
+        const clamped = Math.max(0, Math.min(Math.min(maxAllowed, root.hardMaxValue), target));
+
+        const protectionEnabled = (Config.options?.audio?.protection?.enable ?? false);
+        if (!ramp || !protectionEnabled) {
+            root.sink.audio.volume = clamped;
+            return;
+        }
+
+        root._rampTarget = clamped;
+        root._rampTimer.restart();
+    }
+
     function toggleMicMute() {
         Audio.source.audio.muted = !Audio.source.audio.muted
     }
@@ -118,6 +136,39 @@ Singleton {
                 sink.audio.volume = maxAllowed;
             }
             lastVolume = sink.audio.volume;
+        }
+    }
+
+    // Ramp helper (prevents "Illegal increment" when user clicks far away on slider)
+    property real _rampTarget: 0
+    Timer {
+        id: _rampTimer
+        interval: 16
+        repeat: true
+        running: false
+        onTriggered: {
+            if (!root.sink?.audio) {
+                running = false
+                return
+            }
+
+            const protectionEnabled = (Config.options?.audio?.protection?.enable ?? false)
+            if (!protectionEnabled) {
+                root.sink.audio.volume = root._rampTarget
+                running = false
+                return
+            }
+
+            const maxStep = (Config.options?.audio?.protection?.maxAllowedIncrease ?? 2) / 100
+            const step = Math.max(0.005, maxStep)
+            const current = root.sink.audio.volume
+            const diff = root._rampTarget - current
+            if (Math.abs(diff) <= step) {
+                root.sink.audio.volume = root._rampTarget
+                running = false
+                return
+            }
+            root.sink.audio.volume = current + Math.sign(diff) * step
         }
     }
 

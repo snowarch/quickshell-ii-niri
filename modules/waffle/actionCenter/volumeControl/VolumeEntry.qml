@@ -61,7 +61,13 @@ RowLayout {
     WSlider {
         Layout.fillWidth: true
         value: root.node?.audio.volume ?? 0
-        onMoved: root.node.audio.volume = value
+        onMoved: {
+            if (root.node === Audio.sink) {
+                Audio.setSinkVolume(value)
+            } else {
+                root.node.audio.volume = value
+            }
+        }
     }
 
     WBorderlessButton {
