@@ -96,7 +96,7 @@ Item {
                 }
                 text: Translation.tr("More Internet settings")
                 onClicked: {
-                    GlobalStates.actionCenterOpen = false
+                    GlobalStates.waffleActionCenterOpen = false
                     const cmd = Network.ethernet
                         ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor")
                         : (Config.options?.apps?.network ?? "nm-connection-editor")
