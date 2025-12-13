@@ -17,6 +17,21 @@ Singleton {
     readonly property bool useUSCS: Config.options?.bar?.weather?.useUSCS ?? false
     property bool gpsActive: Config.options?.bar?.weather?.enableGPS ?? false
 
+    Component.onCompleted: {
+        if (root.enabled) {
+            Qt.callLater(() => root.getData())
+        }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged(): void {
+            if (Config.ready && root.enabled) {
+                Qt.callLater(() => root.getData())
+            }
+        }
+    }
+
     onEnabledChanged: {
         if (root.enabled) {
             Qt.callLater(() => root.getData())
