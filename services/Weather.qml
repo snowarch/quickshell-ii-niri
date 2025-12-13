@@ -17,6 +17,12 @@ Singleton {
     readonly property bool useUSCS: Config.options?.bar?.weather?.useUSCS ?? false
     property bool gpsActive: Config.options?.bar?.weather?.enableGPS ?? false
 
+    onEnabledChanged: {
+        if (root.enabled) {
+            Qt.callLater(() => root.getData())
+        }
+    }
+
     onUseUSCSChanged: root.getData()
     onCityChanged: root._geocodeCity()
 

@@ -20,6 +20,7 @@ ShellRoot {
     property var _idleService: Idle
     property var _gameModeService: GameMode
     property var _windowPreviewService: WindowPreviewService
+    property var _weatherService: Weather
 
     Component.onCompleted: {
         console.log("[Shell] Initializing singletons");
@@ -33,7 +34,7 @@ ShellRoot {
         function onReadyChanged() {
             if (Config.ready) {
                 console.log("[Shell] Config ready, applying theme");
-                ThemeService.applyCurrentTheme();
+                Qt.callLater(() => ThemeService.applyCurrentTheme());
                 // Only reset enabledPanels if it's empty or undefined (first run / corrupted config)
                 if (!Config.options?.enabledPanels || Config.options.enabledPanels.length === 0) {
                     const family = Config.options?.panelFamily ?? "ii"
@@ -138,6 +139,23 @@ ShellRoot {
     property string _pendingFamily: ""
     property bool _transitionInProgress: false
 
+    function _ensureFamilyPanels(family: string): void {
+        const basePanels = root.panelFamilies[family] ?? []
+        const currentPanels = Config.options?.enabledPanels ?? []
+
+        if (basePanels.length === 0) return
+        if (currentPanels.length === 0) {
+            Config.options.enabledPanels = [...basePanels]
+            return
+        }
+
+        const merged = [...currentPanels]
+        for (const panel of basePanels) {
+            if (!merged.includes(panel)) merged.push(panel)
+        }
+        Config.options.enabledPanels = merged
+    }
+
     function cyclePanelFamily() {
         const currentFamily = Config.options?.panelFamily ?? "ii"
         const currentIndex = families.indexOf(currentFamily)
@@ -164,12 +182,8 @@ ShellRoot {
         
         // If animation is disabled, switch instantly
         if (!(Config.options?.familyTransitionAnimation ?? true)) {
-            const prevPanels = Config.options?.enabledPanels ?? []
-            const basePanels = panelFamilies[targetFamily] ?? []
-            const prefix = targetFamily === "waffle" ? "w" : "ii"
-            const extras = prevPanels.filter(p => p.startsWith(prefix) && !basePanels.includes(p))
             Config.options.panelFamily = targetFamily
-            Config.options.enabledPanels = [...basePanels, ...extras]
+            root._ensureFamilyPanels(targetFamily)
             return
         }
         
@@ -181,12 +195,8 @@ ShellRoot {
 
     function applyPendingFamily() {
         if (_pendingFamily && families.includes(_pendingFamily)) {
-            const prevPanels = Config.options?.enabledPanels ?? []
-            const basePanels = panelFamilies[_pendingFamily] ?? []
-            const prefix = _pendingFamily === "waffle" ? "w" : "ii"
-            const extras = prevPanels.filter(p => p.startsWith(prefix) && !basePanels.includes(p))
             Config.options.panelFamily = _pendingFamily
-            Config.options.enabledPanels = [...basePanels, ...extras]
+            root._ensureFamilyPanels(_pendingFamily)
         }
         _pendingFamily = ""
     }
