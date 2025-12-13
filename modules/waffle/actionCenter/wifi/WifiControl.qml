@@ -96,8 +96,11 @@ Item {
                 }
                 text: Translation.tr("More Internet settings")
                 onClicked: {
-                    Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "sidebarLeft", "toggle"]);
-                    Quickshell.execDetached(["bash", "-c", Config.options.apps.network]);
+                    GlobalStates.actionCenterOpen = false
+                    const cmd = Network.ethernet
+                        ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor")
+                        : (Config.options?.apps?.network ?? "nm-connection-editor")
+                    Quickshell.execDetached(["bash", "-c", cmd])
                 }
             }
             WBorderlessButton {
