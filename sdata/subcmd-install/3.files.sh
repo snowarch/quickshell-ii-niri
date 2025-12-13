@@ -143,6 +143,10 @@ fi
 case "${SKIP_NIRI}" in
   true) sleep 0;;
   *)
+    NIRI_CONFIG="${XDG_CONFIG_HOME}/niri/config.kdl"
+    
+    # First install: copy our default config
+    # Update: preserve user's config, save new defaults as .new for reference
     if [[ -f "defaults/niri/config.kdl" ]]; then
       install_file__auto_backup "defaults/niri/config.kdl" "${XDG_CONFIG_HOME}/niri/config.kdl"
       log_success "Niri config installed (defaults)"
@@ -151,17 +155,30 @@ case "${SKIP_NIRI}" in
       log_success "Niri config installed (dots)"
     fi
     
-    # Migrate: Add layer-rules for backdrop if missing (required for Niri overview)
-    NIRI_CONFIG="${XDG_CONFIG_HOME}/niri/config.kdl"
-    if [[ -f "$NIRI_CONFIG" ]]; then
+    # Show hint about .new file if this is an update
+    if [[ "${IS_UPDATE}" == "true" && -f "${NIRI_CONFIG}.new" ]] && ! ${quiet:-false}; then
+      echo -e "${STY_YELLOW}Note: New Niri config saved as ${NIRI_CONFIG}.new${STY_RST}"
+      echo -e "${STY_YELLOW}Compare with: diff ~/.config/niri/config.kdl ~/.config/niri/config.kdl.new${STY_RST}"
+    fi
+    
+    ###########################################################################
+    # MIGRATIONS - Only run on fresh install, NOT on update
+    # Users can run './setup migrate' to apply these interactively
+    ###########################################################################
+    if [[ "${SKIP_MIGRATIONS}" != "true" && "${IS_UPDATE}" != "true" && -f "$NIRI_CONFIG" ]]; then
+      if ! ${quiet:-false}; then
+        echo -e "${STY_CYAN}Applying first-install migrations...${STY_RST}"
+      fi
+      
+      # These are REQUIRED for ii-niri to work, so we apply them on first install
+      # On updates, users can choose via './setup migrate'
+      
+      # Backdrop layer-rules (required for overview)
       if ! grep -q "quickshell:iiBackdrop" "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding backdrop layer-rules to Niri config...${STY_RST}"
-        fi
         cat >> "$NIRI_CONFIG" << 'BACKDROP_RULES'
 
 // ============================================================================
-// Layer rules added by ii setup (required for backdrop in Niri overview)
+// Layer rules added by ii-niri (required for backdrop in overview)
 // ============================================================================
 layer-rule {
     match namespace="quickshell:iiBackdrop"
@@ -175,26 +192,12 @@ layer-rule {
     opacity 1.0
 }
 BACKDROP_RULES
-        log_success "Backdrop layer-rules added to Niri config"
+        log_success "Backdrop layer-rules added"
+        mark_migration_applied "002-backdrop-layer-rules"
       fi
       
-      # NOTE: Keybind migration removed - too fragile and causes duplicates
-      # The defaults/niri/config.kdl already has all ii keybinds.
-      # On first install: user gets the full config
-      # On update: user keeps their config, new defaults go to .new
-      # Users can manually merge keybinds from .new if needed
-      
-      # Only show a hint if this is an update and .new was created
-      if [[ "${IS_UPDATE}" == "true" && -f "${NIRI_CONFIG}.new" ]] && ! ${quiet:-false}; then
-        echo -e "${STY_YELLOW}Note: New keybinds may be available in ${NIRI_CONFIG}.new${STY_RST}"
-        echo -e "${STY_YELLOW}Compare with: diff ~/.config/niri/config.kdl ~/.config/niri/config.kdl.new${STY_RST}"
-      fi
-      
-      # Migrate: Add //off to animations block if missing (required for GameMode toggle)
+      # GameMode animation toggle
       if ! grep -qE '^\s*(//)?off' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding //off to animations block for GameMode support...${STY_RST}"
-        fi
         python3 << 'MIGRATE_ANIMATIONS'
 import re
 import os
@@ -203,145 +206,17 @@ config_path = os.path.expanduser("~/.config/niri/config.kdl")
 with open(config_path, 'r') as f:
     content = f.read()
 
-# Check if //off already exists in animations block
 animations_match = re.search(r'^animations\s*\{([^}]*)\}', content, re.MULTILINE | re.DOTALL)
 if animations_match:
     block_content = animations_match.group(1)
     if '//off' not in block_content and 'off' not in block_content:
-        # Insert //off after animations {
         new_block = 'animations {\n    //off' + block_content + '}'
         content = content[:animations_match.start()] + new_block + content[animations_match.end():]
         with open(config_path, 'w') as f:
             f.write(content)
-# Output suppressed - shell handles logging
 MIGRATE_ANIMATIONS
-        log_success "Added //off to animations block"
-      fi
-      
-      # Migrate: Replace native close-window with closeConfirm script
-      if grep -q 'Mod+Q.*close-window' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Migrating Mod+Q to use closeConfirm...${STY_RST}"
-        fi
-        python3 << 'MIGRATE_CLOSEWINDOW'
-import re
-import os
-
-config_path = os.path.expanduser("~/.config/niri/config.kdl")
-with open(config_path, 'r') as f:
-    content = f.read()
-
-# Replace Mod+Q close-window with our script
-pattern = r'Mod\+Q[^}]*close-window[^}]*\}'
-replacement = 'Mod+Q repeat=false { spawn "bash" "-c" "$HOME/.config/quickshell/ii/scripts/close-window.sh"; }'
-content = re.sub(pattern, replacement, content)
-
-with open(config_path, 'w') as f:
-    f.write(content)
-# Output suppressed in quiet mode (checked by shell)
-MIGRATE_CLOSEWINDOW
-        log_success "Mod+Q migrated to closeConfirm with fallback"
-      fi
-      
-      # Migrate: Qt theming - use kde platform + Breeze style for proper Qt app theming
-      if grep -q 'QT_QPA_PLATFORMTHEME "gtk3"' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Migrating Qt theming from gtk3 to kde...${STY_RST}"
-        fi
-        # Change gtk3 to kde for kdeglobals color support
-        sed -i 's/QT_QPA_PLATFORMTHEME "gtk3"/QT_QPA_PLATFORMTHEME "kde"/' "$NIRI_CONFIG"
-        # Remove QT_QPA_PLATFORMTHEME_QT6 if present (not needed with kde)
-        sed -i '/QT_QPA_PLATFORMTHEME_QT6/d' "$NIRI_CONFIG"
-        log_success "Qt theming migrated to kde"
-      fi
-      
-      # Add QT_QPA_PLATFORMTHEME if missing entirely
-      if ! grep -q 'QT_QPA_PLATFORMTHEME' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding QT_QPA_PLATFORMTHEME for Qt theming...${STY_RST}"
-        fi
-        sed -i '/QT_QPA_PLATFORM "wayland"/a\    QT_QPA_PLATFORMTHEME "kde"' "$NIRI_CONFIG"
-        log_success "QT_QPA_PLATFORMTHEME added"
-      fi
-      
-      # Add QT_STYLE_OVERRIDE if not present
-      if ! grep -q 'QT_STYLE_OVERRIDE' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding QT_STYLE_OVERRIDE for Qt theming...${STY_RST}"
-        fi
-        sed -i '/QT_QPA_PLATFORMTHEME/a\    QT_STYLE_OVERRIDE "Breeze"' "$NIRI_CONFIG"
-        log_success "QT_STYLE_OVERRIDE added"
-      fi
-      
-      # Migrate: Add XDG_MENU_PREFIX for Dolphin file associations
-      # Check specifically for XDG_MENU_PREFIX in environment block (not spawn-at-startup)
-      if ! grep -q 'XDG_MENU_PREFIX "plasma-"' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding XDG_MENU_PREFIX for Dolphin file associations...${STY_RST}"
-        fi
-        # Add after XDG_CURRENT_DESKTOP
-        sed -i '/XDG_CURRENT_DESKTOP "niri"/a\    XDG_MENU_PREFIX "plasma-"  // Required for Dolphin file associations' "$NIRI_CONFIG"
-        log_success "XDG_MENU_PREFIX added for Dolphin"
-      fi
-      
-      # Migrate: Add spawn-at-startup for systemctl import-environment (Dolphin fix)
-      if ! grep -q 'import-environment XDG_MENU_PREFIX' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding systemctl import-environment for Dolphin...${STY_RST}"
-        fi
-        # Add before the first spawn-at-startup
-        sed -i '0,/spawn-at-startup/s//spawn-at-startup "bash" "-c" "systemctl --user import-environment XDG_MENU_PREFIX \&\& kbuildsycoca6"\n\nspawn-at-startup/' "$NIRI_CONFIG"
-        log_success "systemctl import-environment added for Dolphin"
-      fi
-      
-      # Migrate: Update media/audio keybinds to use ii IPC (shows OSD)
-      if grep -q 'XF86AudioRaiseVolume.*wpctl' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Migrating audio keybinds to use ii IPC (with OSD)...${STY_RST}"
-        fi
-        # Replace old wpctl keybinds with ii IPC
-        sed -i 's|XF86AudioRaiseVolume.*{.*spawn.*wpctl.*}|XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }|' "$NIRI_CONFIG"
-        sed -i 's|XF86AudioLowerVolume.*{.*spawn.*wpctl.*}|XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }|' "$NIRI_CONFIG"
-        sed -i 's|XF86AudioMute.*{.*spawn.*wpctl.*}|XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }|' "$NIRI_CONFIG"
-        log_success "Audio keybinds migrated to ii IPC"
-      fi
-      
-      # Add XF86AudioMicMute if missing
-      if ! grep -q 'XF86AudioMicMute' "$NIRI_CONFIG" 2>/dev/null; then
-        sed -i '/XF86AudioMute.*allow-when-locked/a\    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }' "$NIRI_CONFIG"
-        log_success "XF86AudioMicMute keybind added"
-      fi
-      
-      # Add brightness keybinds if missing
-      if ! grep -q 'XF86MonBrightnessUp' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding brightness keybinds...${STY_RST}"
-        fi
-        # Add after XF86AudioMicMute or XF86AudioMute
-        if grep -q 'XF86AudioMicMute' "$NIRI_CONFIG"; then
-          sed -i '/XF86AudioMicMute/a\    \n    // Brightness (hardware keys)\n    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }\n    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }' "$NIRI_CONFIG"
-        else
-          sed -i '/XF86AudioMute/a\    \n    // Brightness (hardware keys)\n    XF86MonBrightnessUp { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "increment"; }\n    XF86MonBrightnessDown { spawn "qs" "-c" "ii" "ipc" "call" "brightness" "decrement"; }' "$NIRI_CONFIG"
-        fi
-        log_success "Brightness keybinds added"
-      fi
-      
-      # Add media playback keybinds if missing
-      if ! grep -q 'XF86AudioPlay' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding media playback keybinds...${STY_RST}"
-        fi
-        sed -i '/XF86MonBrightnessDown/a\    \n    // Media playback (hardware keys)\n    XF86AudioPlay { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    XF86AudioPause { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    XF86AudioNext { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }\n    XF86AudioPrev { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }' "$NIRI_CONFIG"
-        log_success "Media playback keybinds added"
-      fi
-      
-      # Add keyboard alternatives for media (Mod+Shift+M/P/N/B) if missing
-      if ! grep -q 'Mod+Shift+M.*audio.*mute' "$NIRI_CONFIG" 2>/dev/null; then
-        if ! ${quiet:-false}; then
-          echo -e "${STY_CYAN}Adding keyboard media shortcuts (Mod+Shift+M/P/N/B)...${STY_RST}"
-        fi
-        sed -i '/XF86AudioPrev/a\    \n    // Keyboard alternatives for media (for keyboards without media keys)\n    Mod+Shift+M { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }\n    Mod+Shift+P { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "playPause"; }\n    Mod+Shift+N { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "next"; }\n    Mod+Shift+B { spawn "qs" "-c" "ii" "ipc" "call" "mpris" "previous"; }' "$NIRI_CONFIG"
-        log_success "Keyboard media shortcuts added"
+        log_success "GameMode animation toggle added"
+        mark_migration_applied "001-gamemode-animation-toggle"
       fi
     fi
     ;;
