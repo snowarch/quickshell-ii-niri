@@ -55,6 +55,7 @@ ColumnLayout {
                 topRightRadius: root.hasMenu ? 0 : Looks.radius.medium
                 bottomRightRadius: root.hasMenu ? 0 : Looks.radius.medium
                 iconName: root.icon
+                isMainToggle: true
                 onClicked: root.mainAction && root.mainAction()
             }
             FadeLoader {
@@ -95,6 +96,7 @@ ColumnLayout {
     component ToggleFragment: WButton {
         id: toggleFragment
         required property string iconName
+        property bool isMainToggle: false
         Layout.fillHeight: true
         Layout.fillWidth: true
         inset: 0
@@ -102,6 +104,15 @@ ColumnLayout {
         checked: root.toggled
         border.width: 1
         border.color: root.colBorder
+
+        // Right-click to open menu (like Material ii sidebar)
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            enabled: toggleFragment.isMainToggle && root.altAction
+            onTapped: {
+                if (root.altAction) root.altAction()
+            }
+        }
 
         contentItem: Item {
             anchors.centerIn: parent

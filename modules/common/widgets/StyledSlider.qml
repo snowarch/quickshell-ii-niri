@@ -107,6 +107,22 @@ Slider {
         cursorShape: root.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor 
     }
 
+    // Scroll support
+    WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: (event) => {
+            root._userInteracting = true
+            const step = root.stepSize > 0 ? root.stepSize : 0.02
+            if (event.angleDelta.y > 0) {
+                root.value = Math.min(root.value + step, root.to)
+            } else if (event.angleDelta.y < 0) {
+                root.value = Math.max(root.value - step, root.from)
+            }
+            root._userInteracting = false
+            root.moved()
+        }
+    }
+
     background: Item {
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
