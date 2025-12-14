@@ -26,11 +26,8 @@ Slider {
 
     implicitHeight: handle.implicitHeight
 
-    Behavior on value { // This makes the adjusted value (like volume) shift smoothly
-        SmoothedAnimation {
-            velocity: Looks.transition.velocity
-        }
-    }
+    // No animation on value - instant response to user input
+    // External changes (volume changed by other app) also instant, which is fine
 
     background: MouseArea {
         id: background

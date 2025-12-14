@@ -34,6 +34,7 @@ Singleton {
         { matches: ["skype", "Skype"], launch: "skypeforlinux" },
         { matches: ["viber", "Viber"], launch: "viber" },
         { matches: ["zoom", "Zoom"], launch: "zoom" },
+        { matches: ["easyeffects", "EasyEffects", "com.github.wwmm.easyeffects"], launch: "easyeffects" },
     ]
     
     // Check if an item is a problematic app

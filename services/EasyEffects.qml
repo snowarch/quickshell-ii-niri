@@ -31,7 +31,8 @@ Singleton {
 
     function enable() {
         root.active = true
-        enableNativeProc.running = true
+        // Use execDetached to avoid process management issues that can crash the shell
+        Quickshell.execDetached(["/usr/bin/fish", "-c", "easyeffects --gapplication-service; or flatpak run com.github.wwmm.easyeffects --gapplication-service"])
     }
 
     function toggle() {
@@ -124,22 +125,5 @@ Singleton {
         id: flatpakKillProc
         running: false
         command: ["flatpak", "kill", "com.github.wwmm.easyeffects"]
-    }
-
-    Process {
-        id: enableNativeProc
-        running: false
-        command: ["easyeffects", "--gapplication-service"]
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0) {
-                enableFlatpakProc.running = true
-            }
-        }
-    }
-
-    Process {
-        id: enableFlatpakProc
-        running: false
-        command: ["flatpak", "run", "com.github.wwmm.easyeffects", "--gapplication-service"]
     }
 }
