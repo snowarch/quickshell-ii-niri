@@ -42,6 +42,8 @@ Rectangle {
             sourceComponent: QuickSlider {
                 materialSymbol: "brightness_6"
                 modelValue: root.brightnessMonitor?.brightness ?? 0
+                scrollable: true
+                stepSize: 0.05
                 onMoved: root.brightnessMonitor?.setBrightness(value)
             }
         }
@@ -57,6 +59,8 @@ Rectangle {
                 materialSymbol: "volume_up"
                 modelValue: Audio.sink?.audio?.volume ?? 0
                 to: Audio.uiMaxSinkVolume
+                scrollable: true
+                stepSize: 0.02
                 onMoved: Audio.setSinkVolume(value)
             }
         }
@@ -71,6 +75,8 @@ Rectangle {
             sourceComponent: QuickSlider {
                 materialSymbol: "mic"
                 modelValue: Audio.source?.audio?.volume ?? 0
+                scrollable: true
+                stepSize: 0.02
                 onMoved: {
                     if (Audio.source?.audio)
                         Audio.source.audio.volume = value
