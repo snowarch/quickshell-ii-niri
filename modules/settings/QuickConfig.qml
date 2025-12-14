@@ -499,6 +499,61 @@ ContentPage {
         }
     }
 
+    // Game Mode
+    CollapsibleSection {
+        expanded: false
+        icon: "sports_esports"
+        title: Translation.tr("Game Mode")
+
+        ConfigSwitch {
+            buttonIcon: "fullscreen"
+            text: Translation.tr("Auto-detect fullscreen")
+            checked: Config.options?.gameMode?.autoDetect ?? true
+            onCheckedChanged: {
+                Config.setNestedValue("gameMode.autoDetect", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Automatically enable Game Mode when apps go fullscreen")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "animation"
+            text: Translation.tr("Disable animations")
+            checked: Config.options?.gameMode?.disableAnimations ?? true
+            onCheckedChanged: {
+                Config.setNestedValue("gameMode.disableAnimations", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Turn off UI animations when Game Mode is active")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "blur_on"
+            text: Translation.tr("Disable effects")
+            checked: Config.options?.gameMode?.disableEffects ?? true
+            onCheckedChanged: {
+                Config.setNestedValue("gameMode.disableEffects", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Turn off blur and shadows when Game Mode is active")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "desktop_windows"
+            text: Translation.tr("Disable Niri animations")
+            checked: Config.options?.gameMode?.disableNiriAnimations ?? true
+            onCheckedChanged: {
+                Config.setNestedValue("gameMode.disableNiriAnimations", checked)
+            }
+            StyledToolTip {
+                text: Translation.tr("Turn off compositor animations when Game Mode is active")
+            }
+        }
+    }
+
     // Quick Actions
     CollapsibleSection {
         expanded: false
@@ -552,8 +607,7 @@ ContentPage {
             text: Translation.tr("Hide reload toasts in Game Mode")
             checked: Config.options?.gameMode?.disableReloadToasts ?? true
             onCheckedChanged: {
-                if (!Config.options.gameMode) Config.options.gameMode = ({})
-                Config.options.gameMode.disableReloadToasts = checked
+                Config.setNestedValue("gameMode.disableReloadToasts", checked)
             }
             StyledToolTip {
                 text: Translation.tr("Automatically suppress reload toasts when Game Mode is active")

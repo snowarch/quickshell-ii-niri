@@ -222,5 +222,13 @@ WSettingsPage {
             checked: Config.options?.gameMode?.disableNiriAnimations ?? true
             onCheckedChanged: Config.setNestedValue("gameMode.disableNiriAnimations", checked)
         }
+
+        WSettingsSwitch {
+            label: Translation.tr("Hide reload toasts")
+            icon: "alert_off"
+            description: Translation.tr("Suppress reload notifications when Game Mode is active")
+            checked: Config.options?.gameMode?.disableReloadToasts ?? true
+            onCheckedChanged: Config.setNestedValue("gameMode.disableReloadToasts", checked)
+        }
     }
 }
