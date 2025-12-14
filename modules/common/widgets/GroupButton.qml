@@ -102,11 +102,17 @@ Button {
         }
         onReleased: (event) => {
             root.down = false
-            if (event.button != Qt.LeftButton) return;
+            if (event.button != Qt.LeftButton) {
+                event.accepted = true
+                return;
+            }
             if (root.releaseAction) root.releaseAction();
         }
         onClicked: (event) => {
-            if (event.button != Qt.LeftButton) return;
+            if (event.button != Qt.LeftButton) {
+                event.accepted = true
+                return;
+            }
             root.clicked()
         }
         onCanceled: (event) => {
