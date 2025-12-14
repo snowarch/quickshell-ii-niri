@@ -156,7 +156,8 @@ Singleton {
     }
 
     function _fetchByIP(): void {
-        // Use ip-api.com to get location from IP
+        // Avoid duplicate requests
+        if (ipLocator.running) return;
         ipLocator.running = true;
     }
 
@@ -165,6 +166,9 @@ Singleton {
             root._geocodeCity();
             return;
         }
+
+        // Avoid duplicate requests
+        if (fetcher.running) return;
 
         const lat = root.location.lat;
         const lon = root.location.lon;
@@ -220,7 +224,7 @@ Singleton {
                             lon: data.lon,
                             name: data.city + (data.regionName ? `, ${data.regionName}` : "")
                         };
-                        console.info(`[WeatherService] IP location: ${root.location.name}`);
+                        console.info(`[WeatherService] Location: ${root.location.name}`);
                         root.getData();
                     }
                 } catch (e) {
@@ -240,8 +244,9 @@ Singleton {
                 try {
                     const data = JSON.parse(text);
                     root._refineData(data);
+                    console.info("[WeatherService] Updated:", root.data.temp, root.data.city)
                 } catch (e) {
-                    console.error(`[WeatherService] Weather fetch error: ${e.message}`);
+                    console.error(`[WeatherService] Fetch error: ${e.message}`);
                 }
             }
         }
@@ -284,12 +289,12 @@ Singleton {
         running: root.enabled && Config.ready
         repeat: true
         interval: root.fetchInterval > 0 ? root.fetchInterval : 600000
-        triggeredOnStart: true
+        // Don't use triggeredOnStart - we handle it in onRunningChanged
         onTriggered: root.getData()
-        // Ensure we fetch immediately when timer starts (triggeredOnStart doesn't work on binding changes)
         onRunningChanged: {
             if (running) {
                 console.info("[WeatherService] Fetch timer started, interval:", interval / 1000 / 60, "min")
+                // Fetch immediately when timer starts
                 Qt.callLater(() => root.getData())
             }
         }
