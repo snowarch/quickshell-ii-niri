@@ -14,19 +14,19 @@ Scope {
     property int maxToasts: 5
     property int toastSpacing: 8
     
-    // Debounce tracking for reload toasts
-    property real _lastQsReloadTime: 0
-    property real _lastNiriReloadTime: 0
-    property bool _qsReloadPending: false
-    property bool _niriReloadPending: false
-    readonly property int _reloadDebounceMs: 500  // Coalesce reloads within this window
+    // Unified reload tracking - only show ONE toast per reload event
+    property real _lastReloadToastTime: 0
+    property string _pendingReloadSource: ""  // "quickshell", "niri", or ""
+    readonly property int _reloadDebounceMs: 800   // Wait this long to coalesce events
+    readonly property int _reloadCooldownMs: 2500  // Minimum time between reload toasts
     
-    // Check if reload toasts should be shown - evaluated fresh each time
+    // Track if we're in the middle of a QS reload (suppresses Niri toast)
+    property bool _qsReloadInProgress: false
+    
+    // Check if reload toasts should be shown
     function shouldShowReloadToast(): bool {
-        // Global disable
         if (!(Config.options?.reloadToasts?.enable ?? true)) return false
         
-        // Suppress if disableReloadToasts is enabled AND (GameMode active OR any fullscreen window exists)
         const disableInGameMode = Config.options?.gameMode?.disableReloadToasts ?? true
         if (disableInGameMode && (GameMode.active || GameMode.hasAnyFullscreenWindow || GameMode.suppressNiriToast)) {
             return false
@@ -36,8 +36,8 @@ Scope {
     }
     
     function addToast(title, message, icon, isError, duration, source, accentColor) {
-        // Prevent duplicates: if same source already has a toast, ignore
-        if (toasts.some(t => t.source === source && t.isError === isError)) {
+        // Prevent duplicates: if same source and title already visible, ignore
+        if (toasts.some(t => t.source === source && t.title === title)) {
             return
         }
         
@@ -54,7 +54,6 @@ Scope {
         
         toasts = [...toasts, toast]
         
-        // Limit max toasts
         if (toasts.length > maxToasts) {
             toasts = toasts.slice(-maxToasts)
         }
@@ -69,51 +68,64 @@ Scope {
         }
     }
     
-    // Debounce timer for Quickshell reload toast
-    Timer {
-        id: qsReloadDebounce
-        interval: root._reloadDebounceMs
-        onTriggered: {
-            if (root._qsReloadPending) {
-                root._qsReloadPending = false
-                if (!root.shouldShowReloadToast()) return
-                root.addToast(
-                    "Quickshell reloaded",
-                    "",
-                    "refresh",
-                    false,
-                    2000,
-                    "quickshell",
-                    Appearance.colors.colPrimary
-                )
-            }
+    // Show the pending reload toast
+    function _showReloadToast() {
+        if (!root._pendingReloadSource) return
+        if (!root.shouldShowReloadToast()) {
+            root._pendingReloadSource = ""
+            return
+        }
+        
+        const now = Date.now()
+        // Check cooldown
+        if (now - root._lastReloadToastTime < root._reloadCooldownMs) {
+            root._pendingReloadSource = ""
+            return
+        }
+        
+        root._lastReloadToastTime = now
+        const source = root._pendingReloadSource
+        root._pendingReloadSource = ""
+        
+        if (source === "quickshell") {
+            root.addToast(
+                "Quickshell reloaded",
+                "",
+                "refresh",
+                false,
+                2000,
+                "reload",
+                Appearance.colors.colPrimary
+            )
+        } else if (source === "niri") {
+            root.addToast(
+                "Niri config reloaded",
+                "",
+                "settings",
+                false,
+                2000,
+                "reload",
+                Appearance.colors.colTertiary
+            )
         }
     }
     
-    // Debounce timer for Niri reload toast
+    // Single debounce timer for all reload events
     Timer {
-        id: niriReloadDebounce
+        id: reloadDebounce
         interval: root._reloadDebounceMs
         onTriggered: {
-            if (root._niriReloadPending) {
-                root._niriReloadPending = false
-                // Only show if Quickshell didn't just reload (QML change triggers both)
-                const now = Date.now()
-                if (now - root._lastQsReloadTime < root._reloadDebounceMs) {
-                    // Quickshell just reloaded, skip Niri toast (it's a false positive)
-                    return
-                }
-                if (!root.shouldShowReloadToast()) return
-                root.addToast(
-                    "Niri config reloaded",
-                    "",
-                    "settings",
-                    false,
-                    2000,
-                    "niri",
-                    Appearance.colors.colTertiary
-                )
-            }
+            root._qsReloadInProgress = false
+            root._showReloadToast()
+        }
+    }
+    
+    // Timer to clear QS reload flag after a longer period
+    Timer {
+        id: qsReloadClearTimer
+        interval: 2000  // 2 seconds after QS reload, allow Niri toasts again
+        onTriggered: {
+            root._qsReloadInProgress = false
         }
     }
 
@@ -122,25 +134,24 @@ Scope {
         target: Quickshell
         
         function onReloadCompleted() {
-            const now = Date.now()
-            // Ignore if we just processed a reload
-            if (now - root._lastQsReloadTime < root._reloadDebounceMs) {
-                return
-            }
-            root._lastQsReloadTime = now
-            root._qsReloadPending = true
-            qsReloadDebounce.restart()
+            // Mark that QS is reloading - this suppresses Niri toasts
+            root._qsReloadInProgress = true
+            qsReloadClearTimer.restart()
+            
+            // Quickshell reload takes priority
+            root._pendingReloadSource = "quickshell"
+            reloadDebounce.restart()
         }
         
         function onReloadFailed(error) {
-            // Always show errors immediately
+            root._qsReloadInProgress = false
             root.addToast(
                 "Quickshell reload failed",
                 error,
                 "error",
                 true,
                 8000,
-                "quickshell",
+                "error",
                 Appearance.colors.colError
             )
         }
@@ -152,23 +163,25 @@ Scope {
         
         function onConfigLoadFinished(ok, error) {
             if (ok) {
-                const now = Date.now()
-                // Ignore if we just processed a reload
-                if (now - root._lastNiriReloadTime < root._reloadDebounceMs) {
+                // If QS just reloaded, ignore Niri's ConfigLoaded (it's from reconnection)
+                if (root._qsReloadInProgress) {
                     return
                 }
-                root._lastNiriReloadTime = now
-                root._niriReloadPending = true
-                niriReloadDebounce.restart()
+                
+                // Only set pending if not already set to quickshell
+                if (root._pendingReloadSource !== "quickshell") {
+                    root._pendingReloadSource = "niri"
+                    reloadDebounce.restart()
+                }
             } else {
-                // Always show errors immediately
+                // Errors always show immediately
                 root.addToast(
                     "Niri config reload failed",
-                    error || "Run 'niri validate' in terminal for details",
+                    error || "Run 'niri validate' for details",
                     "error",
                     true,
                     8000,
-                    "niri",
+                    "error",
                     Appearance.colors.colError
                 )
             }
@@ -190,7 +203,6 @@ Scope {
             WlrLayershell.namespace: "quickshell:toast-manager"
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
             
-            // Only capture input on actual toast area
             mask: Region {
                 item: toastColumn
             }
@@ -223,7 +235,6 @@ Scope {
                         opacity: 1
                         scale: 1
                         
-                        // Entry animation
                         Component.onCompleted: {
                             if (Appearance.animationsEnabled) {
                                 entryAnim.start()

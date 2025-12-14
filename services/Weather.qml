@@ -17,29 +17,18 @@ Singleton {
     readonly property bool useUSCS: Config.options?.bar?.weather?.useUSCS ?? false
     property bool gpsActive: Config.options?.bar?.weather?.enableGPS ?? false
 
-    Component.onCompleted: {
-        if (root.enabled) {
-            Qt.callLater(() => root.getData())
-        }
-
-        if (root.enabled && root.gpsActive) {
-            console.info("[WeatherService] Starting GPS service.");
-            positionSource.start();
-        }
-    }
-
-    Connections {
-        target: Config
-        function onReadyChanged(): void {
-            if (Config.ready && root.enabled) {
-                Qt.callLater(() => root.getData())
-            }
+    // GPS is started when gpsActive becomes true and weather is enabled
+    onGpsActiveChanged: {
+        if (root.gpsActive && root.enabled && !positionSource.active) {
+            console.info("[WeatherService] Starting GPS service.")
+            positionSource.start()
         }
     }
 
     onEnabledChanged: {
-        if (root.enabled) {
-            Qt.callLater(() => root.getData())
+        if (root.enabled && root.gpsActive && !positionSource.active) {
+            console.info("[WeatherService] Weather enabled, starting GPS.")
+            positionSource.start()
         }
     }
 
@@ -291,10 +280,18 @@ Singleton {
     }
 
     Timer {
-        running: root.enabled
+        id: fetchTimer
+        running: root.enabled && Config.ready
         repeat: true
         interval: root.fetchInterval > 0 ? root.fetchInterval : 600000
         triggeredOnStart: true
         onTriggered: root.getData()
+        // Ensure we fetch immediately when timer starts (triggeredOnStart doesn't work on binding changes)
+        onRunningChanged: {
+            if (running) {
+                console.info("[WeatherService] Fetch timer started, interval:", interval / 1000 / 60, "min")
+                Qt.callLater(() => root.getData())
+            }
+        }
     }
 }

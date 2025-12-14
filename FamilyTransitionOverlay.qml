@@ -90,10 +90,8 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             
-            width: screen?.width ?? 1920
-            height: screen?.height ?? 1080
-            implicitWidth: width
-            implicitHeight: height
+            implicitWidth: screen?.width ?? 1920
+            implicitHeight: screen?.height ?? 1080
 
             Item {
                 id: content
