@@ -90,6 +90,11 @@ Singleton {
 
     Process {
         id: enableWifiProc
+        onExited: (exitCode, exitStatus) => {
+            // Refresh state after toggling the radio
+            wifiStatusProcess.running = true
+            root.update()
+        }
     }
 
     Process {

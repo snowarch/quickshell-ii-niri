@@ -84,13 +84,16 @@ Button {
         id: buttonMouseArea
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
+        preventStealing: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onPressed: (event) => { 
             if(event.button === Qt.RightButton) {
+                event.accepted = true
                 if (root.altAction) root.altAction();
                 return;
             }
             if(event.button === Qt.MiddleButton) {
+                event.accepted = true
                 if (root.middleClickAction) root.middleClickAction();
                 return;
             }
@@ -111,7 +114,7 @@ Button {
         }
 
         onPressAndHold: () => {
-            altAction(); 
+            if (altAction) altAction(); 
             root.down = false; 
             root.clicked = false;
         };
