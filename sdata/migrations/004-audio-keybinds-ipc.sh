@@ -17,7 +17,7 @@ migration_preview() {
   echo -e "${STY_RED}- XF86AudioRaiseVolume { spawn \"wpctl\" \"set-volume\" ... }${STY_RST}"
   echo -e "${STY_GREEN}+ XF86AudioRaiseVolume { spawn \"qs\" \"-c\" \"ii\" \"ipc\" \"call\" \"audio\" \"volumeUp\" }${STY_RST}"
   echo ""
-  echo "Same for: XF86AudioLowerVolume, XF86AudioMute"
+  echo "Same for: XF86AudioLowerVolume, XF86AudioMute, XF86AudioMicMute"
 }
 
 migration_diff() {
@@ -39,4 +39,9 @@ migration_apply() {
   sed -i 's|XF86AudioRaiseVolume.*{.*spawn.*wpctl.*}|XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeUp"; }|' "$config"
   sed -i 's|XF86AudioLowerVolume.*{.*spawn.*wpctl.*}|XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "volumeDown"; }|' "$config"
   sed -i 's|XF86AudioMute.*{.*spawn.*wpctl.*}|XF86AudioMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "mute"; }|' "$config"
+  
+  # Add micMute if not present
+  if ! grep -q 'XF86AudioMicMute' "$config"; then
+    sed -i '/XF86AudioMute.*mute/a\    XF86AudioMicMute allow-when-locked=true { spawn "qs" "-c" "ii" "ipc" "call" "audio" "micMute"; }' "$config"
+  fi
 }
