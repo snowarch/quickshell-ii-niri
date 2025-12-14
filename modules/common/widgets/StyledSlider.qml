@@ -47,6 +47,8 @@ Slider {
     property real handleMargins: 4
     property real trackDotSize: 3
     property string tooltipContent: `${Math.round(value * 100)}%`
+    property bool scrollable: false
+    property bool _userInteracting: false
     property bool wavy: configuration === StyledSlider.Configuration.Wavy // If true, the progress bar will have a wavy fill effect
     property bool animateWave: true
     property real waveAmplitudeMultiplier: wavy ? 0.5 : 0
@@ -60,6 +62,13 @@ Slider {
     Layout.fillWidth: true
     from: 0
     to: 1
+
+    Timer {
+        id: _userInteractingReset
+        interval: 180
+        repeat: false
+        onTriggered: root._userInteracting = false
+    }
 
     Behavior on value { // This makes the adjusted value (like volume) shift smoothly
         SmoothedAnimation {
@@ -90,6 +99,25 @@ Slider {
         anchors.fill: parent
         onPressed: (mouse) => mouse.accepted = false
         cursorShape: root.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor 
+
+        onWheel: (event) => {
+            if (!root.scrollable) {
+                event.accepted = false
+                return
+            }
+
+            root._userInteracting = true
+            _userInteractingReset.restart()
+
+            const step = root.stepSize > 0 ? root.stepSize : 0.02
+            if (event.angleDelta.y > 0) {
+                root.value = Math.min(root.value + step, root.to)
+                root.moved()
+            } else {
+                root.value = Math.max(root.value - step, root.from)
+                root.moved()
+            }
+        }
     }
 
     background: Item {
