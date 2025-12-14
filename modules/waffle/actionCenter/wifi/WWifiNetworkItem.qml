@@ -15,6 +15,16 @@ ExpandableChoiceButton {
     id: root
     required property WifiAccessPoint wifiNetwork
 
+    // Auto-expand when password is requested
+    Connections {
+        target: root.wifiNetwork
+        function onAskingPasswordChanged() {
+            if (root.wifiNetwork?.askingPassword) {
+                root.expanded = true;
+            }
+        }
+    }
+
     contentItem: RowLayout {
         id: contentItem
         spacing: 12
@@ -93,6 +103,11 @@ ExpandableChoiceButton {
                     onAccepted: {
                         Network.changePassword(root.wifiNetwork, passwordField.text);
                         passwordField.text = "";
+                    }
+
+                    // Auto-focus when visible
+                    onVisibleChanged: {
+                        if (visible) Qt.callLater(() => passwordField.forceActiveFocus());
                     }
                 }
 
