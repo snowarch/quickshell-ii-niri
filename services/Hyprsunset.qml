@@ -18,6 +18,9 @@ Singleton {
     property string to: Config.options?.light?.night?.to ?? "06:30"
     property bool automatic: (Config.options?.light?.night?.automatic ?? false) && (Config.ready ?? true)
     property int colorTemperature: Config.options?.light?.night?.colorTemperature ?? 5000
+    property bool supported: CompositorService.isHyprland || CompositorService.isNiri
+    property bool _wlsunsetAvailable: false
+    property bool _wlsunsetWarned: false
     property bool shouldBeOn
     property bool firstEvaluation: true
     property bool active: false
@@ -38,13 +41,39 @@ Singleton {
     onAutomaticChanged: {
         root.manualActive = undefined;
         root.firstEvaluation = true;
+        if (CompositorService.isNiri && root.active) {
+            if (root._wlsunsetAvailable) {
+                niriKillProc.running = true
+                niriStartProc.running = true
+            }
+        }
         reEvaluate();
+    }
+
+    Component.onCompleted: {
+        // Detect wlsunset on Niri to avoid Process start spam
+        if (CompositorService.isNiri) {
+            wlsunsetCheckProc.running = true
+        }
+    }
+
+    Process {
+        id: wlsunsetCheckProc
+        running: false
+        command: ["/usr/bin/test", "-x", "/usr/bin/wlsunset"]
+        onExited: (exitCode, exitStatus) => {
+            root._wlsunsetAvailable = (exitCode === 0)
+            if (!root._wlsunsetAvailable && !root._wlsunsetWarned) {
+                root._wlsunsetWarned = true
+                console.warn("[NightLight] wlsunset not found at /usr/bin/wlsunset - Night Light won't work on Niri until installed")
+            }
+        }
     }
 
     Process {
         id: pidofProc
         running: false
-        command: ["pidof", "hyprsunset"]
+        command: ["/usr/bin/pidof", "hyprsunset"]
         onExited: (exitCode, exitStatus) => {
             if (exitCode !== 0) {
                 startProc.running = true
@@ -55,13 +84,52 @@ Singleton {
     Process {
         id: startProc
         running: false
-        command: ["hyprsunset", "--temperature", `${root.colorTemperature}`]
+        command: ["/usr/bin/hyprsunset", "--temperature", `${root.colorTemperature}`]
     }
 
     Process {
         id: pkillProc
         running: false
-        command: ["pkill", "hyprsunset"]
+        command: ["/usr/bin/pkill", "hyprsunset"]
+    }
+
+    Process {
+        id: niriPidofProc
+        running: false
+        command: ["/usr/bin/pidof", "wlsunset"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                niriStartProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: niriStartProc
+        running: false
+        command: {
+            const low = `${Config.options?.light?.night?.colorTemperature ?? root.colorTemperature}`
+            if (root.automatic) {
+                return [
+                    "/usr/bin/wlsunset",
+                    "-T", "6500",
+                    "-t", low,
+                    "-S", `${root.to}`,
+                    "-s", `${root.from}`
+                ]
+            }
+            return [
+                "/usr/bin/wlsunset",
+                "-T", low,
+                "-t", low
+            ]
+        }
+    }
+
+    Process {
+        id: niriKillProc
+        running: false
+        command: ["/usr/bin/pkill", "wlsunset"]
     }
 
     function inBetween(t, from, to) {
@@ -104,31 +172,55 @@ Singleton {
     function load() { } // Dummy to force init
 
     function enable() {
-        if (!CompositorService.isHyprland)
+        if (!root.supported)
             return;
+        if (CompositorService.isNiri && !root._wlsunsetAvailable) {
+            if (!root._wlsunsetWarned) {
+                root._wlsunsetWarned = true
+                console.warn("[NightLight] wlsunset not found at /usr/bin/wlsunset - Night Light won't work on Niri until installed")
+            }
+            root.active = false
+            return;
+        }
         root.active = true;
         // console.log("[Hyprsunset] Enabling");
-        pidofProc.running = true
+        if (CompositorService.isHyprland) {
+            pidofProc.running = true
+        } else if (CompositorService.isNiri) {
+            niriPidofProc.running = true
+        }
     }
 
     function disable() {
-        if (!CompositorService.isHyprland)
+        if (!root.supported)
             return;
+        if (CompositorService.isNiri && !root._wlsunsetAvailable) {
+            root.active = false
+            return;
+        }
         root.active = false;
         // console.log("[Hyprsunset] Disabling");
-        pkillProc.running = true
+        if (CompositorService.isHyprland) {
+            pkillProc.running = true
+        } else if (CompositorService.isNiri) {
+            niriKillProc.running = true
+        }
     }
 
     function fetchState() {
-        if (!CompositorService.isHyprland)
+        if (!root.supported)
             return;
-        fetchProc.running = true;
+        if (CompositorService.isHyprland) {
+            fetchProc.running = true;
+        } else if (CompositorService.isNiri) {
+            niriFetchProc.running = true;
+        }
     }
 
     Process {
         id: fetchProc
         running: CompositorService.isHyprland
-        command: ["hyprctl", "hyprsunset", "temperature"]
+        command: ["/usr/bin/hyprctl", "hyprsunset", "temperature"]
         stdout: StdioCollector {
             id: stateCollector
             onStreamFinished: {
@@ -142,8 +234,17 @@ Singleton {
         }
     }
 
+    Process {
+        id: niriFetchProc
+        running: CompositorService.isNiri
+        command: ["/usr/bin/pidof", "wlsunset"]
+        onExited: (exitCode, exitStatus) => {
+            root.active = (exitCode === 0)
+        }
+    }
+
     function toggle(active = undefined) {
-        if (!CompositorService.isHyprland)
+        if (!root.supported)
             return;
         if (root.manualActive === undefined) {
             root.manualActive = root.active;
@@ -164,8 +265,40 @@ Singleton {
         target: Config.options?.light?.night ?? null
         enabled: !!(Config.options?.light?.night)
         function onColorTemperatureChanged() {
-            if (!CompositorService.isHyprland || !root.active) return;
-            Quickshell.execDetached(["hyprctl", "hyprsunset", "temperature", `${Config.options?.light?.night?.colorTemperature ?? root.colorTemperature}`]);
+            if (!root.active) return;
+            if (CompositorService.isHyprland) {
+                Quickshell.execDetached(["/usr/bin/hyprctl", "hyprsunset", "temperature", `${Config.options?.light?.night?.colorTemperature ?? root.colorTemperature}`]);
+                return;
+            }
+            if (CompositorService.isNiri) {
+                if (!root._wlsunsetAvailable) return;
+                niriKillProc.running = true
+                niriStartProc.running = true
+            }
+        }
+
+        function onFromChanged() {
+            if (CompositorService.isNiri && root.active) {
+                if (!root._wlsunsetAvailable) return;
+                niriKillProc.running = true
+                niriStartProc.running = true
+            }
+        }
+
+        function onToChanged() {
+            if (CompositorService.isNiri && root.active) {
+                if (!root._wlsunsetAvailable) return;
+                niriKillProc.running = true
+                niriStartProc.running = true
+            }
+        }
+
+        function onAutomaticChanged() {
+            if (CompositorService.isNiri && root.active) {
+                if (!root._wlsunsetAvailable) return;
+                niriKillProc.running = true
+                niriStartProc.running = true
+            }
         }
     }
 }

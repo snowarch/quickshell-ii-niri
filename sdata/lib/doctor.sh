@@ -7,6 +7,7 @@
 doctor_passed=0
 doctor_failed=0
 doctor_fixed=0
+doctor_missing_deps=()
 
 doctor_pass() {
     tui_success "$1"
@@ -29,7 +30,7 @@ doctor_fix() {
 
 check_dependencies() {
     local missing=()
-    local cmds=("qs:quickshell-git" "niri:niri" "nmcli:networkmanager" "wpctl:wireplumber" "jq:jq" "matugen:matugen-bin")
+    local cmds=("qs:quickshell-git" "niri:niri" "nmcli:networkmanager" "wpctl:wireplumber" "jq:jq" "matugen:matugen-bin" "wlsunset:wlsunset")
     
     for item in "${cmds[@]}"; do
         local cmd="${item%%:*}"
@@ -38,11 +39,19 @@ check_dependencies() {
     done
     
     if [[ ${#missing[@]} -eq 0 ]]; then
+        doctor_missing_deps=()
         doctor_pass "All required commands available"
     else
+        doctor_missing_deps=("${missing[@]}")
         doctor_fail "Missing: ${missing[*]}"
         echo -e "    ${STY_FAINT}Run: yay -S ${missing[*]}${STY_RST}"
     fi
+}
+
+get_missing_dependencies() {
+    doctor_missing_deps=()
+    check_dependencies
+    printf '%s\n' "${doctor_missing_deps[*]}"
 }
 
 check_critical_files() {

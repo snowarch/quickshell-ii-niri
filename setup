@@ -395,6 +395,26 @@ run_update() {
         tui_info "The shell will use new files on next restart"
         tui_info "Or run: qs kill -c ii && qs -c ii"
     fi
+
+    # Post-update: check for missing dependencies and offer to install them
+    echo ""
+    tui_title "Dependency check"
+    echo ""
+    local missing_deps
+    missing_deps=$(get_missing_dependencies)
+    if [[ -n "$missing_deps" ]]; then
+        tui_warn "Missing packages detected: $missing_deps"
+        if ! $ask || tui_confirm "Install missing packages now?"; then
+            detect_distro
+            SKIP_SYSUPDATE=true
+            source ./sdata/subcmd-install/1.deps-router.sh
+            tui_success "Dependencies installed"
+        else
+            tui_info "Skipped dependency installation"
+        fi
+    else
+        tui_success "All required commands available"
+    fi
     
     echo ""
     tui_subtitle "Tip: Run './setup rollback' if something breaks"

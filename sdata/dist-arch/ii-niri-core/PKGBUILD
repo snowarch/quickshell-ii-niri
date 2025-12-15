@@ -22,6 +22,8 @@ depends=(
   wl-clipboard
   libnotify
   pacman-contrib  # checkupdates for update notifications
+  wlsunset
+  dunst
   
   # XDG Portals for Niri
   xdg-desktop-portal
