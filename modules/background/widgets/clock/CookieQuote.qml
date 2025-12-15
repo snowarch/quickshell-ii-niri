@@ -30,21 +30,14 @@ Item {
     Rectangle {
         id: quoteBox
 
-        implicitWidth: quoteStyledText.width + quoteIcon.width + 16 // for spacing on both sides
+        implicitWidth: quoteStyledText.width + 16 // for spacing on both sides
         implicitHeight: quoteStyledText.height + 8 
         radius: Appearance.rounding.small
         color: Appearance.colors.colSecondaryContainer
 
         Row {
             anchors.centerIn: parent
-            spacing: 4
-            MaterialSymbol {
-                id: quoteIcon
-                anchors.top: parent.top
-                iconSize: Appearance.font.pixelSize.huge
-                text: "format_quote"
-                color: Appearance.colors.colOnSecondaryContainer
-            }
+            spacing: 0
             StyledText {
                 id: quoteStyledText
                 horizontalAlignment: Text.AlignLeft

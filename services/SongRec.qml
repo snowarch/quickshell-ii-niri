@@ -15,14 +15,14 @@ Singleton {
     property int timeoutInterval: Config.options?.musicRecognition?.interval ?? 10
     property int timeoutDuration: Config.options?.musicRecognition?.timeout ?? 10
     readonly property bool running: recognizeMusicProc.running
+    property bool dunstifyAvailable: false
 
     function toggleRunning(running) {
-        if (recognizeMusicProc.running && !running === true) root.manuallyStopped = true;
-        if (running != undefined) {
-            recognizeMusicProc.running = running
-        } else {
-            recognizeMusicProc.running = !root.running
-        }
+        const wantRunning = (running !== undefined) ? running : !root.running
+        if (recognizeMusicProc.running && wantRunning === false) root.manuallyStopped = true;
+        if (wantRunning === true) root.manuallyStopped = false;
+
+        recognizeMusicProc.running = wantRunning
         musicReconizedProc.running = false
     }
 
@@ -44,24 +44,47 @@ Singleton {
     property var recognizedTrack: ({ title:"", subtitle:"", url:""})
     property bool manuallyStopped: false
 
+    Component.onCompleted: {
+        dunstifyCheckProc.running = true
+    }
+
+    Process {
+        id: dunstifyCheckProc
+        running: false
+        command: ["/usr/bin/which", "dunstify"]
+        onExited: (exitCode, exitStatus) => {
+            root.dunstifyAvailable = (exitCode === 0)
+        }
+    }
+
     function handleRecognition(jsonText) {
         try {
+            if ((jsonText ?? "").trim() === "") {
+                Quickshell.execDetached(["/usr/bin/notify-send", Translation.tr("Couldn't recognize music"), Translation.tr("No match found before timeout"), "-a", "Shell"])
+                return
+            }
             var obj = JSON.parse(jsonText)
             root.recognizedTrack = {
                 title: obj.track.title,
                 subtitle: obj.track.subtitle,
                 url: obj.track.url
             }
-            musicReconizedProc.running = true
+
+            if (root.dunstifyAvailable) {
+                musicReconizedProc.running = true
+            } else {
+                Quickshell.execDetached(["/usr/bin/notify-send", Translation.tr("Music Recognized"), root.recognizedTrack.title + " - " + root.recognizedTrack.subtitle, "-a", "Shell"])
+                Qt.openUrlExternally(root.recognizedTrack.url);
+            }
         } catch(e) {
-            Quickshell.execDetached(["notify-send", Translation.tr("Couldn't recognize music"), Translation.tr("Perhaps what you're listening to is too niche"), "-a", "Shell"])
+            Quickshell.execDetached(["/usr/bin/notify-send", Translation.tr("Couldn't recognize music"), Translation.tr("Perhaps what you're listening to is too niche"), "-a", "Shell"])
         }
     }
 
     Process {
         id: recognizeMusicProc
         running: false
-        command: [`${Directories.scriptPath}/musicRecognition/recognize-music.sh`, "-i", root.timeoutInterval, "-t", root.timeoutDuration, "-s", root.monitorSourceString]
+        command: ["/usr/bin/bash", `${Directories.scriptPath}/musicRecognition/recognize-music.sh`, "-i", String(root.timeoutInterval), "-t", String(root.timeoutDuration), "-s", root.monitorSourceString]
         stdout: StdioCollector {
             onStreamFinished: {
                 if (root.manuallyStopped) {
@@ -73,7 +96,7 @@ Singleton {
         }
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 1) {
-                Quickshell.execDetached(["notify-send", Translation.tr("Couldn't recognize music"), Translation.tr("Make sure you have songrec installed"), "-a", "Shell"])
+                Quickshell.execDetached(["/usr/bin/notify-send", Translation.tr("Couldn't recognize music"), Translation.tr("Make sure you have songrec installed"), "-a", "Shell"])
             }
         }
     }
@@ -82,7 +105,7 @@ Singleton {
         id: musicReconizedProc
         running: false
         command: [
-            "notify-send",
+            "/usr/bin/dunstify",
             Translation.tr("Music Recognized"), 
             root.recognizedTrack.title + " - " + root.recognizedTrack.subtitle, 
             "-A", "Shazam",
