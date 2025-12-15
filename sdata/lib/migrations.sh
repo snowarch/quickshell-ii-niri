@@ -26,8 +26,16 @@ CURRENT_VERSION="2.0.0"
 # Migration State Management
 #####################################################################################
 init_migrations_state() {
+  mkdir -p "$(dirname "$MIGRATIONS_STATE_FILE")"
+
+  if [[ -f "$MIGRATIONS_STATE_FILE" ]] && command -v jq &>/dev/null; then
+    if ! jq empty "$MIGRATIONS_STATE_FILE" &>/dev/null; then
+      echo '{"applied": [], "skipped": []}' > "$MIGRATIONS_STATE_FILE"
+    fi
+    return 0
+  fi
+
   if [[ ! -f "$MIGRATIONS_STATE_FILE" ]]; then
-    mkdir -p "$(dirname "$MIGRATIONS_STATE_FILE")"
     echo '{"applied": [], "skipped": []}' > "$MIGRATIONS_STATE_FILE"
   fi
 }
