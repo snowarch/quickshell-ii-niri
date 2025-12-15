@@ -50,7 +50,6 @@ Item {
 
     // Shared modules that work with waffle
     PanelLoader { identifier: "iiCheatsheet"; component: Cheatsheet {} }
-    PanelLoader { identifier: "iiLock"; component: Lock {} }
     PanelLoader { identifier: "iiOnScreenKeyboard"; component: OnScreenKeyboard {} }
     PanelLoader { identifier: "iiOverlay"; component: Overlay {} }
     PanelLoader { identifier: "iiOverview"; component: Overview {} }

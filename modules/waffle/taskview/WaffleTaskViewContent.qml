@@ -41,7 +41,7 @@ Item {
     readonly property real totalHeight: thumbnailHeight + labelHeight + labelSpacing + hintsSpacing + hintsHeight + dotsHeight
     
     // View mode: "carousel" or "centered"
-    readonly property string viewMode: Config.options?.waffles?.taskView?.mode ?? "carousel"
+    readonly property string viewMode: Config.options?.waffles?.taskView?.mode ?? "centered"
     readonly property bool isCenteredMode: viewMode === "centered"
     
     // Search filter
@@ -480,9 +480,7 @@ Item {
                         relativePosition: index - root.selectedSlot
 
                         onClicked: {
-                            if (index === root.selectedSlot) {
-                                root.switchToWorkspace(modelData.idx)
-                            } else {
+                            if (index !== root.selectedSlot) {
                                 root.selectedSlot = index
                             }
                         }
@@ -711,7 +709,7 @@ Item {
                 WText {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: root.searchQuery.length === 0
-                    text: Translation.tr("Search windows...")
+                    text: Translation.tr("Type to search")
                     font.pixelSize: Looks.font.pixelSize.normal
                     color: Looks.colors.subfg
                 }
@@ -725,25 +723,15 @@ Item {
                 }
             }
             
-            // Results badge
-            Rectangle {
+            // Results count
+            WText {
+                id: resultsText
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.searchQuery.length > 0
-                width: resultsText.width + 14
-                height: 22
-                radius: 11
-                color: root.filteredWindowItems.length > 0 ? 
-                    ColorUtils.transparentize(Looks.colors.accent, 0.85) : 
-                    ColorUtils.transparentize(Looks.colors.danger, 0.85)
-                
-                WText {
-                    id: resultsText
-                    anchors.centerIn: parent
-                    text: root.filteredWindowItems.length.toString()
-                    font.pixelSize: Looks.font.pixelSize.small
-                    font.weight: Font.Medium
-                    color: root.filteredWindowItems.length > 0 ? Looks.colors.accent : Looks.colors.danger
-                }
+                text: root.filteredWindowItems.length.toString()
+                font.pixelSize: Looks.font.pixelSize.small
+                font.weight: Font.Medium
+                color: Looks.colors.subfg
             }
         }
     }

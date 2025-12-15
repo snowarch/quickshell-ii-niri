@@ -5,6 +5,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.lock
 import qs.modules.waffle.lock
+import qs.modules.waffle.looks
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -13,6 +14,17 @@ import Quickshell.Hyprland
 
 Scope {
     id: root
+
+    readonly property bool _lockActivating: lockActivateDelay.running
+
+    Timer {
+        id: lockActivateDelay
+        interval: 150
+        repeat: false
+        onTriggered: {
+            GlobalStates.screenLocked = true;
+        }
+    }
 
     Process {
         id: unlockKeyringProc
@@ -135,13 +147,20 @@ Scope {
         }
     }
     
+    Component {
+        id: waffleLockSafeComponent
+        WaffleLockSurfaceSafe {
+            context: lockContext
+        }
+    }
+    
     WlSessionLock {
         id: lock
         locked: GlobalStates.screenLocked
 
         WlSessionLockSurface {
             id: lockSurface
-            color: "transparent"
+            color: root._cachedUseWaffleLock ? Looks.colors.bg0 : Appearance.colors.colLayer0
             
             Loader {
                 id: lockSurfaceLoader
@@ -149,7 +168,9 @@ Scope {
                 anchors.fill: parent
                 // Don't animate opacity - causes issues during hot-reload
                 opacity: active ? 1 : 0
-                sourceComponent: root._cachedUseWaffleLock ? waffleLockComponent : iiLockComponent
+                sourceComponent: root._cachedUseWaffleLock
+                    ? (CompositorService.isNiri ? waffleLockSafeComponent : waffleLockComponent)
+                    : iiLockComponent
                 
                 // Force focus to loaded item
                 onLoaded: {
@@ -211,8 +232,24 @@ Scope {
         target: "lock"
 
         function activate(): void {
-            GlobalStates.screenLocked = true;
+            if (GlobalStates.screenLocked || root._lockActivating)
+                return;
+            lockActivateDelay.restart();
         }
+
+        function deactivate(): void {
+            lockActivateDelay.stop();
+            GlobalStates.screenLocked = false;
+        }
+
+        function status(): string {
+            if (GlobalStates.screenLocked)
+                return "locked";
+            if (root._lockActivating)
+                return "activating";
+            return "unlocked";
+        }
+
         function focus(): void {
             lockContext.shouldReFocus();
         }
@@ -230,7 +267,8 @@ Scope {
                         Quickshell.execDetached(["/usr/bin/fish", "-c", "pidof hyprlock; or hyprlock"]);
                         return;
                     }
-                    GlobalStates.screenLocked = true;
+                    if (!GlobalStates.screenLocked && !root._lockActivating)
+                        lockActivateDelay.restart();
                 }
             }
 
@@ -252,7 +290,8 @@ Scope {
             if (CompositorService.isHyprland) {
                 Hyprland.dispatch("global quickshell:lock")
             } else {
-                GlobalStates.screenLocked = true
+                if (!GlobalStates.screenLocked && !root._lockActivating)
+                    lockActivateDelay.restart();
             }
         } else {
             KeyringStorage.fetchKeyringData();

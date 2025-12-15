@@ -1,3 +1,4 @@
 module qs.modules.waffle.lock
 
 WaffleLockSurface 1.0 WaffleLockSurface.qml
+WaffleLockSurfaceSafe 1.0 WaffleLockSurfaceSafe.qml
