@@ -197,8 +197,87 @@ Singleton {
         }
     }
 
-    FileView {
-        id: userServiceWriter
+    // Creating a user systemd unit needs two ordering guarantees:
+    // 1) the destination directory exists
+    // 2) the file is written before we run `systemctl --user daemon-reload && enable --now`
+    //
+    // Using Quickshell.execDetached(["mkdir", ...]) + FileView.setText() can race.
+    // Instead, do mkdir + write through a Process and only activate after it exits.
+
+    property var _pendingServiceWrites: []
+
+    function _enqueueServiceWrite(dir: string, filePath: string, text: string, unitName: string): void {
+        root._pendingServiceWrites.push({ dir, filePath, text, unitName })
+        root._startNextServiceWrite()
+    }
+
+    function _startNextServiceWrite(): void {
+        if (serviceWriteProc.running) return
+        if (root._pendingServiceWrites.length === 0) return
+
+        const next = root._pendingServiceWrites[0]
+        if (!next?.dir || !next?.filePath) {
+            console.warn("[Autostart] Invalid pending service write:", JSON.stringify(next))
+            root._pendingServiceWrites.shift()
+            root._startNextServiceWrite()
+            return
+        }
+
+        serviceWriteProc.start(next.dir, next.filePath, next.text, next.unitName)
+    }
+
+    Process {
+        id: serviceWriteProc
+
+        property string dir: ""
+        property string filePath: ""
+        property string text: ""
+        property string unitName: ""
+
+        stdinEnabled: true
+
+        function start(dir: string, filePath: string, text: string, unitName: string): void {
+            this.dir = dir
+            this.filePath = filePath
+            this.text = text
+            this.unitName = unitName
+
+            const dirEsc = StringUtils.shellSingleQuoteEscape(dir)
+            const fileEsc = StringUtils.shellSingleQuoteEscape(filePath)
+
+            // cat reads unit file contents from stdin.
+            exec(["bash", "-lc", `mkdir -p '${dirEsc}' && cat > '${fileEsc}'`])
+        }
+
+        onRunningChanged: {
+            if (serviceWriteProc.running) {
+                serviceWriteProc.write(serviceWriteProc.text)
+                // Close stdin so `cat` can exit.
+                serviceWriteProc.stdinEnabled = false
+            } else {
+                serviceWriteProc.stdinEnabled = true
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("[Autostart] Failed to write user service file", filePath, "exit", exitCode, exitStatus)
+            } else if (unitName && unitName.length > 0) {
+                console.log("[Autostart] Wrote user service file", filePath, "-> activating", unitName)
+                systemdCreateProc.activate(unitName)
+            }
+
+            // Clear state
+            dir = ""
+            filePath = ""
+            text = ""
+            unitName = ""
+
+            // Advance queue
+            if (root._pendingServiceWrites.length > 0)
+                root._pendingServiceWrites.shift()
+            root._startNextServiceWrite()
+        }
     }
 
     Process {
@@ -253,14 +332,17 @@ Singleton {
         if (exec.length === 0)
             return;
         const safeName = trimmedName.replace(/\s+/g, "-")
+        const unitName = safeName + ".service"
         const desc = String(description || safeName)
         const isTray = kind === "tray"
         const afterTarget = isTray ? "tray-apps.target" : "graphical-session.target"
         const wantedByTarget = isTray ? "tray-apps.target" : "graphical-session.target"
+
         // Build path using XDG home directory and trim any file:// prefix to get a real filesystem path
         const homePath = FileUtils.trimFileProtocol(Directories.home)
         const dir = `${homePath}/.config/systemd/user`
         const filePath = `${dir}/${safeName}.service`
+
         const text = "# ii-autostart\n"
             + "[Unit]\n"
             + "Description=" + desc + "\n"
@@ -274,12 +356,8 @@ Singleton {
             + "\n"
             + "[Install]\n"
             + "WantedBy=" + wantedByTarget + "\n"
-        console.log("[Autostart] Writing user service file", filePath)
-        // Ensure the user systemd directory exists before writing the file
-        Quickshell.execDetached(["mkdir", "-p", dir])
-        userServiceWriter.path = Qt.resolvedUrl(filePath)
-        userServiceWriter.setText(text)
-        systemdCreateProc.activate(safeName + ".service")
+
+        root._enqueueServiceWrite(dir, filePath, text, unitName)
     }
 
     function deleteUserService(name) {
