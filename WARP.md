@@ -135,6 +135,59 @@ Panels are loaded dynamically from two config values:
 
 `ShellIiPanels.qml` and `ShellWafflePanels.qml` are the central mapping layer from identifier → component.
 
+Key detail: each panel is behind a `LazyLoader` gate:
+- **must** be in `enabledPanels`, and
+- may have an additional `extraCondition` gate (feature toggles, vertical vs horizontal bar, backdrops enabled, etc.).
+
+#### Identifier → component mapping (and important gates)
+Material ii (see `ShellIiPanels.qml`):
+- `iiBar` → `Bar` (disabled when `Config.options.bar.vertical` is true; use `iiVerticalBar` instead)
+- `iiVerticalBar` → `VerticalBar` (only when `Config.options.bar.vertical` is true)
+- `iiBackground` → `Background`
+- `iiBackdrop` → `Backdrop` (only when `Config.options.background.backdrop.enable` is true)
+- `iiDock` → `Dock` (only when `Config.options.dock.enable` is true)
+- `iiOverlay` → `Overlay`
+- `iiOverview` → `Overview`
+- `iiSidebarLeft` → `SidebarLeft`
+- `iiSidebarRight` → `SidebarRight`
+- `iiRegionSelector` → `RegionSelector`
+- `iiWallpaperSelector` → `WallpaperSelector`
+- `iiClipboard` → `modules/clipboard/ClipboardPanel.qml`
+- plus: `iiCheatsheet`, `iiLock`, `iiMediaControls`, `iiNotificationPopup`, `iiOnScreenDisplay`, `iiOnScreenKeyboard`, `iiPolkit`, `iiScreenCorners`, `iiSessionScreen`
+
+Waffle (see `ShellWafflePanels.qml`):
+- `wBar` → `WaffleBar`
+- `wBackground` → `WaffleBackground`
+- `wBackdrop` → `WaffleBackdrop` (only when `Config.options.waffles.background.backdrop.enable` is true)
+- `wStartMenu` → `WaffleStartMenu`
+- `wActionCenter` → `WaffleActionCenter`
+- `wNotificationCenter` → `WaffleNotificationCenter`
+- `wNotificationPopup` → `WaffleNotificationPopup`
+- `wOnScreenDisplay` → `WaffleOSD`
+- `wWidgets` → `WaffleWidgets` (only when `Config.options.waffles.modules.widgets` is true)
+- `wTaskView` → `WaffleTaskView` (experimental; not enabled by default)
+- plus: `wLock`, `wPolkit`, `wSessionScreen`
+
+Waffle-specific “always-on routers” when `panelFamily === "waffle"`:
+- `modules/waffle/clipboard/WaffleClipboard.qml` is loaded to handle IPC (`target: "clipboard"`) for waffle.
+- `modules/waffle/altSwitcher/WaffleAltSwitcher.qml` is loaded to handle IPC (`target: "altSwitcher"`) for waffle.
+
+Panel family defaults and migration:
+- Default enabled panels per family are defined in `shell.qml` (`root.panelFamilies`).
+- On config ready, `shell.qml` backfills `enabledPanels` if empty and runs a migration to ensure waffle uses `wBackdrop` instead of `iiBackdrop`.
+
+#### Where to edit what (common module/panel tasks)
+- Add/rename a panel identifier or change its gating condition:
+  - `ShellIiPanels.qml` (Material ii mapping + `extraCondition` gates)
+  - `ShellWafflePanels.qml` (Waffle mapping + waffle-only always-on routers)
+- Change which panels are enabled by default (first run / empty config):
+  - `shell.qml` (`root.panelFamilies`)
+- Change how family switching behaves (animation, ensuring base panels, migration):
+  - `shell.qml` (`cyclePanelFamily`, `setPanelFamily`, transition overlay, `migrateEnabledPanels`, `_ensureFamilyPanels`)
+- Change IPC routing/targets:
+  - per-feature modules usually define their own `IpcHandler` (e.g. `modules/regionSelector/RegionSelector.qml`, `modules/ii/overlay/Overlay.qml`, `modules/sidebarLeft/SidebarLeft.qml`)
+  - family-level routing lives in `shell.qml` (`target: "settings"`, `target: "panelFamily"`) and waffle-only router modules (`modules/waffle/clipboard/WaffleClipboard.qml`, `modules/waffle/altSwitcher/WaffleAltSwitcher.qml`)
+
 This pattern is intentional:
 - Most UI work lives in `modules/`.
 - Most backend state/IO lives in `services/` singletons.
@@ -189,6 +242,28 @@ If you’re touching anything workspace/window-related (overview, task switchers
 - `services/NiriService.qml`
 - `services/CompositorService.qml` (sorting and compositor abstraction)
 
+### Backend services (selected map)
+Most “backend” logic lives under `services/` as `pragma Singleton`s. Common patterns:
+- **Integration via Quickshell services**: `Quickshell.Services.Pipewire`, `Quickshell.Services.Notifications`, `Quickshell.Services.SystemTray`.
+- **Side effects via `Process` / `execDetached`** for calling system tools (`niri msg`, `swayidle`, `cliphist`, `ddcutil`, etc.).
+- **Persistence via `Quickshell.Io.FileView`** for small state files (notifications history, gamemode state, etc.).
+
+Key nodes:
+- `services/CompositorService.qml`: detects compositor and provides `sortedToplevels` (with a “sorting consumer” gate so expensive sorting runs only while UIs like overview are open).
+- `services/NiriService.qml`: subscribes to Niri’s event stream + exposes actions by sending JSON IPC to `NIRI_SOCKET` (e.g. `focusWindow`, `switchToWorkspace`, `moveWindowToWorkspace`, `toggleOverview`).
+- `services/TrayService.qml`: wraps `SystemTray` items with pin/filter logic and “smart activate” workarounds; on Niri it can start `xembedsniproxy` for XEmbed tray items.
+- `services/Notifications.qml`: wraps `NotificationServer` with persistence + grouping + popup timers; DND is `Config.options.notifications.silent`; can focus/launch an app when a “view/open” action is invoked.
+- `services/Audio.qml`: wraps PipeWire default sink/source; implements “volume protection” (max cap + max increment) and ramps slider jumps; exposes IPC `target: "audio"`.
+- `services/Brightness.qml`: per-screen brightness controller (brightnessctl + ddcutil) + optional “anti-flashbang” dimming; exposes IPC `target: "brightness"`.
+- `services/Wallpapers.qml`: wallpaper folder browsing + apply via the existing switchwall scripts + thumbnail generation (used by `modules/wallpaperSelector/*`).
+- `services/Cliphist.qml`: cliphist integration (read/list/delete/wipe) + fuzzy search + “superpaste”; exposes IPC `target: "cliphistService"`.
+- `services/LauncherSearch.qml`: debounced omnibox logic (prefix parsing, actions, math via `qalc`, web search, apps via `AppSearch`, clipboard via `Cliphist`).
+- `services/AppSearch.qml`: fuzzy app search over `DesktopEntries` + icon guessing/substitutions.
+- `services/KeyringStorage.qml` + `services/Ai.qml` (+ `services/ai/*`): keyring-backed API keys (`secret-tool`) and multi-provider chat (Gemini/OpenAI/Mistral API strategies).
+- `services/Idle.qml`: manages `swayidle` timeouts (screen off, lock, suspend) and a persisted “inhibit” flag.
+- `services/Updates.qml`: Arch-only update count via `checkupdates`.
+- `services/GameMode.qml`: fullscreen detection (Niri) that disables effects/animations and can toggle Niri animations by editing `~/.config/niri/config.kdl`.
+
 ### Theme / Material You pipeline
 Theme selection is orchestrated by `services/ThemeService.qml`:
 - Reads `Config.options.appearance.theme`.
@@ -215,9 +290,19 @@ The autostart system is implemented in `services/Autostart.qml` and can:
 - Manage per-user systemd units under `~/.config/systemd/user/`.
 
 Important implementation notes for contributors:
+- Desktop autostart launches are queued/serialized to avoid races from reusing a single `Process`.
 - Unit creation is serialized to avoid races between directory creation, file writes, and `systemctl --user daemon-reload` / `enable --now`.
 - Unit deletion avoids shell interpolation and only deletes units that contain the `# ii-autostart` marker header.
 - Deletion operations are also serialized to avoid overlapping `systemctl` operations.
+
+### Window previews (TaskView)
+TaskView window thumbnails are managed by `services/WindowPreviewService.qml`.
+
+Implementation notes for contributors:
+- The on-disk cache lives under `${XDG_CACHE_HOME}/ii-niri/window-previews` (see `previewDir`).
+- On startup/initialization, the cache is rebuilt from disk using a `FolderListModel` so we can use each file’s real `fileModified` time as the cache timestamp.
+  - This avoids treating old previews as “fresh” after a shell restart.
+- Cache rebuilds are debounced to avoid thrashing when many previews are created at once.
 
 ## Repo layout (high level)
 - `modules/`: UI modules (Material ii + Waffle family modules live under separate namespaces).

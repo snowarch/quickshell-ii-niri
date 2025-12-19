@@ -1,6 +1,7 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
+import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
 import qs
@@ -27,6 +28,7 @@ Singleton {
     
     property bool initialized: false
     property bool capturing: false
+    property bool _previewDirReady: false
     
     // Preview validity duration (5 minutes)
     readonly property int previewValidityMs: 300000
@@ -41,34 +43,93 @@ Singleton {
     function initialize(): void {
         if (initialized) return
         initialized = true
+        root._previewDirReady = false
         ensureDirProcess.running = true
     }
-    
+
+    function _toEpochMs(value): int {
+        if (value === null || value === undefined)
+            return 0
+        if (typeof value === "number")
+            return Math.floor(value)
+        try {
+            if (value.getTime)
+                return value.getTime()
+        } catch (e) {}
+        try {
+            const d = new Date(value)
+            const t = d.getTime()
+            return isNaN(t) ? 0 : t
+        } catch (e) {
+            return 0
+        }
+    }
+
+    function _rebuildCacheFromDisk(): void {
+        if (!root.initialized)
+            return
+        if (previewFolderModel.status !== FolderListModel.Ready)
+            return
+
+        const newCache = ({})
+
+        for (let i = 0; i < previewFolderModel.count; i++) {
+            const filename = String(previewFolderModel.get(i, "fileName") || "")
+            const match = filename.match(/^window-(\d+)\.png$/)
+            if (!match)
+                continue
+
+            const id = parseInt(match[1])
+            const filePath = previewFolderModel.get(i, "filePath") || FileUtils.trimFileProtocol(previewFolderModel.get(i, "fileURL"))
+            const ts = root._toEpochMs(previewFolderModel.get(i, "fileModified"))
+
+            if (!filePath)
+                continue
+
+            newCache[id] = {
+                path: filePath,
+                timestamp: ts
+            }
+        }
+
+        root.previewCache = newCache
+        console.log("[WindowPreviewService] Loaded", Object.keys(root.previewCache).length, "cached previews")
+        root.cleanupOrphans()
+    }
+
+    Timer {
+        id: rebuildDebounce
+        interval: 50
+        repeat: false
+        onTriggered: root._rebuildCacheFromDisk()
+    }
+
+    FolderListModel {
+        id: previewFolderModel
+        folder: (root.initialized && root._previewDirReady) ? Qt.resolvedUrl("file://" + root.previewDir) : ""
+        nameFilters: ["window-*.png"]
+        showDirs: false
+        showDotAndDotDot: false
+        sortField: FolderListModel.Name
+        sortReversed: false
+
+        onStatusChanged: {
+            if (status === FolderListModel.Ready)
+                rebuildDebounce.restart()
+        }
+        onCountChanged: rebuildDebounce.restart()
+    }
+
     Process {
         id: ensureDirProcess
         command: ["/usr/bin/mkdir", "-p", root.previewDir]
-        onExited: scanProcess.running = true
-    }
-    
-    Process {
-        id: scanProcess
-        command: ["/usr/bin/ls", "-1", root.previewDir]
-        stdout: SplitParser {
-            onRead: data => {
-                const filename = data.trim()
-                const match = filename.match(/^window-(\d+)\.png$/)
-                if (match) {
-                    const id = parseInt(match[1])
-                    root.previewCache[id] = {
-                        path: root.previewDir + "/" + filename,
-                        timestamp: Date.now()
-                    }
-                }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("[WindowPreviewService] Failed to create preview dir", root.previewDir, "exit", exitCode, exitStatus)
+                return
             }
-        }
-        onExited: {
-            console.log("[WindowPreviewService] Loaded", Object.keys(root.previewCache).length, "cached previews")
-            root.cleanupOrphans()
+            root._previewDirReady = true
+            rebuildDebounce.restart()
         }
     }
     
