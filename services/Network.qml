@@ -21,6 +21,8 @@ Singleton {
     property bool wifiScanning: false
     property bool wifiConnecting: connectProc.running
     property WifiAccessPoint wifiConnectTarget
+    // Track last requested SSID so we can retry connections after password changes.
+    property string _lastConnectSsid: ""
     readonly property list<WifiAccessPoint> wifiNetworks: []
     readonly property WifiAccessPoint active: wifiNetworks.find(n => n.active) ?? null
     property string wifiStatus: "disconnected"
@@ -62,8 +64,13 @@ Singleton {
     }
 
     function connectToWifiNetwork(accessPoint: WifiAccessPoint): void {
+        if (!accessPoint)
+            return
+
         accessPoint.askingPassword = false;
         root.wifiConnectTarget = accessPoint;
+        root._lastConnectSsid = accessPoint.ssid
+
         // We use this instead of `nmcli connection up SSID` because this also creates a connection profile
         connectProc.exec(["nmcli", "dev", "wifi", "connect", accessPoint.ssid])
 
@@ -79,10 +86,15 @@ Singleton {
 
     function changePassword(network: WifiAccessPoint, password: string, username = ""): void {
         // TODO: enterprise wifi with username
+        if (!network)
+            return
+
         network.askingPassword = false;
-        changePasswordProc.exec({
-            "command": ["nmcli", "connection", "modify", network.ssid, "wifi-sec.psk", password]
-        })
+        root._lastConnectSsid = network.ssid
+        root.wifiConnectTarget = network
+
+        changePasswordProc.ssid = network.ssid
+        changePasswordProc.exec(["nmcli", "connection", "modify", network.ssid, "wifi-sec.psk", password])
     }
 
     Process {
@@ -105,12 +117,17 @@ Singleton {
             onRead: line => {
                 // print("err:", line)
                 if (line.includes("Secrets were required")) {
-                    root.wifiConnectTarget.askingPassword = true
+                    if (root.wifiConnectTarget) {
+                        root.wifiConnectTarget.askingPassword = true
+                    }
                 }
             }
         }
         onExited: (exitCode, exitStatus) => {
-            root.wifiConnectTarget.askingPassword = (exitCode !== 0)
+            // Only update the current target if we still have one.
+            if (root.wifiConnectTarget) {
+                root.wifiConnectTarget.askingPassword = (exitCode !== 0)
+            }
             root.wifiConnectTarget = null
         }
     }
@@ -124,9 +141,25 @@ Singleton {
 
     Process {
         id: changePasswordProc
-        onExited: { // Re-attempt connection after changing password
-            connectProc.running = false
-            connectProc.running = true
+        property string ssid: ""
+        onExited: (exitCode, exitStatus) => {
+            // Re-attempt connection after changing password.
+            // Toggling connectProc.running is unreliable because it doesn't re-run the last command.
+            const ssid = changePasswordProc.ssid || root._lastConnectSsid
+            changePasswordProc.ssid = ""
+
+            if (exitCode !== 0 || !ssid)
+                return
+
+            // Use the same connect flow as a normal user action.
+            // If we still have a matching AP object, connect with it so UI state (askingPassword) works.
+            const ap = root.wifiNetworks.find(n => n.ssid === ssid) || null
+            if (ap) {
+                root.connectToWifiNetwork(ap)
+            } else {
+                // Fallback: ask NetworkManager to bring up the connection by name.
+                connectProc.exec(["nmcli", "connection", "up", ssid])
+            }
         }
     }
 
