@@ -82,35 +82,14 @@ Item {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
-        onPressed: (event) => {
-            if (event.button === Qt.MiddleButton) {
-                activePlayer?.togglePlaying();
-            } else if (event.button === Qt.BackButton) {
-                activePlayer?.previous();
-            } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
-                activePlayer?.next();
-            } else if (event.button === Qt.LeftButton) {
-                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
-            }
-        }
-        onWheel: (event) => {
-            if (!activePlayer?.volumeSupported) return
-            const step = 0.05
-            if (event.angleDelta.y > 0) activePlayer.volume = Math.min(1, activePlayer?.volume + step)
-            else if (event.angleDelta.y < 0) activePlayer.volume = Math.max(0, activePlayer?.volume - step)
-            volumePopupVisible = true
-            hideTimer.restart()
-        }
-    }
-
     RowLayout { // Real content
         id: rowLayout
 
         spacing: 4
-        anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: Math.min(implicitWidth, parent.width)
+        height: parent.height
 
         ClippedFilledCircularProgress {
             id: mediaCircProg
@@ -138,7 +117,6 @@ Item {
 
         StyledText {
             visible: Config.options.bar.verbose
-            width: rowLayout.width - (CircularProgress.size + rowLayout.spacing * 2)
             Layout.alignment: Qt.AlignVCenter
             Layout.fillWidth: true // Ensures the text takes up available space
             Layout.rightMargin: rowLayout.spacing
@@ -148,6 +126,39 @@ Item {
             text: `${cleanedTitle}${activePlayer?.trackArtist ? ' • ' + activePlayer.trackArtist : ''}`
         }
 
+    }
+
+    // Click/scroll handling: keep it limited to the visible media content, not the whole Layout cell.
+    MouseArea {
+        anchors.fill: rowLayout
+        z: 10
+        acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
+
+        onPressed: (event) => {
+            if (event.button === Qt.MiddleButton) {
+                activePlayer?.togglePlaying();
+            } else if (event.button === Qt.BackButton) {
+                activePlayer?.previous();
+            } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
+                activePlayer?.next();
+            } else if (event.button === Qt.LeftButton) {
+                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
+            }
+        }
+
+        onWheel: (event) => {
+            if (!activePlayer?.volumeSupported)
+                return
+
+            const step = 0.05
+            if (event.angleDelta.y > 0)
+                activePlayer.volume = Math.min(1, activePlayer?.volume + step)
+            else if (event.angleDelta.y < 0)
+                activePlayer.volume = Math.max(0, activePlayer?.volume - step)
+
+            volumePopupVisible = true
+            hideTimer.restart()
+        }
     }
 
 }
