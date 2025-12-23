@@ -22,7 +22,9 @@ Singleton {
     // focusOnly: true = only focus, don't minimize (for apps that crash when minimized)
     readonly property var problematicApps: [
         { matches: ["spotify"], launch: "spotify-launcher" },
-        { matches: ["discord", "Discord"], launch: "discord", focusOnly: true },
+        { matches: ["discord canary", "canary"], launch: "discord-canary", focusOnly: true, fixedIcon: "discord-canary" },
+        { matches: ["discord ptb", "ptb"], launch: "discord-ptb", focusOnly: true, fixedIcon: "discord-ptb" },
+        { matches: ["discord", "com.discordapp.discord"], launch: "discord", focusOnly: true, fixedIcon: "discord" },
         { matches: ["vesktop", "Vesktop"], launch: "vesktop" },
         { matches: ["armcord", "ArmCord"], launch: "armcord" },
         { matches: ["slack", "Slack"], launch: "slack" },
@@ -43,12 +45,14 @@ Singleton {
         const id = (item.id ?? "").toLowerCase();
         const title = (item.title ?? "").toLowerCase();
         const tooltipTitle = (item.tooltipTitle ?? "").toLowerCase();
-        const iconName = (item.icon ?? "").toLowerCase();
-        
+
+        // Console log for debugging
+        root._log(`[TrayService] Checking problematic app: ID='${id}' Title='${title}' Tooltip='${tooltipTitle}'`);
+
         for (const app of problematicApps) {
             for (const pattern of app.matches) {
                 const p = pattern.toLowerCase();
-                if (id.includes(p) || title.includes(p) || tooltipTitle.includes(p) || iconName.includes(p)) {
+                if (id.includes(p) || title.includes(p) || tooltipTitle.includes(p)) {
                     return app;
                 }
             }
@@ -91,7 +95,7 @@ Singleton {
         }
         
         // No window found - launch app (use login shell for proper PATH including ~/.local/bin)
-        Quickshell.execDetached(["bash", "-lc", appInfo.launch]);
+        Quickshell.execDetached(["/usr/bin/bash", "-lc", appInfo.launch]);
         return true;
     }
     
@@ -101,6 +105,7 @@ Singleton {
         if (!item) return false;
         
         const id = (item.id ?? "").toLowerCase();
+        root._log(`[TrayService] smartToggle called for: ${id}`);
         const appInfo = getProblematicAppInfo(item);
         
         // Find window using ToplevelManager
@@ -118,6 +123,7 @@ Singleton {
             }
             
             if (isMatch) {
+                root._log(`[TrayService] Match found for ${id}: ${appId} / ${tlTitle}`);
                 toplevel = tl;
                 break;
             }
@@ -128,9 +134,16 @@ Singleton {
             return true;
         }
         
-        // No window found - launch app
+        // No window found
         if (appInfo) {
-            Quickshell.execDetached(["bash", "-lc", appInfo.launch]);
+            if (appInfo.focusOnly) {
+                root._log(`[TrayService] Window not found for ${id}, but focusOnly is true. Falling back to item.activate().`);
+                return false; // Fallback to item.activate()
+            }
+            
+            // For harmless apps (like Spotify usually), try launching to restore
+            root._log(`[TrayService] Window not found for ${id}, executing launch: ${appInfo.launch}`);
+            Quickshell.execDetached(["/usr/bin/bash", "-lc", appInfo.launch]);
             return true;
         }
         
@@ -149,6 +162,13 @@ Singleton {
     property bool invertPins: Config.options?.tray?.invertPinnedItems ?? false
     property list<var> pinnedItems: invertPins ? itemsNotInUserList : itemsInUserList
     property list<var> unpinnedItems: invertPins ? itemsInUserList : itemsNotInUserList
+
+    function getSafeIcon(item): string {
+        if (!item) return "";
+        const app = getProblematicAppInfo(item);
+        if (app && app.fixedIcon) return app.fixedIcon;
+        return item.icon ?? "";
+    }
 
     function getTooltipForItem(item) {
         if (!item) return "";
@@ -182,6 +202,10 @@ Singleton {
         } else {
             pin(itemId)
         }
+    }
+
+    function _log(...args): void {
+        if (Quickshell.env("QS_DEBUG") === "1") console.log(...args);
     }
 
     function requestXembedProxyIfNeeded(): void {
@@ -224,10 +248,10 @@ Singleton {
     Process {
         id: xembedProxyStartProc
         stdout: SplitParser {
-            onRead: (line) => console.log("[xembedsniproxy]", line)
+            onRead: (line) => root._log("[xembedsniproxy]", line)
         }
         stderr: SplitParser {
-            onRead: (line) => console.log("[xembedsniproxy]", line)
+            onRead: (line) => root._log("[xembedsniproxy]", line)
         }
         command: [
             "/usr/bin/env",
@@ -236,7 +260,7 @@ Singleton {
             "/usr/bin/xembedsniproxy"
         ]
         onExited: (exitCode, exitStatus) => {
-            console.log("[xembedsniproxy] exited", exitCode, exitStatus)
+            root._log("[xembedsniproxy] exited", exitCode, exitStatus)
         }
     }
 

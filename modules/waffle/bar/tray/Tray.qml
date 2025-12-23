@@ -24,7 +24,7 @@ RowLayout {
     BarIconButton {
         id: overflowButton
 
-        visible: (TrayService.unpinnedItems.length > 0 || root.dragging)
+        visible: (TrayService.unpinnedItems.length > 0 || root.dragging) && !GameMode.active
         checked: root.overflowOpen
 
         iconName: "chevron-down"
@@ -60,10 +60,13 @@ RowLayout {
         }
     }
 
+    ScriptModel {
+        id: trayModel
+        values: TrayService.pinnedItems
+    }
+
     Repeater {
-        model: ScriptModel {
-            values: TrayService.pinnedItems
-        }
+        model: GameMode.active ? null : trayModel
         delegate: TrayButton {
             id: trayButton
             required property var modelData
