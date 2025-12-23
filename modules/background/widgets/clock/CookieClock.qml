@@ -36,12 +36,12 @@ Item {
     implicitHeight: implicitSize
 
     function applyStyle(sides, dialStyle, hourHandStyle, minuteHandStyle, secondHandStyle, dateStyle) {
-        Config.options.background.widgets.clock.cookie.sides = sides
-        Config.options.background.widgets.clock.cookie.dialNumberStyle = dialStyle
-        Config.options.background.widgets.clock.cookie.hourHandStyle = hourHandStyle
-        Config.options.background.widgets.clock.cookie.minuteHandStyle = minuteHandStyle
-        Config.options.background.widgets.clock.cookie.secondHandStyle = secondHandStyle
-        Config.options.background.widgets.clock.cookie.dateStyle = dateStyle
+        Config.setNestedValue('background.widgets.clock.cookie.sides', sides)
+        Config.setNestedValue('background.widgets.clock.cookie.dialNumberStyle', dialStyle)
+        Config.setNestedValue('background.widgets.clock.cookie.hourHandStyle', hourHandStyle)
+        Config.setNestedValue('background.widgets.clock.cookie.minuteHandStyle', minuteHandStyle)
+        Config.setNestedValue('background.widgets.clock.cookie.secondHandStyle', secondHandStyle)
+        Config.setNestedValue('background.widgets.clock.cookie.dateStyle', dateStyle)
     }
 
     function setClockPreset(category) {

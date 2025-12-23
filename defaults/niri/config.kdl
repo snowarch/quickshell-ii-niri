@@ -166,6 +166,7 @@ environment {
     XDG_CURRENT_DESKTOP "niri"
     QT_QPA_PLATFORM "wayland"
     ELECTRON_OZONE_PLATFORM_HINT "auto"
+    QT_LOGGING_RULES "quickshell.dbus.properties=false"
     
     // Qt theming: use kde platform for kdeglobals colors, Darkly for widget style
     QT_QPA_PLATFORMTHEME "kde"

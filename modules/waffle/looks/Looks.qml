@@ -16,7 +16,8 @@ Singleton {
     property QtObject transition
     property string iconsPath: `${Directories.assetsPath}/icons/fluent`
     property bool dark: Appearance.m3colors.darkmode
-    property bool useMaterial: Config.options?.waffles?.theming?.useMaterialColors ?? false
+    property bool auroraEverywhere: (Config.options?.appearance?.globalStyle ?? "material") === "aurora"
+    property bool useMaterial: (Config.options?.waffles?.theming?.useMaterialColors ?? false) || root.auroraEverywhere
     
     // Font family - reactive property at root level for proper binding updates
     readonly property string fontFamily: {
@@ -26,10 +27,10 @@ Singleton {
     // Font scale - reactive property
     readonly property real fontScale: Config.options?.waffles?.theming?.font?.scale ?? 1.0
 
-    property real backgroundTransparency: 0.13
-    property real panelBackgroundTransparency: 0.12
-    property real panelLayerTransparency: root.dark ? 0.6 : 0.5
-    property real contentTransparency: root.dark ? 0.87 : 0.5
+    property real backgroundTransparency: root.auroraEverywhere ? (Appearance.backgroundTransparency ?? 0) : 0.13
+    property real panelBackgroundTransparency: root.auroraEverywhere ? (Appearance.backgroundTransparency ?? 0) : 0.12
+    property real panelLayerTransparency: root.auroraEverywhere ? (Appearance.aurora.popupSurfaceTransparentize ?? 0.5) : (root.dark ? 0.6 : 0.5)
+    property real contentTransparency: root.auroraEverywhere ? (Appearance.contentTransparency ?? 0) : (root.dark ? 0.87 : 0.5)
     function applyBackgroundTransparency(col) {
         return ColorUtils.applyAlpha(col, 1 - root.backgroundTransparency)
     }

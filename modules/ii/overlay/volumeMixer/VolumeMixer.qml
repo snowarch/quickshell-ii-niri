@@ -126,9 +126,9 @@ StyledOverlayWidget {
             property string targetFile: artUrl ?? ""
             property string artFilePath: musicContent.artFilePath ?? ""
             command: [
-                "bash",
+                "/usr/bin/bash",
                 "-c",
-                "[ -f '" + artFilePath + "' ] || curl -sSL '" + targetFile + "' -o '" + artFilePath + "'"
+                "[ -f '" + artFilePath + "' ] || /usr/bin/curl -sSL '" + targetFile + "' -o '" + artFilePath + "'"
             ]
             onExited: (exitCode, exitStatus) => {
                 downloaded = (exitCode === 0) && artFilePath.length > 0;

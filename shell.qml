@@ -1,5 +1,6 @@
 //@ pragma UseQApplication
 //@ pragma Env QS_NO_RELOAD_POPUP=1
+//@ pragma Env QT_LOGGING_RULES=quickshell.dbus.properties=false
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 //@ pragma Env QT_SCALE_FACTOR=1
@@ -16,14 +17,19 @@ import qs.services
 ShellRoot {
     id: root
 
+    function _log(msg: string): void {
+        if (Quickshell.env("QS_DEBUG") === "1") console.log(msg);
+    }
+
     // Force singleton instantiation
     property var _idleService: Idle
     property var _gameModeService: GameMode
     property var _windowPreviewService: WindowPreviewService
     property var _weatherService: Weather
+    property var _powerProfilePersistence: PowerProfilePersistence
 
     Component.onCompleted: {
-        console.log("[Shell] Initializing singletons");
+        root._log("[Shell] Initializing singletons");
         Hyprsunset.load();
         FirstRunExperience.load();
         ConflictKiller.load();
@@ -33,8 +39,9 @@ ShellRoot {
         target: Config
         function onReadyChanged() {
             if (Config.ready) {
-                console.log("[Shell] Config ready, applying theme");
+                root._log("[Shell] Config ready, applying theme");
                 Qt.callLater(() => ThemeService.applyCurrentTheme());
+                Qt.callLater(() => IconThemeService.ensureInitialized());
                 // Only reset enabledPanels if it's empty or undefined (first run / corrupted config)
                 if (!Config.options?.enabledPanels || Config.options.enabledPanels.length === 0) {
                     const family = Config.options?.panelFamily ?? "ii"
@@ -63,7 +70,7 @@ ShellRoot {
             const hasWBackdrop = panels.includes("wBackdrop");
             
             if (hasIiBackdrop && !hasWBackdrop) {
-                console.log("[Shell] Migrating enabledPanels: replacing iiBackdrop with wBackdrop for waffle family");
+                root._log("[Shell] Migrating enabledPanels: replacing iiBackdrop with wBackdrop for waffle family");
                 const newPanels = panels.filter(p => p !== "iiBackdrop");
                 newPanels.push("wBackdrop");
                 Config.options.enabledPanels = newPanels;
@@ -80,7 +87,7 @@ ShellRoot {
                 ? Quickshell.shellPath("waffleSettings.qml")
                 : Quickshell.shellPath("settings.qml")
             // -n = no daemon (standalone window), -p = path to QML file
-            Quickshell.execDetached(["qs", "-n", "-p", settingsPath])
+            Quickshell.execDetached(["/usr/bin/qs", "-n", "-p", settingsPath])
         }
     }
 

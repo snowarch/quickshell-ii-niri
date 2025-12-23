@@ -10,13 +10,14 @@ import qs.modules.common.widgets
 
 Scope {
     id: bar
-    property bool showBarBackground: Config.options.bar.showBackground
+    property bool showBarBackground: Config.options?.bar?.showBackground ?? true
+    // Note: Vignette effect moved to Backdrop.qml (backdrop wallpaper layer)
 
     Variants {
         // For each monitor
         model: {
             const screens = Quickshell.screens;
-            const list = Config.options.bar.screenList;
+            const list = Config.options?.bar?.screenList ?? [];
             if (!list || list.length === 0)
                 return screens;
             return screens.filter(screen => list.includes(screen.name));
@@ -56,7 +57,7 @@ Scope {
                 property bool mustShow: hoverRegion.containsMouse || superShow
                 exclusionMode: ExclusionMode.Ignore
                 exclusiveZone: (Config?.options.bar.autoHide.enable && (!mustShow || !Config?.options.bar.autoHide.pushWindows)) ? 0 :
-                    Appearance.sizes.baseBarHeight + (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0)
+                    Appearance.sizes.baseBarHeight + ((((Config.options?.bar?.cornerStyle ?? 0) === 1) || ((Config.options?.bar?.cornerStyle ?? 0) === 3)) ? (Appearance.sizes.hyprlandGapsOut * 2) : 0)
                 WlrLayershell.namespace: "quickshell:bar"
                 implicitHeight: Appearance.sizes.barHeight + Appearance.rounding.screenRounding
                 mask: Region {
@@ -65,15 +66,15 @@ Scope {
                 color: "transparent"
 
                 anchors {
-                    top: !Config.options.bar.bottom
-                    bottom: Config.options.bar.bottom
+                    top: !(Config.options?.bar?.bottom ?? false)
+                    bottom: (Config.options?.bar?.bottom ?? false)
                     left: true
                     right: true
                 }
 
                 margins {
-                    right: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.right) * -1
-                    bottom: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.bottom) * -1
+                    right: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.right) * -1
+                    bottom: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.bottom) * -1
                 }
 
                 MouseArea  {
@@ -81,16 +82,16 @@ Scope {
                     hoverEnabled: true
                     anchors {
                         fill: parent
-                        rightMargin: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.right) * 1
-                        bottomMargin: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.bottom) * 1
+                        rightMargin: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.right) * 1
+                        bottomMargin: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.bottom) * 1
                     }
 
                     Item {
                         id: hoverMaskRegion
                         anchors {
                             fill: barContent
-                            topMargin: -Config.options.bar.autoHide.hoverRegionWidth
-                            bottomMargin: -Config.options.bar.autoHide.hoverRegionWidth
+                            topMargin: -(Config.options?.bar?.autoHide?.hoverRegionWidth ?? 2)
+                            bottomMargin: -(Config.options?.bar?.autoHide?.hoverRegionWidth ?? 2)
                         }
                     }
 
@@ -104,8 +105,8 @@ Scope {
                             top: parent.top
                             bottom: undefined
                             topMargin: (Config?.options.bar.autoHide.enable && !mustShow) ? -Appearance.sizes.barHeight : 0
-                            bottomMargin: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.bottom) * -1
-                            rightMargin: (Config.options.interactions.deadPixelWorkaround.enable && barRoot.anchors.right) * -1
+                            bottomMargin: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.bottom) * -1
+                            rightMargin: ((Config.options?.interactions?.deadPixelWorkaround?.enable ?? false) && barRoot.anchors.right) * -1
                         }
                         Behavior on anchors.topMargin {
                             animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
@@ -116,7 +117,7 @@ Scope {
 
                         states: State {
                             name: "bottom"
-                            when: Config.options.bar.bottom
+                            when: (Config.options?.bar?.bottom ?? false)
                             AnchorChanges {
                                 target: barContent
                                 anchors {
@@ -144,11 +145,11 @@ Scope {
                             bottom: undefined
                         }
                         height: Appearance.rounding.screenRounding
-                        active: showBarBackground && Config.options.bar.cornerStyle === 0 // Hug
+                        active: showBarBackground && (Config.options?.bar?.cornerStyle ?? 0) === 0 // Hug
 
                         states: State {
                             name: "bottom"
-                            when: Config.options.bar.bottom
+                            when: (Config.options?.bar?.bottom ?? false)
                             AnchorChanges {
                                 target: roundDecorators
                                 anchors {
@@ -176,7 +177,7 @@ Scope {
                                 corner: RoundCorner.CornerEnum.TopLeft
                                 states: State {
                                     name: "bottom"
-                                    when: Config.options.bar.bottom
+                                    when: (Config.options?.bar?.bottom ?? false)
                                     PropertyChanges {
                                         leftCorner.corner: RoundCorner.CornerEnum.BottomLeft
                                     }
@@ -186,8 +187,8 @@ Scope {
                                 id: rightCorner
                                 anchors {
                                     right: parent.right
-                                    top: !Config.options.bar.bottom ? parent.top : undefined
-                                    bottom: Config.options.bar.bottom ? parent.bottom : undefined
+                                    top: !(Config.options?.bar?.bottom ?? false) ? parent.top : undefined
+                                    bottom: (Config.options?.bar?.bottom ?? false) ? parent.bottom : undefined
                                 }
                                 implicitSize: Appearance.rounding.screenRounding
                                 color: showBarBackground ? Appearance.colors.colLayer0 : "transparent"
@@ -195,7 +196,7 @@ Scope {
                                 corner: RoundCorner.CornerEnum.TopRight
                                 states: State {
                                     name: "bottom"
-                                    when: Config.options.bar.bottom
+                                    when: (Config.options?.bar?.bottom ?? false)
                                     PropertyChanges {
                                         rightCorner.corner: RoundCorner.CornerEnum.BottomRight
                                     }

@@ -85,26 +85,26 @@ Singleton {
         // Apply typography settings
         if (preset.typography) {
             if (preset.typography.sizeScale !== undefined)
-                Config.options.appearance.typography.sizeScale = preset.typography.sizeScale
+                Config.setNestedValue('appearance.typography.sizeScale', preset.typography.sizeScale)
             if (preset.typography.variableAxes) {
                 if (preset.typography.variableAxes.wght !== undefined)
-                    Config.options.appearance.typography.variableAxes.wght = preset.typography.variableAxes.wght
+                    Config.setNestedValue('appearance.typography.variableAxes.wght', preset.typography.variableAxes.wght)
                 if (preset.typography.variableAxes.wdth !== undefined)
-                    Config.options.appearance.typography.variableAxes.wdth = preset.typography.variableAxes.wdth
+                    Config.setNestedValue('appearance.typography.variableAxes.wdth', preset.typography.variableAxes.wdth)
                 if (preset.typography.variableAxes.grad !== undefined)
-                    Config.options.appearance.typography.variableAxes.grad = preset.typography.variableAxes.grad
+                    Config.setNestedValue('appearance.typography.variableAxes.grad', preset.typography.variableAxes.grad)
             }
         }
         return true
     }
 
     function resetTypographyToDefaults() {
-        Config.options.appearance.typography.mainFont = "Roboto Flex"
-        Config.options.appearance.typography.titleFont = "Gabarito"
-        Config.options.appearance.typography.monospaceFont = "JetBrains Mono NF"
-        Config.options.appearance.typography.sizeScale = 1.0
-        Config.options.appearance.typography.variableAxes.wght = 300
-        Config.options.appearance.typography.variableAxes.wdth = 105
-        Config.options.appearance.typography.variableAxes.grad = 175
+        Config.setNestedValue('appearance.typography.mainFont', "Roboto Flex")
+        Config.setNestedValue('appearance.typography.titleFont', "Gabarito")
+        Config.setNestedValue('appearance.typography.monospaceFont', "JetBrains Mono NF")
+        Config.setNestedValue('appearance.typography.sizeScale', 1.0)
+        Config.setNestedValue('appearance.typography.variableAxes.wght', 300)
+        Config.setNestedValue('appearance.typography.variableAxes.wdth', 105)
+        Config.setNestedValue('appearance.typography.variableAxes.grad', 175)
     }
 }

@@ -54,8 +54,14 @@ Item {
         id: coverArtDownloader
         property string targetFile: root.artUrl
         property string artFilePath: root.artFilePath
-        command: ["fish", "-c", `test -f '${artFilePath}'; or curl -sSL '${targetFile}' -o '${artFilePath}'`]
-        onExited: (exitCode, exitStatus) => root.downloaded = true
+        command: ["/usr/bin/bash", "-c", `
+            if [ -f '${artFilePath}' ]; then
+                exit 0
+            fi
+            tmp='${artFilePath}.tmp'
+            /usr/bin/curl -sSL '${targetFile}' -o "$tmp" && /usr/bin/mv -f "$tmp" '${artFilePath}'
+        `]
+        onExited: (exitCode, exitStatus) => root.downloaded = (exitCode === 0)
     }
 
     ColorQuantizer {

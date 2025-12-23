@@ -38,14 +38,14 @@ Scope {
             environment: ({
                 "UNLOCK_PASSWORD": lockContext.currentText
             }),
-            command: [Quickshell.shellPath("scripts/keyring/unlock.sh")]
+            command: ["/usr/bin/bash", Quickshell.shellPath("scripts/keyring/unlock.sh")]
         })
     }
 
     property var windowData: []
     function saveWindowPositionAndTile() {
         if (!CompositorService.isHyprland) return;
-        Quickshell.execDetached(["hyprctl", "keyword", "dwindle:pseudotile", "true"])
+        Quickshell.execDetached(["/usr/bin/hyprctl", "keyword", "dwindle:pseudotile", "true"])
         root.windowData = HyprlandData.windowList.filter(w => (w.floating && w.workspace.id === HyprlandData.activeWorkspace.id))
         root.windowData.forEach(w => {
 			Hyprland.dispatch(`pseudo address:${w.address}`)
@@ -60,7 +60,7 @@ Scope {
             Hyprland.dispatch(`movewindowpixel exact ${w.at[0]} ${w.at[1]}, address:${w.address}`)
 			Hyprland.dispatch(`pseudo address:${w.address}`)
         })
-		Quickshell.execDetached(["hyprctl", "keyword", "dwindle:pseudotile", "false"])
+		Quickshell.execDetached(["/usr/bin/hyprctl", "keyword", "dwindle:pseudotile", "false"])
     }
 
     // This stores all the information shared between the lock surfaces on each screen.

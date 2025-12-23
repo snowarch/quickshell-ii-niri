@@ -255,45 +255,51 @@ Scope {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
         anchors { top: true; bottom: true; left: true; right: true }
 
+        Item {
+            id: keyHandler
+            anchors.fill: parent
+            focus: GlobalStates.waffleAltSwitcherOpen
+
+            // Keyboard handling
+            Keys.onPressed: event => {
+                switch (event.key) {
+                    case Qt.Key_Escape:
+                        root.closeSwitcher()
+                        event.accepted = true
+                        break
+                    case Qt.Key_Return:
+                    case Qt.Key_Enter:
+                        root.activateCurrent()
+                        if (root.getCloseOnFocus()) root.closeSwitcher()
+                        event.accepted = true
+                        break
+                    case Qt.Key_Tab:
+                    case Qt.Key_Right:
+                        root.nextItem()
+                        event.accepted = true
+                        break
+                    case Qt.Key_Left:
+                        root.previousItem()
+                        event.accepted = true
+                        break
+                    case Qt.Key_Down:
+                    case Qt.Key_J:
+                        root.nextItem()
+                        event.accepted = true
+                        break
+                    case Qt.Key_Up:
+                    case Qt.Key_K:
+                        root.previousItem()
+                        event.accepted = true
+                        break
+                }
+            }
+        }
+
         // Click outside to close
         MouseArea {
             anchors.fill: parent
             onClicked: root.closeSwitcher()
-        }
-
-        // Keyboard handling
-        Keys.onPressed: event => {
-            switch (event.key) {
-                case Qt.Key_Escape:
-                    root.closeSwitcher()
-                    event.accepted = true
-                    break
-                case Qt.Key_Return:
-                case Qt.Key_Enter:
-                    root.activateCurrent()
-                    if (root.getCloseOnFocus()) root.closeSwitcher()
-                    event.accepted = true
-                    break
-                case Qt.Key_Tab:
-                case Qt.Key_Right:
-                    root.nextItem()
-                    event.accepted = true
-                    break
-                case Qt.Key_Left:
-                    root.previousItem()
-                    event.accepted = true
-                    break
-                case Qt.Key_Down:
-                case Qt.Key_J:
-                    root.nextItem()
-                    event.accepted = true
-                    break
-                case Qt.Key_Up:
-                case Qt.Key_K:
-                    root.previousItem()
-                    event.accepted = true
-                    break
-            }
         }
 
         // Content centered in window

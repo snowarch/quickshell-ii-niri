@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -11,6 +12,8 @@ import Quickshell.Services.UPower
 Rectangle {
     id: root
 
+    readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
+
     property var screen: root.QsWindow.window?.screen
     // Brightness monitor may be undefined (e.g. Niri without matching monitor); guard it.
     property var brightnessMonitor: screen ? Brightness.getMonitorForScreen(screen) : null
@@ -18,11 +21,11 @@ Rectangle {
     implicitWidth: contentItem.implicitWidth + root.horizontalPadding * 2
     implicitHeight: contentItem.implicitHeight + root.verticalPadding * 2
     radius: Appearance.rounding.normal
-    color: Appearance.colors.colLayer1
+    color: root.auroraEverywhere ? ColorUtils.transparentize(Appearance.colors.colLayer1, Appearance.aurora.subSurfaceTransparentize) : Appearance.colors.colLayer1
     property real verticalPadding: 4
     property real horizontalPadding: 12
 
-    Column {
+    RowLayout {
         id: contentItem
         anchors {
             fill: parent
@@ -31,12 +34,11 @@ Rectangle {
             topMargin: root.verticalPadding
             bottomMargin: root.verticalPadding
         }
+        spacing: 10
 
         Loader {
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             visible: active
             active: (Config.options?.sidebar?.quickSliders?.showBrightness ?? true) && !!root.brightnessMonitor
             sourceComponent: QuickSlider {
@@ -47,10 +49,8 @@ Rectangle {
         }
 
         Loader {
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             visible: active
             active: Config.options?.sidebar?.quickSliders?.showVolume ?? true
             sourceComponent: QuickSlider {
@@ -62,10 +62,8 @@ Rectangle {
         }
 
         Loader {
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             visible: active
             active: Config.options?.sidebar?.quickSliders?.showMic ?? false
             sourceComponent: QuickSlider {

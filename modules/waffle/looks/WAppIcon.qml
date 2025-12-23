@@ -20,7 +20,7 @@ Item {
         id: iconWidget
         anchors.fill: parent
         animated: true
-        roundToIconSize: false
+        roundToIconSize: true
         fallback: root.iconName
         source: root.tryCustomIcon ? `${Looks.iconsPath}/${root.iconName}${!root.separateLightDark ? "" : Looks.dark ? "-dark" : "-light"}.svg` : fallback
     }

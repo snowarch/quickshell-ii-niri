@@ -66,6 +66,8 @@ Toolbar {
 
     ToolbarTabBar {
         id: tabBar
+        Layout.fillWidth: true
+        maxWidth: tabBar.parent?.width ?? -1
         tabButtonList: [
             {"icon": "activity_zone", "name": Translation.tr("Rect")},
             {"icon": "gesture", "name": Translation.tr("Circle")}

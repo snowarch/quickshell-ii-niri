@@ -13,13 +13,13 @@ import qs.modules.common.functions
 
 Scope {
     id: bar
-    property bool showBarBackground: Config.options.bar.showBackground
+    property bool showBarBackground: Config.options?.bar?.showBackground ?? true
 
     Variants {
         // For each monitor
         model: {
             const screens = Quickshell.screens;
-            const list = Config.options.bar.screenList;
+            const list = Config.options?.bar?.screenList ?? [];
             if (!list || list.length === 0)
                 return screens;
             return screens.filter(screen => list.includes(screen.name));
@@ -57,7 +57,7 @@ Scope {
                 property bool mustShow: hoverRegion.containsMouse || superShow
                 exclusionMode: ExclusionMode.Ignore
                 exclusiveZone: (Config?.options.bar.autoHide.enable && (!mustShow || !Config?.options.bar.autoHide.pushWindows)) ? 0 :
-                    Appearance.sizes.baseVerticalBarWidth + (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0)
+                    Appearance.sizes.baseVerticalBarWidth + ((((Config.options?.bar?.cornerStyle ?? 0) === 1) || ((Config.options?.bar?.cornerStyle ?? 0) === 3)) ? (Appearance.sizes.hyprlandGapsOut * 2) : 0)
                 WlrLayershell.namespace: "quickshell:verticalBar"
                 // WlrLayershell.layer: WlrLayer.Overlay // TODO enable this when bar can hide when fullscreen
                 implicitWidth: Appearance.sizes.verticalBarWidth + Appearance.rounding.screenRounding
@@ -67,8 +67,8 @@ Scope {
                 color: "transparent"
 
                 anchors {
-                    left: !Config.options.bar.bottom
-                    right: Config.options.bar.bottom
+                    left: !(Config.options?.bar?.bottom ?? false)
+                    right: (Config.options?.bar?.bottom ?? false)
                     top: true
                     bottom: true
                 }
@@ -82,8 +82,8 @@ Scope {
                         id: hoverMaskRegion
                         anchors {
                             fill: barContent
-                            leftMargin: -Config.options.bar.autoHide.hoverRegionWidth
-                            rightMargin: -Config.options.bar.autoHide.hoverRegionWidth
+                            leftMargin: -(Config.options?.bar?.autoHide?.hoverRegionWidth ?? 2)
+                            rightMargin: -(Config.options?.bar?.autoHide?.hoverRegionWidth ?? 2)
                         }
                     }
 
@@ -108,7 +108,7 @@ Scope {
 
                         states: State {
                             name: "right"
-                            when: Config.options.bar.bottom
+                            when: (Config.options?.bar?.bottom ?? false)
                             AnchorChanges {
                                 target: barContent
                                 anchors {
@@ -121,7 +121,7 @@ Scope {
                             PropertyChanges {
                                 target: barContent
                                 anchors.topMargin: 0
-                                anchors.rightMargin: (Config?.options.bar.autoHide.enable && !mustShow) ? -Appearance.sizes.barHeight : 0
+                                anchors.rightMargin: (Config?.options.bar.autoHide.enable && !mustShow) ? -Appearance.sizes.verticalBarWidth : 0
                             }
                         }
                     }
@@ -136,11 +136,11 @@ Scope {
                             right: undefined
                         }
                         width: Appearance.rounding.screenRounding
-                        active: showBarBackground && Config.options.bar.cornerStyle === 0 // Hug
+                        active: showBarBackground && (Config.options?.bar?.cornerStyle ?? 0) === 0 // Hug
 
                         states: State {
                             name: "right"
-                            when: Config.options.bar.bottom
+                            when: (Config.options?.bar?.bottom ?? false)
                             AnchorChanges {
                                 target: roundDecorators
                                 anchors {
@@ -168,7 +168,7 @@ Scope {
                                 corner: RoundCorner.CornerEnum.TopLeft
                                 states: State {
                                     name: "bottom"
-                                    when: Config.options.bar.bottom
+                                    when: (Config.options?.bar?.bottom ?? false)
                                     PropertyChanges {
                                         topCorner.corner: RoundCorner.CornerEnum.TopRight
                                     }
@@ -178,8 +178,8 @@ Scope {
                                 id: bottomCorner
                                 anchors {
                                     bottom: parent.bottom
-                                    left: !Config.options.bar.bottom ? parent.left : undefined
-                                    right: Config.options.bar.bottom ? parent.right : undefined
+                                    left: !(Config.options?.bar?.bottom ?? false) ? parent.left : undefined
+                                    right: (Config.options?.bar?.bottom ?? false) ? parent.right : undefined
                                 }
                                 implicitSize: Appearance.rounding.screenRounding
                                 color: showBarBackground ? Appearance.colors.colLayer0 : "transparent"
@@ -187,7 +187,7 @@ Scope {
                                 corner: RoundCorner.CornerEnum.BottomLeft
                                 states: State {
                                     name: "bottom"
-                                    when: Config.options.bar.bottom
+                                    when: (Config.options?.bar?.bottom ?? false)
                                     PropertyChanges {
                                         bottomCorner.corner: RoundCorner.CornerEnum.BottomRight
                                     }

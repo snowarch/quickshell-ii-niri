@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
 # Generate thumbnails for files using ImageMagick, following Freedesktop spec
 # Usage:
@@ -64,7 +64,11 @@ generate_thumbnail() {
     if [ -f "$out" ]; then
         return
     fi
-    magick "$abs_path" -resize "${THUMBNAIL_SIZE}x${THUMBNAIL_SIZE}" "$out"
+    if [ -x "/usr/bin/magick" ]; then
+        /usr/bin/magick "$abs_path" -resize "${THUMBNAIL_SIZE}x${THUMBNAIL_SIZE}" "$out"
+    else
+        magick "$abs_path" -resize "${THUMBNAIL_SIZE}x${THUMBNAIL_SIZE}" "$out"
+    fi
 }
 
 # Parse arguments
@@ -117,9 +121,8 @@ case "$MODE" in
         fi
         for f in "$TARGET"/*; do
             [ -f "$f" ] || continue
-            generate_thumbnail "$f" &
+            generate_thumbnail "$f"
         done
-        wait
         ;;
     *)
         usage

@@ -19,13 +19,23 @@ Item { // Wrapper
     implicitWidth: searchWidgetContent.implicitWidth + Appearance.sizes.elevationMargin * 2
     implicitHeight: searchBar.implicitHeight + searchBar.verticalPadding * 2 + Appearance.sizes.elevationMargin * 2
 
+    readonly property var searchPrefixes: Config.options?.search?.prefix ?? {}
+    readonly property string prefixAction: searchPrefixes.action ?? "/"
+    readonly property string prefixApp: searchPrefixes.app ?? ">"
+    readonly property string prefixClipboard: searchPrefixes.clipboard ?? ";"
+    readonly property string prefixEmojis: searchPrefixes.emojis ?? ":"
+    readonly property string prefixMath: searchPrefixes.math ?? "="
+    readonly property string prefixShellCommand: searchPrefixes.shellCommand ?? "$"
+    readonly property string prefixWebSearch: searchPrefixes.webSearch ?? "?"
+
     property string mathResult: ""
     property string debouncedSearchText: ""
     property var cachedResults: []
 
     property bool clipboardWorkSafetyActive: {
-        const enabled = Config.options.workSafety.enable.clipboard;
-        const sensitiveNetwork = (StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords))
+        const enabled = Config.options?.workSafety?.enable?.clipboard ?? false;
+        const keywords = Config.options?.workSafety?.triggerCondition?.networkNameKeywords ?? [];
+        const sensitiveNetwork = (StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), keywords))
         return enabled && sensitiveNetwork;
     }
 
@@ -59,9 +69,9 @@ Item { // Wrapper
             execute: args => {
                 if (!/^(\d+)/.test(args.trim())) { // Invalid if doesn't start with numbers
                     Quickshell.execDetached([
-                        "notify-send", 
+                        "/usr/bin/notify-send", 
                         Translation.tr("Superpaste"), 
-                        Translation.tr("Usage: <tt>%1superpaste NUM_OF_ENTRIES[i]</tt>\nSupply <tt>i</tt> when you want images\nExamples:\n<tt>%1superpaste 4i</tt> for the last 4 images\n<tt>%1superpaste 7</tt> for the last 7 entries").arg(Config.options.search.prefix.action),
+                        Translation.tr("Usage: <tt>%1superpaste NUM_OF_ENTRIES[i]</tt>\nSupply <tt>i</tt> when you want images\nExamples:\n<tt>%1superpaste 4i</tt> for the last 4 images\n<tt>%1superpaste 7</tt> for the last 7 entries").arg(root.prefixAction),
                         "-a", "Shell"
                     ]);
                     return;
@@ -117,7 +127,7 @@ Item { // Wrapper
 
     function containsUnsafeLink(entry) {
         if (entry == undefined) return false;
-        const unsafeKeywords = Config.options.workSafety.triggerCondition.linkKeywords;
+        const unsafeKeywords = Config.options?.workSafety?.triggerCondition?.linkKeywords ?? [];
         return StringUtils.stringListContainsSubstring(entry.toLowerCase(), unsafeKeywords);
     }
 
@@ -130,8 +140,8 @@ Item { // Wrapper
         }
 
         // Clipboard search
-        if (text.startsWith(Config.options.search.prefix.clipboard)) {
-            const searchString = StringUtils.cleanPrefix(text, Config.options.search.prefix.clipboard);
+        if (text.startsWith(root.prefixClipboard)) {
+            const searchString = StringUtils.cleanPrefix(text, root.prefixClipboard);
             root.cachedResults = Cliphist.fuzzyQuery(searchString).map((entry, index, array) => {
                 const mightBlurImage = Cliphist.entryIsImage(entry) && root.clipboardWorkSafetyActive;
                 let shouldBlurImage = mightBlurImage;
@@ -158,8 +168,8 @@ Item { // Wrapper
         }
         
         // Emoji search
-        if (text.startsWith(Config.options.search.prefix.emojis)) {
-            const searchString = StringUtils.cleanPrefix(text, Config.options.search.prefix.emojis);
+        if (text.startsWith(root.prefixEmojis)) {
+            const searchString = StringUtils.cleanPrefix(text, root.prefixEmojis);
             root.cachedResults = Emojis.fuzzyQuery(searchString).map(entry => {
                 const emoji = entry.match(/^\s*(\S+)/)?.[1] || ""
                 return {
@@ -188,7 +198,7 @@ Item { // Wrapper
             execute: () => { Quickshell.clipboardText = root.mathResult; }
         };
         
-        const appResultObjects = AppSearch.fuzzyQuery(StringUtils.cleanPrefix(text, Config.options.search.prefix.app)).map(entry => {
+        const appResultObjects = AppSearch.fuzzyQuery(StringUtils.cleanPrefix(text, root.prefixApp)).map(entry => {
             entry.clickActionName = Translation.tr("Launch");
             entry.type = Translation.tr("App");
             entry.key = entry.execute;
@@ -197,39 +207,39 @@ Item { // Wrapper
         
         const commandResultObject = {
             key: `cmd ${text}`,
-            name: StringUtils.cleanPrefix(text, Config.options.search.prefix.shellCommand).replace("file://", ""),
+            name: StringUtils.cleanPrefix(text, root.prefixShellCommand).replace("file://", ""),
             clickActionName: Translation.tr("Run"),
             type: Translation.tr("Run command"),
             fontType: "monospace",
             materialSymbol: 'terminal',
             execute: () => {
                 let cleanedCommand = text.replace("file://", "");
-                cleanedCommand = StringUtils.cleanPrefix(cleanedCommand, Config.options.search.prefix.shellCommand);
-                if (cleanedCommand.startsWith(Config.options.search.prefix.shellCommand)) {
-                    cleanedCommand = cleanedCommand.slice(Config.options.search.prefix.shellCommand.length);
+                cleanedCommand = StringUtils.cleanPrefix(cleanedCommand, root.prefixShellCommand);
+                if (cleanedCommand.startsWith(root.prefixShellCommand)) {
+                    cleanedCommand = cleanedCommand.slice(root.prefixShellCommand.length);
                 }
                 cleanedCommand = cleanedCommand.trim();
                 if (!cleanedCommand.length) return;
                 const term = Config.options?.apps?.terminal ?? "ghostty";
                 if (term.indexOf("ghostty") !== -1) {
-                    Quickshell.execDetached([term, "-e", "sh", "-lc", cleanedCommand]);
+                    Quickshell.execDetached([term, "-e", "/usr/bin/sh", "-lc", cleanedCommand]);
                 } else {
-                    const commandToRun = `${term} fish -C '${cleanedCommand}'`;
-                    Quickshell.execDetached(["bash", "-c", commandToRun]);
+                    const commandToRun = `${term} /usr/bin/fish -C '${cleanedCommand}'`;
+                    Quickshell.execDetached(["/usr/bin/bash", "-c", commandToRun]);
                 }
             }
         };
         
         const webSearchResultObject = {
             key: `website ${text}`,
-            name: StringUtils.cleanPrefix(text, Config.options.search.prefix.webSearch),
+            name: StringUtils.cleanPrefix(text, root.prefixWebSearch),
             clickActionName: Translation.tr("Search"),
             type: Translation.tr("Search the web"),
             materialSymbol: 'travel_explore',
             execute: () => {
-                let query = StringUtils.cleanPrefix(text, Config.options.search.prefix.webSearch);
-                let url = Config.options.search.engineBaseUrl + query;
-                for (let site of Config.options.search.excludedSites) {
+                let query = StringUtils.cleanPrefix(text, root.prefixWebSearch);
+                let url = (Config.options?.search?.engineBaseUrl ?? "https://www.google.com/search?q=") + query;
+                for (let site of (Config.options?.search?.excludedSites ?? ["quora.com", "facebook.com"])) {
                     url += ` -site:${site}`;
                 }
                 Qt.openUrlExternally(url);
@@ -237,7 +247,7 @@ Item { // Wrapper
         };
         
         const launcherActionObjects = root.searchActions.map(action => {
-            const actionString = `${Config.options.search.prefix.action}${action.action}`;
+            const actionString = `${root.prefixAction}${action.action}`;
             if (actionString.startsWith(text) || text.startsWith(actionString)) {
                 return {
                     key: `Action ${actionString}`,
@@ -253,9 +263,9 @@ Item { // Wrapper
 
         let result = [];
         const startsWithNumber = /^\d/.test(text);
-        const startsWithMathPrefix = text.startsWith(Config.options.search.prefix.math);
-        const startsWithShellCommandPrefix = text.startsWith(Config.options.search.prefix.shellCommand);
-        const startsWithWebSearchPrefix = text.startsWith(Config.options.search.prefix.webSearch);
+        const startsWithMathPrefix = text.startsWith(root.prefixMath);
+        const startsWithShellCommandPrefix = text.startsWith(root.prefixShellCommand);
+        const startsWithWebSearchPrefix = text.startsWith(root.prefixWebSearch);
         
         if (startsWithNumber || startsWithMathPrefix) {
             result.push(mathResultObject);
@@ -268,7 +278,7 @@ Item { // Wrapper
         result = result.concat(appResultObjects);
         result = result.concat(launcherActionObjects);
 
-        if (Config.options.search.prefix.showDefaultActionsWithoutPrefix) {
+        if (root.searchPrefixes.showDefaultActionsWithoutPrefix ?? true) {
             if (!startsWithShellCommandPrefix) result.push(commandResultObject);
             if (!startsWithNumber && !startsWithMathPrefix) result.push(mathResultObject);
             if (!startsWithWebSearchPrefix) result.push(webSearchResultObject);
@@ -279,7 +289,7 @@ Item { // Wrapper
 
     Timer {
         id: searchDebounceTimer
-        interval: 32  // ~2 frames debounce
+        interval: 50  // ~3 frames debounce
         onTriggered: {
             root.debouncedSearchText = root.searchingText;
             root.updateSearchResults();
@@ -292,11 +302,11 @@ Item { // Wrapper
 
     Timer {
         id: nonAppResultsTimer
-        interval: Config.options.search.nonAppResultDelay
+        interval: (Config.options?.search?.nonAppResultDelay ?? 30)
         onTriggered: {
             let expr = root.debouncedSearchText;
-            if (expr.startsWith(Config.options.search.prefix.math)) {
-                expr = expr.slice(Config.options.search.prefix.math.length);
+            if (expr.startsWith(root.prefixMath)) {
+                expr = expr.slice(root.prefixMath.length);
             }
             mathProcess.calculateExpression(expr);
         }
@@ -304,7 +314,7 @@ Item { // Wrapper
 
     Process {
         id: mathProcess
-        property list<string> baseCommand: ["qalc", "-t"]
+        property list<string> baseCommand: ["/usr/bin/qalc", "-t"]
         function calculateExpression(expression) {
             mathProcess.running = false;
             mathProcess.command = baseCommand.concat(expression);
@@ -470,13 +480,13 @@ Item { // Wrapper
                     anchors.right: parent?.right
                     entry: modelData
                     query: StringUtils.cleanOnePrefix(root.debouncedSearchText, [
-                        Config.options.search.prefix.action,
-                        Config.options.search.prefix.app,
-                        Config.options.search.prefix.clipboard,
-                        Config.options.search.prefix.emojis,
-                        Config.options.search.prefix.math,
-                        Config.options.search.prefix.shellCommand,
-                        Config.options.search.prefix.webSearch
+                        root.prefixAction,
+                        root.prefixApp,
+                        root.prefixClipboard,
+                        root.prefixEmojis,
+                        root.prefixMath,
+                        root.prefixShellCommand,
+                        root.prefixWebSearch
                     ])
                 }
             }

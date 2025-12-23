@@ -5,9 +5,11 @@ import QtQuick.Layouts
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 
 StyledFlickable {
     id: root
+    readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
     readonly property var elements: PTable.elements
     readonly property var series: PTable.series
     property real tileSpacing: Appearance.sizes.spacingSmall
@@ -50,7 +52,7 @@ StyledFlickable {
             Layout.fillWidth: true
             Layout.preferredHeight: tableColumn.implicitHeight + 32
             radius: Appearance.rounding.normal
-            color: Appearance.colors.colLayer1
+            color: root.auroraEverywhere ? ColorUtils.transparentize(Appearance.colors.colLayer1, Appearance.aurora.subSurfaceTransparentize) : Appearance.colors.colLayer1
 
             Column {
                 id: tableColumn

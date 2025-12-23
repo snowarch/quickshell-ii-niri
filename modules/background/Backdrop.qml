@@ -80,7 +80,47 @@ Variants {
                 opacity: backdropWindow.backdropDim / 100.0
             }
 
-            // Vignette effect
+            // Vignette effect at bar level
+            Rectangle {
+                id: barVignette
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: isBarAtTop ? parent.top : undefined
+                    bottom: isBarAtTop ? undefined : parent.bottom
+                }
+                
+                readonly property bool isBarAtTop: !(Config.options?.bar?.bottom ?? false)
+                readonly property bool barVignetteEnabled: Config.options?.bar?.vignette?.enabled ?? false
+                readonly property real barVignetteIntensity: Config.options?.bar?.vignette?.intensity ?? 0.6
+                readonly property real barVignetteRadius: Config.options?.bar?.vignette?.radius ?? 0.5
+                
+                height: Math.max(200, backdropWindow.modelData.height * barVignetteRadius)
+                visible: barVignetteEnabled
+                
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    
+                    GradientStop { 
+                        position: 0.0
+                        color: barVignette.isBarAtTop 
+                            ? Qt.rgba(0, 0, 0, barVignette.barVignetteIntensity)
+                            : "transparent"
+                    }
+                    GradientStop { 
+                        position: barVignette.barVignetteRadius
+                        color: "transparent"
+                    }
+                    GradientStop { 
+                        position: 1.0
+                        color: barVignette.isBarAtTop
+                            ? "transparent"
+                            : Qt.rgba(0, 0, 0, barVignette.barVignetteIntensity)
+                    }
+                }
+            }
+            
+            // Legacy vignette effect (bottom gradient)
             Rectangle {
                 anchors.fill: parent
                 visible: backdropWindow.vignetteEnabled

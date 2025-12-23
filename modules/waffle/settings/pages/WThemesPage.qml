@@ -25,33 +25,33 @@ WSettingsPage {
             font.pixelSize: Looks.font.pixelSize.normal
             color: Looks.colors.subfg
         }
-        
+
         // Theme grid
         GridLayout {
             Layout.fillWidth: true
             columns: 3
             rowSpacing: 8
             columnSpacing: 8
-            
+
             Repeater {
                 model: ThemePresets.presets
-                
+
                 Rectangle {
                     id: themeCard
                     required property var modelData
                     required property int index
-                    
+
                     Layout.fillWidth: true
                     Layout.preferredHeight: 80
                     radius: Looks.radius.large
-                    color: ThemeService.currentTheme === modelData.id 
-                        ? Looks.colors.accent 
+                    color: ThemeService.currentTheme === modelData.id
+                        ? Looks.colors.accent
                         : (themeMouseArea.containsMouse ? Looks.colors.bg2Hover : Looks.colors.bg2)
                     border.width: ThemeService.currentTheme === modelData.id ? 2 : 1
-                    border.color: ThemeService.currentTheme === modelData.id 
-                        ? Looks.colors.accent 
+                    border.color: ThemeService.currentTheme === modelData.id
+                        ? Looks.colors.accent
                         : Looks.colors.bg2Border
-                    
+
                     MouseArea {
                         id: themeMouseArea
                         anchors.fill: parent
@@ -59,16 +59,16 @@ WSettingsPage {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: ThemeService.setTheme(themeCard.modelData.id)
                     }
-                    
+
                     ColumnLayout {
                         anchors.centerIn: parent
                         spacing: 4
-                        
+
                         // Color preview dots
                         RowLayout {
                             Layout.alignment: Qt.AlignHCenter
                             spacing: 4
-                            
+
                             Rectangle {
                                 width: 16; height: 16
                                 radius: 8
@@ -85,20 +85,79 @@ WSettingsPage {
                                 color: themeCard.modelData.colors?.m3tertiary ?? Looks.colors.bg1
                             }
                         }
-                        
+
                         WText {
                             Layout.alignment: Qt.AlignHCenter
                             text: themeCard.modelData.name
                             font.pixelSize: Looks.font.pixelSize.small
-                            font.weight: ThemeService.currentTheme === themeCard.modelData.id 
-                                ? Looks.font.weight.regular 
+                            font.weight: ThemeService.currentTheme === themeCard.modelData.id
+                                ? Looks.font.weight.regular
                                 : Looks.font.weight.thin
-                            color: ThemeService.currentTheme === themeCard.modelData.id 
-                                ? Looks.colors.accentFg 
+                            color: ThemeService.currentTheme === themeCard.modelData.id
+                                ? Looks.colors.accentFg
                                 : Looks.colors.fg
                         }
                     }
                 }
+            }
+        }
+    }
+
+    WSettingsCard {
+        title: Translation.tr("Global Style")
+        icon: "palette"
+
+        id: globalStyleCard
+
+        readonly property bool cardsEverywhere: (Config.options?.dock?.cardStyle ?? false) && (Config.options?.sidebar?.cardStyle ?? false) && (Config.options?.bar?.cornerStyle === 3)
+        readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
+
+        readonly property string derivedStyle: cardsEverywhere ? "cards" : (auroraEverywhere ? "aurora" : "material")
+        readonly property string currentStyle: (Config.options?.appearance?.globalStyle && Config.options.appearance.globalStyle.length > 0)
+            ? Config.options.appearance.globalStyle
+            : derivedStyle
+
+        function _applyGlobalStyle(styleId) {
+            console.log("[GlobalStyle] apply", styleId)
+            if (styleId === "cards") {
+                Config.setNestedValue("dock.cardStyle", true)
+                Config.setNestedValue("sidebar.cardStyle", true)
+                Config.setNestedValue("bar.cornerStyle", 3)
+                Config.setNestedValue("bar.blurBackground.enabled", false)
+                Config.setNestedValue("bar.showBackground", true)
+                return;
+            }
+
+            if (styleId === "aurora") {
+                Config.setNestedValue("dock.cardStyle", false)
+                Config.setNestedValue("sidebar.cardStyle", false)
+                if ((Config.options?.bar?.cornerStyle ?? 1) === 3) Config.setNestedValue("bar.cornerStyle", 1)
+                Config.setNestedValue("bar.showBackground", false)
+                Config.setNestedValue("bar.blurBackground.enabled", true)
+                return;
+            }
+
+            // material
+            Config.setNestedValue("dock.cardStyle", false)
+            Config.setNestedValue("sidebar.cardStyle", false)
+            if ((Config.options?.bar?.cornerStyle ?? 1) === 3) Config.setNestedValue("bar.cornerStyle", 1)
+            Config.setNestedValue("bar.blurBackground.enabled", false)
+        }
+
+        WSettingsDropdown {
+            label: Translation.tr("Style")
+            icon: "options"
+            description: Translation.tr("Choose between Material, Cards, and Aurora global styling")
+            currentValue: globalStyleCard.currentStyle
+            options: [
+                { value: "material", displayName: Translation.tr("Material") },
+                { value: "cards", displayName: Translation.tr("Cards") },
+                { value: "aurora", displayName: Translation.tr("Aurora") }
+            ]
+            onSelected: newValue => {
+                console.log("[GlobalStyle] selected", newValue)
+                Config.setNestedValue("appearance.globalStyle", newValue)
+                globalStyleCard._applyGlobalStyle(newValue)
             }
         }
     }

@@ -1,12 +1,16 @@
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.models
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import QtQuick
+import QtQuick.Effects
 import Quickshell.Io
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Qt5Compat.GraphicalEffects as GE
 
 Scope { // Scope
     id: root
@@ -96,25 +100,62 @@ Scope { // Scope
             }
             Rectangle {
                 id: sidebarLeftBackground
-                anchors.top: parent.top
                 anchors.left: parent.left
                 anchors.topMargin: Appearance.sizes.hyprlandGapsOut
                 anchors.leftMargin: Appearance.sizes.hyprlandGapsOut
                 width: sidebarRoot.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
                 height: parent.height - Appearance.sizes.hyprlandGapsOut * 2
-                color: Appearance.colors.colLayer0
-                border.width: 1
-                border.color: Appearance.colors.colLayer0Border
-                radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
+                property bool cardStyle: Config.options.sidebar?.cardStyle ?? false
+                readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
+                readonly property string wallpaperUrl: Wallpapers.effectiveWallpaperUrl
 
-                Behavior on width {
-                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                ColorQuantizer {
+                    id: sidebarLeftWallpaperQuantizer
+                    source: sidebarLeftBackground.wallpaperUrl
+                    depth: 0
+                    rescaleSize: 10
                 }
 
-                // Subtle fade when sidebar becomes visible
-                opacity: GlobalStates.sidebarLeftOpen ? 1 : 0
-                Behavior on opacity {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                readonly property color wallpaperDominantColor: (sidebarLeftWallpaperQuantizer?.colors?.[0] ?? Appearance.colors.colPrimary)
+                readonly property QtObject blendedColors: AdaptedMaterialScheme {
+                    color: ColorUtils.mix(sidebarLeftBackground.wallpaperDominantColor, Appearance.colors.colPrimaryContainer, 0.8) || Appearance.m3colors.m3secondaryContainer
+                }
+
+                color: auroraEverywhere ? ColorUtils.applyAlpha((blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), 1) : (cardStyle ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)
+                border.width: 1
+                border.color: Appearance.colors.colLayer0Border
+                radius: cardStyle ? Appearance.rounding.normal : (Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1)
+
+                clip: true
+
+                layer.enabled: auroraEverywhere
+                layer.effect: GE.OpacityMask {
+                    maskSource: Rectangle {
+                        width: sidebarLeftBackground.width
+                        height: sidebarLeftBackground.height
+                        radius: sidebarLeftBackground.radius
+                    }
+                }
+
+                Image {
+                    id: sidebarLeftBlurredWallpaper
+                    anchors.fill: parent
+                    visible: sidebarLeftBackground.auroraEverywhere
+                    source: sidebarLeftBackground.wallpaperUrl
+                    fillMode: Image.PreserveAspectCrop
+                    cache: true
+                    asynchronous: true
+                    antialiasing: true
+
+                    layer.enabled: Appearance.effectsEnabled
+                    layer.effect: StyledBlurEffect {
+                        source: sidebarLeftBlurredWallpaper
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: ColorUtils.transparentize((sidebarLeftBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), Appearance.aurora.overlayTransparentize)
+                    }
                 }
 
                 Keys.onPressed: (event) => {

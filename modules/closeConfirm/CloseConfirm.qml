@@ -27,7 +27,7 @@ Scope {
     // Fallback: get focused window directly from niri when activeWindow is stale
     Process {
         id: focusedWindowProc
-        command: ["niri", "msg", "-j", "focused-window"]
+        command: ["/usr/bin/niri", "msg", "-j", "focused-window"]
         stdout: SplitParser {
             onRead: line => {
                 if (!line?.trim()) return
@@ -74,7 +74,7 @@ Scope {
     function closeWindowFast(win): void {
         if (!win?.id) return
         // Use niri msg directly - more reliable than socket IPC for some apps
-        Quickshell.execDetached(["niri", "msg", "action", "close-window", "--id", String(win.id)])
+        Quickshell.execDetached(["/usr/bin/niri", "msg", "action", "close-window", "--id", String(win.id)])
     }
 
     function confirmClose(): void {

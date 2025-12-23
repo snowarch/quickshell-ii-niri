@@ -6,8 +6,11 @@ import Quickshell.Services.UPower
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.models
 import qs.modules.common.widgets
 import qs.modules.common.functions
+import QtQuick.Effects
+import Qt5Compat.GraphicalEffects as GE
 
 Item { // Bar content region
     id: root
@@ -16,18 +19,35 @@ Item { // Bar content region
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
+    readonly property bool cardStyleEverywhere: (Config.options?.dock?.cardStyle ?? false) && (Config.options?.sidebar?.cardStyle ?? false) && (Config.options?.bar?.cornerStyle === 3)
+    readonly property color separatorColor: Appearance.colors.colOutlineVariant
+    readonly property bool blurBackground: Config.options?.bar?.blurBackground?.enabled ?? false
+
+    readonly property string wallpaperUrl: Wallpapers.effectiveWallpaperUrl
+
+    ColorQuantizer {
+        id: wallpaperColorQuantizer
+        source: root.wallpaperUrl
+        depth: 0 // 2^0 = 1 color
+        rescaleSize: 10
+    }
+
+    readonly property color wallpaperDominantColor: (wallpaperColorQuantizer?.colors?.[0] ?? Appearance.colors.colPrimary)
+    readonly property QtObject blendedColors: AdaptedMaterialScheme {
+        color: ColorUtils.mix(root.wallpaperDominantColor, Appearance.colors.colPrimaryContainer, 0.8) || Appearance.m3colors.m3secondaryContainer
+    }
 
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
         Layout.bottomMargin: Appearance.sizes.baseBarHeight / 3
         Layout.fillHeight: true
         implicitWidth: 1
-        color: Appearance.colors.colOutlineVariant
+        color: root.separatorColor
     }
 
     // Background shadow
     Loader {
-        active: Config.options.bar.showBackground && Config.options.bar.cornerStyle === 1 && Config.options.bar.floatStyleShadow
+        active: Config.options.bar.showBackground && (Config.options.bar.cornerStyle === 1 || Config.options.bar.cornerStyle === 3) && Config.options.bar.floatStyleShadow
         anchors.fill: barBackground
         sourceComponent: StyledRectangularShadow {
             anchors.fill: undefined // The loader's anchors act on this, and this should not have any anchor
@@ -39,12 +59,45 @@ Item { // Bar content region
         id: barBackground
         anchors {
             fill: parent
-            margins: Config.options.bar.cornerStyle === 1 ? (Appearance.sizes.hyprlandGapsOut) : 0 // idk why but +1 is needed
+            margins: (Config.options.bar.cornerStyle === 1 || Config.options.bar.cornerStyle === 3) ? (Appearance.sizes.hyprlandGapsOut) : 0 // idk why but +1 is needed
         }
-        color: Config.options.bar.showBackground ? Appearance.colors.colLayer0 : "transparent"
-        radius: Config.options.bar.cornerStyle === 1 ? Appearance.rounding.windowRounding : 0
-        border.width: Config.options.bar.cornerStyle === 1 ? 1 : 0
+        color: root.blurBackground ? ColorUtils.applyAlpha((root.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), 1)
+            : (!Config.options.bar.showBackground ? "transparent" : (root.cardStyleEverywhere ? Appearance.colors.colLayer1 : (Config.options.bar.cornerStyle === 3 ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)))
+        radius: (Config.options.bar.cornerStyle === 1 || Config.options.bar.cornerStyle === 3) ? (Config.options.bar.cornerStyle === 3 ? Appearance.rounding.normal : Appearance.rounding.windowRounding) : 0
+        border.width: ((Config.options.bar.cornerStyle === 1 || Config.options.bar.cornerStyle === 3) ? 1 : 0)
         border.color: Appearance.colors.colLayer0Border
+
+        clip: true
+
+        layer.enabled: root.blurBackground
+        layer.effect: GE.OpacityMask {
+            maskSource: Rectangle {
+                width: barBackground.width
+                height: barBackground.height
+                radius: barBackground.radius
+            }
+        }
+
+        Image {
+            id: blurredWallpaper
+            anchors.fill: parent
+            visible: root.blurBackground
+            source: root.wallpaperUrl
+            fillMode: Image.PreserveAspectCrop
+            cache: true
+            asynchronous: true
+            antialiasing: true
+
+            layer.enabled: Appearance.effectsEnabled
+            layer.effect: StyledBlurEffect {
+                source: blurredWallpaper
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: ColorUtils.transparentize((root.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), (Config.options?.bar?.blurBackground?.overlayOpacity ?? Appearance.aurora.overlayTransparentize))
+            }
+        }
     }
 
     FocusedScrollMouseArea { // Left side | scroll to change brightness

@@ -60,7 +60,7 @@ ApplicationWindow {
 
         Process {
             running: true
-            command: ["pidof", ...conflictGroup.programs]
+            command: ["/usr/bin/pidof", ...conflictGroup.programs]
             onExited: (exitCode, exitStatus) => {
                 if (exitCode === 0) {
                     conflictGroup.visible = true
@@ -89,7 +89,7 @@ ApplicationWindow {
                     text: Translation.tr("Always")
                 }
                 onClicked: {
-                    Quickshell.execDetached(["killall", ...conflictGroup.programs])
+                    Quickshell.execDetached(["/usr/bin/killall", ...conflictGroup.programs])
                     conflictGroup.alwaysSelected()
                     conflictGroup.visible = false
                 }
@@ -100,7 +100,7 @@ ApplicationWindow {
                     text: Translation.tr("Yes")
                 }
                 onClicked: {
-                    Quickshell.execDetached(["killall", ...conflictGroup.programs])
+                    Quickshell.execDetached(["/usr/bin/killall", ...conflictGroup.programs])
                     conflictGroup.visible = false
                 }
             }
@@ -179,7 +179,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     programs: ["kded6"]
                     description: Translation.tr("Conflicts with the shell's system tray implementation")
-                    onAlwaysSelected: Config.options.conflictKiller.autoKillTrays = true
+                    onAlwaysSelected: Config.setNestedValue("conflictKiller.autoKillTrays", true)
                 }
 
                 ConflictingProgramGroup {
@@ -188,7 +188,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     programs: ["mako", "dunst"]
                     description: Translation.tr("Conflicts with the shell's notification implementation")
-                    onAlwaysSelected: Config.options.conflictKiller.autoKillNotificationDaemons = true
+                    onAlwaysSelected: Config.setNestedValue("conflictKiller.autoKillNotificationDaemons", true)
                 }
                 
             }

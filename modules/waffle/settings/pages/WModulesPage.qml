@@ -50,7 +50,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 if (newValue !== Config.options?.panelFamily) {
-                    Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "panelFamily", "set", newValue])
+                    Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "panelFamily", "set", newValue])
                 }
             }
         }

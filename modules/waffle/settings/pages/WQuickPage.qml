@@ -70,11 +70,11 @@ WSettingsPage {
                     WButton {
                         text: Translation.tr("Change wallpaper")
                         icon.name: "image"
-                        onClicked: {
+                        onButtonClicked: {
                             // Use waffle target if not sharing wallpaper with Material ii
                             const useMain = Config.options?.waffles?.background?.useMainWallpaper ?? true
                             Config.setNestedValue("wallpaperSelector.selectionTarget", useMain ? "main" : "waffle")
-                            Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
+                            Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
                         }
                     }
                     
@@ -191,7 +191,7 @@ WSettingsPage {
                 Layout.fillWidth: true
                 text: Translation.tr("Reload shell")
                 icon.name: "arrow-sync"
-                onClicked: Quickshell.execDetached(["/usr/bin/fish", "-c", "qs kill -c ii; sleep 0.3; qs -c ii &"])
+                onClicked: Quickshell.execDetached(["/usr/bin/fish", "-c", "/usr/bin/qs kill -c ii\n/usr/bin/sleep 0.3\n/usr/bin/qs -c ii &"])
             }
             
             WButton {
@@ -205,7 +205,7 @@ WSettingsPage {
                 Layout.fillWidth: true
                 text: Translation.tr("Shortcuts")
                 icon.name: "keyboard"
-                onClicked: Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "cheatsheet", "toggle"])
+                onClicked: Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "cheatsheet", "toggle"])
             }
         }
         

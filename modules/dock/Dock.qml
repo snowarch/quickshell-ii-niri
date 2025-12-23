@@ -1,11 +1,14 @@
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.models
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects as GE
 import Quickshell.Io
 import Quickshell
 import Quickshell.Widgets
@@ -85,21 +88,70 @@ Scope { // Scope
                         }
                         Rectangle { // The real rectangle that is visible / glass plate
                             id: dockVisualBackground
+                            property bool cardStyle: Config.options.dock.cardStyle
+                            readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
+                            readonly property string wallpaperUrl: Wallpapers.effectiveWallpaperUrl
+
+                            ColorQuantizer {
+                                id: dockWallpaperQuantizer
+                                source: dockVisualBackground.wallpaperUrl
+                                depth: 0
+                                rescaleSize: 10
+                            }
+
+                            readonly property color wallpaperDominantColor: (dockWallpaperQuantizer?.colors?.[0] ?? Appearance.colors.colPrimary)
+                            readonly property QtObject blendedColors: AdaptedMaterialScheme {
+                                color: ColorUtils.mix(dockVisualBackground.wallpaperDominantColor, Appearance.colors.colPrimaryContainer, 0.8) || Appearance.m3colors.m3secondaryContainer
+                            }
+
                             property real margin: Appearance.sizes.elevationMargin
                             anchors.fill: parent
                             anchors.topMargin: Appearance.sizes.elevationMargin
                             anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
                             // Solid vs glassy style depending on setting
-                            visible: Config.options.dock.showBackground || Config.options.dock.enableBlurGlass
-                            color: Config.options.dock.showBackground
-                                ? Appearance.colors.colLayer0
-                                : Qt.rgba(Appearance.colors.colLayer0.r,
-                                          Appearance.colors.colLayer0.g,
-                                          Appearance.colors.colLayer0.b,
-                                          0.22)
-                            border.width: Config.options.dock.showBackground ? 1 : 0
+                            visible: Config.options.dock.showBackground || Config.options.dock.enableBlurGlass || auroraEverywhere
+                            color: auroraEverywhere ? ColorUtils.applyAlpha((blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), 1)
+                                : (Config.options.dock.showBackground
+                                    ? (cardStyle ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)
+                                    : Qt.rgba(Appearance.colors.colLayer0.r,
+                                              Appearance.colors.colLayer0.g,
+                                              Appearance.colors.colLayer0.b,
+                                              0.22))
+                            border.width: (Config.options.dock.showBackground || auroraEverywhere) ? 1 : 0
                             border.color: Appearance.colors.colLayer0Border
-                            radius: Appearance.rounding.large
+                            radius: cardStyle ? Appearance.rounding.normal : Appearance.rounding.large
+
+                            clip: true
+
+                            layer.enabled: auroraEverywhere
+                            layer.effect: GE.OpacityMask {
+                                maskSource: Rectangle {
+                                    width: dockVisualBackground.width
+                                    height: dockVisualBackground.height
+                                    radius: dockVisualBackground.radius
+                                }
+                            }
+
+                            Image {
+                                id: dockBlurredWallpaper
+                                anchors.fill: parent
+                                visible: dockVisualBackground.auroraEverywhere
+                                source: dockVisualBackground.wallpaperUrl
+                                fillMode: Image.PreserveAspectCrop
+                                cache: true
+                                asynchronous: true
+                                antialiasing: true
+
+                                layer.enabled: Appearance.effectsEnabled
+                                layer.effect: StyledBlurEffect {
+                                    source: dockBlurredWallpaper
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: ColorUtils.transparentize((dockVisualBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), Appearance.aurora.overlayTransparentize)
+                                }
+                            }
                         }
 
                         // Local blur for glass effect cuando sólo está activo "glass"

@@ -3,7 +3,7 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import Qt5Compat.GraphicalEffects as GE
 
 Item {
     id: root
@@ -54,7 +54,7 @@ Item {
                     visible: status === Image.Ready
 
                     layer.enabled: true
-                    layer.effect: OpacityMask {
+                    layer.effect: GE.OpacityMask {
                         maskSource: Rectangle {
                             width: albumArt.width
                             height: albumArt.height

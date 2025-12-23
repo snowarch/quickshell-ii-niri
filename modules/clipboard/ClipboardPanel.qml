@@ -6,7 +6,7 @@ import qs.modules.common.widgets
 import qs.modules.overview as OverviewModule
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import Qt5Compat.GraphicalEffects as GE
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
@@ -14,6 +14,8 @@ import Quickshell.Io
 
 Scope {
     id: root
+
+    readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
 
     property int panelWidth: 600
     property int panelMaxHeight: 700
@@ -162,53 +164,59 @@ Scope {
             right: true
         }
 
-        Keys.onPressed: function (event) {
-            if (!GlobalStates.clipboardOpen)
-                return
+        Item {
+            id: keyHandler
+            anchors.fill: parent
+            focus: GlobalStates.clipboardOpen
 
-            // Helper to get current entry from filtered model
-            function currentEntry() {
-                const idx = listView.currentIndex
-                if (idx < 0 || idx >= filteredClipboardModel.count)
-                    return null
-                return filteredClipboardModel.get(idx).rawEntry
-            }
+            Keys.onPressed: function (event) {
+                if (!GlobalStates.clipboardOpen)
+                    return
 
-            if (event.key === Qt.Key_Escape) {
-                GlobalStates.clipboardOpen = false
-                event.accepted = true
-            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                // Paste current entry and close
-                listView.activateCurrent()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
-                listView.moveNext()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
-                listView.movePrevious()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Delete && (event.modifiers & Qt.ShiftModifier)) {
-                // Clear all history (Shift+Del)
-                root.clearAll()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Delete && event.modifiers === Qt.NoModifier) {
-                // Delete current entry
-                const entry = currentEntry()
-                if (entry !== null) {
-                    root.deleteEntry(entry)
+                // Helper to get current entry from filtered model
+                function currentEntry() {
+                    const idx = listView.currentIndex
+                    if (idx < 0 || idx >= filteredClipboardModel.count)
+                        return null
+                    return filteredClipboardModel.get(idx).rawEntry
+                }
+
+                if (event.key === Qt.Key_Escape) {
+                    GlobalStates.clipboardOpen = false
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    // Paste current entry and close
+                    listView.activateCurrent()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
+                    listView.moveNext()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
+                    listView.movePrevious()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Delete && (event.modifiers & Qt.ShiftModifier)) {
+                    // Clear all history (Shift+Del)
+                    root.clearAll()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Delete && event.modifiers === Qt.NoModifier) {
+                    // Delete current entry
+                    const entry = currentEntry()
+                    if (entry !== null) {
+                        root.deleteEntry(entry)
+                        event.accepted = true
+                    }
+                } else if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) {
+                    // Copy current entry to clipboard
+                    const entry = currentEntry()
+                    if (entry !== null) {
+                        root.copyEntry(entry)
+                        event.accepted = true
+                    }
+                } else if (event.key === Qt.Key_F10) {
+                    // Toggle keyboard hints
+                    root.showKeyboardHints = !root.showKeyboardHints
                     event.accepted = true
                 }
-            } else if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) {
-                // Copy current entry to clipboard
-                const entry = currentEntry()
-                if (entry !== null) {
-                    root.copyEntry(entry)
-                    event.accepted = true
-                }
-            } else if (event.key === Qt.Key_F10) {
-                // Toggle keyboard hints
-                root.showKeyboardHints = !root.showKeyboardHints
-                event.accepted = true
             }
         }
 
@@ -238,7 +246,7 @@ Scope {
             anchors.centerIn: parent
             width: panelWidth
             height: Math.min(contentColumn.implicitHeight, panelMaxHeight)
-            color: Appearance.colors.colLayer1
+            color: root.auroraEverywhere ? ColorUtils.transparentize(Appearance.colors.colLayer1, Appearance.aurora.popupSurfaceTransparentize) : Appearance.colors.colLayer1
             border.width: 1
             border.color: Appearance.colors.colOutlineVariant
             radius: Appearance.rounding.screenRounding

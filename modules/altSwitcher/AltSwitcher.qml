@@ -17,16 +17,32 @@ Scope {
     property int panelWidth: 380
     property string searchText: ""
     // Animation and visibility control
-    property bool animationsEnabled: Config.options.altSwitcher ? (Config.options.altSwitcher.enableAnimation !== false) : true
+    readonly property var altSwitcherOptions: Config.options?.altSwitcher ?? {}
+    readonly property string altPreset: altSwitcherOptions.preset ?? "default"
+    readonly property bool altMonochromeIcons: altSwitcherOptions.monochromeIcons ?? false
+    readonly property bool altEnableAnimation: altSwitcherOptions.enableAnimation ?? true
+    readonly property int altAnimationDurationMs: altSwitcherOptions.animationDurationMs ?? 200
+    readonly property bool altUseMostRecentFirst: altSwitcherOptions.useMostRecentFirst ?? true
+    readonly property bool altEnableBlurGlass: altSwitcherOptions.enableBlurGlass ?? true
+    readonly property real altBackgroundOpacity: altSwitcherOptions.backgroundOpacity ?? 0.9
+    readonly property real altBlurAmount: altSwitcherOptions.blurAmount ?? 0.4
+    readonly property int altScrimDim: altSwitcherOptions.scrimDim ?? 35
+    readonly property string altPanelAlignment: altSwitcherOptions.panelAlignment ?? "right"
+    readonly property bool altUseM3Layout: altSwitcherOptions.useM3Layout ?? false
+    readonly property bool altCompactStyle: altSwitcherOptions.compactStyle ?? false
+    readonly property bool altShowOverviewWhileSwitching: altSwitcherOptions.showOverviewWhileSwitching ?? false
+    readonly property int altAutoHideDelayMs: altSwitcherOptions.autoHideDelayMs ?? 500
+
+    property bool animationsEnabled: root.altEnableAnimation
     property bool panelVisible: false
     property real panelRightMargin: -panelWidth
     // Snapshot actual de ventanas ordenadas que se usa mientras el panel está abierto
     property var itemSnapshot: []
-    property bool useM3Layout: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
-    property bool centerPanel: Config.options.altSwitcher && Config.options.altSwitcher.panelAlignment === "center"
-    property bool compactStyle: Config.options.altSwitcher && Config.options.altSwitcher.compactStyle
-    property bool listStyle: Config.options?.altSwitcher?.preset === "list"
-    property bool showOverviewWhileSwitching: Config.options.altSwitcher && Config.options.altSwitcher.showOverviewWhileSwitching
+    property bool useM3Layout: root.altUseM3Layout
+    property bool centerPanel: root.altPanelAlignment === "center"
+    property bool compactStyle: root.altCompactStyle
+    property bool listStyle: root.altPreset === "list"
+    property bool showOverviewWhileSwitching: root.altShowOverviewWhileSwitching
     property bool overviewOpenedByAltSwitcher: false
 
 
@@ -106,8 +122,7 @@ Scope {
             return a.id - b.id
         })
 
-        const cfg = Config.options.altSwitcher
-        const useMostRecentFirst = cfg && cfg.useMostRecentFirst !== false
+        const useMostRecentFirst = root.altUseMostRecentFirst
 
         if (useMostRecentFirst && mruIds && mruIds.length > 0) {
             const ordered = []
@@ -149,8 +164,7 @@ Scope {
     function maybeOpenOverview() {
         if (!CompositorService.isNiri)
             return
-        const cfg = Config.options.altSwitcher
-        if (!cfg || !cfg.showOverviewWhileSwitching)
+        if (!root.altShowOverviewWhileSwitching)
             return
         if (!NiriService.inOverview) {
             overviewOpenedByAltSwitcher = true
@@ -163,8 +177,7 @@ Scope {
     function maybeCloseOverview() {
         if (!CompositorService.isNiri)
             return
-        const cfg = Config.options.altSwitcher
-        if (!cfg || !cfg.showOverviewWhileSwitching)
+        if (!root.altShowOverviewWhileSwitching)
             return
         if (overviewOpenedByAltSwitcher && NiriService.inOverview) {
             NiriService.toggleOverview()
@@ -198,9 +211,7 @@ Scope {
                 anchors.fill: parent
                 z: -1
                 color: {
-                    const cfg = Config.options.altSwitcher
-                    const v = (cfg && cfg.scrimDim !== undefined) ? cfg.scrimDim : 35
-                    const clamped = Math.max(0, Math.min(100, v))
+                    const clamped = Math.max(0, Math.min(100, root.altScrimDim))
                     const a = clamped / 100
                     return Qt.rgba(0, 0, 0, a)
                 }
@@ -243,21 +254,27 @@ Scope {
             }
         }
 
-        Keys.onPressed: function (event) {
-            if (!GlobalStates.altSwitcherOpen)
-                return
-            if (event.key === Qt.Key_Escape) {
-                GlobalStates.altSwitcherOpen = false
-                event.accepted = true
-            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                root.activateCurrent()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
-                root.nextItem()
-                event.accepted = true
-            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
-                root.previousItem()
-                event.accepted = true
+        Item {
+            id: keyHandler
+            anchors.fill: parent
+            focus: GlobalStates.altSwitcherOpen
+
+            Keys.onPressed: function (event) {
+                if (!GlobalStates.altSwitcherOpen)
+                    return
+                if (event.key === Qt.Key_Escape) {
+                    GlobalStates.altSwitcherOpen = false
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    root.activateCurrent()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
+                    root.nextItem()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
+                    root.previousItem()
+                    event.accepted = true
+                }
             }
         }
 
@@ -311,14 +328,12 @@ Scope {
                 anchors.fill: parent
                 radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
                 color: {
-                    const cfg = Config.options.altSwitcher
-                    if (cfg && cfg.useM3Layout)
+                    if (root.altUseM3Layout)
                         return Appearance.colors.colLayer0
                     const base = ColorUtils.mix(Appearance.colors.colLayer0, Qt.rgba(0, 0, 0, 1), 0.35)
-                    const opacity = cfg && cfg.backgroundOpacity !== undefined ? cfg.backgroundOpacity : 0.9
-                    return ColorUtils.applyAlpha(base, opacity)
+                    return ColorUtils.applyAlpha(base, root.altBackgroundOpacity)
                 }
-                border.width: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout ? 1 : 0
+                border.width: root.altUseM3Layout ? 1 : 0
                 border.color: Appearance.colors.colLayer0Border
             }
 
@@ -339,9 +354,9 @@ Scope {
                 z: 0.5
                 anchors.fill: panelBackground
                 source: panelBackground
-                visible: !root.compactStyle && Config.options.altSwitcher && !Config.options.altSwitcher.useM3Layout && Appearance.effectsEnabled && Config.options.altSwitcher.blurAmount !== undefined && Config.options.altSwitcher.blurAmount > 0
+                visible: !root.compactStyle && !root.altUseM3Layout && Appearance.effectsEnabled && root.altEnableBlurGlass && root.altBlurAmount > 0
                 blurEnabled: true
-                blur: Config.options.altSwitcher && Config.options.altSwitcher.blurAmount !== undefined ? Config.options.altSwitcher.blurAmount : 0.4
+                blur: root.altBlurAmount
                 blurMax: 64
                 saturation: 1.0
             }
@@ -398,7 +413,7 @@ Scope {
                             }
                             
                             Loader {
-                                active: Config.options.altSwitcher && Config.options.altSwitcher.monochromeIcons
+                                active: root.altMonochromeIcons
                                 anchors.fill: compactIcon
                                 sourceComponent: Item {
                                     Desaturate {
@@ -659,7 +674,7 @@ Scope {
                             anchors.fill: parent
                             radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut
                             visible: selected
-                            color: Config.options.altSwitcher && Config.options.altSwitcher.useM3Layout
+                            color: root.altUseM3Layout
                                    ? Appearance.m3colors.m3primaryContainer
                                    : Appearance.colors.colLayer1
                         }
@@ -705,8 +720,7 @@ Scope {
                                     text: modelData.appName || modelData.title || "Window"
                                     color: {
                                         const selected = row.selected
-                                        const cfg = Config.options.altSwitcher
-                                        const useM3 = cfg && cfg.useM3Layout
+                                        const useM3 = root.altUseM3Layout
                                         if (useM3 && selected)
                                             return Appearance.m3colors.m3onPrimaryContainer
                                         if (useM3)
@@ -735,8 +749,7 @@ Scope {
                                         }
                                         color: {
                                             const selected = row.selected
-                                            const cfg = Config.options.altSwitcher
-                                            const useM3 = cfg && cfg.useM3Layout
+                                            const useM3 = root.altUseM3Layout
                                             if (useM3 && selected)
                                                 return Appearance.m3colors.m3onPrimaryContainer
                                             if (useM3)
@@ -767,7 +780,7 @@ Scope {
 
                                 // Optional monochrome tint, same pattern as dock/workspaces
                                 Loader {
-                                    active: Config.options.altSwitcher && Config.options.altSwitcher.monochromeIcons
+                                    active: root.altMonochromeIcons
                                     anchors.fill: altSwitcherIcon
                                     sourceComponent: Item {
                                         Desaturate {
@@ -807,9 +820,7 @@ Scope {
 
         Timer {
             id: autoHideTimer
-            interval: Config.options.altSwitcher && Config.options.altSwitcher.autoHideDelayMs !== undefined
-                      ? Config.options.altSwitcher.autoHideDelayMs
-                      : 500
+            interval: root.altAutoHideDelayMs
             repeat: false
             onTriggered: GlobalStates.altSwitcherOpen = false
         }
@@ -887,10 +898,7 @@ Scope {
     }
 
     function currentAnimDuration() {
-        const cfg = Config.options.altSwitcher
-        if (cfg && cfg.animationDurationMs !== undefined)
-            return cfg.animationDurationMs
-        return 200
+        return root.altAnimationDurationMs
     }
 
     function showPanel() {

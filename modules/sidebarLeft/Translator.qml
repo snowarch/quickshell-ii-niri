@@ -62,10 +62,17 @@ Item {
 
     Process {
         id: translateProc
-        command: ["bash", "-c", `trans -no-theme -no-bidi`
-            + ` -source '${StringUtils.shellSingleQuoteEscape(root.sourceLanguage)}'`
-            + ` -target '${StringUtils.shellSingleQuoteEscape(root.targetLanguage)}'`
-            + ` -no-ansi '${StringUtils.shellSingleQuoteEscape(root.inputField.text.trim())}'`]
+        command: [
+            "/usr/bin/trans",
+            "-no-theme",
+            "-no-bidi",
+            "-source",
+            root.sourceLanguage,
+            "-target",
+            root.targetLanguage,
+            "-no-ansi",
+            root.inputField.text.trim()
+        ]
         stdout: StdioCollector {
             id: translateCollector
             onStreamFinished: {
@@ -80,7 +87,7 @@ Item {
 
     Process {
         id: getLanguagesProc
-        command: ["trans", "-list-languages", "-no-bidi"]
+        command: ["/usr/bin/trans", "-list-languages", "-no-bidi"]
         stdout: StdioCollector {
             id: langsCollector
             onStreamFinished: {
