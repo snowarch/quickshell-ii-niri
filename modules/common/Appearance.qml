@@ -11,6 +11,7 @@ Singleton {
     property QtObject m3colors
     property QtObject animation
     property QtObject animationCurves
+    property QtObject aurora
     property QtObject colors
     property QtObject rounding
     property QtObject font
@@ -385,12 +386,27 @@ Singleton {
         }
     }
 
+    aurora: QtObject {
+        property real overlayTransparentize: {
+            const t = root.contentTransparency
+            return Math.max(0.25, Math.min(0.55, 0.30 + t * 0.30))
+        }
+        property real subSurfaceTransparentize: {
+            const t = root.contentTransparency
+            return Math.max(0.35, Math.min(0.70, 0.50 + t * 0.35))
+        }
+        property real popupSurfaceTransparentize: {
+            const t = root.contentTransparency
+            return Math.max(0.30, Math.min(0.65, 0.45 + t * 0.30))
+        }
+    }
+
     sizes: QtObject {
         property real spacingSmall: 8
         property real spacingMedium: 12
         property real spacingLarge: 16
         property real baseBarHeight: 40
-        property real barHeight: Config.options.bar.cornerStyle === 1 ? 
+        property real barHeight: (((Config.options?.bar?.cornerStyle ?? 0) === 1) || ((Config.options?.bar?.cornerStyle ?? 0) === 3)) ? 
             (baseBarHeight + root.sizes.hyprlandGapsOut * 2) : baseBarHeight
         property real barCenterSideModuleWidth: Config.options?.bar.verbose ? 360 : 140
         property real barCenterSideModuleWidthShortened: 280
@@ -410,7 +426,7 @@ Singleton {
         property real sidebarWidth: 460
         property real sidebarWidthExtended: 750
         property real baseVerticalBarWidth: 46
-        property real verticalBarWidth: Config.options.bar.cornerStyle === 1 ? 
+        property real verticalBarWidth: (((Config.options?.bar?.cornerStyle ?? 0) === 1) || ((Config.options?.bar?.cornerStyle ?? 0) === 3)) ? 
             (baseVerticalBarWidth + root.sizes.hyprlandGapsOut * 2) : baseVerticalBarWidth
         property real wallpaperSelectorWidth: 1200
         property real wallpaperSelectorHeight: 690

@@ -17,8 +17,8 @@ Process {
     }
 
     running: true
-    command: ["bash", "-c", 
-        `mkdir -p $(dirname '${processFilePath(filePath)}'); [ -f '${processFilePath(filePath)}' ] || curl -sSL '${sourceUrl}' -o '${processFilePath(filePath)}' && magick identify -format '%w %h' '${processFilePath(filePath)}'[0]`
+    command: ["/usr/bin/bash", "-c", 
+        `/usr/bin/mkdir -p $(/usr/bin/dirname '${processFilePath(filePath)}'); [ -f '${processFilePath(filePath)}' ] || /usr/bin/curl -sSL '${sourceUrl}' -o '${processFilePath(filePath)}' && /usr/bin/magick identify -format '%w %h' '${processFilePath(filePath)}'[0]`
     ]
     stdout: StdioCollector {
         id: imageSizeOutputCollector

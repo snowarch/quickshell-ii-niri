@@ -89,7 +89,7 @@ Item {
 
     Timer {
         id: updateWorkspaceOccupiedTimer
-        interval: 16
+        interval: 50
         repeat: false
         onTriggered: doUpdateWorkspaceOccupied()
     }
@@ -103,13 +103,19 @@ Item {
             const wsList = NiriService.currentOutputWorkspaces || []
             const windows = NiriService.windows || []
             const base = workspaceGroup * root.workspacesShown
+
+            // Build set of workspace IDs that currently contain windows (O(n))
+            const occupiedWorkspaceIds = new Set()
+            for (let i = 0; i < windows.length; i++) {
+                const wsId = windows[i]?.workspace_id
+                if (wsId !== undefined && wsId !== null) occupiedWorkspaceIds.add(wsId)
+            }
+
             workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {
                 const targetNumber = base + i + 1
-                // Find workspace with this idx
                 const ws = wsList.find(w => w.idx === targetNumber)
                 if (!ws) return false
-                // Check if any windows are on this workspace
-                return windows.some(win => win.workspace_id === ws.id)
+                return occupiedWorkspaceIds.has(ws.id)
             })
         } else {
             workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {

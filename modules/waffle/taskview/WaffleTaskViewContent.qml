@@ -121,7 +121,7 @@ Item {
     }
 
     function moveWindowToWorkspace(windowId: int, targetIdx: int): void {
-        Quickshell.execDetached(["niri", "msg", "action", "move-window-to-workspace",
+        Quickshell.execDetached(["/usr/bin/niri", "msg", "action", "move-window-to-workspace",
             "--window-id", windowId.toString(),
             "--focus", "false",
             targetIdx.toString()])
@@ -131,7 +131,7 @@ Item {
         // Move window to a new workspace at the end
         const lastWs = cachedWorkspaces[cachedWorkspaces.length - 1]
         const newWsIdx = lastWs ? lastWs.idx + 1 : 1
-        Quickshell.execDetached(["niri", "msg", "action", "move-window-to-workspace",
+        Quickshell.execDetached(["/usr/bin/niri", "msg", "action", "move-window-to-workspace",
             "--window-id", windowId.toString(),
             "--focus", "false",
             newWsIdx.toString()])
@@ -163,9 +163,9 @@ Item {
     }
     
     function executeNiriAction(action: string, windowId: int): void {
-        Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", windowId.toString()])
+        Quickshell.execDetached(["/usr/bin/niri", "msg", "action", "focus-window", "--id", windowId.toString()])
         Qt.callLater(() => {
-            Quickshell.execDetached(["niri", "msg", "action", action])
+            Quickshell.execDetached(["/usr/bin/niri", "msg", "action", action])
             refreshTimer.start()
         })
     }

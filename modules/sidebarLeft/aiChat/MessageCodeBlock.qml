@@ -90,10 +90,10 @@ ColumnLayout {
 
                     onClicked: {
                         const downloadPath = FileUtils.trimFileProtocol(Directories.downloads)
-                        Quickshell.execDetached(["bash", "-c", 
+                        Quickshell.execDetached(["/usr/bin/bash", "-c", 
                             `echo '${StringUtils.shellSingleQuoteEscape(segmentContent)}' > '${downloadPath}/code.${segmentLang || "txt"}'`
                         ])
-                        Quickshell.execDetached(["notify-send", 
+                        Quickshell.execDetached(["/usr/bin/notify-send", 
                             Translation.tr("Code saved to file"), 
                             Translation.tr("Saved to %1").arg(`${downloadPath}/code.${segmentLang || "txt"}`),
                             "-a", "Shell"

@@ -48,30 +48,42 @@ Variants {
         property int firstWorkspaceId: relevantWindows[0]?.workspace.id || 1
         property int lastWorkspaceId: relevantWindows[relevantWindows.length - 1]?.workspace.id || 10
         readonly property string screenName: screen?.name ?? ""
+        readonly property var backgroundOptions: Config.options?.background ?? {}
+        readonly property var parallaxOptions: backgroundOptions.parallax ?? {}
+        readonly property var effectsOptions: backgroundOptions.effects ?? {}
+        readonly property var workSafetyOptions: Config.options?.workSafety ?? {}
+        readonly property var workSafetyEnableOptions: workSafetyOptions.enable ?? {}
+        readonly property var workSafetyTriggerOptions: workSafetyOptions.triggerCondition ?? {}
+        readonly property var lockBlurOptions: Config.options?.lock?.blur ?? {}
+        readonly property var backgroundWidgetsOptions: backgroundOptions.widgets ?? {}
         
         // Wallpaper
-        property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4") || Config.options.background.wallpaperPath.endsWith(".webm") || Config.options.background.wallpaperPath.endsWith(".mkv") || Config.options.background.wallpaperPath.endsWith(".avi") || Config.options.background.wallpaperPath.endsWith(".mov")
-        property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath : Config.options.background.wallpaperPath
+        readonly property string wallpaperPathRaw: bgRoot.backgroundOptions.wallpaperPath ?? ""
+        readonly property string wallpaperThumbnailPath: bgRoot.backgroundOptions.thumbnailPath ?? bgRoot.wallpaperPathRaw
+        property bool wallpaperIsVideo: wallpaperPathRaw.endsWith(".mp4") || wallpaperPathRaw.endsWith(".webm") || wallpaperPathRaw.endsWith(".mkv") || wallpaperPathRaw.endsWith(".avi") || wallpaperPathRaw.endsWith(".mov")
+        property string wallpaperPath: wallpaperIsVideo ? bgRoot.wallpaperThumbnailPath : bgRoot.wallpaperPathRaw
         property bool wallpaperSafetyTriggered: {
-            const enabled = Config.options.workSafety.enable.wallpaper;
-            const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), Config.options.workSafety.triggerCondition.fileKeywords));
-            const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords));
+            const enabled = bgRoot.workSafetyEnableOptions.wallpaper ?? false;
+            const fileKeywords = bgRoot.workSafetyTriggerOptions.fileKeywords ?? [];
+            const networkKeywords = bgRoot.workSafetyTriggerOptions.networkNameKeywords ?? [];
+            const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), fileKeywords));
+            const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), networkKeywords));
             return enabled && sensitiveWallpaper && sensitiveNetwork;
         }
         property real wallpaperToScreenRatio: Math.min(wallpaperWidth / screen.width, wallpaperHeight / screen.height)
-        property real preferredWallpaperScale: Config.options.background.parallax.workspaceZoom
+        property real preferredWallpaperScale: bgRoot.parallaxOptions.workspaceZoom ?? 1
         property real effectiveWallpaperScale: 1
         property int wallpaperWidth: modelData.width
         property int wallpaperHeight: modelData.height
         property real movableXSpace: ((wallpaperWidth / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.width) / 2
         property real movableYSpace: ((wallpaperHeight / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.height) / 2
-        readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
+        readonly property bool verticalParallax: ((bgRoot.parallaxOptions.autoVertical ?? false) && wallpaperHeight > wallpaperWidth) || (bgRoot.parallaxOptions.vertical ?? false)
         
         // Backdrop mode
-        readonly property bool backdropActive: Config.options.background?.backdrop?.hideWallpaper ?? false
+        readonly property bool backdropActive: bgRoot.backgroundOptions.backdrop?.hideWallpaper ?? false
         
         // Colors
-        property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
+        property bool shouldBlur: (GlobalStates.screenLocked && (bgRoot.lockBlurOptions.enable ?? false))
         property color dominantColor: Appearance.colors.colPrimary
         property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
         property color colText: {
@@ -109,7 +121,7 @@ Variants {
         }
 
         property real blurProgress: {
-            const effects = Config.options.background?.effects;
+            const effects = bgRoot.effectsOptions;
             if (!(effects?.enableBlur && (effects?.blurRadius ?? 0) > 0)) return 0;
             const base = Math.max(0, Math.min(100, Number(effects?.blurStatic ?? 0)));
             const total = (base + (100 - base) * focusPresenceProgress) / 100;
@@ -152,7 +164,7 @@ Variants {
         Process {
             id: getWallpaperSizeProc
             property string path: bgRoot.wallpaperPath
-            command: ["magick", "identify", "-format", "%w %h", path]
+            command: ["/usr/bin/magick", "identify", "-format", "%w %h", path]
             stdout: StdioCollector {
                 id: wallpaperSizeOutputCollector
                 onStreamFinished: {
@@ -187,18 +199,18 @@ Variants {
                 property int range: upper - lower
                 property real valueX: {
                     let result = 0.5;
-                    if (Config.options.background.parallax.enableWorkspace && !bgRoot.verticalParallax) {
+                    if ((bgRoot.parallaxOptions.enableWorkspace ?? false) && !bgRoot.verticalParallax) {
                         const wsId = CompositorService.isNiri ? (NiriService.focusedWorkspaceIndex ?? 1) : (bgRoot.monitor?.activeWorkspace?.id ?? 1);
                         result = ((wsId - lower) / range);
                     }
-                    if (Config.options.background.parallax.enableSidebar) {
+                    if (bgRoot.parallaxOptions.enableSidebar ?? false) {
                         result += (0.15 * GlobalStates.sidebarRightOpen - 0.15 * GlobalStates.sidebarLeftOpen);
                     }
                     return result;
                 }
                 property real valueY: {
                     let result = 0.5;
-                    if (Config.options.background.parallax.enableWorkspace && bgRoot.verticalParallax) {
+                    if ((bgRoot.parallaxOptions.enableWorkspace ?? false) && bgRoot.verticalParallax) {
                         const wsId = CompositorService.isNiri ? (NiriService.focusedWorkspaceIndex ?? 1) : (bgRoot.monitor?.activeWorkspace?.id ?? 1);
                         result = ((wsId - lower) / range);
                     }
@@ -226,22 +238,22 @@ Variants {
                 z: 1
                 active: Appearance.effectsEnabled
                         && (bgRoot.blurProgress > 0)
-                        && (Config.options.background?.effects?.enableBlur ?? false)
+                        && (bgRoot.effectsOptions.enableBlur ?? false)
                         && !Config.options?.performance?.lowPower
-                        && (Config.options.background?.effects?.blurRadius ?? 0) > 0
+                        && (bgRoot.effectsOptions.blurRadius ?? 0) > 0
                         && !blurLoader.active
                         && !bgRoot.backdropActive
                 anchors.fill: wallpaper
                 sourceComponent: Item {
                     anchors.fill: parent
                     opacity: bgRoot.wallpaperIsVideo
-                              ? bgRoot.blurProgress * Math.max(0, Math.min(1, Config.options.background?.effects?.videoBlurStrength ?? 50) / 100)
+                              ? bgRoot.blurProgress * Math.max(0, Math.min(1, bgRoot.effectsOptions.videoBlurStrength ?? 50) / 100)
                               : bgRoot.blurProgress
 
                     GaussianBlur {
                         anchors.fill: parent
                         source: wallpaper
-                        radius: Config.options.background?.effects?.blurRadius ?? 32
+                        radius: bgRoot.effectsOptions.blurRadius ?? 32
                         samples: radius * 2 + 1
                     }
                 }
@@ -250,9 +262,9 @@ Variants {
             Loader {
                 id: blurLoader
                 z: 2
-                active: Config.options.lock.blur.enable && (GlobalStates.screenLocked || scaleAnim.running)
+                active: (bgRoot.lockBlurOptions.enable ?? false) && (GlobalStates.screenLocked || scaleAnim.running)
                 anchors.fill: wallpaper
-                scale: GlobalStates.screenLocked ? Config.options.lock.blur.extraZoom : 1
+                scale: GlobalStates.screenLocked ? (bgRoot.lockBlurOptions.extraZoom ?? 1) : 1
                 Behavior on scale {
                     NumberAnimation {
                         id: scaleAnim
@@ -263,7 +275,7 @@ Variants {
                 }
                 sourceComponent: GaussianBlur {
                     source: wallpaper
-                    radius: GlobalStates.screenLocked ? Config.options.lock.blur.radius : 0
+                    radius: GlobalStates.screenLocked ? (bgRoot.lockBlurOptions.radius ?? 0) : 0
                     samples: radius * 2 + 1
                     Rectangle {
                         opacity: GlobalStates.screenLocked ? 1 : 0
@@ -280,7 +292,7 @@ Variants {
                 visible: !bgRoot.backdropActive
                 z: 10
                 color: {
-                    const effects = Config.options.background?.effects;
+                    const effects = bgRoot.effectsOptions;
                     const baseSafe = Math.max(0, Math.min(100, Number(effects?.dim) || 0));
                     const dynSafe = Number(effects?.dynamicDim) || 0;
                     const extra = (!GlobalStates.screenLocked && bgRoot.focusPresenceProgress > 0) ? dynSafe * bgRoot.focusPresenceProgress : 0;
@@ -298,7 +310,7 @@ Variants {
                     right: bgRoot.backdropActive ? parent.right : wallpaper.right
                     top: bgRoot.backdropActive ? parent.top : wallpaper.top
                     bottom: bgRoot.backdropActive ? parent.bottom : wallpaper.bottom
-                    readonly property real parallaxFactor: Config.options.background.parallax.widgetsFactor
+                    readonly property real parallaxFactor: bgRoot.parallaxOptions.widgetsFactor ?? 1
                     leftMargin: bgRoot.backdropActive ? 0 : bgRoot.movableXSpace - (wallpaper.effectiveValueX * 2 * bgRoot.movableXSpace) * (parallaxFactor - 1)
                     topMargin: bgRoot.backdropActive ? 0 : bgRoot.movableYSpace - (wallpaper.effectiveValueY * 2 * bgRoot.movableYSpace) * (parallaxFactor - 1)
                     Behavior on leftMargin { animation: Appearance.animation.elementMove.numberAnimation.createObject(this) }
@@ -318,7 +330,7 @@ Variants {
                 }
 
                 FadeLoader {
-                    shown: Config.options.background.widgets.weather.enable
+                    shown: bgRoot.backgroundWidgetsOptions.weather?.enable ?? true
                     sourceComponent: WeatherWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height
@@ -329,7 +341,7 @@ Variants {
                 }
 
                 FadeLoader {
-                    shown: Config.options.background.widgets.clock.enable
+                    shown: bgRoot.backgroundWidgetsOptions.clock?.enable ?? true
                     sourceComponent: ClockWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height
@@ -341,7 +353,7 @@ Variants {
                 }
 
                 FadeLoader {
-                    shown: Config.options.background.widgets.mediaControls.enable
+                    shown: bgRoot.backgroundWidgetsOptions.mediaControls?.enable ?? true
                     sourceComponent: MediaControlsWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height

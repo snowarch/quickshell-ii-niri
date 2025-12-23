@@ -72,7 +72,7 @@ StyledOverlayWidget {
                     name: Translation.tr("Screenshot region")
                     onClicked: {
                         GlobalStates.overlayOpen = false;
-                        Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "region", "screenshot"]);
+                        Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "region", "screenshot"]);
                     }
                 }
 
@@ -81,7 +81,7 @@ StyledOverlayWidget {
                     name: Translation.tr("Screenshot")
                     onClicked: {
                         GlobalStates.overlayOpen = false;
-                        Quickshell.execDetached(["bash", "-c", "grim - | wl-copy"]);
+                        Quickshell.execDetached(["/usr/bin/bash", "-c", "/usr/bin/grim - | /usr/bin/wl-copy"]);
                     }
                 }
 
@@ -95,7 +95,7 @@ StyledOverlayWidget {
                             Quickshell.execDetached([Directories.recordScriptPath]);
                         } else {
                             GlobalStates.overlayOpen = false;
-                            Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "region", "recordWithSound"]);
+                            Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "region", "recordWithSound"]);
                         }
                     }
                     property bool isFullscreenRecording: false
@@ -178,7 +178,7 @@ StyledOverlayWidget {
         currentFolder: `file://${root.effectiveSavePath}`
         onAccepted: {
             const path = FileUtils.trimFileProtocol(selectedFolder.toString());
-            Config.options.screenRecord.savePath = path;
+            Config.setNestedValue("screenRecord.savePath", path);
         }
     }
 

@@ -17,7 +17,7 @@ MouseArea {
 
     onPressed: {
         Weather.getData();
-        Quickshell.execDetached(["notify-send", 
+        Quickshell.execDetached(["/usr/bin/notify-send", 
             Translation.tr("Weather"), 
             Translation.tr("Refreshing (manually triggered)")
             , "-a", "Shell"

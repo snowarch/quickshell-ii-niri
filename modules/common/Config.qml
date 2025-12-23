@@ -12,6 +12,11 @@ Singleton {
     property int readWriteDelay: 50 // milliseconds
     property bool blockWrites: false
 
+    function flushWrites(): void {
+        fileWriteTimer.stop();
+        configFileView.writeAdapter();
+    }
+
     function setNestedValue(nestedKey, value) {
         let keys = [];
         if (Array.isArray(nestedKey)) {
@@ -128,6 +133,7 @@ Singleton {
 
             property JsonObject appearance: JsonObject {
                 property string theme: "auto" // Theme preset ID: "auto" for wallpaper-based, or preset name like "gruvbox-dark", "catppuccin-mocha", "custom", etc.
+                property string globalStyle: "material" // "material" | "cards" | "aurora"
                 property bool extraBackgroundTint: true
                 property JsonObject customTheme: JsonObject {
                     property bool darkmode: true
@@ -218,10 +224,16 @@ Singleton {
                         property int grad: 175
                     }
                 }
+                property string iconTheme: "" // System icon theme, persists across restarts
             }
 
             property JsonObject performance: JsonObject {
                 property bool lowPower: false
+            }
+
+            property JsonObject powerProfiles: JsonObject {
+                property bool restoreOnStart: true
+                property string preferredProfile: "" // "power-saver" | "balanced" | "performance"
             }
 
             property JsonObject idle: JsonObject {
@@ -386,8 +398,17 @@ Singleton {
                 property bool borderless: false // true for no grouping of items
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
                 property bool showBackground: true
+                property JsonObject blurBackground: JsonObject {
+                    property bool enabled: false
+                    property real overlayOpacity: 0.3
+                }
                 property bool verbose: true
                 property bool vertical: false
+                property JsonObject vignette: JsonObject {
+                    property bool enabled: false
+                    property real intensity: 0.6
+                    property real radius: 0.5
+                }
                 property JsonObject modules: JsonObject {
                     property bool leftSidebarButton: true
                     property bool activeWindow: true
@@ -496,6 +517,7 @@ Singleton {
             }
 
             property JsonObject dock: JsonObject {
+                property bool cardStyle: false
                 property bool enable: false
                 property bool monochromeIcons: true
                 property real height: 60
@@ -717,6 +739,7 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property bool cardStyle: false
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property bool enable: true

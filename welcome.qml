@@ -24,7 +24,7 @@ ApplicationWindow {
     visible: true
     onClosing: {
         Quickshell.execDetached([
-            "notify-send",
+            "/usr/bin/notify-send",
             Translation.tr("Welcome app"),
             Translation.tr("Press Super+/ for all keyboard shortcuts."),
             "-a", "Shell"
@@ -47,7 +47,7 @@ ApplicationWindow {
     Process {
         id: konachanWallProc
         property string status: ""
-        command: [Quickshell.shellPath("scripts/colors/random/random_konachan_wall.sh")]
+        command: ["/usr/bin/bash", Quickshell.shellPath("scripts/colors/random/random_konachan_wall.sh")]
         stdout: SplitParser {
             onRead: data => {
                 konachanWallProc.status = data.trim();
@@ -95,7 +95,7 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignVCenter
                     onCheckedChanged: {
                         if (checked) {
-                            Quickshell.execDetached(["rm", root.firstRunFilePath]);
+                            Quickshell.execDetached(["/usr/bin/rm", root.firstRunFilePath]);
                         } else {
                             Quickshell.execDetached(["/usr/bin/fish", "-c", `echo '${StringUtils.shellSingleQuoteEscape(root.firstRunFileContent)}' > '${StringUtils.shellSingleQuoteEscape(root.firstRunFilePath)}'`]);
                         }
@@ -331,10 +331,13 @@ ApplicationWindow {
                         spacing: 5
 
                         RippleButtonWithIcon {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 52
+                            buttonRadius: Appearance.rounding.normal
                             materialIcon: "tune"
                             mainText: Translation.tr("Open Settings")
                             onClicked: {
-                                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "settings", "open"]);
+                                Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "settings", "open"]);
                             }
                         }
                         RippleButtonWithIcon {

@@ -24,6 +24,7 @@ AbstractWidget {
     y: targetY
     visible: opacity > 0
     opacity: (GlobalStates.screenLocked && !visibleWhenLocked) ? 0 : 1
+    enabled: !GlobalStates.screenLocked
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
@@ -32,8 +33,9 @@ AbstractWidget {
         animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
     }
 
-    draggable: placementStrategy === "free"
+    draggable: placementStrategy === "free" && !GlobalStates.screenLocked
     onReleased: {
+        if (GlobalStates.screenLocked) return;
         root.targetX = root.x;
         root.targetY  = root.y;
         configEntry.x = root.targetX;

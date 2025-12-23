@@ -281,6 +281,7 @@ Scope {
 
     IpcHandler {
         target: "session"
+        enabled: Config.options?.panelFamily !== "waffle"
 
         function toggle(): void {
             GlobalStates.sessionOpen = !GlobalStates.sessionOpen;

@@ -23,7 +23,7 @@ Item {
 
         source: root.icon || fallback
         fallback: `${Looks.iconsPath}/apps.svg`
-        roundToIconSize: false
+        roundToIconSize: true
         isMask: !root.icon
         color: Looks.colors.fg
     }

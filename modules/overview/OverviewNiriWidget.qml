@@ -14,7 +14,24 @@ Item {
     id: root
     required property var panelWindow
 
-    readonly property int workspacesShown: Config.options.overview.rows * Config.options.overview.columns
+    readonly property var overviewOptions: Config.options?.overview ?? {}
+    readonly property int overviewRows: overviewOptions.rows ?? 3
+    readonly property int overviewColumns: overviewOptions.columns ?? 1
+    readonly property real overviewScale: overviewOptions.scale ?? 0.17
+    readonly property real overviewMaxPanelWidthRatio: overviewOptions.maxPanelWidthRatio ?? 1.0
+    readonly property int overviewWorkspaceSpacing: overviewOptions.workspaceSpacing ?? 5
+    readonly property int overviewWindowTileMargin: overviewOptions.windowTileMargin ?? 6
+    readonly property int overviewScrollWorkspaceSteps: overviewOptions.scrollWorkspaceSteps ?? 2
+
+    readonly property bool overviewFocusAnimEnabled: overviewOptions.focusAnimationEnable ?? true
+    readonly property int overviewFocusAnimDurationMs: overviewOptions.focusAnimationDurationMs ?? 180
+    readonly property bool overviewKeepOpenOnWindowClick: overviewOptions.keepOverviewOpenOnWindowClick ?? true
+    readonly property bool overviewShowWorkspaceNumbers: overviewOptions.showWorkspaceNumbers ?? true
+
+    readonly property string wallpaperPathRaw: Config.options?.background?.wallpaperPath ?? ""
+    readonly property string wallpaperThumbnailPath: Config.options?.background?.thumbnailPath ?? wallpaperPathRaw
+
+    readonly property int workspacesShown: root.overviewRows * root.overviewColumns
     readonly property var workspacesForOutput: NiriService.currentOutputWorkspaces
     readonly property var outputWorkspaceNumbers: NiriService.getCurrentOutputWorkspaceNumbers ? NiriService.getCurrentOutputWorkspaceNumbers() : []
     readonly property int currentWorkspaceNumber: NiriService.getCurrentWorkspaceNumber ? NiriService.getCurrentWorkspaceNumber() : 1
@@ -40,30 +57,25 @@ Item {
         return start;
     }
 
-    property real scale: Config.options.overview.scale
+    property real scale: root.overviewScale
     property real clampedPanelWidthRatio: {
-        const ov = Config.options.overview;
-        const r = ov && ov.maxPanelWidthRatio !== undefined ? ov.maxPanelWidthRatio : 1.0;
+        const r = root.overviewMaxPanelWidthRatio;
         return Math.max(0.1, Math.min(1.0, r));
     }
     property color activeBorderColor: Appearance.colors.colSecondary
-    property bool focusAnimEnabled: !Config.options.overview || Config.options.overview.focusAnimationEnable !== false
-    property int focusAnimDuration: (Config.options.overview && Config.options.overview.focusAnimationDurationMs !== undefined)
-                                    ? Config.options.overview.focusAnimationDurationMs
-                                    : 180
-    property bool keepOverviewOpenOnWindowClick: !Config.options.overview
-                                                 || Config.options.overview.keepOverviewOpenOnWindowClick !== false
-    property bool showWorkspaceNumber: !Config.options.overview
-                                       || Config.options.overview.showWorkspaceNumbers !== false
+    property bool focusAnimEnabled: root.overviewFocusAnimEnabled
+    property int focusAnimDuration: root.overviewFocusAnimDurationMs
+    property bool keepOverviewOpenOnWindowClick: root.overviewKeepOpenOnWindowClick
+    property bool showWorkspaceNumber: root.overviewShowWorkspaceNumbers
 
     // Wallpaper de fondo a reutilizar en cada workspace
-    property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4")
-                                    || Config.options.background.wallpaperPath.endsWith(".webm")
-                                    || Config.options.background.wallpaperPath.endsWith(".mkv")
-                                    || Config.options.background.wallpaperPath.endsWith(".avi")
-                                    || Config.options.background.wallpaperPath.endsWith(".mov")
-    property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath
-                                                    : Config.options.background.wallpaperPath
+    property bool wallpaperIsVideo: wallpaperPathRaw.endsWith(".mp4")
+                                    || wallpaperPathRaw.endsWith(".webm")
+                                    || wallpaperPathRaw.endsWith(".mkv")
+                                    || wallpaperPathRaw.endsWith(".avi")
+                                    || wallpaperPathRaw.endsWith(".mov")
+    property string wallpaperPath: wallpaperIsVideo ? wallpaperThumbnailPath
+                                                    : wallpaperPathRaw
 
     property string currentOutput: NiriService.currentOutput
     property var outputs: NiriService.outputs
@@ -80,7 +92,7 @@ Item {
     property real baseWorkspaceWidth: (logicalWidth * root.scale) / logicalScale
     property real baseWorkspaceHeight: (logicalHeight * root.scale) / logicalScale
     property real workspaceImplicitWidth: {
-        const cols = Config.options.overview.columns;
+        const cols = root.overviewColumns;
         const spacing = root.workspaceSpacing;
         const totalBase = baseWorkspaceWidth * cols + spacing * Math.max(0, cols - 1);
         const maxWidth = (panelWindow ? panelWindow.width : (logicalWidth / logicalScale)) * clampedPanelWidthRatio;
@@ -98,7 +110,7 @@ Item {
     property int workspaceZ: 0
     property int windowZ: 1
     property int windowDraggingZ: 99999
-    property real workspaceSpacing: Config.options.overview.workspaceSpacing
+    property real workspaceSpacing: root.overviewWorkspaceSpacing
 
     // Context menu
     property bool contextVisible: false
@@ -108,9 +120,7 @@ Item {
 
     // Contador para suavizar el scroll de cambio de workspace
     property int wheelStepCounter: 0
-    property int wheelStepsRequired: (Config.options.overview && Config.options.overview.scrollWorkspaceSteps !== undefined)
-                                     ? Math.max(1, Config.options.overview.scrollWorkspaceSteps)
-                                     : 2
+    property int wheelStepsRequired: Math.max(1, root.overviewScrollWorkspaceSteps)
 
     property int draggingFromWorkspace: -1    // Niri workspace idx
     property int draggingTargetWorkspace: -1  // Niri workspace idx
@@ -213,19 +223,19 @@ Item {
             spacing: workspaceSpacing
 
             Repeater {
-                model: Config.options.overview.rows
+                model: root.overviewRows
                 delegate: Row {
                     id: row
                     required property int index
                     spacing: workspaceSpacing
 
                     Repeater {
-                        model: Config.options.overview.columns
+                        model: root.overviewColumns
                         Rectangle {
                             id: workspace
                             required property int index
                             property int colIndex: index
-                            property int workspaceIndex: root.firstVisibleWorkspaceSlot + row.index * Config.options.overview.columns + colIndex
+                            property int workspaceIndex: root.firstVisibleWorkspaceSlot + row.index * root.overviewColumns + colIndex
 
                             property var workspaceObj: {
                                 const wsList = root.workspacesForOutput
@@ -254,9 +264,9 @@ Item {
                             clip: true
 
                             property bool workspaceAtLeft: colIndex === 0
-                            property bool workspaceAtRight: colIndex === Config.options.overview.columns - 1
+                            property bool workspaceAtRight: colIndex === root.overviewColumns - 1
                             property bool workspaceAtTop: row.index === 0
-                            property bool workspaceAtBottom: row.index === Config.options.overview.rows - 1
+                            property bool workspaceAtBottom: row.index === root.overviewRows - 1
                             property real largeWorkspaceRadius: Appearance.rounding.large
                             property real smallWorkspaceRadius: Appearance.rounding.verysmall
                             topLeftRadius: (workspaceAtLeft && workspaceAtTop) ? largeWorkspaceRadius : smallWorkspaceRadius
@@ -281,10 +291,9 @@ Item {
                                 source: workspaceWallpaperSource
                                 visible: Appearance.effectsEnabled
                                 radius: {
-                                    const ov = Config.options.overview
-                                    if (!ov || ov.backgroundBlurEnable === false || !Appearance.effectsEnabled)
+                                    if ((root.overviewOptions.backgroundBlurEnable ?? true) === false || !Appearance.effectsEnabled)
                                         return 0
-                                    const r = (ov.backgroundBlurRadius !== undefined) ? ov.backgroundBlurRadius : 22
+                                    const r = root.overviewOptions.backgroundBlurRadius ?? 22
                                     return r * root.scale
                                 }
                                 transparentBorder: true
@@ -305,8 +314,7 @@ Item {
                             Rectangle {
                                 anchors.fill: parent
                                 color: {
-                                    const ov = Config.options.overview
-                                    const base = (ov && ov.backgroundDim !== undefined) ? ov.backgroundDim : 35
+                                    const base = root.overviewOptions.backgroundDim ?? 35
                                     const delta = workspace.isActive ? -10 : 0 // activo un poco menos dim
                                     const v = base + delta
                                     const clamped = Math.max(0, Math.min(100, v))
@@ -528,8 +536,8 @@ Item {
                     readonly property int workspaceMaxRow: modelData.maxRow || 1
 
                     readonly property int workspaceIndex: workspaceSlot - root.firstVisibleWorkspaceSlot
-                    readonly property int workspaceColIndex: workspaceIndex % Config.options.overview.columns
-                    readonly property int workspaceRowIndex: Math.floor(workspaceIndex / Config.options.overview.columns)
+                    readonly property int workspaceColIndex: workspaceIndex % root.overviewColumns
+                    readonly property int workspaceRowIndex: Math.floor(workspaceIndex / root.overviewColumns)
 
                     readonly property real xOffset: (root.workspaceImplicitWidth + workspaceSpacing) * workspaceColIndex
                     readonly property real yOffset: (root.workspaceImplicitHeight + workspaceSpacing) * workspaceRowIndex
@@ -540,7 +548,7 @@ Item {
 
                     readonly property real tileWidth: root.workspaceImplicitWidth / workspaceMaxCol
                     readonly property real tileHeight: root.workspaceImplicitHeight / workspaceMaxRow
-                    readonly property real tileMargin: (Config.options.overview.windowTileMargin !== undefined ? Config.options.overview.windowTileMargin : 6) * root.scale
+                    readonly property real tileMargin: root.overviewWindowTileMargin * root.scale
 
                     readonly property real baseX: xOffset + (layoutCol - 1) * tileWidth
                     readonly property real baseY: yOffset + (layoutRow - 1) * tileHeight
@@ -616,9 +624,8 @@ Item {
                             anchors.centerIn: parent
                             width: {
                                 var size = Math.min(parent.width, parent.height) * 0.35;
-                                const ov = Config.options.overview;
-                                const min = ov && ov.iconMinSize !== undefined ? ov.iconMinSize : 0;
-                                const max = ov && ov.iconMaxSize !== undefined ? ov.iconMaxSize : 0;
+                                const min = root.overviewOptions.iconMinSize ?? 0;
+                                const max = root.overviewOptions.iconMaxSize ?? 0;
                                 if (min > 0) size = Math.max(size, min);
                                 if (max > 0) size = Math.min(size, max);
                                 return size;
@@ -772,8 +779,8 @@ Item {
                 id: focusedWorkspaceIndicator
                 readonly property int activeSlot: root.currentWorkspaceSlot
                 readonly property int activeSlotInGroup: activeSlot - root.firstVisibleWorkspaceSlot
-                readonly property int rowIndex: Math.floor(activeSlotInGroup / Config.options.overview.columns)
-                readonly property int colIndex: activeSlotInGroup % Config.options.overview.columns
+                readonly property int rowIndex: Math.floor(activeSlotInGroup / root.overviewColumns)
+                readonly property int colIndex: activeSlotInGroup % root.overviewColumns
 
                 x: (root.workspaceImplicitWidth + workspaceSpacing) * colIndex
                 y: (root.workspaceImplicitHeight + workspaceSpacing) * rowIndex
@@ -783,15 +790,15 @@ Item {
                 color: "transparent"
 
                 property bool workspaceAtLeft: colIndex === 0
-                property bool workspaceAtRight: colIndex === Config.options.overview.columns - 1
+                property bool workspaceAtRight: colIndex === root.overviewColumns - 1
                 property bool workspaceAtTop: rowIndex === 0
-                property bool workspaceAtBottom: rowIndex === Config.options.overview.rows - 1
+                property bool workspaceAtBottom: rowIndex === root.overviewRows - 1
                 property real largeWorkspaceRadius: Appearance.rounding.large
                 property real smallWorkspaceRadius: Appearance.rounding.verysmall
                 topLeftRadius: (workspaceAtLeft && workspaceAtTop) ? largeWorkspaceRadius : smallWorkspaceRadius
                 topRightRadius: (workspaceAtRight && workspaceAtTop) ? largeWorkspaceRadius : smallWorkspaceRadius
                 bottomLeftRadius: (workspaceAtLeft && workspaceAtBottom) ? largeWorkspaceRadius : smallWorkspaceRadius
-                bottomRightRadius: (workspaceAtLeft && workspaceAtBottom) ? largeWorkspaceRadius : smallWorkspaceRadius
+                bottomRightRadius: (workspaceAtRight && workspaceAtBottom) ? largeWorkspaceRadius : smallWorkspaceRadius
 
                 border.width: 2
                 border.color: root.activeBorderColor

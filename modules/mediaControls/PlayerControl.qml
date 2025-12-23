@@ -4,7 +4,7 @@ import qs.modules.common.models
 import qs.modules.common.widgets
 import qs.services
 import qs.modules.common.functions
-import Qt5Compat.GraphicalEffects
+import Qt5Compat.GraphicalEffects as GE
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
@@ -77,9 +77,15 @@ Item { // Player instance
         id: coverArtDownloader
         property string targetFile: root.artUrl
         property string artFilePath: root.artFilePath
-        command: [ "bash", "-c", `[ -f ${artFilePath} ] || curl -sSL '${targetFile}' -o '${artFilePath}'` ]
+        command: ["/usr/bin/bash", "-c", `
+            if [ -f '${artFilePath}' ]; then
+                exit 0
+            fi
+            tmp='${artFilePath}.tmp'
+            /usr/bin/curl -sSL '${targetFile}' -o "$tmp" && /usr/bin/mv -f "$tmp" '${artFilePath}'
+        `]
         onExited: (exitCode, exitStatus) => {
-            root.downloaded = true
+            root.downloaded = (exitCode === 0)
         }
     }
 
@@ -105,7 +111,7 @@ Item { // Player instance
         radius: root.radius
 
         layer.enabled: true
-        layer.effect: OpacityMask {
+        layer.effect: GE.OpacityMask {
             maskSource: Rectangle {
                 width: background.width
                 height: background.height
@@ -159,7 +165,7 @@ Item { // Player instance
                 color: ColorUtils.transparentize(blendedColors.colLayer1, 0.5)
 
                 layer.enabled: true
-                layer.effect: OpacityMask {
+                layer.effect: GE.OpacityMask {
                     maskSource: Rectangle {
                         width: artBackground.width
                         height: artBackground.height

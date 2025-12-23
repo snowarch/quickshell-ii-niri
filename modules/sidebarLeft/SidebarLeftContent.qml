@@ -1,10 +1,11 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import Qt5Compat.GraphicalEffects as GE
 import Qt.labs.synchronizer
 
 Item {
@@ -12,6 +13,7 @@ Item {
     required property var scopeRoot
     property int sidebarPadding: 10
     anchors.fill: parent
+    readonly property bool auroraEverywhere: (Config.options?.bar?.blurBackground?.enabled ?? false) && !(Config.options?.bar?.showBackground ?? true)
     property bool aiChatEnabled: (Config.options?.policies?.ai ?? 0) !== 0
     property bool translatorEnabled: (Config.options?.sidebar?.translator?.enable ?? false)
     property bool animeEnabled: (Config.options?.policies?.weeb ?? 0) !== 0
@@ -55,6 +57,7 @@ Item {
             ToolbarTabBar {
                 id: tabBar
                 Layout.alignment: Qt.AlignHCenter
+                maxWidth: Math.max(0, root.width - (root.sidebarPadding * 2) - 16)
                 tabButtonList: root.tabButtonList
                 currentIndex: swipeView.currentIndex
             }
@@ -66,7 +69,7 @@ Item {
             implicitWidth: swipeView.implicitWidth
             implicitHeight: swipeView.implicitHeight
             radius: Appearance.rounding.normal
-            color: Appearance.colors.colLayer1
+            color: root.auroraEverywhere ? ColorUtils.transparentize(Appearance.colors.colLayer1, Appearance.aurora.subSurfaceTransparentize) : Appearance.colors.colLayer1
 
             SwipeView { // Content pages
                 id: swipeView
@@ -82,7 +85,7 @@ Item {
 
                 clip: true
                 layer.enabled: true
-                layer.effect: OpacityMask {
+                layer.effect: GE.OpacityMask {
                     maskSource: Rectangle {
                         width: swipeView.width
                         height: swipeView.height

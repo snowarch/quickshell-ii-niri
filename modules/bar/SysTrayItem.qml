@@ -13,8 +13,6 @@ MouseArea {
     required property SystemTrayItem item
     property var trayParent: null  // Reference to SysTray for closing other menus
     property bool targetMenuOpen: false
-    // Check if this is a problematic app that needs special handling
-    property bool isProblematicApp: TrayService.getProblematicAppInfo(item) !== null
 
     signal menuOpened(qsWindow: var)
     signal menuClosed()

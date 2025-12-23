@@ -1,13 +1,37 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import "calendar_layout.js" as CalendarLayout
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 Item {
     // Layout.topMargin: 10
     anchors.topMargin: 10
+
+    property var locale: {
+        const envLocale = Quickshell.env("LC_TIME") || Quickshell.env("LC_ALL") || Quickshell.env("LANG") || "";
+        const cleaned = (envLocale.split(".")[0] ?? "").split("@")[0] ?? "";
+        return cleaned ? Qt.locale(cleaned) : Qt.locale();
+    }
+
+    property list<var> weekDaysModel: {
+        const fdow = locale?.firstDayOfWeek ?? Qt.locale().firstDayOfWeek;
+        const first = DateUtils.getFirstDayOfWeek(new Date(), fdow);
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(first);
+            d.setDate(first.getDate() + i);
+            days.push({
+                label: locale.toString(d, "ddd"),
+                today: DateUtils.sameDate(d, DateTime.clock.date)
+            });
+        }
+        return days;
+    }
+
     property int monthShift: 0
     property var viewingDate: CalendarLayout.getDateInXMonthsTime(monthShift)
     property var calendarLayout: CalendarLayout.getCalendarLayout(viewingDate, monthShift === 0)
@@ -47,7 +71,7 @@ Item {
             spacing: 5
             CalendarHeaderButton {
                 clip: true
-                buttonText: `${monthShift != 0 ? "• " : ""}${viewingDate.toLocaleDateString(Qt.locale(), "MMMM yyyy")}`
+                buttonText: `${monthShift != 0 ? "• " : ""}${viewingDate.toLocaleDateString(locale, "MMMM yyyy")}`
                 tooltipText: (monthShift === 0) ? "" : Translation.tr("Jump to current month")
                 downAction: () => {
                     monthShift = 0;
@@ -90,10 +114,10 @@ Item {
             Layout.fillHeight: false
             spacing: 5
             Repeater {
-                model: CalendarLayout.weekDays
+                model: weekDaysModel
                 delegate: CalendarDayButton {
-                    day: Translation.tr(modelData.day)
-                    isToday: modelData.today
+                    day: modelData.label
+                    isToday: modelData.today ? 1 : 0
                     bold: true
                     enabled: false
                 }

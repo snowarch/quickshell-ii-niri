@@ -20,7 +20,12 @@ BodyRectangle {
     // Locale
     property var locale: {
         const loc = Config.options?.waffles?.calendar?.locale ?? "";
-        return loc ? Qt.locale(loc) : Qt.locale();
+        if (loc)
+            return Qt.locale(loc);
+
+        const envLocale = Quickshell.env("LC_TIME") || Quickshell.env("LC_ALL") || Quickshell.env("LANG") || "";
+        const cleaned = (envLocale.split(".")[0] ?? "").split("@")[0] ?? "";
+        return cleaned ? Qt.locale(cleaned) : Qt.locale();
     }
 
     implicitHeight: collapsed ? 0 : contentColumn.implicitHeight
@@ -110,7 +115,7 @@ BodyRectangle {
                 WText {
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignLeft
-                    text: Qt.locale().toString(calendarView.focusedDate, "MMMM yyyy")
+                    text: root.locale.toString(calendarView.focusedDate, "MMMM yyyy")
                     font.pixelSize: Looks.font.pixelSize.large
                     font.weight: Looks.font.weight.strong
                 }

@@ -39,7 +39,7 @@ WSettingsPage {
             buttonText: Translation.tr("Change")
             onButtonClicked: {
                 Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle")
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
+                Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
             }
         }
     }
@@ -115,7 +115,7 @@ WSettingsPage {
             buttonText: Translation.tr("Change")
             onButtonClicked: {
                 Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle-backdrop")
-                Quickshell.execDetached(["qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
+                Quickshell.execDetached(["/usr/bin/qs", "-c", "ii", "ipc", "call", "wallpaperSelector", "toggle"])
             }
         }
         

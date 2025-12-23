@@ -16,7 +16,7 @@ Kirigami.Icon {
 
     source: icon === "" ? "" : `${Looks.iconsPath}/${root.icon}${filled ? "-filled" : ""}.svg`
     fallback: root.icon
-    roundToIconSize: false
+    roundToIconSize: true
     color: Looks.colors.fg
     isMask: true
     animated: true
