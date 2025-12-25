@@ -5,6 +5,7 @@ import Quickshell
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.waffle.looks
 
 // TODO: Replace the icon with QMLized svg (with /usr/lib/qt6/bin/svgtoqml) for proper micro-animation
@@ -37,14 +38,14 @@ AppButton {
                 text: Translation.tr("Terminal"),
                 action: () => {
                     const cmd = Config.options?.apps?.terminal ?? "foot"
-                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                    ShellExec.execCmd(cmd)
                 }
             },
             {
                 text: Translation.tr("Task Manager"),
                 action: () => {
                     const cmd = Config.options?.apps?.taskManager ?? "missioncenter"
-                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                    ShellExec.execCmd(cmd)
                 }
             },
             {

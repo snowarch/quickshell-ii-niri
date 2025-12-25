@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.waffle.looks
 import qs.modules.waffle.settings
 
@@ -177,7 +178,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 const dark = newValue === "dark"
-                Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`])
+                ShellExec.execCmd(`${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`)
             }
         }
     }
@@ -204,7 +205,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 Config.setNestedValue("appearance.palette.type", newValue)
-                Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`])
+                ShellExec.execCmd(`${Directories.wallpaperSwitchScriptPath} --noswitch`)
             }
         }
     }

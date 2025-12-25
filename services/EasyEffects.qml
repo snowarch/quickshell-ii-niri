@@ -32,7 +32,7 @@ Singleton {
     function enable() {
         root.active = true
         // Use execDetached to avoid process management issues that can crash the shell
-        Quickshell.execDetached(["/usr/bin/fish", "-c", "easyeffects --gapplication-service; or flatpak run com.github.wwmm.easyeffects --gapplication-service"])
+        Quickshell.execDetached(["/usr/bin/bash", "-lc", "/usr/bin/easyeffects --gapplication-service || /usr/bin/flatpak run com.github.wwmm.easyeffects --gapplication-service"])
     }
 
     function toggle() {

@@ -79,7 +79,7 @@ WindowDialog {
             buttonText: Translation.tr("Details")
             onClicked: {
                 const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd]);
+                ShellExec.execCmd(cmd);
                 GlobalStates.sidebarRightOpen = false;
             }
         }

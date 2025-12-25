@@ -100,7 +100,7 @@ WSettingsPage {
                         
                         onClicked: {
                             const dark = !Appearance.m3colors.darkmode
-                            Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`])
+                            ShellExec.execCmd(`${Directories.wallpaperSwitchScriptPath} --mode ${dark ? "dark" : "light"} --noswitch`)
                         }
                         
                         WToolTip {
@@ -130,7 +130,7 @@ WSettingsPage {
             ]
             onSelected: newValue => {
                 Config.setNestedValue("appearance.palette.type", newValue)
-                Quickshell.execDetached(["/usr/bin/fish", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`])
+                ShellExec.execCmd(`${Directories.wallpaperSwitchScriptPath} --noswitch`)
             }
         }
         
@@ -191,7 +191,7 @@ WSettingsPage {
                 Layout.fillWidth: true
                 text: Translation.tr("Reload shell")
                 icon.name: "arrow-sync"
-                onClicked: Quickshell.execDetached(["/usr/bin/fish", "-c", "/usr/bin/qs kill -c ii\n/usr/bin/sleep 0.3\n/usr/bin/qs -c ii &"])
+                onClicked: ShellExec.execCmd("/usr/bin/qs kill -c ii\n/usr/bin/sleep 0.3\n/usr/bin/qs -c ii &")
             }
             
             WButton {
