@@ -591,7 +591,7 @@ WBarAttachedPanelContent {
                             label: Translation.tr("Terminal")
                             onClicked: {
                                 const cmd = Config.options?.apps?.terminal ?? "foot"
-                                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                                ShellExec.execCmd(cmd)
                                 GlobalStates.waffleWidgetsOpen = false
                             }
                         }

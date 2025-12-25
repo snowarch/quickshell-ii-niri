@@ -348,7 +348,7 @@ WPanelPageColumn {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             const cmd = Config.options?.apps?.manageUser ?? "kcmshell6 kcm_users"
-                                            Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                                            ShellExec.execCmd(cmd)
                                             GlobalStates.searchOpen = false
                                             userMenu.close()
                                         }

@@ -135,7 +135,9 @@ Singleton {
         initialCapturesDone = true
         
         // Build command with IDs
-        const cmd = ["/usr/bin/fish", Quickshell.shellPath("scripts/capture-windows.fish")]
+        const cmd = ShellExec.supportsFish()
+            ? ["/usr/bin/fish", Quickshell.shellPath("scripts/capture-windows.fish")]
+            : ["/usr/bin/bash", Quickshell.shellPath("scripts/capture-windows.sh")]
         for (const id of idsToCapture) {
             cmd.push(id.toString())
         }
@@ -159,11 +161,9 @@ Singleton {
         
         const ids = windows.map(w => w.id)
         captureProcess.idsToCapture = ids
-        captureProcess.command = [
-            "/usr/bin/fish",
-            Quickshell.shellPath("scripts/capture-windows.fish"),
-            "--all"
-        ]
+        captureProcess.command = ShellExec.supportsFish()
+            ? ["/usr/bin/fish", Quickshell.shellPath("scripts/capture-windows.fish"), "--all"]
+            : ["/usr/bin/bash", Quickshell.shellPath("scripts/capture-windows.sh"), "--all"]
         captureProcess.running = true
     }
     

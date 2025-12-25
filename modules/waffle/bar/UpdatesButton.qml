@@ -4,6 +4,7 @@ import Quickshell
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.waffle.looks
 import qs.modules.waffle.bar
 
@@ -19,7 +20,7 @@ BarIconButton {
 
     function runUpdate(): void {
         const cmd = Config.options?.apps?.update ?? "foot -e sudo pacman -Syu"
-        Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+        ShellExec.execCmd(cmd)
     }
 
     onClicked: runUpdate()

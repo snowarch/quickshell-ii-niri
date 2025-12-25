@@ -67,7 +67,7 @@ WindowDialog {
             buttonText: Translation.tr("Details")
             onClicked: {
                 const cmd = Network.ethernet ? (Config.options?.apps?.networkEthernet ?? "nm-connection-editor") : (Config.options?.apps?.network ?? "nm-connection-editor")
-                Quickshell.execDetached(["/usr/bin/fish", "-c", cmd]);
+                ShellExec.execCmd(cmd);
                 GlobalStates.sidebarRightOpen = false;
             }
         }

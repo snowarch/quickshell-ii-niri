@@ -95,12 +95,13 @@ Singleton {
         stdinEnabled: true
         function deleteEntry(entry) {
             deleteProc.entry = entry;
+            deleteProc.stdinEnabled = true
             deleteProc.running = true;
-            deleteProc.entry = "";
         }
         onRunningChanged: {
             if (deleteProc.running) {
-                deleteProc.write(deleteProc.entry)
+                const toWrite = deleteProc.entry
+                deleteProc.write(toWrite)
                 deleteProc.write("\n")
                 deleteProc.stdinEnabled = false
             } else {
@@ -108,6 +109,7 @@ Singleton {
             }
         }
         onExited: (exitCode, exitStatus) => {
+            deleteProc.entry = "";
             root.refresh();
         }
     }

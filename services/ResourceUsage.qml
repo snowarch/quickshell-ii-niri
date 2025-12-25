@@ -14,6 +14,10 @@ Singleton {
 
     property bool _runningRequested: false
     property bool _initRequested: false
+
+    // Auto-stop polling when nothing requested it recently.
+    // This prevents the service from running forever after briefly opening a panel.
+    readonly property int _autoStopDelayMs: Config.options?.resources?.autoStopDelay ?? 15000
 	property real memoryTotal: 1
 	property real memoryFree: 0
 	property real memoryUsed: memoryTotal - memoryFree
@@ -77,7 +81,23 @@ Singleton {
 			detectTempSensors.running = true
 			findCpuMaxFreqProc.running = true
 		}
+		autoStopTimer.restart()
 		pollTimer.restart()
+	}
+
+	function stop(): void {
+		root._runningRequested = false
+		pollTimer.stop()
+		autoStopTimer.stop()
+	}
+
+	Timer {
+		id: autoStopTimer
+		interval: root._autoStopDelayMs
+		repeat: false
+		onTriggered: {
+			root.stop()
+		}
 	}
 
 	Timer {
@@ -86,6 +106,7 @@ Singleton {
 	    running: root._runningRequested
 	    repeat: true
 		onTriggered: {
+	        autoStopTimer.restart()
 	        // Reload files
 	        fileMeminfo.reload()
 	        fileStat.reload()

@@ -62,7 +62,7 @@ Item {
                 onClicked: {
                     GlobalStates.waffleActionCenterOpen = false
                     const cmd = Config.options?.apps?.volumeMixer ?? "pavucontrol"
-                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                    ShellExec.execCmd(cmd)
                 }
             }
         }

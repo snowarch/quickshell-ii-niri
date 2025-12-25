@@ -21,7 +21,10 @@ AndroidQuickToggleButton {
     }
 
     altAction: () => {
-        Quickshell.execDetached(["/usr/bin/fish", "-c", "flatpak run com.github.wwmm.easyeffects; or easyeffects"])
+        ShellExec.execFishOrBashOneLiner(
+            "flatpak run com.github.wwmm.easyeffects; or easyeffects",
+            "/usr/bin/flatpak run com.github.wwmm.easyeffects || /usr/bin/easyeffects"
+        )
         GlobalStates.sidebarRightOpen = false
     }
 

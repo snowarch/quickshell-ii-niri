@@ -198,12 +198,27 @@ Item { // Wrapper
             execute: () => { Quickshell.clipboardText = root.mathResult; }
         };
         
-        const appResultObjects = AppSearch.fuzzyQuery(StringUtils.cleanPrefix(text, root.prefixApp)).map(entry => {
-            entry.clickActionName = Translation.tr("Launch");
-            entry.type = Translation.tr("App");
-            entry.key = entry.execute;
-            return entry;
-        });
+        const appQuery = StringUtils.cleanPrefix(text, root.prefixApp)
+        const appEntries = AppSearch.fuzzyQuery(appQuery)
+        const seenAppNames = new Set()
+        const appResultObjects = []
+        for (let i = 0; i < appEntries.length; i++) {
+            const entry = appEntries[i]
+            const nameKey = (entry?.name ?? "").trim().toLowerCase()
+            if (nameKey.length === 0) continue
+            if (seenAppNames.has(nameKey)) continue
+            seenAppNames.add(nameKey)
+
+            appResultObjects.push({
+                key: entry.execute,
+                name: entry.name,
+                clickActionName: Translation.tr("Launch"),
+                type: Translation.tr("App"),
+                comment: entry.comment ?? "",
+                icon: entry.icon,
+                execute: entry.execute,
+            })
+        }
         
         const commandResultObject = {
             key: `cmd ${text}`,
@@ -224,7 +239,7 @@ Item { // Wrapper
                 if (term.indexOf("ghostty") !== -1) {
                     Quickshell.execDetached([term, "-e", "/usr/bin/sh", "-lc", cleanedCommand]);
                 } else {
-                    const commandToRun = `${term} /usr/bin/fish -C '${cleanedCommand}'`;
+                    const commandToRun = `${term} /usr/bin/bash -lc '${cleanedCommand}'`;
                     Quickshell.execDetached(["/usr/bin/bash", "-c", commandToRun]);
                 }
             }

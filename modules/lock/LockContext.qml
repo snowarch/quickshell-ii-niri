@@ -81,7 +81,7 @@ Scope {
     Process {
         id: fingerprintCheckProc
         running: true
-        command: ["/usr/bin/fish", "-c", "/usr/bin/fprintd-list (whoami)"]
+        command: ["/usr/bin/bash", "-lc", "/usr/bin/fprintd-list $(/usr/bin/whoami)"]
         stdout: StdioCollector {
             id: fingerprintOutputCollector
             onStreamFinished: {

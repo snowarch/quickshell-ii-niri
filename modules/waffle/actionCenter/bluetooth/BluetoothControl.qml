@@ -113,7 +113,7 @@ Item {
                 onClicked: {
                     GlobalStates.waffleActionCenterOpen = false
                     const cmd = Config.options?.apps?.bluetooth ?? "blueman-manager"
-                    Quickshell.execDetached(["/usr/bin/fish", "-c", cmd])
+                    ShellExec.execCmd(cmd)
                 }
             }
             WBorderlessButton {

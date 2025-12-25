@@ -97,7 +97,7 @@ ApplicationWindow {
                         if (checked) {
                             Quickshell.execDetached(["/usr/bin/rm", root.firstRunFilePath]);
                         } else {
-                            Quickshell.execDetached(["/usr/bin/fish", "-c", `echo '${StringUtils.shellSingleQuoteEscape(root.firstRunFileContent)}' > '${StringUtils.shellSingleQuoteEscape(root.firstRunFilePath)}'`]);
+                            ShellExec.writeFileViaShell(root.firstRunFilePath, root.firstRunFileContent)
                         }
                     }
                 }
