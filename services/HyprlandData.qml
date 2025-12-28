@@ -73,10 +73,9 @@ Singleton {
 
     Connections {
         target: Hyprland
+        enabled: CompositorService.isHyprland
 
         function onRawEvent(event) {
-            if (!CompositorService.isHyprland)
-                return;
             // console.log("Hyprland raw event:", event.name);
             updateAll()
         }

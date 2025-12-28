@@ -492,6 +492,7 @@ Item {
             
             Connections {
                 target: NiriService
+                enabled: GlobalStates.overviewOpen
                 function onWindowsChanged() {
                     windowSpace.rebuildWindowItems()
                 }

@@ -120,10 +120,10 @@ Singleton {
     property bool popupInhibited: (GlobalStates?.sidebarRightOpen ?? false) || (GlobalStates?.waffleNotificationCenterOpen ?? false) || silent
     property var latestTimeForApp: ({})
     
-    // Debounce timer for group updates (50ms)
+    // Debounce timer for group updates - 100ms is sufficient for responsive UI
     Timer {
         id: groupUpdateTimer
-        interval: 50
+        interval: 100
         onTriggered: root._updateGroups()
     }
     Component {

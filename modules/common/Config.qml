@@ -275,7 +275,12 @@ Singleton {
                 property bool disableEffects: true
                 property bool disableNiriAnimations: true
                 property bool disableReloadToasts: true
-                property int checkInterval: 2000 // ms
+                property bool disableDiscoverOverlay: true
+                // Throttle Niri window list updates - 100ms = 10 FPS, sufficient for smooth UI
+                // Lower values increase CPU usage with diminishing returns on perceived smoothness
+                property int niriWindowListUpdateIntervalMs: 100
+                property int niriWindowListUpdateIntervalMsGameMode: 250
+                property int checkInterval: 5000 // ms - fallback only, events are primary
             }
 
             property JsonObject reloadToasts: JsonObject {
