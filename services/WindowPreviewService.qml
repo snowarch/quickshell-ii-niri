@@ -204,9 +204,9 @@ Singleton {
     // Clean up when window closes
     Connections {
         target: NiriService
+        enabled: root.initialized  // Skip event processing until initialized
         
         function onWindowsChanged(): void {
-            if (!root.initialized) return
             cleanupTimer.restart()
         }
     }

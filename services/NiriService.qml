@@ -7,6 +7,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs.modules.common
+import qs.services
 
 Singleton {
     id: root
@@ -32,6 +34,10 @@ Singleton {
     property var displayScales: ({})
     property var mruWindowIds: []
     property var activeWindow: null  // Currently focused window object
+
+    readonly property int windowListUpdateIntervalMs: (GameMode.active
+        ? (Config.options?.gameMode?.niriWindowListUpdateIntervalMsGameMode ?? 200)
+        : (Config.options?.gameMode?.niriWindowListUpdateIntervalMs ?? 50))
 
     property bool inOverview: false
 
@@ -75,7 +81,7 @@ Singleton {
 
     Process {
         id: fetchOutputsProcess
-        command: ["/usr/bin/niri", "msg", "-j", "outputs"]
+        command: ["niri", "msg", "-j", "outputs"]
 
         stdout: StdioCollector {
             id: fetchOutputsCollector
@@ -385,29 +391,42 @@ Singleton {
             root.workspaces = updatedWorkspaces
         }
 
+        // Optimization: only recreate window objects that actually change
         const updatedWindows = []
+        let hasChanges = false
+        let newActiveWindow = null
 
         for (var i = 0; i < windows.length; i++) {
             const w = windows[i]
-            const updatedWindow = {}
-
-            for (let prop in w) {
-                updatedWindow[prop] = w[prop]
-            }
-
+            let shouldBeFocused
+            
             if (data.active_window_id !== null && data.active_window_id !== undefined) {
-                updatedWindow.is_focused = (w.id == data.active_window_id)
+                shouldBeFocused = (w.id == data.active_window_id)
             } else {
-                updatedWindow.is_focused = w.workspace_id == data.workspace_id ? false : w.is_focused
+                shouldBeFocused = w.workspace_id == data.workspace_id ? false : w.is_focused
             }
 
-            updatedWindows.push(updatedWindow)
+            // Only create new object if focus state actually changed
+            if (w.is_focused === shouldBeFocused) {
+                updatedWindows.push(w)
+                if (shouldBeFocused) newActiveWindow = w
+            } else {
+                const updatedWindow = {}
+                for (let prop in w) {
+                    updatedWindow[prop] = w[prop]
+                }
+                updatedWindow.is_focused = shouldBeFocused
+                updatedWindows.push(updatedWindow)
+                if (shouldBeFocused) newActiveWindow = updatedWindow
+                hasChanges = true
+            }
         }
 
-        windows = updatedWindows
+        if (hasChanges) {
+            windows = updatedWindows
+        }
         
         // Update activeWindow (signal is auto-emitted on property change)
-        const newActiveWindow = updatedWindows.find(w => w.is_focused) ?? null
         if (activeWindow !== newActiveWindow) {
             activeWindow = newActiveWindow
         }
@@ -452,7 +471,7 @@ Singleton {
 
     Timer {
         id: windowsUpdateTimer
-        interval: 50 // 20 FPS max update rate for window list
+        interval: root.windowListUpdateIntervalMs
         repeat: false
         onTriggered: {
             if (_windowsDirty) {

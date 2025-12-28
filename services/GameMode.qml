@@ -45,6 +45,10 @@ Singleton {
     readonly property bool disableEffects: Config.options?.gameMode?.disableEffects ?? true
     readonly property int checkInterval: Config.options?.gameMode?.checkInterval ?? 2000
 
+    // External process control (optional)
+    readonly property bool disableDiscoverOverlay: Config.options?.gameMode?.disableDiscoverOverlay ?? true
+    readonly property string _discoverOverlayServiceName: "discover-overlay.service"
+
     // Fullscreen detection threshold (allow small margin for bar/gaps)
     readonly property int _marginThreshold: 60
     
@@ -241,13 +245,19 @@ Singleton {
         }
     }
 
-    // Periodic check as fallback (less frequent)
+    // Periodic check as fallback - runs less frequently since NiriService events handle most cases
+    // This catches edge cases where events might be missed (e.g., external window state changes)
     Timer {
         id: fallbackTimer
-        interval: root.checkInterval
+        interval: 5000  // 5 seconds - just a safety net, not primary detection
         running: root.autoDetect && CompositorService.isNiri && root._initialized
         repeat: true
-        onTriggered: root.checkFullscreen()
+        onTriggered: {
+            // Only do work if we haven't checked recently via event handlers
+            if (!checkDebounce.running) {
+                root.checkFullscreen()
+            }
+        }
     }
 
     // Initial setup
@@ -328,6 +338,77 @@ Singleton {
         if (CompositorService.isNiri && controlNiriAnimations) {
             root.suppressNiriToast = true
             niriAnimDebounce.restart()
+        }
+
+        // External processes: discover-overlay is known to be heavy under gaming load.
+        if (CompositorService.isNiri && root.disableDiscoverOverlay) {
+            discoverOverlayDebounce.restart()
+        }
+    }
+
+    // Track last applied state for discover-overlay control
+    property bool _lastDiscoverOverlayGameState: false
+
+    Timer {
+        id: discoverOverlayDebounce
+        interval: 800
+        repeat: false
+        onTriggered: {
+            if (!root.disableDiscoverOverlay)
+                return
+
+            const shouldStop = root.active
+            if (shouldStop === root._lastDiscoverOverlayGameState)
+                return
+            root._lastDiscoverOverlayGameState = shouldStop
+
+            if (shouldStop) {
+                root._log("[GameMode] Stopping", root._discoverOverlayServiceName)
+                discoverOverlayStopProc.running = true
+            } else {
+                root._log("[GameMode] Starting", root._discoverOverlayServiceName)
+                discoverOverlayStartProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: discoverOverlayStopProc
+        command: [
+            "/usr/bin/systemctl",
+            "--user",
+            "stop",
+            root._discoverOverlayServiceName
+        ]
+        onExited: (code, status) => {
+            root._log("[GameMode] systemctl stop exited:", code)
+            // Ensure stray processes are gone even if service was not the parent.
+            discoverOverlayKillProc.running = true
+        }
+    }
+
+    Process {
+        id: discoverOverlayKillProc
+        command: [
+            "/usr/bin/pkill",
+            "-f",
+            "/usr/bin/discover-overlay"
+        ]
+        onExited: (code, status) => {
+            root._log("[GameMode] pkill discover-overlay exited:", code)
+        }
+    }
+
+    Process {
+        id: discoverOverlayStartProc
+        command: [
+            "/usr/bin/systemctl",
+            "--user",
+            "start",
+            root._discoverOverlayServiceName
+        ]
+        onExited: (code, status) => {
+            root._log("[GameMode] systemctl start exited:", code)
         }
     }
 }

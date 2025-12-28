@@ -26,7 +26,8 @@ Singleton {
 
     Timer {
         triggeredOnStart: true
-        interval: Config.options?.resources?.updateInterval ?? 3000
+        // Uptime doesn't change fast - 60s updates are sufficient and reduce I/O
+        interval: 60000
         running: true
         repeat: true
         onTriggered: {

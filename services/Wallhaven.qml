@@ -34,10 +34,12 @@ QtObject {
 
     readonly property bool _active: (Config.options?.sidebar?.wallhaven?.enable ?? true) && (GlobalStates?.sidebarLeftOpen ?? false)
 
+    // Clock timer only runs when the service is active (sidebar open)
+    // This prevents unnecessary CPU cycles when Wallhaven is not visible
     property Timer wallhavenClock: Timer {
         interval: 500
         repeat: true
-        running: true
+        running: root._active
         onTriggered: root.nowMs = Date.now()
     }
 
