@@ -19,22 +19,22 @@ Singleton {
         if (root._initialized)
             return;
         root._initialized = true;
-        currentThemeProc.running = false
-        currentThemeProc.running = true
+        
         listThemesProc.running = false
         listThemesProc.running = true
         
-        // Restore saved theme on first initialization
-        if (Config.ready && Config.options?.appearance?.iconTheme) {
-            const savedTheme = Config.options.appearance.iconTheme
-            if (savedTheme && String(savedTheme).trim().length > 0) {
-                console.log("[IconThemeService] Restoring saved icon theme:", String(savedTheme).trim())
-                // Apply saved theme without triggering restart
-                gsettingsSetProc.themeName = String(savedTheme).trim()
-                gsettingsSetProc.skipRestart = true
-                gsettingsSetProc.running = false
-                gsettingsSetProc.running = true
-            }
+        // Check for saved theme first
+        const savedTheme = Config.ready ? (Config.options?.appearance?.iconTheme ?? "") : ""
+        if (savedTheme && String(savedTheme).trim().length > 0) {
+            root.currentTheme = String(savedTheme).trim()
+            console.log("[IconThemeService] Restoring saved icon theme:", root.currentTheme)
+            gsettingsSetProc.themeName = root.currentTheme
+            gsettingsSetProc.skipRestart = true
+            gsettingsSetProc.running = false
+            gsettingsSetProc.running = true
+        } else {
+            currentThemeProc.running = false
+            currentThemeProc.running = true
         }
     }
 
@@ -67,13 +67,7 @@ Singleton {
         onTriggered: {
             root._restartQueued = false
             console.log("[IconThemeService] Restarting shell now...")
-            // IMPORTANT: do NOT kill the current shell and then rely on its own timers.
-            // Run a single external command that kills and relaunches.
-            Quickshell.execDetached([
-                "/usr/bin/bash",
-                "-lc",
-                "/usr/bin/qs kill -c ii 2>/dev/null; /usr/bin/qs -c ii >/dev/null 2>&1 & disown"
-            ])
+            Quickshell.execDetached(["/usr/bin/setsid", "/usr/bin/fish", "-c", "qs kill -c ii; sleep 0.3; qs -c ii"])
         }
     }
 
