@@ -576,7 +576,7 @@ ContentPage {
                     buttonRadius: Appearance.rounding.small
                     materialIcon: "refresh"
                     mainText: Translation.tr("Reload shell")
-                    onClicked: Quickshell.execDetached(["/usr/bin/bash", "-lc", "/usr/bin/qs kill -c ii\n/usr/bin/sleep 0.3\n/usr/bin/qs -c ii &"])
+                    onClicked: Quickshell.execDetached(["/usr/bin/setsid", "/usr/bin/fish", "-c", "qs kill -c ii; sleep 0.3; qs -c ii"])
                 }
 
                 RippleButtonWithIcon {

@@ -191,7 +191,7 @@ WSettingsPage {
                 Layout.fillWidth: true
                 text: Translation.tr("Reload shell")
                 icon.name: "arrow-sync"
-                onClicked: ShellExec.execCmd("/usr/bin/qs kill -c ii\n/usr/bin/sleep 0.3\n/usr/bin/qs -c ii &")
+                onClicked: Quickshell.execDetached(["/usr/bin/setsid", "/usr/bin/fish", "-c", "qs kill -c ii; sleep 0.3; qs -c ii"])
             }
             
             WButton {

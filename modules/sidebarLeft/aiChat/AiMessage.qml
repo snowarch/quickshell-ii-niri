@@ -232,7 +232,7 @@ Rectangle {
                 FadeLoader {
                     id: loadingIndicatorLoader
                     anchors.centerIn: parent
-                    shown: (root.messageBlocks.length < 1) && (!root.messageData.done)
+                    shown: (root.messageBlocks.length < 1) && (root.messageData && !root.messageData.done)
                     sourceComponent: MaterialLoadingIndicator {
                         loading: true
                     }
