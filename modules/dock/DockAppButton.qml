@@ -224,21 +224,31 @@ DockButton {
                 }
                 active: !root.isSeparator
                 sourceComponent: IconImage {
-                    // Use desktop entry icon if available, fallback to guessed icon
-                    source: {
+                    id: dockIcon
+                    property string iconName: {
                         const appId = appToplevel.originalAppId ?? appToplevel.appId;
-                        let iconName;
-
-                        // Caso especial: Spotify → usar icono de tema "spotify"
                         if (appId === "Spotify" || appId === "spotify" || appId === "spotify-launcher") {
-                            iconName = "spotify";
-                        } else {
-                            iconName = root.desktopEntry?.icon || AppSearch.guessIcon(appId);
+                            return "spotify";
                         }
-
-                        return Quickshell.iconPath(iconName, "image-missing");
+                        return root.desktopEntry?.icon || AppSearch.guessIcon(appId);
                     }
+                    property var candidates: IconThemeService.dockIconCandidates(iconName)
+                    property int candidateIndex: 0
+                    
+                    source: candidates.length > 0 ? candidates[0] : Quickshell.iconPath(iconName, "image-missing")
                     implicitSize: root.iconSize
+                    
+                    onStatusChanged: {
+                        if (status === Image.Error && candidates.length > 0) {
+                            candidateIndex++
+                            if (candidateIndex < candidates.length) {
+                                source = candidates[candidateIndex]
+                            } else {
+                                // All candidates failed, use system icon
+                                source = Quickshell.iconPath(iconName, "image-missing")
+                            }
+                        }
+                    }
                 }
             }
 

@@ -387,10 +387,26 @@ ContentPage {
         title: Translation.tr("Icon Theme")
 
         SettingsGroup {
-            IconThemeSelector {}
+            StyledText {
+                Layout.fillWidth: true
+                text: Translation.tr("System (tray, apps)")
+                font.pixelSize: Appearance.font.pixelSize.small
+                font.weight: Font.Medium
+            }
+            IconThemeSelector { mode: "system" }
+            
+            StyledText {
+                Layout.fillWidth: true
+                Layout.topMargin: 12
+                text: Translation.tr("Dock")
+                font.pixelSize: Appearance.font.pixelSize.small
+                font.weight: Font.Medium
+            }
+            IconThemeSelector { mode: "dock" }
 
             StyledText {
                 Layout.fillWidth: true
+                Layout.topMargin: 8
                 text: Translation.tr("Quickshell will restart to apply changes.")
                 color: Appearance.colors.colSubtext
                 font.pixelSize: Appearance.font.pixelSize.smaller

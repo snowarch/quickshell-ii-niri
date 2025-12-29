@@ -7,6 +7,9 @@ import qs.services
 Item {
     id: root
     
+    property string mode: "system" // "system" or "dock"
+    readonly property string currentTheme: mode === "dock" ? IconThemeService.dockTheme : IconThemeService.currentTheme
+    
     implicitHeight: themeButton.implicitHeight
     implicitWidth: 250
     Layout.fillWidth: true
@@ -28,9 +31,10 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: IconThemeService.currentTheme || "Select theme..."
+                text: root.currentTheme || (root.mode === "dock" ? Translation.tr("Same as system") : Translation.tr("Select theme..."))
                 font.pixelSize: Appearance.font.pixelSize.small
                 elide: Text.ElideRight
+                opacity: root.currentTheme ? 1 : 0.6
             }
 
             MaterialSymbol {
@@ -47,7 +51,7 @@ Item {
         id: popup
         y: -height - 4
         width: Math.min(300, themeButton.width)
-        height: Math.min(280, themeList.contentHeight + searchField.height + 24)
+        height: Math.min(280, themeList.contentHeight + searchField.height + 24 + (root.mode === "dock" ? 40 : 0))
         padding: 8
 
         onOpened: IconThemeService.ensureInitialized()
@@ -75,6 +79,30 @@ Item {
                 color: Appearance.m3colors.m3onSurface
                 placeholderTextColor: Appearance.colors.colSubtext
             }
+            
+            // "Same as system" option for dock mode
+            RippleButton {
+                visible: root.mode === "dock"
+                Layout.fillWidth: true
+                implicitHeight: 32
+                
+                colBackground: !root.currentTheme ? Appearance.colors.colPrimaryContainer : "transparent"
+                colBackgroundHover: Appearance.colors.colLayer1Hover
+
+                contentItem: StyledText {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    verticalAlignment: Text.AlignVCenter
+                    text: Translation.tr("Same as system")
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    color: !root.currentTheme ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
+                }
+
+                onClicked: {
+                    IconThemeService.setDockTheme("")
+                    popup.close()
+                }
+            }
 
             ListView {
                 id: themeList
@@ -82,10 +110,9 @@ Item {
                 Layout.fillHeight: true
                 clip: true
                 model: {
-                    let themes = IconThemeService.availableThemes
-                    let search = searchField.text.toLowerCase()
-                    if (search) return themes.filter(t => t.toLowerCase().includes(search))
-                    return themes
+                    const themes = IconThemeService.availableThemes
+                    const search = searchField.text.toLowerCase()
+                    return search ? themes.filter(t => t.toLowerCase().includes(search)) : themes
                 }
 
                 delegate: RippleButton {
@@ -93,7 +120,7 @@ Item {
                     width: themeList.width
                     implicitHeight: 32
                     
-                    colBackground: modelData === IconThemeService.currentTheme 
+                    colBackground: modelData === root.currentTheme 
                         ? Appearance.colors.colPrimaryContainer 
                         : "transparent"
                     colBackgroundHover: Appearance.colors.colLayer1Hover
@@ -106,13 +133,17 @@ Item {
                         text: modelData
                         font.pixelSize: Appearance.font.pixelSize.small
                         elide: Text.ElideRight
-                        color: modelData === IconThemeService.currentTheme 
+                        color: modelData === root.currentTheme 
                             ? Appearance.m3colors.m3onPrimaryContainer 
                             : Appearance.m3colors.m3onSurface
                     }
 
                     onClicked: {
-                        IconThemeService.setTheme(modelData)
+                        if (root.mode === "dock") {
+                            IconThemeService.setDockTheme(modelData)
+                        } else {
+                            IconThemeService.setTheme(modelData)
+                        }
                         popup.close()
                     }
                 }

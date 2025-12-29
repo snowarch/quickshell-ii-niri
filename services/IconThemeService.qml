@@ -11,9 +11,42 @@ Singleton {
 
     property var availableThemes: []
     property string currentTheme: ""
+    property string dockTheme: ""  // Separate theme for dock icons
 
     property bool _initialized: false
     property bool _restartQueued: false
+
+    // Get icon path from dock theme, fallback to system
+    function dockIconPath(iconName: string, fallback: string): string {
+        if (!iconName) return Quickshell.iconPath(fallback || "application-x-executable")
+        if (!root.dockTheme) return Quickshell.iconPath(iconName, fallback || "application-x-executable")
+        
+        const home = Quickshell.env("HOME")
+        const theme = root.dockTheme
+        
+        // Return first candidate path - Image will handle fallback via onStatusChanged
+        // Structure: theme/apps/scalable (YAMIS, etc)
+        return `file://${home}/.local/share/icons/${theme}/apps/scalable/${iconName}.svg`
+    }
+    
+    // Get all candidate paths for dock icon
+    function dockIconCandidates(iconName: string): list<string> {
+        if (!iconName || !root.dockTheme) return []
+        
+        const home = Quickshell.env("HOME")
+        const theme = root.dockTheme
+        
+        return [
+            `file://${home}/.local/share/icons/${theme}/apps/scalable/${iconName}.svg`,
+            `file:///usr/share/icons/${theme}/apps/scalable/${iconName}.svg`,
+            `file://${home}/.local/share/icons/${theme}/scalable/apps/${iconName}.svg`,
+            `file:///usr/share/icons/${theme}/scalable/apps/${iconName}.svg`,
+            `file://${home}/.local/share/icons/${theme}/apps/256x256/${iconName}.png`,
+            `file:///usr/share/icons/${theme}/apps/256x256/${iconName}.png`,
+            `file://${home}/.local/share/icons/${theme}/256x256/apps/${iconName}.png`,
+            `file:///usr/share/icons/${theme}/256x256/apps/${iconName}.png`,
+        ]
+    }
 
     function ensureInitialized(): void {
         if (root._initialized)
@@ -23,7 +56,7 @@ Singleton {
         listThemesProc.running = false
         listThemesProc.running = true
         
-        // Check for saved theme first
+        // Load system theme
         const savedTheme = Config.ready ? (Config.options?.appearance?.iconTheme ?? "") : ""
         if (savedTheme && String(savedTheme).trim().length > 0) {
             root.currentTheme = String(savedTheme).trim()
@@ -36,6 +69,9 @@ Singleton {
             currentThemeProc.running = false
             currentThemeProc.running = true
         }
+        
+        // Load dock theme
+        root.dockTheme = Config.options?.appearance?.dockIconTheme ?? ""
     }
 
     function setTheme(themeName) {
@@ -58,6 +94,13 @@ Singleton {
 
         // Ensure config is written before we do any restart.
         Config.flushWrites()
+    }
+
+    function setDockTheme(themeName: string): void {
+        root.dockTheme = themeName ?? ""
+        Config.setNestedValue('appearance.dockIconTheme', themeName ?? "")
+        Config.flushWrites()
+        root.queueRestart()
     }
 
     Timer {

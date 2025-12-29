@@ -224,7 +224,8 @@ Singleton {
                         property int grad: 175
                     }
                 }
-                property string iconTheme: "" // System icon theme, persists across restarts
+                property string iconTheme: "" // System icon theme (tray, GTK/Qt apps)
+                property string dockIconTheme: "" // Dock icon theme (overrides system for dock only)
             }
 
             property JsonObject performance: JsonObject {
