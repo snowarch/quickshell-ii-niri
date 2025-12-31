@@ -42,15 +42,16 @@ Rectangle {
         onPressed: root.dismiss()
     }
 
-    Rectangle {
+    GlassBackground {
         id: dialogBackground
         anchors.horizontalCenter: parent.horizontalCenter
         radius: Appearance.inirEverywhere ? Appearance.inir.roundingLarge : Appearance.rounding.large
-        color: Appearance.inirEverywhere ? Appearance.inir.colLayer2
-             : Appearance.auroraEverywhere ? Appearance.aurora.colDialogSurface 
-             : Appearance.m3colors.m3surfaceContainerHigh
-        border.width: 1
-        border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder : "transparent"
+        fallbackColor: Appearance.m3colors.m3surfaceContainerHigh
+        inirColor: Appearance.inir.colLayer2
+        auroraTransparency: Appearance.aurora.popupTransparentize * 0.85
+        border.width: (Appearance.inirEverywhere || Appearance.auroraEverywhere) ? 1 : 0
+        border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder 
+            : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder : "transparent"
         
         property real targetY: root.height / 2 - root.backgroundHeight / 2
         y: root.show ? targetY : (targetY - root.backgroundAnimationMovementDistance)

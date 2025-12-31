@@ -1,6 +1,7 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.functions
+import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -116,20 +117,20 @@ MouseArea { // Notification group area
         target: background
         visible: popup && !Appearance.inirEverywhere
     }
-    Rectangle { // Background of the notification
+    
+    GlassBackground { // Background of the notification
         id: background
         anchors.left: parent.left
         width: parent.width
-        color: popup 
-            ? (Appearance.inirEverywhere ? Appearance.inir.colLayer2
-              : Appearance.auroraEverywhere ? Appearance.aurora.colPopupSurface 
-              : ColorUtils.applyAlpha(Appearance.colors.colLayer2, 1 - Appearance.backgroundTransparency))
-            : (Appearance.inirEverywhere ? Appearance.inir.colLayer1
-              : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface 
-              : Appearance.colors.colLayer2)
+        fallbackColor: popup 
+            ? ColorUtils.applyAlpha(Appearance.colors.colLayer2, 1 - Appearance.backgroundTransparency)
+            : Appearance.colors.colLayer2
+        inirColor: popup ? Appearance.inir.colLayer2 : Appearance.inir.colLayer1
+        auroraTransparency: popup ? Appearance.aurora.popupTransparentize : Appearance.aurora.subSurfaceTransparentize
         radius: Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
-        border.width: Appearance.inirEverywhere ? 1 : 0
-        border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder : "transparent"
+        border.width: (Appearance.inirEverywhere || (Appearance.auroraEverywhere && popup)) ? 1 : 0
+        border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder 
+            : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder : "transparent"
         anchors.leftMargin: root.xOffset
 
         Behavior on anchors.leftMargin {

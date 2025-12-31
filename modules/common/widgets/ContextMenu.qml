@@ -138,7 +138,7 @@ Loader {
             target: realContent
         }
 
-        Rectangle {
+        GlassBackground {
             id: realContent
             z: 1
             anchors {
@@ -150,14 +150,14 @@ Loader {
                 bottomMargin: root.popupAbove ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
                 topMargin: root.popupAbove ? (root.ambientShadowWidth + root.visualMargin) : popupWindow.sourceEdgeMargin
             }
-            color: Appearance.inirEverywhere ? Appearance.inir.colLayer2
-                 : Appearance.auroraEverywhere ? Appearance.aurora.colPopupSurface 
-                 : Appearance.colors.colSurfaceContainer
+            fallbackColor: Appearance.colors.colSurfaceContainer
+            inirColor: Appearance.inir.colLayer2
+            auroraTransparency: Appearance.aurora.popupTransparentize
             radius: Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
             border.width: 1
             border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder
                         : Appearance.auroraEverywhere 
-                            ? ColorUtils.transparentize(Appearance.colors.colSurfaceContainerHighest, 0.3)
+                            ? Appearance.aurora.colTooltipBorder
                             : Appearance.colors.colSurfaceContainerHighest
 
             implicitWidth: menuColumn.implicitWidth + (root.padding * 2)
