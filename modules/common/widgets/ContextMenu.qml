@@ -24,6 +24,7 @@ Loader {
 
     property real visualMargin: 8
     property bool popupAbove: true  // true = popup appears above anchor, false = below
+    property int popupSide: 0  // For horizontal popup: Edges.Left or Edges.Right, 0 = vertical
     property real ambientShadowWidth: 1
     readonly property bool hasIcons: model.some(item => item.iconName !== undefined && item.iconName !== "")
 
@@ -76,10 +77,16 @@ Loader {
         }
 
         anchor {
-            adjustment: PopupAdjustment.ResizeY | PopupAdjustment.SlideX
+            adjustment: (root.popupSide !== 0) 
+                ? (PopupAdjustment.ResizeX | PopupAdjustment.SlideY)
+                : (PopupAdjustment.ResizeY | PopupAdjustment.SlideX)
             item: root.anchorItem
-            gravity: root.popupAbove ? Edges.Top : Edges.Bottom
-            edges: root.popupAbove ? Edges.Top : Edges.Bottom
+            gravity: root.popupSide !== 0 
+                ? root.popupSide 
+                : (root.popupAbove ? Edges.Top : Edges.Bottom)
+            edges: root.popupSide !== 0 
+                ? root.popupSide 
+                : (root.popupAbove ? Edges.Top : Edges.Bottom)
         }
 
         CompositorFocusGrab {
@@ -110,6 +117,9 @@ Loader {
         implicitHeight: realContent.implicitHeight + (root.ambientShadowWidth * 2) + (root.visualMargin * 2)
 
         property real sourceEdgeMargin: -implicitHeight
+        readonly property bool isHorizontalPopup: root.popupSide !== 0
+        readonly property bool isLeftSide: root.popupSide === Edges.Left
+        
         PropertyAnimation {
             id: openAnim
             target: popupWindow
@@ -123,7 +133,7 @@ Loader {
             PropertyAnimation {
                 target: popupWindow
                 property: "sourceEdgeMargin"
-                to: -implicitHeight
+                to: popupWindow.isHorizontalPopup ? -popupWindow.implicitWidth : -popupWindow.implicitHeight
                 duration: 150
                 easing.type: Easing.InCubic
             }
@@ -142,13 +152,17 @@ Loader {
             id: realContent
             z: 1
             anchors {
-                left: parent.left
-                right: parent.right
-                top: root.popupAbove ? undefined : parent.top
-                bottom: root.popupAbove ? parent.bottom : undefined
+                // Vertical popup (above/below)
+                left: !popupWindow.isHorizontalPopup ? parent.left : (popupWindow.isLeftSide ? undefined : parent.left)
+                right: !popupWindow.isHorizontalPopup ? parent.right : (popupWindow.isLeftSide ? parent.right : undefined)
+                top: !popupWindow.isHorizontalPopup ? (root.popupAbove ? undefined : parent.top) : parent.top
+                bottom: !popupWindow.isHorizontalPopup ? (root.popupAbove ? parent.bottom : undefined) : parent.bottom
+                
                 margins: root.ambientShadowWidth + root.visualMargin
-                bottomMargin: root.popupAbove ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
-                topMargin: root.popupAbove ? (root.ambientShadowWidth + root.visualMargin) : popupWindow.sourceEdgeMargin
+                bottomMargin: !popupWindow.isHorizontalPopup && root.popupAbove ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
+                topMargin: !popupWindow.isHorizontalPopup && !root.popupAbove ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
+                leftMargin: popupWindow.isHorizontalPopup && !popupWindow.isLeftSide ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
+                rightMargin: popupWindow.isHorizontalPopup && popupWindow.isLeftSide ? popupWindow.sourceEdgeMargin : (root.ambientShadowWidth + root.visualMargin)
             }
             fallbackColor: Appearance.colors.colSurfaceContainer
             inirColor: Appearance.inir.colLayer2

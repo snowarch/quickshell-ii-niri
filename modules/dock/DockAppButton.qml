@@ -12,7 +12,7 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: Config.options.dock.iconSize ?? 35
+    property real iconSize: Config.options?.dock?.iconSize ?? 35
     property real countDotWidth: 10
     property real countDotHeight: 4
     property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
@@ -72,16 +72,24 @@ DockButton {
     // Use originalAppId (preserves case) for desktop entry lookup, fallback to appId for backwards compat
     property var desktopEntry: DesktopEntries.heuristicLookup(appToplevel.originalAppId ?? appToplevel.appId)
     enabled: !isSeparator
-    implicitWidth: isSeparator ? 1 : implicitHeight - topInset - bottomInset
+    
+    readonly property real dockHeight: Config.options?.dock?.height ?? 70
+    readonly property real separatorSize: dockHeight - 50
+    
+    implicitWidth: isSeparator ? (vertical ? separatorSize : 8) : (vertical ? 50 : (implicitHeight - topInset - bottomInset))
+    implicitHeight: isSeparator ? (vertical ? 8 : separatorSize) : 50
+    background.visible: !isSeparator
 
     Loader {
         active: isSeparator
-        anchors {
-            fill: parent
-            topMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
-            bottomMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
+        anchors.centerIn: parent
+        sourceComponent: Rectangle {
+            width: root.vertical ? root.separatorSize : 1
+            height: root.vertical ? 1 : root.separatorSize
+            color: Appearance.inirEverywhere ? Appearance.inir.colBorderSubtle
+                 : Appearance.auroraEverywhere ? ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.7)
+                 : Appearance.colors.colOutlineVariant
         }
-        sourceComponent: DockSeparator {}
     }
 
     Loader {
@@ -253,7 +261,7 @@ DockButton {
             }
 
             Loader {
-                active: Config.options.dock.monochromeIcons
+                active: Config.options?.dock?.monochromeIcons ?? false
                 anchors.fill: iconImageLoader
                 sourceComponent: Item {
                     Desaturate {
@@ -281,9 +289,9 @@ DockButton {
                 }
                 
                 // Config options
-                property bool smartIndicator: Config.options.dock.smartIndicator !== false
-                property bool showAllDots: Config.options.dock.showAllWindowDots !== false
-                property int maxDots: Config.options.dock.maxIndicatorDots ?? 5
+                property bool smartIndicator: Config.options?.dock?.smartIndicator !== false
+                property bool showAllDots: Config.options?.dock?.showAllWindowDots !== false
+                property int maxDots: Config.options?.dock?.maxIndicatorDots ?? 5
                 
                 sourceComponent: Row {
                     spacing: 3
@@ -291,8 +299,8 @@ DockButton {
                     Repeater {
                         // Show dots for all windows if enabled, otherwise just for active apps
                         model: {
-                            const showAll = Config.options.dock.showAllWindowDots !== false;
-                            const max = Config.options.dock.maxIndicatorDots ?? 5;
+                            const showAll = Config.options?.dock?.showAllWindowDots !== false;
+                            const max = Config.options?.dock?.maxIndicatorDots ?? 5;
                             if (root.appIsActive || showAll) {
                                 return Math.min(appToplevel.toplevels.length, max);
                             }
@@ -302,7 +310,7 @@ DockButton {
                         delegate: Rectangle {
                             required property int index
                             
-                            property bool smartMode: Config.options.dock.smartIndicator !== false
+                            property bool smartMode: Config.options?.dock?.smartIndicator !== false
                             
                             // Determine if this indicator corresponds to the focused window
                             property bool isFocusedWindow: {
@@ -327,7 +335,7 @@ DockButton {
                     
                     // Fallback: single dot when showAllDots is off and app is inactive
                     Rectangle {
-                        visible: !root.appIsActive && root.hasWindows && Config.options.dock.showAllWindowDots === false
+                        visible: !root.appIsActive && root.hasWindows && Config.options?.dock?.showAllWindowDots === false
                         width: 5
                         height: 5
                         radius: 2.5
