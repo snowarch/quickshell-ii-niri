@@ -69,13 +69,22 @@ Singleton {
         }
     }
 
-    // Watch for config changes
+    // Watch for config changes with debounce
     FileView {
         id: configWatcher
         path: Quickshell.env("HOME") + "/.config/niri/config.kdl"
         watchChanges: true
         
         onFileChanged: {
+            reloadDebounce.restart()
+        }
+    }
+
+    Timer {
+        id: reloadDebounce
+        interval: 300
+        repeat: false
+        onTriggered: {
             console.info("[NiriKeybinds] Config changed, reloading...")
             root.reload()
         }
