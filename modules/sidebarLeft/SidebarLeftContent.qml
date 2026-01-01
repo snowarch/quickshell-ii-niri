@@ -157,7 +157,8 @@ Item {
                     interactive: !(currentItem?.editMode ?? false)
 
                     onCurrentIndexChanged: {
-                        if (root.aiChatEnabled && swipeView.currentIndex === 0) {
+                        const currentTab = root.tabButtonList[swipeView.currentIndex]
+                        if (currentTab?.icon === "neurology") {
                             Ai.ensureInitialized()
                         }
                     }
@@ -171,37 +172,34 @@ Item {
                             radius: Appearance.rounding.small
                         }
                     }
-                    Loader {
-                        id: widgetsLoader
-                        active: root.contentReady && root.widgetsEnabled
-                        readonly property bool editMode: item?.editMode ?? false
-                        sourceComponent: WidgetsView {}
-                        
-                        transform: Translate { y: widgetsLoader.status === Loader.Ready ? 0 : 30 }
-                        Behavior on y {
-                            enabled: Appearance.animationsEnabled
-                            NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+
+                    Repeater {
+                        model: root.contentReady ? root.tabButtonList : []
+                        delegate: Loader {
+                            required property var modelData
+                            required property int index
+                            active: SwipeView.isCurrentItem || SwipeView.isNextItem || SwipeView.isPreviousItem
+                            sourceComponent: {
+                                switch (modelData.icon) {
+                                    case "widgets": return widgetsComp
+                                    case "neurology": return aiChatComp
+                                    case "translate": return translatorComp
+                                    case "bookmark_heart": return animeComp
+                                    case "image": return wallhavenComp
+                                    default: return null
+                                }
+                            }
                         }
-                    }
-                    Loader {
-                        active: root.contentReady && (root.aiChatEnabled || (!root.translatorEnabled && !root.animeEnabled && !root.wallhavenEnabled && !root.widgetsEnabled))
-                        sourceComponent: AiChat {}
-                    }
-                    Loader {
-                        active: root.contentReady && root.translatorEnabled
-                        sourceComponent: Translator {}
-                    }
-                    Loader {
-                        active: root.contentReady && root.animeEnabled
-                        sourceComponent: Anime {}
-                    }
-                    Loader {
-                        active: root.contentReady && root.wallhavenEnabled
-                        sourceComponent: WallhavenView {}
                     }
                 }
             }
         }
+
+        Component { id: widgetsComp; WidgetsView {} }
+        Component { id: aiChatComp; AiChat {} }
+        Component { id: translatorComp; Translator {} }
+        Component { id: animeComp; Anime {} }
+        Component { id: wallhavenComp; WallhavenView {} }
 
         Keys.onPressed: (event) => {
             if (event.key === Qt.Key_Escape) {
