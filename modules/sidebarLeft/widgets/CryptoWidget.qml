@@ -25,8 +25,12 @@ Item {
         running: root.coins.length > 0 && Config.ready
         repeat: true
         onTriggered: root.fetchPrices()
-        onRunningChanged: {
-            if (running) Qt.callLater(() => root.fetchPrices())
+    }
+    
+    // Only fetch on first load if no data
+    Component.onCompleted: {
+        if (root.coins.length > 0 && Object.keys(root.cryptoData).length === 0) {
+            Qt.callLater(() => root.fetchPrices())
         }
     }
 
