@@ -18,11 +18,11 @@ ContentPage {
             ConfigSpinBox {
                 icon: "monitor"
                 text: Translation.tr("Screen off") + ` (${value > 0 ? Math.floor(value/60) + "m " + (value%60) + "s" : Translation.tr("disabled")})`
-                value: Config.options.idle.screenOffTimeout
+                value: Config.options?.idle?.screenOffTimeout ?? 300
                 from: 0
                 to: 3600
                 stepSize: 30
-                onValueChanged: Config.options.idle.screenOffTimeout = value
+                onValueChanged: Config.setNestedValue("idle.screenOffTimeout", value)
                 StyledToolTip {
                     text: Translation.tr("Turn off display after this many seconds of inactivity (0 = never)")
                 }
@@ -31,11 +31,11 @@ ContentPage {
             ConfigSpinBox {
                 icon: "lock"
                 text: Translation.tr("Lock screen") + ` (${value > 0 ? Math.floor(value/60) + "m" : Translation.tr("disabled")})`
-                value: Config.options.idle.lockTimeout
+                value: Config.options?.idle?.lockTimeout ?? 600
                 from: 0
                 to: 3600
                 stepSize: 60
-                onValueChanged: Config.options.idle.lockTimeout = value
+                onValueChanged: Config.setNestedValue("idle.lockTimeout", value)
                 StyledToolTip {
                     text: Translation.tr("Lock screen after this many seconds of inactivity (0 = never)")
                 }
@@ -44,11 +44,11 @@ ContentPage {
             ConfigSpinBox {
                 icon: "dark_mode"
                 text: Translation.tr("Suspend") + ` (${value > 0 ? Math.floor(value/60) + "m" : Translation.tr("disabled")})`
-                value: Config.options.idle.suspendTimeout
+                value: Config.options?.idle?.suspendTimeout ?? 0
                 from: 0
                 to: 7200
                 stepSize: 60
-                onValueChanged: Config.options.idle.suspendTimeout = value
+                onValueChanged: Config.setNestedValue("idle.suspendTimeout", value)
                 StyledToolTip {
                     text: Translation.tr("Suspend system after this many seconds of inactivity (0 = never)")
                 }
@@ -57,8 +57,8 @@ ContentPage {
             SettingsSwitch {
                 buttonIcon: "lock_clock"
                 text: Translation.tr("Lock before sleep")
-                checked: Config.options.idle.lockBeforeSleep
-                onCheckedChanged: Config.options.idle.lockBeforeSleep = checked
+                checked: Config.options?.idle?.lockBeforeSleep ?? true
+                onCheckedChanged: Config.setNestedValue("idle.lockBeforeSleep", checked)
                 StyledToolTip {
                     text: Translation.tr("Lock the screen before the system goes to sleep")
                 }

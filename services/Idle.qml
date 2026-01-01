@@ -41,20 +41,32 @@ Singleton {
         if (inhibit) return
 
         const cmd = ["/usr/bin/swayidle", "-w"]
+        const lockBeforeSleep = Config.options?.idle?.lockBeforeSleep !== false
 
         if (screenOffTimeout > 0) {
             cmd.push("timeout", screenOffTimeout.toString(), "/usr/bin/niri msg action power-off-monitors", "resume", "/usr/bin/niri msg action power-on-monitors")
         }
 
-        if (lockTimeout > 0) {
-            cmd.push("timeout", lockTimeout.toString(), "/usr/bin/qs -c ii ipc call lock activate")
+        // Determine effective lock timeout
+        // If suspend is configured and lockBeforeSleep is enabled, ensure lock happens before suspend
+        let effectiveLockTimeout = lockTimeout
+        if (suspendTimeout > 0 && lockBeforeSleep) {
+            // Lock should happen before suspend - use 5 seconds before suspend if lockTimeout is 0 or > suspendTimeout
+            const lockBeforeSuspendTime = Math.max(1, suspendTimeout - 5)
+            if (lockTimeout <= 0 || lockTimeout > lockBeforeSuspendTime) {
+                effectiveLockTimeout = lockBeforeSuspendTime
+            }
+        }
+
+        if (effectiveLockTimeout > 0) {
+            cmd.push("timeout", effectiveLockTimeout.toString(), "/usr/bin/qs -c ii ipc call lock activate")
         }
 
         if (suspendTimeout > 0) {
             cmd.push("timeout", suspendTimeout.toString(), "/usr/bin/systemctl suspend -i")
         }
 
-        if (Config.options?.idle?.lockBeforeSleep !== false) {
+        if (lockBeforeSleep) {
             cmd.push("before-sleep", "/usr/bin/qs -c ii ipc call lock activate")
         }
 
