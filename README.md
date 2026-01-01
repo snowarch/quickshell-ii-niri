@@ -43,14 +43,24 @@ A shell. Bar at the top, sidebars on the sides, overlays that pop up when you pr
 - **GameMode** - fullscreen app? Effects go bye-bye. Your games won't stutter
 - **Idle** - screen off, lock, suspend timeouts. swayidle handles it, you configure it
 
-### Two flavors, one shell
+### Panel families
 
 Can't decide on a look? Good news, you don't have to.
 
 - **Material ii** - The OG. Floating bar, sidebars, that Material Design aesthetic.
 - **Waffle** - Taskbar at the bottom, action center, tray overflow. For the "I kinda miss Windows" crowd.
 
-Press `Mod+Shift+W` to cycle between styles, or go to Settings → Modules to mix and match.
+Press `Mod+Shift+W` to cycle between families, or go to Settings → Modules to mix and match.
+
+### Global styles
+
+Not enough customization? Slap a visual style on top:
+
+- **Material** - The default. Solid backgrounds, clean lines.
+- **Aurora** - Glass effect. Your wallpaper bleeds through panels. Fancy.
+- **Inir** - TUI vibes. Accent borders, darker everything. For terminal addicts.
+
+Settings → Themes → Global Style. Go wild.
 
 ---
 
@@ -138,6 +148,7 @@ Main targets:
 | `settings` | `open` |
 | `sidebarLeft` | `toggle` |
 | `sidebarRight` | `toggle` |
+| `widgetBar` | `toggle`, `open`, `close` |
 | `wallpaperSelector` | `toggle` |
 | `panelFamily` | `cycle`, `set` |
 | `mpris` | `playPause`, `next`, `previous` |

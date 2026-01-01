@@ -220,6 +220,22 @@ Right sidebar (quick toggles, notepad, settings).
 
 ---
 
+### widgetBar
+
+Widget panel. Media player, weather, calendar, quick nav. The stuff you'd put on a second monitor if you had one.
+
+| Function | Description |
+|----------|-------------|
+| `toggle` | Open/close widget bar |
+| `open` | Open widget bar |
+| `close` | Close widget bar |
+
+```kdl
+bind "Super+W" { spawn "qs" "-c" "ii" "ipc" "call" "widgetBar" "toggle"; }
+```
+
+---
+
 ### bar
 
 Top bar visibility.
