@@ -70,7 +70,7 @@ WSettingsPage {
                     WButton {
                         text: Translation.tr("Change wallpaper")
                         icon.name: "image"
-                        onButtonClicked: {
+                        onClicked: {
                             // Use waffle target if not sharing wallpaper with Material ii
                             const useMain = Config.options?.waffles?.background?.useMainWallpaper ?? true
                             Config.setNestedValue("wallpaperSelector.selectionTarget", useMain ? "main" : "waffle")
