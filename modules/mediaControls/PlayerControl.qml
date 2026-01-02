@@ -244,7 +244,6 @@ Item { // Player instance
                     property int size: parent.height
                     anchors.fill: parent
 
-                    source: root.displayedArtFilePath
                     fillMode: Image.PreserveAspectCrop
                     cache: false
                     antialiasing: true
@@ -253,6 +252,49 @@ Item { // Player instance
                     height: size
                     sourceSize.width: size
                     sourceSize.height: size
+                    
+                    layer.enabled: Appearance.effectsEnabled
+                    layer.effect: MultiEffect {
+                        blurEnabled: true
+                        blur: artBackground.transitioning ? 1 : 0
+                        blurMax: 32
+                        Behavior on blur {
+                            enabled: Appearance.animationsEnabled
+                            NumberAnimation { duration: 150; easing.type: Easing.InOutQuad }
+                        }
+                    }
+                }
+                
+                property bool transitioning: false
+                property string pendingSource: ""
+                
+                Timer {
+                    id: artBlurInTimer
+                    interval: 150
+                    onTriggered: {
+                        mediaArt.source = artBackground.pendingSource
+                        artBlurOutTimer.start()
+                    }
+                }
+                
+                Timer {
+                    id: artBlurOutTimer
+                    interval: 50
+                    onTriggered: artBackground.transitioning = false
+                }
+                
+                Connections {
+                    target: root
+                    function onDisplayedArtFilePathChanged() {
+                        if (!root.displayedArtFilePath) return
+                        if (!mediaArt.source.toString()) {
+                            mediaArt.source = root.displayedArtFilePath
+                            return
+                        }
+                        artBackground.pendingSource = root.displayedArtFilePath
+                        artBackground.transitioning = true
+                        artBlurInTimer.start()
+                    }
                 }
             }
 

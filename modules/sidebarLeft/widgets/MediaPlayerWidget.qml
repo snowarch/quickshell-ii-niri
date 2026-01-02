@@ -224,6 +224,7 @@ Item {
 
             // Cover art thumbnail
             Rectangle {
+                id: coverArtContainer
                 Layout.preferredWidth: 110
                 Layout.preferredHeight: 110
                 radius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.small
@@ -239,12 +240,55 @@ Item {
                     }
                 }
 
+                // Cover art with blur transition
                 Image {
+                    id: coverArt
                     anchors.fill: parent
-                    source: root.displayedArtFilePath
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    visible: status === Image.Ready
+                    
+                    layer.enabled: Appearance.effectsEnabled
+                    layer.effect: MultiEffect {
+                        blurEnabled: true
+                        blur: coverArtContainer.transitioning ? 1 : 0
+                        blurMax: 32
+                        Behavior on blur {
+                            enabled: Appearance.animationsEnabled
+                            NumberAnimation { duration: 150; easing.type: Easing.InOutQuad }
+                        }
+                    }
+                }
+
+                property bool transitioning: false
+                property string pendingSource: ""
+                
+                Timer {
+                    id: blurInTimer
+                    interval: 150
+                    onTriggered: {
+                        coverArt.source = coverArtContainer.pendingSource
+                        blurOutTimer.start()
+                    }
+                }
+                
+                Timer {
+                    id: blurOutTimer
+                    interval: 50
+                    onTriggered: coverArtContainer.transitioning = false
+                }
+                
+                Connections {
+                    target: root
+                    function onDisplayedArtFilePathChanged() {
+                        if (!root.displayedArtFilePath) return
+                        if (!coverArt.source.toString()) {
+                            coverArt.source = root.displayedArtFilePath
+                            return
+                        }
+                        coverArtContainer.pendingSource = root.displayedArtFilePath
+                        coverArtContainer.transitioning = true
+                        blurInTimer.start()
+                    }
                 }
 
                 Rectangle {
