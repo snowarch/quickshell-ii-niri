@@ -744,10 +744,14 @@ Item {
                 z: root.windowZ + 51
                 width: col.implicitWidth
                 height: col.implicitHeight
-                radius: Appearance.rounding.normal
-                color: Appearance.colors.colLayer4
+                radius: Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
+                color: Appearance.inirEverywhere ? Appearance.inir.colLayer2
+                     : Appearance.auroraEverywhere ? Appearance.colors.colLayer2Base
+                     : Appearance.colors.colLayer4
                 border.width: 1
-                border.color: ColorUtils.transparentize(Appearance.m3colors.m3outline, 0.5)
+                border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder
+                    : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder
+                    : ColorUtils.transparentize(Appearance.m3colors.m3outline, 0.5)
 
                 Column {
                     id: col
@@ -760,9 +764,11 @@ Item {
                     RippleButton {
                         implicitWidth: contentItem.implicitWidth + 24
                         height: 32
-                        buttonRadius: Appearance.rounding.small
+                        buttonRadius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.small
                         buttonText: Translation.tr("Focus")
-                        colBackgroundHover: Appearance.colors.colLayer4Hover
+                        colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
+                            : Appearance.auroraEverywhere ? Appearance.colors.colLayer3Hover
+                            : Appearance.colors.colLayer4Hover
                         onClicked: {
                             if (!root.contextWindowData) return
                             NiriService.focusWindow(root.contextWindowData.id)
@@ -774,9 +780,11 @@ Item {
                     RippleButton {
                         implicitWidth: contentItem.implicitWidth + 24
                         height: 32
-                        buttonRadius: Appearance.rounding.small
+                        buttonRadius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.small
                         buttonText: Translation.tr("Close")
-                        colBackgroundHover: Appearance.colors.colLayer4Hover
+                        colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
+                            : Appearance.auroraEverywhere ? Appearance.colors.colLayer3Hover
+                            : Appearance.colors.colLayer4Hover
                         onClicked: {
                             if (!root.contextWindowData) return
                             NiriService.closeWindow(root.contextWindowData.id)

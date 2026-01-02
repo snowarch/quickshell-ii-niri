@@ -250,7 +250,7 @@ Scope {
             width: panelWidth
             height: Math.min(contentColumn.implicitHeight, panelMaxHeight)
             color: Appearance.inirEverywhere ? Appearance.inir.colLayer1
-                 : Appearance.auroraEverywhere ? Appearance.colors.colLayer1Base
+                 : Appearance.auroraEverywhere ? Appearance.colors.colLayer2Base
                  : Appearance.colors.colLayer1
             border.width: Appearance.auroraEverywhere ? 1 : 1
             border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder 
@@ -287,6 +287,7 @@ Scope {
                     id: headerToolbar
                     Layout.fillWidth: true
                     enableShadow: false
+                    transparent: Appearance.auroraEverywhere
 
                     MaterialSymbol {
                         text: "content_paste"

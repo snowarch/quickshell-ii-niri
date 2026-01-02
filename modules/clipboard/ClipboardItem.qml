@@ -227,7 +227,7 @@ RippleButton {
                 active: root.cliphistRawString && Cliphist.entryIsImage(root.cliphistRawString)
                 sourceComponent: CliphistImage {
                     entry: root.cliphistRawString
-                    maxWidth: rowLayout.width - iconLoader.width - rowLayout.spacing - 50
+                    maxWidth: rowLayout.width - iconLoader.width - rowLayout.spacing - 160
                     maxHeight: root.compactClipboardPreview ? 80 : 140
                     blur: root.blurImage
                     blurText: root.blurImageText

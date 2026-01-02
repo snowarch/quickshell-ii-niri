@@ -134,6 +134,7 @@ Item {
             Toolbar {
                 Layout.alignment: Qt.AlignHCenter
                 enableShadow: false
+                transparent: Appearance.auroraEverywhere
                 ToolbarTabBar {
                     id: tabBar
                     Layout.alignment: Qt.AlignHCenter

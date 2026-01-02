@@ -12,6 +12,7 @@ Item {
     id: root
 
     property bool enableShadow: true
+    property bool transparent: false  // When true, no background (for nested in panels with blur)
     property real padding: 8
     property alias colBackground: background.color
     property alias spacing: toolbarLayout.spacing
@@ -25,7 +26,7 @@ Item {
     property real screenY: 0
 
     Loader {
-        active: root.enableShadow && !Appearance.inirEverywhere && !Appearance.auroraEverywhere
+        active: root.enableShadow && !root.transparent && !Appearance.inirEverywhere && !Appearance.auroraEverywhere
         anchors.fill: background
         sourceComponent: StyledRectangularShadow {
             target: background
@@ -36,6 +37,7 @@ Item {
     GlassBackground {
         id: background
         anchors.fill: parent
+        visible: !root.transparent
         fallbackColor: Appearance.m3colors.m3surfaceContainer
         inirColor: Appearance.inir.colLayer2
         auroraTransparency: Appearance.aurora.overlayTransparentize
@@ -49,14 +51,14 @@ Item {
         implicitHeight: 56
         implicitWidth: toolbarLayout.implicitWidth + root.padding * 2
         radius: Appearance.inirEverywhere ? Appearance.inir.roundingNormal : (height / 2)
+    }
 
-        RowLayout {
-            id: toolbarLayout
-            spacing: 4
-            anchors {
-                fill: parent
-                margins: root.padding
-            }
+    RowLayout {
+        id: toolbarLayout
+        spacing: 4
+        anchors {
+            fill: parent
+            margins: root.padding
         }
     }
 }
