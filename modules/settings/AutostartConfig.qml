@@ -336,7 +336,7 @@ ContentPage {
                             Layout.alignment: Qt.AlignVCenter
                             visible: !appDelegate.isExternal
                             checked: appDelegate.isOn
-                            onClicked: Autostart.setAppEnabled(appDelegate.modelData.id, !checked)
+                            onCheckedChanged: Autostart.setAppEnabled(appDelegate.modelData.id, checked)
                         }
                     }
                 }
