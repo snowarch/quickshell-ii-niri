@@ -99,6 +99,8 @@
             "paperTone": "neutral",
             "paperTint": 0.35,
             "paperColor": "#b8c4b0",
+            "accentRole": "primary",
+            "accentColor": "#b5a0c8",
             "titleWeight": 650,
             "titleTracking": -0.6,
             "typography": "poster",

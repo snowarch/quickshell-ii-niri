@@ -810,6 +810,8 @@ Singleton {
                     property string paperTone: "neutral"
                     property real paperTint: 0.35
                     property string paperColor: "#b8c4b0"
+                    property string accentRole: "primary"
+                    property string accentColor: "#b5a0c8"
                     property int titleWeight: 650
                     property real titleTracking: -0.6
                     property string typography: "poster" // "poster" sans titles | "reading" Source Serif 4

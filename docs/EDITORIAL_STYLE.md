@@ -34,6 +34,8 @@ Accent intensity controls both the colored ink used for highlights and the prima
 
 Editorial retains the dock and bar layouts but uses solid paper in place of their glass washes and sheen. App artwork, meaningful circular indicators and macOS magnification retain their behavior.
 
+**Accent ink** is independent of paper pigment: choose wallpaper primary, secondary, tertiary or a custom accent. It drives active controls, clock highlights, selection fields and the paper backing. Light paper and charcoal keep their intended brightness even when the application theme uses the opposite mode.
+
 ## Typography and geometry
 
 Use `Appearance.editorial.displayFamily`, `titleWeight` and `titleTracking` for display headings, with `Appearance.font.pixelSize` and `fontSizeScale`. Apply `titleScale` to headings, not body text. The dashboard greeting is the large display reference; section headings should remain smaller. Reserve uppercase and positive tracking for short metadata, never full descriptions.

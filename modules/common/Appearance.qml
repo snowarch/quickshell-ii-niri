@@ -603,9 +603,10 @@ Singleton {
         readonly property real radiusScale: Math.max(0.5, Math.min(1.5, Number(Config.options?.appearance?.editorial?.radiusScale ?? 1.0)))
         readonly property bool ornaments: Config.options?.appearance?.editorial?.ornaments ?? true
         readonly property real motionScale: Math.max(0.6, Math.min(1.4, Number(Config.options?.appearance?.editorial?.motionScale ?? 1.0)))
-        readonly property color paperBase: ColorUtils.mix(dark ? "#191918" : "#f5f2eb", root.m3colors.m3background, 0.82)
-        // ColorUtils weights its first argument. At warmth 0 this is exactly
-        // paperBase; the warm tint is introduced only at the high end.
+        readonly property color paperNeutral: dark ? "#191918" : "#f5f2eb"
+        readonly property color paperBase: dark === root.m3colors.darkmode
+            ? ColorUtils.mix(paperNeutral, root.m3colors.m3background, 0.82) : paperNeutral
+        // Explicit paper mode must not inherit the opposite theme's luminance.
         readonly property color paper: ColorUtils.mix(
             ColorUtils.mix(dark ? "#2a2722" : "#f5eee2", paperBase, warmth * 0.28),
             tintSource, 1 - tintAmount * (dark ? 0.18 : 0.38))
@@ -614,11 +615,17 @@ Singleton {
             ColorUtils.mix(inkBase, tintSource, 1 - tintAmount * (dark ? 0.38 : 0.18)), paper, 7)
         readonly property color paperOnInk: ColorUtils.ensureReadable(paper, ink, 7)
         readonly property color muted: ColorUtils.ensureReadable(root.m3colors.m3onSurfaceVariant, paper, 4.5)
-        readonly property color accent: ColorUtils.ensureReadable(ColorUtils.mix(ink, root.m3colors.m3primary, 1 - accentStrength * 0.85), paper, 4.5)
+        readonly property string accentRole: Config.options?.appearance?.editorial?.accentRole ?? "primary"
+        readonly property color accentColor: Config.options?.appearance?.editorial?.accentColor ?? "#b5a0c8"
+        readonly property color accentSource: accentRole === "secondary" ? root.m3colors.m3secondary
+            : accentRole === "tertiary" ? root.m3colors.m3tertiary
+            : accentRole === "custom" ? accentColor : root.m3colors.m3primary
+        readonly property color accent: ColorUtils.readableAccentInk(
+            ColorUtils.mix(ink, accentSource, 1 - accentStrength * 0.85), paper, 4.5, ink)
         readonly property color accentInk: ColorUtils.ensureReadable(paper, accent, 7)
         readonly property color rule: ColorUtils.mix(paper, ink, 0.82)
         readonly property color edge: ColorUtils.mix(paper, ink, 0.68)
-        readonly property color field: ColorUtils.mix(ColorUtils.mix(paper, ink, 0.90), root.m3colors.m3primary, 1 - accentStrength * 0.28)
+        readonly property color field: ColorUtils.mix(ColorUtils.mix(paper, ink, 0.90), accentSource, 1 - accentStrength * 0.28)
         readonly property color fieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.field, 7)
         readonly property color secondaryField: ColorUtils.mix(layer(2), root.m3colors.m3secondary, 1 - accentStrength * 0.18)
         readonly property color secondaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.secondaryField, 7)

@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
@@ -16,6 +15,7 @@ ColumnLayout {
     readonly property var _defaults: ({
         paperStack: false, paperDepth: 3,
         paperMode: "theme", paperTone: "neutral", paperTint: 0.35, paperColor: "#b8c4b0",
+        accentRole: "primary", accentColor: "#b5a0c8",
         titleWeight: 650, titleTracking: -0.6,
         typography: "poster", titleScale: 1.0, warmth: 0.55, accentStrength: 0.55,
         spacing: 1.0, radiusScale: 1.0, ornaments: true, motionScale: 1.0
@@ -63,6 +63,8 @@ ColumnLayout {
                     && root.value("paperTone", "neutral") === (values.paperTone ?? "neutral")
                     && Math.abs(Number(root.value("paperTint", 0.35)) - (values.paperTint ?? 0.35)) < 0.001
                     && root.value("paperColor", "#b8c4b0") === (values.paperColor ?? "#b8c4b0")
+                    && root.value("accentRole", "primary") === (values.accentRole ?? "primary")
+                    && root.value("accentColor", "#b5a0c8") === (values.accentColor ?? "#b5a0c8")
                     && Number(root.value("titleWeight", 650)) === (values.titleWeight ?? (preset.key === "reading" ? 600 : 650))
                     && Math.abs(Number(root.value("titleTracking", -0.6)) - (values.titleTracking ?? (preset.key === "reading" ? 0 : -0.6))) < 0.001
                     && values.typography === current.typography
@@ -86,6 +88,8 @@ ColumnLayout {
             "appearance.editorial.paperTone": values.paperTone ?? "neutral",
             "appearance.editorial.paperTint": values.paperTint ?? 0.35,
             "appearance.editorial.paperColor": values.paperColor ?? "#b8c4b0",
+            "appearance.editorial.accentRole": values.accentRole ?? "primary",
+            "appearance.editorial.accentColor": values.accentColor ?? "#b5a0c8",
             "appearance.editorial.titleWeight": values.titleWeight ?? (values.typography === "reading" ? 600 : 650),
             "appearance.editorial.titleTracking": values.titleTracking ?? (values.typography === "reading" ? 0 : -0.6),
             "appearance.editorial.typography": values.typography,
@@ -304,10 +308,15 @@ ColumnLayout {
         SliderRow {
             visible: Appearance.editorial.paperStack
             label: Translation.tr("Paper layer depth")
-            description: Translation.tr("Inset offset, kept inside the surface without changing its layout or hit area.")
+            description: Translation.tr("Maximum sheet offset. Compact surfaces use less to protect content; layout and hit areas stay unchanged.")
             from: 2; to: 6; stepSize: 1; suffix: " px"
             value: Appearance.editorial.paperDepth
             configPath: "appearance.editorial.paperDepth"
+        }
+        StyledText {
+            text: Translation.tr("Paper mode")
+            font.pixelSize: Appearance.font.pixelSize.small
+            color: Appearance.editorial.ink
         }
         ConfigSelectionArray {
             currentValue: Appearance.editorial.paperMode
@@ -317,6 +326,11 @@ ColumnLayout {
                 { displayName: Translation.tr("Charcoal"), value: "dark" }
             ]
             onSelected: value => Config.setNestedValue("appearance.editorial.paperMode", value)
+        }
+        StyledText {
+            text: Translation.tr("Paper pigment")
+            font.pixelSize: Appearance.font.pixelSize.small
+            color: Appearance.editorial.ink
         }
         ConfigSelectionArray {
             currentValue: Appearance.editorial.paperTone
@@ -336,34 +350,11 @@ ColumnLayout {
             font.pixelSize: Appearance.font.pixelSize.smallest
             color: Appearance.editorial.muted
         }
-        RippleButton {
+        ColorPickerRow {
             visible: Appearance.editorial.paperTone === "custom"
-            Layout.fillWidth: true
-            implicitHeight: 40
-            buttonRadius: Appearance.rounding.small
-            colBackground: Appearance.editorial.layer(2)
-            onClicked: paperColorDialog.open()
-            contentItem: RowLayout {
-                anchors.fill: parent
-                anchors.margins: 10
-                Rectangle {
-                    implicitWidth: 18; implicitHeight: 18
-                    radius: 4
-                    color: Appearance.editorial.paperColor
-                    border.width: 1
-                    border.color: Appearance.editorial.edge
-                }
-                StyledText {
-                    Layout.fillWidth: true
-                    text: Translation.tr("Paper pigment")
-                    font.pixelSize: Appearance.font.pixelSize.small
-                }
-                StyledText {
-                    text: Appearance.editorial.paperColor.toString().toUpperCase()
-                    font.family: Appearance.font.family.monospace
-                    font.pixelSize: Appearance.font.pixelSize.smallest
-                }
-            }
+            label: Translation.tr("Paper pigment")
+            colorKey: "paperColor"
+            configPath: "appearance.editorial.paperColor"
         }
         SliderRow {
             visible: Appearance.editorial.paperTone !== "neutral"
@@ -372,25 +363,31 @@ ColumnLayout {
             value: Appearance.editorial.paperTint
             configPath: "appearance.editorial.paperTint"
         }
-    }
-
-    ColorDialog {
-        id: paperColorDialog
-        selectedColor: Appearance.editorial.paperColor
-        onAccepted: Config.setNestedValue("appearance.editorial.paperColor", selectedColor.toString())
-    }
-    SettingsNativeDialogGuard {
-        dialog: paperColorDialog
-        dialogKey: "editorial-paper-pigment"
-    }
-
-    ContentSubsection { title: Translation.tr("Material & composition")
         SliderRow {
             label: Translation.tr("Paper warmth")
             description: Translation.tr("Adds a restrained paper tint while preserving theme color.")
             from: 0; to: 1; stepSize: 0.05
             value: Number(root.value("warmth", 0.55))
             configPath: "appearance.editorial.warmth"
+        }
+    }
+
+    ContentSubsection { title: Translation.tr("Accent ink")
+        ConfigSelectionArray {
+            currentValue: Appearance.editorial.accentRole
+            options: [
+                { displayName: Translation.tr("Wallpaper primary"), value: "primary" },
+                { displayName: Translation.tr("Wallpaper secondary"), value: "secondary" },
+                { displayName: Translation.tr("Wallpaper tertiary"), value: "tertiary" },
+                { displayName: Translation.tr("Custom ink"), value: "custom" }
+            ]
+            onSelected: value => Config.setNestedValue("appearance.editorial.accentRole", value)
+        }
+        ColorPickerRow {
+            visible: Appearance.editorial.accentRole === "custom"
+            label: Translation.tr("Accent pigment")
+            colorKey: "accentColor"
+            configPath: "appearance.editorial.accentColor"
         }
         SliderRow {
             label: Translation.tr("Accent intensity")
@@ -404,7 +401,7 @@ ColumnLayout {
             spacing: 8
             Repeater {
                 model: [
-                    { label: Translation.tr("Primary"), background: Appearance.editorial.field, foreground: Appearance.editorial.fieldInk },
+                    { label: Translation.tr("Accent"), background: Appearance.editorial.field, foreground: Appearance.editorial.fieldInk },
                     { label: Translation.tr("Secondary"), background: Appearance.editorial.secondaryField, foreground: Appearance.editorial.secondaryFieldInk },
                     { label: Translation.tr("Tertiary"), background: Appearance.editorial.tertiaryField, foreground: Appearance.editorial.tertiaryFieldInk }
                 ]
@@ -428,6 +425,9 @@ ColumnLayout {
                 }
             }
         }
+    }
+
+    ContentSubsection { title: Translation.tr("Composition")
         SliderRow {
             label: Translation.tr("Spacing")
             description: Translation.tr("Opens or tightens editorial gutters and section rhythm.")
