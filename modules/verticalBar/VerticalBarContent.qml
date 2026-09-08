@@ -105,12 +105,28 @@ Item { // Bar content region
     readonly property int barSpectrumSmoothing: Math.max(0, Config.options?.bar?.visualizer?.smoothing ?? 2)
     readonly property string barSpectrumWaveMode: Config.options?.bar?.visualizer?.waveMode ?? "fill"
     readonly property real barSpectrumLineWidth: Math.max(1, Config.options?.bar?.visualizer?.lineWidth ?? 2)
-    readonly property real barSpectrumEdgeInset: Math.max(0, Config.options?.bar?.visualizer?.edgeInset ?? 0)
+    readonly property real barSpectrumEdgeInset: Math.max(6, Config.options?.bar?.visualizer?.edgeInset ?? 6)
     readonly property real barSpectrumEdgeSoftness: Math.max(0,
-        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 28) / 100))
+        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 36) / 100))
     readonly property string barSpectrumFrequencyProfile: Config.options?.bar?.visualizer?.frequencyProfile ?? "flat"
     readonly property real barSpectrumAccentStrength: Math.max(0,
         Math.min(1, (Config.options?.bar?.visualizer?.accentStrength ?? 70) / 100))
+    readonly property string barSpectrumOrganicFit: Config.options?.bar?.visualizer?.organicFit ?? "auto"
+    readonly property real barSpectrumOrganicLayoutScale: barSpectrumOrganicFit === "aura" ? 1
+        : barSpectrumOrganicFit === "contained" ? 0.72 : 0.62
+    readonly property real barSpectrumOrganicSensitivity: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicSensitivity ?? 42) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicPulse: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicPulse ?? 55) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicMotionSpeed: Math.max(0.25, Math.min(1.5,
+        (Config.options?.bar?.visualizer?.organicMotionSpeed ?? 80) / 100))
+    readonly property real barSpectrumOrganicIdleMotion: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicIdleMotion ?? 0) / 100))
+    readonly property real barSpectrumOrganicGlow: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicGlow ?? 25) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicBaseRadius: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicBaseRadius ?? 36) / 100))
+    readonly property bool barSpectrumOrganicEdgeAura: barSpectrumOrganicFit === "aura"
     readonly property color barSpectrumColor: root.inirEverywhere ? Appearance.inir.colPrimary
         : root.zzzEverywhere ? Appearance.zzz.accent
         : Appearance.colors.colPrimary
@@ -277,9 +293,13 @@ Item { // Bar content region
         topRightRadius: root.barOnRight ? barBackground.bottomRightRadius : barBackground.topLeftRadius
         bottomLeftRadius: root.barOnRight ? barBackground.topLeftRadius : barBackground.bottomRightRadius
         bottomRightRadius: root.barOnRight ? barBackground.bottomLeftRadius : barBackground.topRightRadius
-        organicEdgeAura: true
-        organicSensitivity: 0.62
-        organicGlow: 0.38
+        organicEdgeAura: root.barSpectrumOrganicEdgeAura
+        organicSensitivity: root.barSpectrumOrganicSensitivity
+        organicPulse: root.barSpectrumOrganicPulse
+        organicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+        organicIdleMotion: root.barSpectrumOrganicIdleMotion
+        organicGlow: root.barSpectrumOrganicGlow
+        organicBaseRadius: root.barSpectrumOrganicBaseRadius
         organicOpacity: root.barSpectrumOpacity
     }
 
@@ -419,6 +439,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             padding: 8
             visible: Config.options?.bar?.modules?.taskbar ?? false
@@ -466,6 +493,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             padding: 8
             // Hide resources when taskbar is active to free vertical space
@@ -507,6 +541,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             padding: 6
 
@@ -552,6 +593,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             padding: 4
             visible: Config.options?.bar?.modules?.taskbar ?? false
@@ -596,6 +644,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             padding: 8
             visible: !(Config.options?.bar?.modules?.taskbar ?? false)

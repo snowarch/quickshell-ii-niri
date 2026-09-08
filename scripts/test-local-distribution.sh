@@ -1085,11 +1085,11 @@ if ! grep -Fq 'bool edgeMode = ubuf.presentationMode > 1.5' "$organic_shader" \
         || ! grep -Fq 'presentationMode: 2.0' "$audio_layer" \
         || ! grep -Fq 'root.clipSegments?.length' "$audio_layer" \
         || ! grep -Fq 'Math.min(64.0, width / Math.max(1, height))' "$organic_blob" \
-        || ! grep -Fq 'organicEdgeAura: true' "$bar_content" \
-        || ! grep -Fq 'organicEdgeAura: true' "$bar_group" \
-        || ! grep -Fq 'organicEdgeAura: true' "$m3_bar_content" \
+        || ! grep -Fq 'organicEdgeAura: root.barSpectrumOrganicEdgeAura' "$bar_content" \
+        || ! grep -Fq 'organicEdgeAura: root.spectrumOrganicEdgeAura' "$bar_group" \
+        || ! grep -Fq 'organicEdgeAura: root.spectrumOrganicEdgeAura' "$m3_bar_content" \
         || ! grep -Fq 'id: organicPillAura' "$pill_spectrum" \
-        || ! grep -Fq 'organicEdgeAura: true' "$vertical_bar_content" \
+        || ! grep -Fq 'organicEdgeAura: root.barSpectrumOrganicEdgeAura' "$vertical_bar_content" \
         || ! grep -Fq 'organicAuraAllowance' "$runtime_root/modules/bar/Bar.qml" \
         || ! grep -Fq 'organicAuraAllowance' "$runtime_root/modules/barM3/M3Bar.qml" \
         || ! grep -Fq 'organicAuraAllowance' "$runtime_root/modules/verticalBar/VerticalBar.qml" \

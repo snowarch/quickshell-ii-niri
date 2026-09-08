@@ -2151,7 +2151,7 @@ Singleton {
                     property bool showGlyphs: true // 時 kanji instead of a clock icon at rest
                     property bool clockSeconds: false
                     property bool time12h: false
-                    property bool musicViz: true // Draw live spectrum wings outside the pill
+                    property bool musicViz: false // Draw live spectrum wings outside the pill
                     property bool toasts: true // Notification toasts take over the resting pill
                     property bool osd: true // Volume/brightness/mic/workspace changes flash on the pill
                     property bool compactAnnounces: false // Keep toast/OSD faces at the resting pill size
@@ -2373,10 +2373,17 @@ Singleton {
                     property int smoothing: 2 // Frequency smoothing radius
                     property string waveMode: "fill" // "fill" | "line" | "ribbon"
                     property real lineWidth: 2 // Wave edge width, px
-                    property int edgeInset: 0 // Horizontal inset from each surface edge, px
-                    property int edgeSoftness: 28 // Curvature-aware peak headroom, 0-100
+                    property int edgeInset: 6 // Horizontal inset from each surface edge, px
+                    property int edgeSoftness: 36 // Curvature-aware peak headroom, 0-100
                     property string frequencyProfile: "flat" // "flat" | "bass" | "warm" | "vocal" | "treble" | "smile"
                     property int accentStrength: 70 // Frequency profile strength, 0-100
+                    property string organicFit: "auto" // "auto" | "contained" | "aura"
+                    property int organicSensitivity: 42 // Organic deformation gain, 0-100
+                    property int organicPulse: 55 // Beat response, 0-100
+                    property int organicMotionSpeed: 80 // Motion speed, 25-150
+                    property int organicIdleMotion: 0 // Idle deformation while signal is quiet, 0-100
+                    property int organicGlow: 25 // Organic glow amount, 0-100
+                    property int organicBaseRadius: 36 // Base contour roundness, 0-100
                     property string pillWingMode: "bounded" // "bounded" | "screen" | "bleed"
                     property int pillWingLength: 180 // Spectrum length on each side of the pill, px
                     property int pillWingGap: 12 // Air between the pill and each spectrum wing, px

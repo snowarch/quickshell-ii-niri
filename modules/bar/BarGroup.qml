@@ -23,10 +23,17 @@ Item {
     property int spectrumSmoothing: 2
     property string spectrumWaveMode: "fill"
     property real spectrumLineWidth: 2
-    property real spectrumEdgeInset: 0
-    property real spectrumEdgeSoftness: 0.28
+    property real spectrumEdgeInset: 6
+    property real spectrumEdgeSoftness: 0.36
     property string spectrumFrequencyProfile: "flat"
     property real spectrumAccentStrength: 0.7
+    property real spectrumOrganicSensitivity: 0.32
+    property real spectrumOrganicPulse: 0.42
+    property real spectrumOrganicMotionSpeed: 0.8
+    property real spectrumOrganicIdleMotion: 0
+    property real spectrumOrganicGlow: 0.18
+    property bool spectrumOrganicEdgeAura: false
+    property real spectrumOrganicBaseRadius: 0.36
     property Item spectrumDomain: null
     // Islands: the capsule needs real breathing room around content (matches
     // the edge islands' inner padding); classic groups keep the tight fit and
@@ -140,14 +147,14 @@ Item {
             edgeSoftness: root.spectrumEdgeSoftness
             frequencyProfile: root.spectrumFrequencyProfile
             accentStrength: root.spectrumAccentStrength
-            organicSensitivity: 0.62
-            organicPulse: 0.72
-            organicMotionSpeed: 0.9
-            organicIdleMotion: 0.18
-            organicGlow: 0.38
+            organicSensitivity: root.spectrumOrganicSensitivity
+            organicPulse: root.spectrumOrganicPulse
+            organicMotionSpeed: root.spectrumOrganicMotionSpeed
+            organicIdleMotion: root.spectrumOrganicIdleMotion
+            organicGlow: root.spectrumOrganicGlow
             organicOpacity: root.spectrumOpacity
-            organicEdgeAura: true
-            organicBaseRadius: 0.42
+            organicEdgeAura: root.spectrumOrganicEdgeAura
+            organicBaseRadius: root.spectrumOrganicBaseRadius
             topLeftRadius: islandSurface.radius
             topRightRadius: islandSurface.radius
             bottomLeftRadius: islandSurface.radius

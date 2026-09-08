@@ -136,6 +136,7 @@ Scope {
                 readonly property real organicAuraAllowance:
                     (Config.options?.bar?.visualizer?.enable ?? false)
                         && (Config.options?.bar?.visualizer?.type ?? "bars") === "organic"
+                        && (Config.options?.bar?.visualizer?.organicFit ?? "auto") === "aura"
                     ? Math.ceil(barRoot.panelSurfaceHeight * 1.75) : 0
                 exclusionMode: ExclusionMode.Ignore
                 exclusiveZone: GlobalStates.coverflowSelectorOpen ? 0

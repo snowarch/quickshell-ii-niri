@@ -147,12 +147,28 @@ Item {
     readonly property int spectrumSmoothing: Math.max(0, Config.options?.bar?.visualizer?.smoothing ?? 2)
     readonly property string spectrumWaveMode: Config.options?.bar?.visualizer?.waveMode ?? "fill"
     readonly property real spectrumLineWidth: Math.max(1, Config.options?.bar?.visualizer?.lineWidth ?? 2)
-    readonly property real spectrumEdgeInset: Math.max(0, Config.options?.bar?.visualizer?.edgeInset ?? 0)
+    readonly property real spectrumEdgeInset: Math.max(6, Config.options?.bar?.visualizer?.edgeInset ?? 6)
     readonly property real spectrumEdgeSoftness: Math.max(0,
-        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 28) / 100))
+        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 36) / 100))
     readonly property string spectrumFrequencyProfile: Config.options?.bar?.visualizer?.frequencyProfile ?? "flat"
     readonly property real spectrumAccentStrength: Math.max(0,
         Math.min(1, (Config.options?.bar?.visualizer?.accentStrength ?? 70) / 100))
+    readonly property string spectrumOrganicFit: Config.options?.bar?.visualizer?.organicFit ?? "auto"
+    readonly property real spectrumOrganicLayoutScale: spectrumOrganicFit === "aura" ? 1
+        : spectrumOrganicFit === "contained" ? 0.72 : 0.68
+    readonly property real spectrumOrganicSensitivity: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicSensitivity ?? 42) / 100)) * spectrumOrganicLayoutScale
+    readonly property real spectrumOrganicPulse: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicPulse ?? 55) / 100)) * spectrumOrganicLayoutScale
+    readonly property real spectrumOrganicMotionSpeed: Math.max(0.25, Math.min(1.5,
+        (Config.options?.bar?.visualizer?.organicMotionSpeed ?? 80) / 100))
+    readonly property real spectrumOrganicIdleMotion: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicIdleMotion ?? 0) / 100))
+    readonly property real spectrumOrganicGlow: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicGlow ?? 25) / 100)) * spectrumOrganicLayoutScale
+    readonly property real spectrumOrganicBaseRadius: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicBaseRadius ?? 36) / 100))
+    readonly property bool spectrumOrganicEdgeAura: spectrumOrganicFit === "aura"
     readonly property bool materialSpectrum: root.isMaterial
         && (Config.options?.bar?.m3?.borderless ?? "separated") !== "transparent"
 
@@ -198,14 +214,14 @@ Item {
         edgeSoftness: root.spectrumEdgeSoftness
         frequencyProfile: root.spectrumFrequencyProfile
         accentStrength: root.spectrumAccentStrength
-        organicSensitivity: 0.62
-        organicPulse: 0.72
-        organicMotionSpeed: 0.9
-        organicIdleMotion: 0.18
-        organicGlow: 0.38
+        organicSensitivity: root.spectrumOrganicSensitivity
+        organicPulse: root.spectrumOrganicPulse
+        organicMotionSpeed: root.spectrumOrganicMotionSpeed
+        organicIdleMotion: root.spectrumOrganicIdleMotion
+        organicGlow: root.spectrumOrganicGlow
         organicOpacity: root.spectrumOpacity
-        organicEdgeAura: true
-        organicBaseRadius: 0.42
+        organicEdgeAura: root.spectrumOrganicEdgeAura
+        organicBaseRadius: root.spectrumOrganicBaseRadius
     }
 
     // Every widget is loaded through a URL, so its optional inputs are wired

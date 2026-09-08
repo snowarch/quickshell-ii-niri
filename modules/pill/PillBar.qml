@@ -482,7 +482,7 @@ Scope {
                     || Quickshell.screens.length <= 1
                     || String(overlay.modelData?.name ?? "")
                         === String(GlobalStates.primaryScreen?.name ?? "")
-                readonly property bool spectrumConfigured: (Config.options?.bar?.pill?.musicViz ?? true)
+                readonly property bool spectrumConfigured: (Config.options?.bar?.pill?.musicViz ?? false)
                     && spectrumOutputEnabled
                     && !Appearance.gameModeMinimal
                 readonly property bool spectrumProcessWanted: spectrumConfigured && spectrumPlaying

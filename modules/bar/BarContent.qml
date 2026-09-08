@@ -276,12 +276,35 @@ Item { // Bar content region
     readonly property int barSpectrumSmoothing: Math.max(0, Config.options?.bar?.visualizer?.smoothing ?? 2)
     readonly property string barSpectrumWaveMode: Config.options?.bar?.visualizer?.waveMode ?? "fill"
     readonly property real barSpectrumLineWidth: Math.max(1, Config.options?.bar?.visualizer?.lineWidth ?? 2)
-    readonly property real barSpectrumEdgeInset: Math.max(0, Config.options?.bar?.visualizer?.edgeInset ?? 0)
+    readonly property real barSpectrumEdgeInset: Math.max(6, Config.options?.bar?.visualizer?.edgeInset ?? 6)
     readonly property real barSpectrumEdgeSoftness: Math.max(0,
-        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 28) / 100))
+        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 36) / 100))
     readonly property string barSpectrumFrequencyProfile: Config.options?.bar?.visualizer?.frequencyProfile ?? "flat"
     readonly property real barSpectrumAccentStrength: Math.max(0,
         Math.min(1, (Config.options?.bar?.visualizer?.accentStrength ?? 70) / 100))
+    readonly property string barSpectrumOrganicFit: Config.options?.bar?.visualizer?.organicFit ?? "auto"
+    readonly property real barSpectrumOrganicLayoutScale: {
+        if (root.barSpectrumOrganicFit === "aura") return 1
+        if (root.barSpectrumOrganicFit === "contained") return 0.72
+        if (root.isIslands) return 0.78
+        if (root.isFrame) return 0.74
+        if (root.isScenic) return 0.82
+        if (root.barAppearance === "m3") return 0.68
+        return 0.88
+    }
+    readonly property real barSpectrumOrganicSensitivity: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicSensitivity ?? 42) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicPulse: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicPulse ?? 55) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicMotionSpeed: Math.max(0.25, Math.min(1.5,
+        (Config.options?.bar?.visualizer?.organicMotionSpeed ?? 80) / 100))
+    readonly property real barSpectrumOrganicIdleMotion: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicIdleMotion ?? 0) / 100))
+    readonly property real barSpectrumOrganicGlow: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicGlow ?? 25) / 100)) * barSpectrumOrganicLayoutScale
+    readonly property real barSpectrumOrganicBaseRadius: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicBaseRadius ?? 36) / 100))
+    readonly property bool barSpectrumOrganicEdgeAura: root.barSpectrumOrganicFit === "aura"
     readonly property color barSpectrumColor: root.inirEverywhere ? Appearance.inir.colPrimary
         : root.zzzEverywhere ? Appearance.zzz.accent
         : root.regaliaEverywhere ? Appearance.regalia.hardwarePrimary
@@ -381,14 +404,14 @@ Item { // Bar content region
             edgeSoftness: root.barSpectrumEdgeSoftness
             frequencyProfile: root.barSpectrumFrequencyProfile
             accentStrength: root.barSpectrumAccentStrength
-            organicSensitivity: 0.62
-            organicPulse: 0.72
-            organicMotionSpeed: 0.9
-            organicIdleMotion: 0.18
-            organicGlow: 0.38
+            organicSensitivity: root.barSpectrumOrganicSensitivity
+            organicPulse: root.barSpectrumOrganicPulse
+            organicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            organicIdleMotion: root.barSpectrumOrganicIdleMotion
+            organicGlow: root.barSpectrumOrganicGlow
             organicOpacity: root.barSpectrumOpacity
-            organicEdgeAura: true
-            organicBaseRadius: 0.42
+            organicEdgeAura: root.barSpectrumOrganicEdgeAura
+            organicBaseRadius: root.barSpectrumOrganicBaseRadius
             topLeftRadius: edgeIsland.radius
             topRightRadius: edgeIsland.radius
             bottomLeftRadius: edgeIsland.radius
@@ -1039,14 +1062,14 @@ Item { // Bar content region
             edgeSoftness: root.barSpectrumEdgeSoftness
             frequencyProfile: root.barSpectrumFrequencyProfile
             accentStrength: root.barSpectrumAccentStrength
-            organicSensitivity: 0.62
-            organicPulse: 0.72
-            organicMotionSpeed: 0.9
-            organicIdleMotion: 0.18
-            organicGlow: 0.38
+            organicSensitivity: root.barSpectrumOrganicSensitivity
+            organicPulse: root.barSpectrumOrganicPulse
+            organicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            organicIdleMotion: root.barSpectrumOrganicIdleMotion
+            organicGlow: root.barSpectrumOrganicGlow
             organicOpacity: root.barSpectrumOpacity
-            organicEdgeAura: true
-            organicBaseRadius: 0.42
+            organicEdgeAura: root.barSpectrumOrganicEdgeAura
+            organicBaseRadius: root.barSpectrumOrganicBaseRadius
             topLeftRadius: barBackground.topLeftRadius
             topRightRadius: barBackground.topRightRadius
             bottomLeftRadius: barBackground.bottomLeftRadius
@@ -1171,6 +1194,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1230,6 +1260,13 @@ Item { // Bar content region
             spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
             spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
             spectrumAccentStrength: root.barSpectrumAccentStrength
+            spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+            spectrumOrganicPulse: root.barSpectrumOrganicPulse
+            spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+            spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+            spectrumOrganicGlow: root.barSpectrumOrganicGlow
+            spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+            spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
             spectrumDomain: root
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: (Config.options?.bar.borderless ?? false) ? leftSeparator.left : middleCenterGroup.left
@@ -1305,6 +1342,13 @@ Item { // Bar content region
                 spectrumEdgeSoftness: root.barSpectrumEdgeSoftness
                 spectrumFrequencyProfile: root.barSpectrumFrequencyProfile
                 spectrumAccentStrength: root.barSpectrumAccentStrength
+                spectrumOrganicSensitivity: root.barSpectrumOrganicSensitivity
+                spectrumOrganicPulse: root.barSpectrumOrganicPulse
+                spectrumOrganicMotionSpeed: root.barSpectrumOrganicMotionSpeed
+                spectrumOrganicIdleMotion: root.barSpectrumOrganicIdleMotion
+                spectrumOrganicGlow: root.barSpectrumOrganicGlow
+                spectrumOrganicEdgeAura: root.barSpectrumOrganicEdgeAura
+                spectrumOrganicBaseRadius: root.barSpectrumOrganicBaseRadius
                 spectrumDomain: root
                 anchors.verticalCenter: parent.verticalCenter
                 // Islands: each capsule hugs its own content (no symmetric mirroring,

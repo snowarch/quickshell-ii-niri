@@ -168,7 +168,7 @@ ContentPage {
     readonly property bool showBackground: Config.options?.bar?.showBackground ?? true
     readonly property string barAppearance: Config.options?.bar?.appearanceStyle ?? "classic"
     readonly property bool spectrumEnabled: root.barAppearance === "pill"
-        ? (Config.options?.bar?.pill?.musicViz ?? true)
+        ? (Config.options?.bar?.pill?.musicViz ?? false)
         : (Config.options?.bar?.visualizer?.enable ?? false)
     readonly property color workspaceThemeIndicatorColor: Appearance.zzzEverywhere ? Appearance.zzz.accentSoft
         : Appearance.angelEverywhere ? Appearance.angel.colPrimary : Appearance.colors.colPrimary
@@ -218,17 +218,24 @@ ContentPage {
             "bar.visualizer.smoothing": 2,
             "bar.visualizer.waveMode": "fill",
             "bar.visualizer.lineWidth": 2,
-            "bar.visualizer.edgeInset": 0,
-            "bar.visualizer.edgeSoftness": 28,
+            "bar.visualizer.edgeInset": 6,
+            "bar.visualizer.edgeSoftness": 36,
             "bar.visualizer.frequencyProfile": "flat",
             "bar.visualizer.accentStrength": 70,
+            "bar.visualizer.organicFit": "auto",
+            "bar.visualizer.organicSensitivity": 42,
+            "bar.visualizer.organicPulse": 55,
+            "bar.visualizer.organicMotionSpeed": 80,
+            "bar.visualizer.organicIdleMotion": 0,
+            "bar.visualizer.organicGlow": 25,
+            "bar.visualizer.organicBaseRadius": 36,
             "bar.visualizer.pillWingMode": "bounded",
             "bar.visualizer.pillWingLength": 180,
             "bar.visualizer.pillWingGap": 12,
             "bar.visualizer.pillScreenPadding": 24,
             "bar.visualizer.pillUnderlap": 28,
             "bar.visualizer.pillEdgeFade": 92,
-            "bar.pill.musicViz": true,
+            "bar.pill.musicViz": false,
         })
     }
 
@@ -1506,6 +1513,22 @@ ContentPage {
                 }
 
                 ConfigSelectionArray {
+                    visible: (Config.options?.bar?.visualizer?.type ?? "bars") === "organic"
+                    enabled: root.spectrumEnabled
+                    opacity: enabled ? 1 : 0.5
+                    currentValue: Config.options?.bar?.visualizer?.organicFit ?? "auto"
+                    onSelected: newValue => root.setSpectrumValue("bar.visualizer.organicFit", newValue)
+                    options: [
+                        { displayName: Translation.tr("Auto fit"), icon: "auto_awesome", value: "auto" },
+                        { displayName: Translation.tr("Contained"), icon: "crop_free", value: "contained" },
+                        { displayName: Translation.tr("Edge aura"), icon: "flare", value: "aura" },
+                    ]
+                    StyledToolTip {
+                        text: Translation.tr("Auto scales Organic to the active bar layout. Contained keeps deformation inside the surface; Edge aura allows it to breathe beyond the edge.")
+                    }
+                }
+
+                ConfigSelectionArray {
                     enabled: root.spectrumEnabled
                     opacity: enabled ? 1 : 0.5
                     currentValue: Config.options?.bar?.visualizer?.frequencyProfile ?? "flat"
@@ -1598,8 +1621,8 @@ ContentPage {
                         ConfigSpinBox {
                             icon: "width_full"
                             text: Translation.tr("Edge inset (px)")
-                            value: Config.options?.bar?.visualizer?.edgeInset ?? 0
-                            from: 0
+                            value: Math.max(6, Config.options?.bar?.visualizer?.edgeInset ?? 6)
+                            from: 6
                             to: 32
                             stepSize: 1
                             onValueChanged: root.setSpectrumValue("bar.visualizer.edgeInset", value)
@@ -1607,7 +1630,7 @@ ContentPage {
                         ConfigSpinBox {
                             icon: "rounded_corner"
                             text: Translation.tr("Curve headroom (%)")
-                            value: Config.options?.bar?.visualizer?.edgeSoftness ?? 28
+                            value: Config.options?.bar?.visualizer?.edgeSoftness ?? 36
                             from: 0
                             to: 100
                             stepSize: 5
@@ -1629,6 +1652,70 @@ ContentPage {
                         enabled: (Config.options?.bar?.visualizer?.frequencyProfile ?? "flat") !== "flat"
                         opacity: enabled ? 1 : 0.45
                         onValueChanged: root.setSpectrumValue("bar.visualizer.accentStrength", value)
+                    }
+
+                    ConfigRow {
+                        visible: (Config.options?.bar?.visualizer?.type ?? "bars") === "organic"
+                        uniform: true
+                        ConfigSpinBox {
+                            icon: "graphic_eq"
+                            text: Translation.tr("Organic response (%)")
+                            value: Config.options?.bar?.visualizer?.organicSensitivity ?? 42
+                            from: 0
+                            to: 100
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicSensitivity", value)
+                        }
+                        ConfigSpinBox {
+                            icon: "pulse_alert"
+                            text: Translation.tr("Beat pulse (%)")
+                            value: Config.options?.bar?.visualizer?.organicPulse ?? 55
+                            from: 0
+                            to: 100
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicPulse", value)
+                        }
+                        ConfigSpinBox {
+                            icon: "speed"
+                            text: Translation.tr("Motion speed (%)")
+                            value: Config.options?.bar?.visualizer?.organicMotionSpeed ?? 80
+                            from: 25
+                            to: 150
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicMotionSpeed", value)
+                        }
+                    }
+
+                    ConfigRow {
+                        visible: (Config.options?.bar?.visualizer?.type ?? "bars") === "organic"
+                        uniform: true
+                        ConfigSpinBox {
+                            icon: "motion_blur"
+                            text: Translation.tr("Idle motion (%)")
+                            value: Config.options?.bar?.visualizer?.organicIdleMotion ?? 0
+                            from: 0
+                            to: 100
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicIdleMotion", value)
+                        }
+                        ConfigSpinBox {
+                            icon: "flare"
+                            text: Translation.tr("Glow (%)")
+                            value: Config.options?.bar?.visualizer?.organicGlow ?? 25
+                            from: 0
+                            to: 100
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicGlow", value)
+                        }
+                        ConfigSpinBox {
+                            icon: "rounded_corner"
+                            text: Translation.tr("Contour roundness (%)")
+                            value: Config.options?.bar?.visualizer?.organicBaseRadius ?? 36
+                            from: 0
+                            to: 100
+                            stepSize: 5
+                            onValueChanged: root.setSpectrumValue("bar.visualizer.organicBaseRadius", value)
+                        }
                     }
 
                     ConfigSelectionArray {

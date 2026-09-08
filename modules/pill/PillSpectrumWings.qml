@@ -73,17 +73,32 @@ Item {
     readonly property string waveMode: Config.options?.bar?.visualizer?.waveMode ?? "ribbon"
     readonly property real lineWidth: Math.max(1,
         Config.options?.bar?.visualizer?.lineWidth ?? 2) * root.s
-    readonly property real edgeInset: Math.max(0,
-        Config.options?.bar?.visualizer?.edgeInset ?? 0) * root.s
+    readonly property real edgeInset: Math.max(6,
+        Config.options?.bar?.visualizer?.edgeInset ?? 6) * root.s
     readonly property real fillRatio: Math.max(0.1,
         Math.min(1, Config.options?.bar?.visualizer?.height ?? 0.6))
     readonly property real spectrumOpacity: Math.max(0,
         Math.min(1, Config.options?.bar?.visualizer?.opacity ?? 0.35))
     readonly property real edgeSoftness: Math.max(0,
-        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 28) / 100))
+        Math.min(1, (Config.options?.bar?.visualizer?.edgeSoftness ?? 36) / 100))
     readonly property string frequencyProfile: Config.options?.bar?.visualizer?.frequencyProfile ?? "flat"
     readonly property real accentStrength: Math.max(0,
         Math.min(1, (Config.options?.bar?.visualizer?.accentStrength ?? 70) / 100))
+    readonly property string organicFit: Config.options?.bar?.visualizer?.organicFit ?? "auto"
+    readonly property real organicFitScale: organicFit === "aura" ? 1
+        : organicFit === "contained" ? 0.72 : 0.82
+    readonly property real organicSensitivity: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicSensitivity ?? 42) / 100)) * organicFitScale
+    readonly property real organicPulse: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicPulse ?? 55) / 100)) * organicFitScale
+    readonly property real organicMotionSpeed: Math.max(0.25, Math.min(1.5,
+        (Config.options?.bar?.visualizer?.organicMotionSpeed ?? 80) / 100))
+    readonly property real organicIdleMotion: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicIdleMotion ?? 0) / 100))
+    readonly property real organicGlow: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicGlow ?? 25) / 100)) * organicFitScale
+    readonly property real organicBaseRadius: Math.max(0, Math.min(1,
+        (Config.options?.bar?.visualizer?.organicBaseRadius ?? 36) / 100))
     readonly property real outerTaper: Math.max(24 * root.s,
         Math.min(96 * root.s, root.wingHeight * (1.35 + root.edgeSoftness)))
 
@@ -150,16 +165,16 @@ Item {
         smoothing: root.smoothing
         frequencyProfile: root.frequencyProfile
         accentStrength: root.accentStrength
-        organicSensitivity: 0.62
-        organicPulse: 0.72
-        organicMotionSpeed: 0.9
-        organicIdleMotion: 0.18
-        organicGlow: 0.38
+        organicSensitivity: root.organicSensitivity
+        organicPulse: root.organicPulse
+        organicMotionSpeed: root.organicMotionSpeed
+        organicIdleMotion: root.organicIdleMotion
+        organicGlow: root.organicGlow
         organicOpacity: root.spectrumOpacity
-        organicEdgeAura: true
+        organicEdgeAura: root.organicFit !== "contained"
         organicEdgeReach: Math.max(18 * root.s,
             Math.min(root.wingLength * 0.34, 58 * root.s))
-        organicBaseRadius: 0.42
+        organicBaseRadius: root.organicBaseRadius
         topLeftRadius: height / 2
         topRightRadius: height / 2
         bottomLeftRadius: height / 2
