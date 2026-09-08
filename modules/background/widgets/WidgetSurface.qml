@@ -61,14 +61,16 @@ Rectangle {
     readonly property bool _island: root._surfaceDialect === "island"
     readonly property real _surfaceStrength: Math.max(0, Math.min(1, Number(root.surfaceOpacity) || 0))
     readonly property bool _backgroundVisible: root._surfaceStrength > 0.001
+    readonly property bool _editorialStack: root._editorial && root._backgroundVisible && Appearance.editorial.paperStack
     // Explicit Island style owns its material opacity. A widget's legacy
     // backgroundOpacity controls whether the plate exists, but must not multiply
     // the shared Ricelin opacity again or every widget becomes nearly invisible.
     readonly property real _plateAlpha: root._backgroundVisible
-        ? (root._island ? 1 : Math.min(0.96, 0.72 + root._surfaceStrength * 0.24)) : 0
+        ? (root._island ? 1 : root._editorial ? (root._glass ? Appearance.editorial.glassOpacity : Math.min(1, 0.86 + root._surfaceStrength * 0.14)) : Math.min(0.96, 0.72 + root._surfaceStrength * 0.24)) : 0
     readonly property bool _glass: !root._island && root._backgroundVisible
         && Appearance.blurBackendFor("widgets", Appearance.blurTopology.unsupported) === "wallpaper"
         && root.surfaceUseBlur
+        && (!root._editorial || Appearance.editorial.glassActive)
     readonly property string _wallpaperUrl: WallpaperListener.wallpaperUrlForScreen(root.QsWindow?.window?.screen ?? null)
 
     // Wallpaper region brightness behind the widget (0-1; -1 = unknown).
@@ -118,6 +120,7 @@ Rectangle {
         cookie: root._cookie,
         island: root._island,
         glass: root._glass,
+        paperStack: root._editorialStack,
         visible: root.visible,
         backgroundOpacity: root.surfaceOpacity,
         backgroundVisible: root._backgroundVisible,
@@ -128,7 +131,8 @@ Rectangle {
     })
 
     radius: surfaceRadius
-    color: _island ? "transparent"
+    color: _editorialStack ? "transparent"
+        : _island ? "transparent"
         : _glass ? "transparent"
         : _zzz ? "transparent"
         : _cookie ? "transparent"
@@ -198,7 +202,7 @@ Rectangle {
         anchors.fill: parent
         radius: root.radius
         color: "transparent"
-        visible: !root._zzz && !root._cookie && !root._regalia && !root._island && !root._angel
+        visible: !root._editorialStack && !root._zzz && !root._cookie && !root._regalia && !root._island && !root._angel
             && root.surfaceBorderWidth > 0 && root.surfaceBorderOpacity > 0
         border.width: root.surfaceBorderWidth
         border.color: root._inir
@@ -273,17 +277,30 @@ Rectangle {
                 : 0.15
             blurEnabled: true
             blurMax: Math.max(1, Math.round(64 * root._blurScale))
-            blur: root._angel ? Appearance.angel.blurIntensity : 0.8
+            blur: root._editorial ? Appearance.editorial.glassBlur : root._angel ? Appearance.angel.blurIntensity : 0.8
         }
     }
 
     // Tinted overlay for aurora/angel — island tints with its own gradient below.
     Rectangle {
         anchors.fill: parent
-        visible: root._glass && !root._island
-        color: root._angel
+        visible: root._glass && !root._island && !root._editorialStack
+        color: root._editorial ? root._flatFill
+            : root._angel
             ? ColorUtils.transparentize(Appearance.colors.colLayer0Base, Appearance.angel.overlayOpacity)
             : ColorUtils.transparentize(Appearance.colors.colLayer0Base, Appearance.aurora.popupTransparentize * 1.2)
+    }
+
+    EditorialPaperStack {
+        anchors.fill: parent
+        visible: root._editorialStack
+        radius: root.radius
+        faceColor: root.colorMode === "auto" ? root.surfaceFill : root._plate
+        materialOpacity: root._plateAlpha
+        backingOpacity: root._glass ? Appearance.editorial.glassBackingOpacity : root._plateAlpha
+        edgeWidth: root.surfaceBorderWidth
+        edgeColor: ColorUtils.applyAlpha(Appearance.editorial.edge, root.surfaceBorderOpacity)
+        backingEdgeColor: ColorUtils.applyAlpha(Appearance.editorial.accent, root.surfaceBorderOpacity)
     }
 
     RicelinSurface {

@@ -209,7 +209,7 @@ AbstractBackgroundWidget {
             implicitWidth: Math.min(parent.width,
                 weatherChip.implicitWidth + Math.round(18 * root.scaleFactor))
             implicitHeight: weatherChip.implicitHeight + Math.round(9 * root.scaleFactor)
-            radius: height / 2
+            radius: root.widgetEditorial ? root.widgetControlRadius : height / 2
             color: root.widgetSemanticContainer(root.widgetTertiaryRole)
 
             RowLayout {
@@ -232,7 +232,7 @@ AbstractBackgroundWidget {
                     elide: Text.ElideRight
                     color: root.widgetSemanticOnContainer(root.widgetTertiaryRole)
                     font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                    font.weight: Font.Medium
+                    font.weight: root.widgetLabelWeight
                 }
             }
         }
@@ -270,7 +270,7 @@ AbstractBackgroundWidget {
                         text: Translation.tr("Lock")
                         color: root.widgetSemanticOnContainer(root.widgetPrimaryRole)
                         font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                        font.weight: Font.Medium
+                        font.weight: root.widgetLabelWeight
                     }
                     Item {
                         Layout.fillWidth: true

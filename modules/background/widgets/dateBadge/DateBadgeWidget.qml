@@ -75,7 +75,7 @@ AbstractBackgroundWidget {
             horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter
             color: root.widgetInk
             font.pixelSize: Appearance.font.pixelSize.small * root.scaleFactor
-            font.weight: Font.Medium
+            font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Medium
             elide: Text.ElideRight
         }
         StyledText {

@@ -29,7 +29,7 @@ RippleButton {
     // background, which means an icon-only tab morphs to cookie6 and a labelled
     // one becomes a scalloped pill — one silhouette, whatever the tab's width.
     cookieMorphing: Appearance.cookieEverywhere
-    toggled: (Appearance.regaliaEverywhere || Appearance.cookieEverywhere || Appearance.editorialEverywhere) && root.current
+    toggled: (Appearance.regaliaEverywhere || Appearance.cookieEverywhere) && root.current
     colBackgroundToggled: Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlate
         : Appearance.editorialEverywhere ? Appearance.editorial.field
         : Appearance.colors.colPrimaryContainer
@@ -43,6 +43,7 @@ RippleButton {
         : Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.contrastPlate, 0.14)
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
         : Appearance.inirEverywhere ? ColorUtils.transparentize(Appearance.inir.colText, 0.92)
+        : Appearance.editorialEverywhere ? Appearance.editorial.controlHover
         : ColorUtils.transparentize(Appearance.colors.colOnSurface, 0.95)
     colRipple: current ? "transparent" 
         : Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.16)
@@ -73,7 +74,7 @@ RippleButton {
                 : Appearance.cookieEverywhere && root.current
                 ? Appearance.colors.colOnPrimaryContainer
                 : Appearance.editorialEverywhere
-                ? (root.current ? Appearance.editorial.ink : Appearance.editorial.muted)
+                ? (root.current ? Appearance.editorial.accent : Appearance.editorial.ink)
                 : Appearance.angelEverywhere
                 ? (root.current ? Appearance.angel.colOnPrimary : Appearance.angel.colText)
                 : Appearance.inirEverywhere
@@ -105,7 +106,7 @@ RippleButton {
                 anchors.verticalCenter: parent.verticalCenter
                 text: Appearance.zzzEverywhere ? root.text.toUpperCase() : root.text
                 font.family: Appearance.zzzEverywhere ? Appearance.font.family.title : Appearance.font.family.main
-                font.weight: Appearance.zzzEverywhere ? (root.current ? Font.Black : Font.Bold) : Font.Normal
+                font.weight: Appearance.zzzEverywhere ? (root.current ? Font.Black : Font.Bold) : Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Normal
                 color: Appearance.regaliaEverywhere
                     ? (root.current ? Appearance.regalia.primaryPlateInk : Appearance.regalia.onMuted)
                     : Appearance.zzzEverywhere
@@ -116,7 +117,7 @@ RippleButton {
                     : Appearance.cookieEverywhere && root.current
                     ? Appearance.colors.colOnPrimaryContainer
                     : Appearance.editorialEverywhere
-                    ? (root.current ? Appearance.editorial.ink : Appearance.editorial.muted)
+                    ? (root.current ? Appearance.editorial.accent : Appearance.editorial.ink)
                     : Appearance.angelEverywhere
                     ? (root.current ? Appearance.angel.colOnPrimary : Appearance.angel.colText)
                     : Appearance.inirEverywhere

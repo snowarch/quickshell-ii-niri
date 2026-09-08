@@ -90,12 +90,12 @@ Singleton {
     readonly property real shadowOpacity: 0.5
 
     /** Shared Ricelin material. Pill and every Island surface read one owner. */
-    readonly property real islandRadius: Appearance.editorialEverywhere ? Appearance.editorial.radius : (Config.options?.appearance?.island?.radius ?? 18)
+    readonly property real islandRadius: Config.options?.appearance?.island?.radius ?? 18
     readonly property bool islandShadow: Config.options?.appearance?.island?.shadow ?? true
     readonly property bool islandSheen: !Appearance.editorialEverywhere && (Config.options?.appearance?.island?.sheen ?? true)
-    readonly property bool islandGlass: !Appearance.editorialEverywhere && (Config.options?.appearance?.island?.glass ?? true)
+    readonly property bool islandGlass: Config.options?.appearance?.island?.glass ?? true
     readonly property real islandGlassBlur: Config.options?.appearance?.island?.glassBlur ?? 1
-    readonly property real islandOpacity: Appearance.editorialEverywhere ? 1 : (Config.options?.appearance?.island?.opacity ?? 1)
+    readonly property real islandOpacity: Config.options?.appearance?.island?.opacity ?? 1
 
     /**
      * Global-style character. Ricelin keeps its own deliberate radius ladder

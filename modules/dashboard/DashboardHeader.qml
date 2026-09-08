@@ -75,10 +75,10 @@ RowLayout {
             Layout.minimumWidth: 0
             visible: Appearance.editorialEverywhere
             text: Translation.tr("DASHBOARD")
-            font.family: Appearance.font.family.title
+            font.family: Appearance.font.family.main
             font.pixelSize: Appearance.font.pixelSize.smallest
-            font.weight: Font.DemiBold
-            font.letterSpacing: 1.0
+            font.weight: Appearance.editorial.labelWeight
+            font.letterSpacing: Appearance.editorial.metadataTracking
             color: root.colText
             elide: Text.ElideRight
         }

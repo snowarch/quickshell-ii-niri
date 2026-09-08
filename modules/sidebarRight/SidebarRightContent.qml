@@ -469,6 +469,9 @@ Item {
         readonly property bool auroraEverywhere: surfaceDialect === "aurora" || angelEverywhere
         readonly property bool inirEverywhere: surfaceDialect === "inir"
         readonly property bool gameModeMinimal: Appearance.gameModeMinimal
+        readonly property bool editorialGlassActive: surfaceDialect === "editorial"
+            && Appearance.editorial.sidebarFullGlass
+            && !gameModeMinimal && !islandStyle
         readonly property string wallpaperUrl: {
             const _dep1 = WallpaperListener.multiMonitorEnabled
             const _dep2 = WallpaperListener.effectivePerMonitor
@@ -476,10 +479,12 @@ Item {
             return WallpaperListener.wallpaperUrlForScreen(root.panelScreen)
         }
         readonly property bool useWallpaperBackdrop: root.panelVisible
-            && auroraEverywhere
+            && (auroraEverywhere || editorialGlassActive)
             && !inirEverywhere
             && !gameModeMinimal
             && wallpaperUrl.length > 0
+        readonly property bool editorialBackdropReady: editorialGlassActive
+            && useWallpaperBackdrop && sidebarRightBlurredWallpaper.status === Image.Ready
 
         ColorQuantizer {
             id: sidebarRightWallpaperQuantizer
@@ -496,6 +501,7 @@ Item {
         color: (gameModeMinimal || islandStyle) ? "transparent"
             : zzzEverywhere ? Appearance.zzz.chrome
             : regaliaEverywhere ? "transparent"
+            : editorialGlassActive ? (editorialBackdropReady ? "transparent" : Appearance.editorial.paper)
             : inirEverywhere ? (cardStyle ? Appearance.inir.colLayer1 : Appearance.inir.colLayer0)
             : auroraEverywhere ? ColorUtils.applyAlpha((blendedColors?.colLayer0 ?? Appearance.colors.colLayer0), 1)
             : (cardStyle ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)
@@ -505,8 +511,7 @@ Item {
             : angelEverywhere ? Appearance.angel.colPanelBorder
             : inirEverywhere ? Appearance.inir.colBorder
             : Appearance.colors.colLayer0Border
-        radius: Appearance.editorialEverywhere ? Appearance.editorial.radius
-            : islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
+        radius: islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
             : zzzEverywhere ? Appearance.zzz.panelRadius
             : regaliaEverywhere ? Appearance.regalia.panelRadius
             : angelEverywhere ? Appearance.angel.roundingNormal
@@ -533,10 +538,13 @@ Item {
 
         EditorialPaperStack {
             anchors.fill: parent
+            z: 1
             visible: Appearance.editorialEverywhere && Appearance.editorial.paperStack
                 && !sidebarRightBackground.islandStyle && !sidebarRightBackground.gameModeMinimal
-            faceColor: sidebarRightBackground.color
+            faceColor: Appearance.editorial.paper
             radius: sidebarRightBackground.radius
+            materialOpacity: sidebarRightBackground.editorialBackdropReady ? Appearance.editorial.glassOpacity : 1
+            backingOpacity: sidebarRightBackground.editorialBackdropReady ? Appearance.editorial.glassBackingOpacity : 1
         }
 
         RegaliaPlate {
@@ -565,11 +573,12 @@ Item {
 
         Image {
             id: sidebarRightBlurredWallpaper
+            z: 0
             x: -(root.screenWidth - sidebarRightBackground.width - Appearance.sizes.hyprlandGapsOut)
             y: -Appearance.sizes.hyprlandGapsOut
             width: root.screenWidth ?? 1920
             height: root.screenHeight ?? 1080
-            visible: sidebarRightBackground.useWallpaperBackdrop
+            visible: sidebarRightBackground.useWallpaperBackdrop && status === Image.Ready
             source: sidebarRightBackground.useWallpaperBackdrop ? sidebarRightBackground.wallpaperUrl : ""
             fillMode: Image.PreserveAspectCrop
             cache: true
@@ -584,11 +593,13 @@ Item {
                 anchors.fill: source
                 saturation: sidebarRightBackground.angelEverywhere
                     ? (Appearance.angel.blurSaturation * Appearance.angel.colorStrength)
+                    : sidebarRightBackground.editorialGlassActive ? 0.04
                     : (Appearance.effectsEnabled ? 0.2 : 0)
                 blurEnabled: Appearance.effectsEnabled
                 blurMax: 64
                 blur: Appearance.effectsEnabled
-                    ? (sidebarRightBackground.angelEverywhere ? Appearance.angel.blurIntensity : 1)
+                    ? (sidebarRightBackground.angelEverywhere ? Appearance.angel.blurIntensity
+                        : sidebarRightBackground.editorialGlassActive ? Appearance.editorial.glassBlur : 1)
                     : 0
             }
 
@@ -596,6 +607,8 @@ Item {
                 anchors.fill: parent
                 color: sidebarRightBackground.angelEverywhere
                     ? ColorUtils.transparentize((sidebarRightBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0Base), Appearance.angel.overlayOpacity * Appearance.angel.panelTransparentize)
+                    : sidebarRightBackground.editorialGlassActive
+                        ? (Appearance.editorial.paperStack ? "transparent" : Appearance.editorial.glassPaper)
                     : ColorUtils.transparentize((sidebarRightBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0Base), Appearance.aurora.overlayTransparentize)
             }
         }
@@ -651,6 +664,7 @@ Item {
 
         ColumnLayout {
             id: contentColumn
+            z: 2
             anchors.fill: parent
             anchors.margins: sidebarPadding
             spacing: sidebarPadding
@@ -1175,6 +1189,7 @@ Item {
                 : sidebarRightBackground.angelEverywhere ? Appearance.angel.colGlassCard
                 : sidebarRightBackground.auroraEverywhere
                 ? Appearance.aurora.colSubSurface
+                : sidebarRightBackground.editorialGlassActive ? Appearance.editorial.glassPaper
                 : Appearance.colors.colLayer1
             Behavior on color {
                 enabled: Appearance.animationsEnabled
@@ -1249,6 +1264,7 @@ Item {
                 : sidebarRightBackground.angelEverywhere ? Appearance.angel.colGlassCard
                 : sidebarRightBackground.auroraEverywhere
                 ? Appearance.aurora.colSubSurface
+                : sidebarRightBackground.editorialGlassActive ? Appearance.editorial.glassPaper
                 : Appearance.colors.colLayer1
             Behavior on color {
                 enabled: Appearance.animationsEnabled

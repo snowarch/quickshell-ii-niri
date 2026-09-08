@@ -171,6 +171,9 @@ Item {
         elevation: 1
         cardStyle: root.panelCardStyle
         outlined: false
+        editorialGlassMaterial: root._editorial && Appearance.editorial.glassActive
+        wallpaperBackdrop: root._editorial && Appearance.editorial.glassActive
+            && !Appearance.editorial.sidebarGlassBackground
         surfaceDialect: root._dialect
         islandSkin: root._island
         radiusOverride: root._cardRadius

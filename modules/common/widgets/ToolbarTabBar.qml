@@ -150,11 +150,13 @@ Item {
                     anchors.fill: parent
                     radius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
                         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
-                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : height / 2
+                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
+                        : Appearance.editorialEverywhere ? Appearance.rounding.small : height / 2
                     color: Appearance.zzzEverywhere ? Appearance.zzz.chromeAlt
                         : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                         : Appearance.inirEverywhere ? "transparent" 
                          : Appearance.auroraEverywhere ? "transparent"
+                         : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                          : Appearance.colors.colSurfaceContainer
                     border.width: Appearance.zzzEverywhere ? 1 : (Appearance.angelEverywhere || Appearance.inirEverywhere) ? 1 : 0
                     border.color: Appearance.zzzEverywhere ? Appearance.zzz.quietStroke
@@ -176,6 +178,7 @@ Item {
                         : Appearance.angelEverywhere ? Appearance.angel.colPrimary
                         : Appearance.inirEverywhere ? ColorUtils.transparentize(Appearance.inir.colPrimary, 0.85)
                         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
+                        : Appearance.editorialEverywhere ? Appearance.editorial.field
                         : Appearance.cookieEverywhere ? Appearance.colors.colLayer2
                         : Appearance.colors.colSecondaryContainer
                     border.width: Appearance.zzzEverywhere ? 1 : (Appearance.angelEverywhere || Appearance.inirEverywhere) ? 1 : 0
@@ -183,13 +186,14 @@ Item {
                         : Appearance.angelEverywhere ? Appearance.angel.colBorderHover
                         : Appearance.inirEverywhere ? Appearance.inir.colBorderAccent : "transparent"
                     implicitWidth: targetItem ? targetItem.implicitWidth : 0
-                    implicitHeight: targetItem ? (Appearance.zzzEverywhere ? 30 : Appearance.angelEverywhere ? 28 : Appearance.inirEverywhere ? 28 : (Appearance.auroraEverywhere ? 32 : targetItem.implicitHeight)) : 0
+                    implicitHeight: targetItem ? (Appearance.zzzEverywhere ? 30 : Appearance.angelEverywhere ? 28 : Appearance.inirEverywhere ? 28 : ((Appearance.auroraEverywhere || Appearance.editorialEverywhere) ? 32 : targetItem.implicitHeight)) : 0
                     // Concentric with groupBackground (same controlRadius, but
                     // inset ~4px): echo the track's silhouette instead of looking
                     // more-rounded-than-parent. Other styles keep their own read.
                     radius: Appearance.zzzEverywhere ? Appearance.concentricRadius(Appearance.zzz.controlRadius, 4)
                         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
-                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : height / 2
+                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
+                        : Appearance.editorialEverywhere ? Appearance.concentricRadius(Appearance.rounding.small, 4) : height / 2
                     anchors.verticalCenter: parent.verticalCenter
 
                     // Organic morph on style/shape switch (organic-transitions)

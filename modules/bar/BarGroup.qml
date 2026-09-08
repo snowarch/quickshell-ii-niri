@@ -96,6 +96,7 @@ Item {
             : !root.islandStyle && (Config.options?.bar?.borderless ?? false)
         radiusOverride: Appearance.regaliaEverywhere ? Appearance.regalia.roundSmall : -1
         elevation: Appearance.regaliaEverywhere ? 2 : 1
+        editorialGlassMaterial: Appearance.editorialEverywhere && Appearance.editorial.glassActive
         // En zzz la barra mantiene su contorno unificado; los grupos quedan transparentes.
         zzzChamfer: false
     }

@@ -38,7 +38,8 @@ Item {
     // Background only visible when app is active/focused - translucent and aesthetic
     readonly property color _pillBg: {
         if (!appIsActive) return "transparent"
-        if (Appearance.editorialEverywhere) return Appearance.editorial.field
+        if (Appearance.editorialEverywhere)
+            return Appearance.editorial.glassActive ? Appearance.editorial.glassSelection : Appearance.editorial.field
         if (root.zzzStyle) return Appearance.zzz.bg2
         if (root.angelStyle) return ColorUtils.transparentize(Appearance.angel.colGlassCard, 0.35)
         if (root.inirStyle) return ColorUtils.transparentize(Appearance.inir.colLayer2, 0.45)
@@ -49,6 +50,8 @@ Item {
     // Border only on active apps - very subtle
     readonly property color _pillBorder: {
         if (!appIsActive) return "transparent"
+        if (Appearance.editorialEverywhere && Appearance.editorial.glassActive)
+            return Appearance.editorial.glassSelectionEdge
         if (root.zzzStyle) return Appearance.zzz.hairlineStrong
         if (root.angelStyle) return ColorUtils.transparentize(Appearance.angel.colBorder, 0.5)
         if (root.inirStyle) return ColorUtils.transparentize(Appearance.inir.colBorderAccent, 0.55)
@@ -56,7 +59,8 @@ Item {
         return ColorUtils.transparentize(Appearance.colors.colPrimary, 0.65)
     }
 
-    readonly property real _pillBorderWidth: appIsActive && !Appearance.editorialEverywhere ? 1 : 0
+    readonly property real _pillBorderWidth: appIsActive
+        && (!Appearance.editorialEverywhere || Appearance.editorial.glassActive) ? 1 : 0
 
     // Smart window-count indicators — same visual language as panel mode (flat pill dots).
     // Shows one dot per open window (up to maxDots). The focused window's dot is wider

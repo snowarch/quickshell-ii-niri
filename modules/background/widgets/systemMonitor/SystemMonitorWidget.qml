@@ -623,6 +623,7 @@ AbstractBackgroundWidget {
 
                     StyledText {
                         text: textChip.modelData.label
+                        font.weight: root.widgetLabelWeight
                         color: root._metricSubtext
                         font {
                             pixelSize: Math.round(Appearance.font.pixelSize.small * root.scaleFactor)
@@ -733,6 +734,7 @@ AbstractBackgroundWidget {
                         Layout.topMargin: -Math.round(tile.height * 0.03)
                         visible: root.showLabels && tile.height >= 62
                         text: tile.modelData.label
+                        font.weight: root.widgetLabelWeight
                         color: ColorUtils.applyAlpha(tile.role.ink, 0.62)
                         elide: Text.ElideRight
                         font.pixelSize: Math.max(10, Math.min(

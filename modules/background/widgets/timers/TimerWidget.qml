@@ -118,7 +118,7 @@ AbstractBackgroundWidget {
                     text: timerCard.label
                     color: ColorUtils.applyAlpha(timerCard.ink, 0.68)
                     font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                    font.weight: Font.Medium
+                    font.weight: root.widgetLabelWeight
                     elide: Text.ElideRight
                 }
 
@@ -210,25 +210,25 @@ AbstractBackgroundWidget {
 
                 Repeater {
                     model: [1, 5]
-                    Rectangle {
+                    RippleButton {
                         id: minuteButton
                         required property int modelData
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: Appearance.rounding.full
-                        color: ColorUtils.applyAlpha(root.primaryInk, 0.10)
+                        buttonRadius: root.widgetEditorial ? root.widgetControlRadius : Appearance.rounding.full
+                        colBackground: ColorUtils.applyAlpha(root.primaryInk, 0.10)
+                        colBackgroundHover: ColorUtils.applyAlpha(root.primaryInk, 0.18)
+                        colRipple: ColorUtils.applyAlpha(root.primaryInk, 0.24)
+                        onClicked: root.addCountdownMinutes(minuteButton.modelData)
 
-                        StyledText {
+                        contentItem: StyledText {
                             anchors.centerIn: parent
                             text: "+" + modelData + "m"
                             color: root.primaryInk
                             font.pixelSize: Math.round(Appearance.font.pixelSize.smallest * root.scaleFactor)
-                            font.weight: Font.DemiBold
+                            font.weight: root.widgetEditorial ? root.widgetLabelWeight : Font.DemiBold
                         }
 
-                        TapHandler {
-                            onTapped: root.addCountdownMinutes(minuteButton.modelData)
-                        }
                     }
                 }
             }

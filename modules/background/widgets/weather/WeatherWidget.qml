@@ -387,7 +387,7 @@ AbstractBackgroundWidget {
                             text: metricChip.modelData.value
                             color: metricChip.chipInk
                             font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                            font.weight: Font.Medium
+                            font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Medium
                         }
                     }
                 }

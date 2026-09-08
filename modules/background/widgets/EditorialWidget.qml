@@ -26,7 +26,7 @@ AbstractBackgroundWidget {
     readonly property real _titleScale: root._globalEditorial ? Appearance.editorial.titleScale : 1
     readonly property bool _ornaments: !root._globalEditorial || Appearance.editorial.ornaments
     readonly property bool centered: composition === "quote"
-    readonly property real inset: 20 * scaleFactor
+    readonly property real inset: (root._globalEditorial ? Appearance.editorial.inset : 20) * scaleFactor
 
     WidgetSurface {
         anchors.fill: parent
@@ -68,7 +68,8 @@ AbstractBackgroundWidget {
                 font.capitalization: Font.AllUppercase
                 color: root.widgetAccentVisible
                 font.pixelSize: Appearance.font.pixelSize.smallest * root.scaleFactor
-                font.weight: Font.DemiBold
+                font.weight: root._globalEditorial ? Appearance.editorial.labelWeight : Font.DemiBold
+                font.letterSpacing: root._globalEditorial ? Appearance.editorial.metadataTracking : 0
                 horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
                 elide: Text.ElideRight
             }
@@ -88,9 +89,10 @@ AbstractBackgroundWidget {
             color: root.widgetInk
             font.family: root.centered
                 ? (root._globalEditorial ? Appearance.editorial.serifFamily : "serif")
-                : Appearance.font.family.main
+                : (root._globalEditorial ? Appearance.editorial.displayFamily : Appearance.font.family.main)
             font.pixelSize: (root.composition === "label" ? 34 : 48) * root._titleScale * root.scaleFactor
-            font.weight: root.centered ? Font.Normal : Font.DemiBold
+            font.weight: root._globalEditorial ? Appearance.editorial.titleWeight : root.centered ? Font.Normal : Font.DemiBold
+            font.letterSpacing: root._globalEditorial ? Appearance.editorial.titleTracking : 0
             font.italic: root.centered
             fontSizeMode: Text.Fit
             minimumPixelSize: Math.max(1, 12 * root.scaleFactor)
@@ -100,11 +102,12 @@ AbstractBackgroundWidget {
             verticalAlignment: Text.AlignVCenter
         }
         Rectangle {
-            Layout.fillWidth: true
+            Layout.preferredWidth: Math.min(48 * root.scaleFactor, parent.width)
+            Layout.alignment: root.centered ? Qt.AlignHCenter : Qt.AlignLeft
             visible: root.showAccent && root._ornaments && root.composition !== "label"
-            implicitHeight: root.scaleFactor
+            implicitHeight: 2 * root.scaleFactor
+            radius: height / 2
             color: root.widgetAccent
-            opacity: 0.5
         }
         StyledText {
             Layout.fillWidth: true

@@ -18,7 +18,10 @@ Use the roles in `modules/common/Appearance.qml`, rather than copying colors fro
 | Accent | `editorial.accent` / `accentInk` | Active controls and their content |
 | Soft selection | `editorial.field` / `fieldInk` | Quiet selection backgrounds |
 | Inverse card | `editorial.ink` / `paperOnInk` | The focal card and its content |
-| Boundary | `editorial.rule` / `edge` | Necessary outlines and stronger focus boundaries |
+| Boundary | `editorial.rule` / `edge` | Necessary outlines |
+| Interaction | `editorial.controlHover` / `controlPressed` | Quiet tinted hover and press fields |
+| Selected interaction | `editorial.selectionHover` / `selectionPressed` | Feedback on selected paper fields |
+| Keyboard focus | `editorial.focusRing` | Readable accent boundary |
 
 An inverse card reverses the background/text pair. In dark mode it becomes the pale card seen in the dashboard greeting; in light mode it becomes an ink card. Give the main composition one focal card. Keep supporting cards quiet so headings, content and controls remain easy to scan.
 
@@ -32,7 +35,7 @@ Accent intensity controls both the colored ink used for highlights and the prima
 
 **Second paper layer** adds a restrained tinted backing inside the surface bounds. Its 2–6 px depth does not expand the layout or input area. It appears on dock shelves, bar groups/islands, sidebars and opted-in focal cards, not every button. Studio enables the backing and primary paper tint; Reset Editorial returns to single-sheet, theme-following neutral paper.
 
-Editorial retains the dock and bar layouts but uses solid paper in place of their glass washes and sheen. App artwork, meaningful circular indicators and macOS magnification retain their behavior.
+Editorial retains the dock and bar layouts. Optional glass keeps wallpaper blur beneath the paper; the second sheet uses a stronger pigment and opacity so its stepped edge remains visible. App artwork, meaningful circular indicators and macOS magnification retain their behavior.
 
 **Accent ink** is independent of paper pigment: choose wallpaper primary, secondary, tertiary or a custom accent. It drives active controls, clock highlights, selection fields and the paper backing. Light paper and charcoal keep their intended brightness even when the application theme uses the opposite mode.
 
@@ -40,7 +43,7 @@ Editorial retains the dock and bar layouts but uses solid paper in place of thei
 
 Use `Appearance.editorial.displayFamily`, `titleWeight` and `titleTracking` for display headings, with `Appearance.font.pixelSize` and `fontSizeScale`. Apply `titleScale` to headings, not body text. The dashboard greeting is the large display reference; section headings should remain smaller. Reserve uppercase and positive tracking for short metadata, never full descriptions.
 
-Editorial leaves the shared body font's variable axes unset so an explicit `font.weight` remains effective. Use the normal interface font for buttons and reading text, and the number font for stable numeric readouts. Avoid changing a text item's weight by inspecting other properties of its own `font` group.
+Editorial leaves the shared body font's variable axes unset so an explicit `font.weight` remains effective. Use `editorial.labelWeight` and `metadataTracking` for short labels and metadata. Both are adjustable in Voice & ink, with presets and reset restoring their defaults. Input roles (`input`, `inputHover`, `inputFocus`) give text fields and dropdowns the same quiet fill and one keyboard-focus boundary. Use the normal interface font for buttons and reading text, and the number font for stable numeric readouts. Avoid changing a text item's weight by inspecting other properties of its own `font` group.
 
 Use `Appearance.editorial.radius` for cards and `Appearance.rounding.small` for compact controls. Avatars, circular progress indicators and other intrinsically circular content stay circular. Preserve existing minimum sizes, wrapping, focus behavior and hit areas.
 
@@ -102,3 +105,7 @@ Keep normal, hover, pressed, selected, disabled and keyboard-focus states in the
 Media presets expose `blendedColors` for their host and use `effectiveColors` to resolve Editorial's solid palette without changing that public input. Keep album artwork in its dedicated image; background artwork washes should not obscure text in compact Editorial cards. Full artwork layouts may retain artwork as their content.
 
 When adding a component, compare it with the dashboard greeting, Settings sections and Overview header. Check it with real content in both light and dark mode, constrained widths, selected/disabled/focused states and any supported layout variants. A global token does not automatically replace component-local colors, image washes or explicit geometry: those need deliberate adaptation in the owning component.
+
+## Settings presentation
+
+Choose **Modules → Settings UI → Overlay layout → Editorial** for the paper studio presentation opened by the bar Settings action. It shares navigation, search and pages with the rail layout. Pair it with the Editorial global style for the complete page and control treatment. Selected navigation uses its tonal field without an additional vertical ornament. Controls use tonal press feedback and stable geometry; Editorial selectors do not expand or bounce when pressed. Editor sliders preview their value while dragging and persist on release.

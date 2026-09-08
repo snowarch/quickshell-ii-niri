@@ -103,7 +103,7 @@ AbstractBackgroundWidget {
             visible: Weather.showVisibleCity
             implicitWidth: localChip.implicitWidth + Math.round(18 * root.scaleFactor)
             implicitHeight: localChip.implicitHeight + Math.round(8 * root.scaleFactor)
-            radius: height / 2
+            radius: root.widgetEditorial ? root.widgetControlRadius : height / 2
             color: root.widgetSemanticContainer(root.widgetPrimaryRole)
 
             RowLayout {
@@ -123,7 +123,7 @@ AbstractBackgroundWidget {
                     elide: Text.ElideRight
                     color: root.widgetSemanticOnContainer(root.widgetPrimaryRole)
                     font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                    font.weight: Font.Medium
+                    font.weight: root.widgetLabelWeight
                 }
             }
         }

@@ -806,12 +806,18 @@ Singleton {
                 property JsonObject editorial: JsonObject {
                     property bool paperStack: false
                     property real paperDepth: 3
+                    property bool glass: false
+                    property real glassOpacity: 0.72
+                    property real glassBlur: 0.85
+                    property bool sidebarGlassBackground: true
                     property string paperMode: "theme"
                     property string paperTone: "neutral"
                     property real paperTint: 0.35
                     property string paperColor: "#b8c4b0"
                     property string accentRole: "primary"
                     property string accentColor: "#b5a0c8"
+                    property int labelWeight: 600
+                    property real metadataTracking: 0.8
                     property int titleWeight: 650
                     property real titleTracking: -0.6
                     property string typography: "poster" // "poster" sans titles | "reading" Source Serif 4
@@ -3564,8 +3570,7 @@ Singleton {
 
             property JsonObject settingsUi: JsonObject {
                 property bool overlayMode: true // true = layer shell overlay (live preview), false = separate window
-                // Chrome used in overlay mode. "rail" = persistent nav rail beside a
-                // narrowed content pane; "focus" = drill-down, one page at a time.
+                // Chrome used in overlay mode: "rail", "focus", "unified", or "editorial".
                 // Orthogonal to overlayMode: this picks the look, that picks the host.
                 property string overlayStyle: "rail"
                 property bool easyMode: false   // false = full Settings UI; Easy mode remains an explicit opt-in

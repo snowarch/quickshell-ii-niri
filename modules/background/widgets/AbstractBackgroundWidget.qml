@@ -1083,7 +1083,7 @@ AbstractWidget {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root._isZonePlacement ? Translation.tr("Zone") : Translation.tr("Free")
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        font.weight: Font.Medium
+                        font.weight: root.widgetLabelWeight
                         color: root._isZonePlacement ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
                     }
                 }
@@ -1689,7 +1689,7 @@ AbstractWidget {
                         text: Translation.tr("Colors")
                         color: Appearance.colors.colOnLayer2
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        font.weight: Font.Medium
+                        font.weight: root.widgetLabelWeight
                     }
                     Item { Layout.fillWidth: true }
                     StyledText {
@@ -2041,7 +2041,9 @@ AbstractWidget {
         : root.forceDarkInk ? root._inkDark
         : root.widgetSemanticOnContainer(root.widgetSurfaceRole)
     readonly property color widgetInk: root.widgetHasSurface ? root.widgetSurfaceInk : root.colText
-    readonly property color widgetInkMuted: ColorUtils.applyAlpha(root.widgetInk, 0.66)
+    readonly property color widgetInkMuted: root.widgetEditorial && root.widgetHasSurface && !root.forceLightInk && !root.forceDarkInk
+        ? ColorUtils.ensureReadable(ColorUtils.mix(root.widgetInk, root.widgetPlateColor, 0.72), root.widgetPlateColor, 4.5)
+        : ColorUtils.applyAlpha(root.widgetInk, 0.66)
     readonly property color widgetInkSubtle: ColorUtils.applyAlpha(root.widgetInk, 0.58)
     readonly property bool widgetEditorial: Appearance.editorialEverywhere
     readonly property string widgetTitleFamily: root.widgetEditorial
@@ -2054,7 +2056,10 @@ AbstractWidget {
         ? Appearance.editorial.titleScale : 1
     readonly property real widgetSpacingScale: root.widgetEditorial
         ? Appearance.editorial.spacing : 1
-    readonly property real widgetCardRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+    readonly property int widgetLabelWeight: root.widgetEditorial ? Appearance.editorial.labelWeight : Font.Medium
+    readonly property real widgetMetadataTracking: root.widgetEditorial ? Appearance.editorial.metadataTracking : 0
+    readonly property real widgetControlRadius: root.widgetEditorial ? Appearance.rounding.small : Appearance.rounding.normal
+    readonly property real widgetCardRadius: root.widgetEditorial ? Appearance.editorial.radius : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
         : Appearance.cookieEverywhere ? Appearance.cookie.roundLarge
         : Appearance.angelEverywhere ? Appearance.angel.roundingNormal
         : Appearance.inirEverywhere ? Appearance.inir.roundingNormal

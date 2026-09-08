@@ -36,7 +36,7 @@ Item {
                 text: DateTime.time
                 font.pixelSize: Appearance.font.pixelSize.huge * (Appearance.editorialEverywhere ? 2.15 : 2)
                 font.weight: Appearance.zzzEverywhere ? Font.Black
-                    : Appearance.editorialEverywhere ? Font.DemiBold : Font.Light
+                    : Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Light
                 font.family: Appearance.font.family.numbers
                 font.italic: Appearance.zzzEverywhere
                 color: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? Appearance.inir.colText : Appearance.colors.colOnLayer0
@@ -245,7 +245,7 @@ Item {
                 readonly property string _defaultFormat: Appearance.inirEverywhere ? "dddd, MMMM yyyy" : "dddd, d MMMM"
                 text: root.locale.toString(DateTime.clock.date, _configFormat.length > 0 ? _configFormat : _defaultFormat)
                 font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.small : Appearance.font.pixelSize.normal
-                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Normal
+                font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Normal
                 font.letterSpacing: Appearance.editorialEverywhere ? 0.8 : 0
                 color: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted : Appearance.inirEverywhere ? Appearance.inir.colTextSecondary : Appearance.colors.colSubtext
                 Behavior on color {

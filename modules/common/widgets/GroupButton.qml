@@ -23,7 +23,7 @@ Button {
     property var releaseAction // When left clicking (release)
     property var altAction // When right clicking
     property var middleClickAction // When middle clicking
-    property bool bounce: !Appearance.regaliaEverywhere
+    property bool bounce: !Appearance.regaliaEverywhere && !Appearance.editorialEverywhere
     // Cookie Shapes: an organic face costs a Canvas, and a segmented group needs
     // its members to share one continuous silhouette. Standalone semantic
     // controls opt in; grouped ones stay rectangular on purpose.
@@ -155,8 +155,8 @@ Button {
             ? "transparent" : root.color
         border.width: Appearance.editorialEverywhere ? (root.visualFocus ? 2 : 1) : 0
         border.color: Appearance.editorialEverywhere
-            ? (root.visualFocus ? Appearance.editorial.accent
-                : root.toggled ? Appearance.editorial.edge : Appearance.editorial.rule)
+            ? (root.visualFocus ? Appearance.editorial.focusRing
+                : root.hovered || root.down ? Appearance.editorial.edge : "transparent")
             : "transparent"
         scale: Appearance.regaliaEverywhere && root.down ? Appearance.regalia.pressScale : 1
         Behavior on scale {
@@ -195,6 +195,8 @@ Button {
 
     contentItem: StyledText {
         text: root.buttonText
+        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Normal
+        horizontalAlignment: Text.AlignHCenter
         // ZZZ selected = sticker plate → onSticker ink; idle = panel ink. Keeps
         // tab/segment labels readable instead of washed default ink on a pop plate.
         color: Appearance.regaliaEverywhere

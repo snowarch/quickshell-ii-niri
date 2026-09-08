@@ -177,6 +177,8 @@ Singleton {
             return "wallpaper"
         if (auroraEverywhere || angelEverywhere)
             return "wallpaper"
+        if (editorialEverywhere && editorial.glassActive)
+            return "wallpaper"
         if (zzzEverywhere && (Config.options?.appearance?.zzz?.glass ?? true))
             return "wallpaper"
         return "off"
@@ -226,14 +228,14 @@ Singleton {
     // Cookie promotes one tonal step, like zzz: Expressive stacks plates, so a
     // hover is the next plate up, not a translucent wash of the ink over the
     // current one.
-    readonly property color colLayer1Hover: regaliaEverywhere ? regalia.hoverPlate
+    readonly property color colLayer1Hover: root.editorialEverywhere ? root.editorial.controlHover : regaliaEverywhere ? regalia.hoverPlate
         : cookieEverywhere ? cookie.bg2
         : zzzEverywhere ? zzz.paperAlt
         : angelEverywhere ? angel.colGlassCardHover
         : inirEverywhere ? inir.colLayer1Hover
         : auroraEverywhere ? aurora.colSubSurfaceHover
         : colors.colLayer1Hover
-    readonly property color colLayer2Hover: regaliaEverywhere ? regalia.chassis3
+    readonly property color colLayer2Hover: root.editorialEverywhere ? root.editorial.controlHover : regaliaEverywhere ? regalia.chassis3
         : cookieEverywhere ? cookie.bg3
         : zzzEverywhere ? zzz.bg3
         : angelEverywhere ? angel.colGlassElevatedHover
@@ -242,7 +244,7 @@ Singleton {
         : colors.colLayer2Hover
     // Active/pressed fills — did not exist at top level before, so click feedback
     // (RippleButton etc.) read straight from raw `colors.*`, skipping inir/zzz entirely.
-    readonly property color colLayer1Active: regaliaEverywhere ? regalia.pressPlate
+    readonly property color colLayer1Active: root.editorialEverywhere ? root.editorial.controlPressed : regaliaEverywhere ? regalia.pressPlate
         : cookieEverywhere ? cookie.bg3
         : zzzEverywhere ? zzz.bg3
         : angelEverywhere ? angel.colGlassCardActive
@@ -450,9 +452,9 @@ Singleton {
             colLayer0Base,
             4.5
         )
-        property color colLayer0Hover: root.regaliaEverywhere ? root.regalia.hoverPlate
+        property color colLayer0Hover: root.editorialEverywhere ? root.editorial.controlHover : root.regaliaEverywhere ? root.regalia.hoverPlate
             : ColorUtils.transparentize(ColorUtils.mix(colLayer0, colOnLayer0, 0.9), root.contentTransparency)
-        property color colLayer0Active: root.regaliaEverywhere ? root.regalia.pressPlate
+        property color colLayer0Active: root.editorialEverywhere ? root.editorial.controlPressed : root.regaliaEverywhere ? root.regalia.pressPlate
             : ColorUtils.transparentize(ColorUtils.mix(colLayer0, colOnLayer0, 0.8), root.contentTransparency)
         property color colLayer0Border: root.editorialEverywhere ? root.editorial.rule : root.regaliaEverywhere ? "transparent" : root.cookieEverywhere ? root.cookie.hairline : root.zzzEverywhere ? root.zzz.borderColor : ColorUtils.mix(root.m3colors.m3outlineVariant, colLayer0, 0.4)
         // Layer 1
@@ -477,7 +479,7 @@ Singleton {
             : ColorUtils.solveOverlayColor(colLayer1Base, colLayer2Base, 1 - root.contentTransparency)
         property color colLayer2Hover: root.regaliaEverywhere ? root.regalia.controlPlateHover
             : ColorUtils.solveOverlayColor(colLayer1Base, ColorUtils.mix(colLayer2Base, colOnLayer2, 0.90), 1 - root.contentTransparency)
-        property color colLayer2Active: root.regaliaEverywhere ? root.regalia.controlPlateActive
+        property color colLayer2Active: root.editorialEverywhere ? root.editorial.controlPressed : root.regaliaEverywhere ? root.regalia.controlPlateActive
             : ColorUtils.solveOverlayColor(colLayer1Base, ColorUtils.mix(colLayer2Base, colOnLayer2, 0.80), 1 - root.contentTransparency)
         property color colLayer2Disabled: ColorUtils.solveOverlayColor(colLayer1Base, ColorUtils.mix(colLayer2Base, m3colors.m3background, 0.8), 1 - root.contentTransparency)
         property color colOnLayer2: root.editorialEverywhere ? root.editorial.ink : root.regaliaEverywhere ? root.regalia.onColor : root.cookieEverywhere ? root.cookie.onColor : root.zzzEverywhere ? root.zzz.onColor : ColorUtils.ensureReadable(
@@ -518,11 +520,11 @@ Singleton {
             : root.regaliaEverywhere ? root.regalia.hardwarePrimary : root.zzzEverywhere ? root.zzz.accent : m3colors.m3primary
         property color colOnPrimary: root.editorialEverywhere ? root.editorial.accentInk
             : root.regaliaEverywhere ? root.regalia.hardwarePrimaryInk : root.zzzEverywhere ? root.zzz.onAccent : m3colors.m3onPrimary
-        property color colPrimaryHover: root.regaliaEverywhere ? root.regalia.hardwarePrimaryHover : ColorUtils.mix(colors.colPrimary, colLayer1Hover, 0.87)
-        property color colPrimaryActive: root.regaliaEverywhere ? root.regalia.hardwarePrimaryActive : ColorUtils.mix(colors.colPrimary, colLayer1Active, 0.7)
+        property color colPrimaryHover: root.editorialEverywhere ? root.editorial.accentHover : root.regaliaEverywhere ? root.regalia.hardwarePrimaryHover : ColorUtils.mix(colors.colPrimary, colLayer1Hover, 0.87)
+        property color colPrimaryActive: root.editorialEverywhere ? root.editorial.accentPressed : root.regaliaEverywhere ? root.regalia.hardwarePrimaryActive : ColorUtils.mix(colors.colPrimary, colLayer1Active, 0.7)
         property color colPrimaryContainer: root.editorialEverywhere ? root.editorial.field : root.regaliaEverywhere ? root.regalia.primaryPlate : root.cookieEverywhere ? root.cookie.primaryFace : root.zzzEverywhere ? ColorUtils.mix(root.zzz.bg3, root.zzz.sticker, 0.20) : m3colors.m3primaryContainer
-        property color colPrimaryContainerHover: root.regaliaEverywhere ? root.regalia.primaryPlateHover : ColorUtils.mix(colors.colPrimaryContainer, colors.colOnPrimaryContainer, 0.9)
-        property color colPrimaryContainerActive: root.regaliaEverywhere ? root.regalia.primaryPlateActive : ColorUtils.mix(colors.colPrimaryContainer, colors.colOnPrimaryContainer, 0.8)
+        property color colPrimaryContainerHover: root.editorialEverywhere ? root.editorial.selectionHover : root.regaliaEverywhere ? root.regalia.primaryPlateHover : ColorUtils.mix(colors.colPrimaryContainer, colors.colOnPrimaryContainer, 0.9)
+        property color colPrimaryContainerActive: root.editorialEverywhere ? root.editorial.selectionPressed : root.regaliaEverywhere ? root.regalia.primaryPlateActive : ColorUtils.mix(colors.colPrimaryContainer, colors.colOnPrimaryContainer, 0.8)
         property color colOnPrimaryContainer: root.editorialEverywhere ? root.editorial.fieldInk : root.regaliaEverywhere ? root.regalia.primaryPlateInk : root.cookieEverywhere ? root.cookie.onFace : root.zzzEverywhere ? root.zzz.onColor : m3colors.m3onPrimaryContainer
         // Secondary
         property color colSecondary: root.editorialEverywhere ? root.editorial.accent : root.regaliaEverywhere ? root.regalia.hardwareSecondary : root.zzzEverywhere ? root.zzz.secondary : m3colors.m3secondary
@@ -530,16 +532,16 @@ Singleton {
         property color colSecondaryActive: root.regaliaEverywhere ? root.regalia.hardwareSecondaryActive : ColorUtils.mix(colSecondary, colLayer1Active, 0.4)
         property color colOnSecondary: root.editorialEverywhere ? root.editorial.accentInk : root.regaliaEverywhere ? root.regalia.hardwareSecondaryInk : root.zzzEverywhere ? root.zzz.onSecondary : m3colors.m3onSecondary
         property color colSecondaryContainer: root.editorialEverywhere ? root.editorial.secondaryField : root.regaliaEverywhere ? root.regalia.secondaryPlate : root.cookieEverywhere ? root.cookie.secondaryFace : root.zzzEverywhere ? ColorUtils.mix(root.zzz.bg3, root.zzz.secondary, 0.18) : m3colors.m3secondaryContainer
-        property color colSecondaryContainerHover: root.regaliaEverywhere ? root.regalia.secondaryPlateHover : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.90)
-        property color colSecondaryContainerActive: root.regaliaEverywhere ? root.regalia.secondaryPlateActive : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.54)
+        property color colSecondaryContainerHover: root.editorialEverywhere ? ColorUtils.mix(root.editorial.secondaryField, root.editorial.ink, 0.94) : root.regaliaEverywhere ? root.regalia.secondaryPlateHover : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.90)
+        property color colSecondaryContainerActive: root.editorialEverywhere ? ColorUtils.mix(root.editorial.secondaryField, root.editorial.ink, 0.88) : root.regaliaEverywhere ? root.regalia.secondaryPlateActive : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.54)
         property color colOnSecondaryContainer: root.editorialEverywhere ? root.editorial.secondaryFieldInk : root.regaliaEverywhere ? root.regalia.secondaryPlateInk : root.cookieEverywhere ? root.cookie.onFace : root.zzzEverywhere ? root.zzz.onColor : m3colors.m3onSecondaryContainer
         // Tertiary
         property color colTertiary: root.regaliaEverywhere ? root.regalia.hardwareTertiary : root.zzzEverywhere ? root.zzz.tertiary : m3colors.m3tertiary
         property color colTertiaryHover: root.regaliaEverywhere ? root.regalia.hardwareTertiaryHover : ColorUtils.mix(colTertiary, colLayer1Hover, 0.85)
         property color colTertiaryActive: root.regaliaEverywhere ? root.regalia.hardwareTertiaryActive : ColorUtils.mix(colTertiary, colLayer1Active, 0.4)
         property color colTertiaryContainer: root.editorialEverywhere ? root.editorial.tertiaryField : root.regaliaEverywhere ? root.regalia.tertiaryPlate : root.cookieEverywhere ? root.cookie.tertiaryFace : root.zzzEverywhere ? ColorUtils.mix(root.zzz.bg3, root.zzz.tertiary, 0.18) : m3colors.m3tertiaryContainer
-        property color colTertiaryContainerHover: root.regaliaEverywhere ? root.regalia.tertiaryPlateHover : ColorUtils.mix(colTertiaryContainer, colOnTertiaryContainer, 0.90)
-        property color colTertiaryContainerActive: root.regaliaEverywhere ? root.regalia.tertiaryPlateActive : ColorUtils.mix(colTertiaryContainer, colLayer1Active, 0.54)
+        property color colTertiaryContainerHover: root.editorialEverywhere ? ColorUtils.mix(root.editorial.tertiaryField, root.editorial.ink, 0.94) : root.regaliaEverywhere ? root.regalia.tertiaryPlateHover : ColorUtils.mix(colTertiaryContainer, colOnTertiaryContainer, 0.90)
+        property color colTertiaryContainerActive: root.editorialEverywhere ? ColorUtils.mix(root.editorial.tertiaryField, root.editorial.ink, 0.88) : root.regaliaEverywhere ? root.regalia.tertiaryPlateActive : ColorUtils.mix(colTertiaryContainer, colLayer1Active, 0.54)
         property color colOnTertiary: root.regaliaEverywhere ? root.regalia.hardwareTertiaryInk : root.zzzEverywhere ? root.zzz.onAccent : m3colors.m3onTertiary
         property color colOnTertiaryContainer: root.editorialEverywhere ? root.editorial.tertiaryFieldInk : root.regaliaEverywhere ? root.regalia.tertiaryPlateInk : root.cookieEverywhere ? root.cookie.onFace : root.zzzEverywhere ? root.zzz.onColor : m3colors.m3onTertiaryContainer
         // Surface
@@ -631,10 +633,41 @@ Singleton {
         readonly property color secondaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.secondaryField, 7)
         readonly property color tertiaryField: ColorUtils.mix(layer(2), root.m3colors.m3tertiary, 1 - accentStrength * 0.18)
         readonly property color tertiaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.tertiaryField, 7)
+        readonly property color input: layer(2)
+        readonly property color inputHover: ColorUtils.mix(layer(2), accent, 0.96)
+        readonly property color inputFocus: ColorUtils.mix(layer(2), accent, 0.92)
+        readonly property int cardInset: Math.round(18 * spacing)
+        readonly property int sectionGap: Math.round(18 * spacing)
+        readonly property color controlHover: ColorUtils.mix(layer(2), accent, 0.93)
+        readonly property color controlPressed: ColorUtils.mix(layer(2), accent, 0.85)
+        readonly property color accentHover: ColorUtils.mix(accent, accentInk, 0.94)
+        readonly property color accentPressed: ColorUtils.mix(accent, accentInk, 0.88)
+        readonly property color selectionHover: ColorUtils.mix(field, ink, 0.94)
+        readonly property color selectionPressed: ColorUtils.mix(field, ink, 0.88)
+        readonly property color focusRing: ColorUtils.readableAccentInk(accent, paper, 3, ink)
+        readonly property int labelWeight: Math.max(400, Math.min(700, Number(Config.options?.appearance?.editorial?.labelWeight ?? 600)))
+        readonly property real metadataTracking: Math.max(0, Math.min(1.5, Number(Config.options?.appearance?.editorial?.metadataTracking ?? 0.8)))
         readonly property color rail: ColorUtils.mix(layer(1), field, 0.72)
         readonly property bool paperStack: Config.options?.appearance?.editorial?.paperStack ?? false
         readonly property real paperDepth: Math.max(2, Math.min(6, Number(Config.options?.appearance?.editorial?.paperDepth ?? 3)))
-        readonly property color paperBacking: ColorUtils.mix(rail, accent, 0.68)
+        readonly property color paperBacking: ColorUtils.mix(rail, accent, 0.48)
+        readonly property bool glass: Config.options?.appearance?.editorial?.glass ?? false
+        readonly property bool glassActive: glass && root.effectsEnabled
+        readonly property bool sidebarGlassBackground: Config.options?.appearance?.editorial?.sidebarGlassBackground ?? true
+        readonly property bool sidebarFullGlass: glassActive && sidebarGlassBackground
+        readonly property real glassOpacity: Math.max(0.55, Math.min(0.9, Number(Config.options?.appearance?.editorial?.glassOpacity ?? 0.72)))
+        readonly property real glassBlur: Math.max(0.25, Math.min(1, Number(Config.options?.appearance?.editorial?.glassBlur ?? 0.85)))
+        readonly property real glassBackingOpacity: Math.min(0.96, glassOpacity + 0.12)
+        readonly property real glassLayerOpacity: Math.min(0.92, glassOpacity + 0.10)
+        readonly property color glassPaper: Qt.alpha(paper, glassOpacity)
+        readonly property color glassRail: Qt.alpha(rail, glassLayerOpacity)
+        readonly property color glassLayer1: Qt.alpha(layer(1), glassLayerOpacity)
+        readonly property color glassLayer2: Qt.alpha(layer(2), Math.min(0.94, glassLayerOpacity + 0.04))
+        readonly property color glassControlHover: Qt.alpha(accent, dark ? 0.14 : 0.12)
+        readonly property color glassSelection: Qt.alpha(accent, dark ? 0.22 : 0.18)
+        readonly property color glassSelectionHover: Qt.alpha(accent, dark ? 0.30 : 0.24)
+        readonly property color glassSelectionActive: Qt.alpha(accent, dark ? 0.36 : 0.30)
+        readonly property color glassSelectionEdge: Qt.alpha(accent, dark ? 0.62 : 0.52)
         readonly property int inset: Math.round(20 * spacing)
         readonly property int radius: Math.max(4, Math.round(10 * radiusScale))
         // Poster is deliberately sans; reading/quote composition keeps an

@@ -49,7 +49,7 @@ RippleButton {
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: Appearance?.font.pixelSize.small ?? 12
         font.family: Appearance.zzzEverywhere ? Appearance.font.family.title : Appearance.font.family.main
-        font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Appearance.zzzEverywhere ? Font.Black : Font.Normal
+        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Appearance.zzzEverywhere ? Font.Black : Font.Normal
         font.italic: Appearance.zzzEverywhere
         color: root.enabled ? root.colEnabled : root.colDisabled
 

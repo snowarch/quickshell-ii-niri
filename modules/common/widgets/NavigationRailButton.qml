@@ -152,13 +152,6 @@ TabButton {
                 focused: root.visualFocus
             }
 
-            EditorialRule {
-                anchors.fill: parent
-                visible: Appearance.editorialEverywhere && (root.toggled || root.hovered)
-                vertical: true
-                inset: 5
-                emphasized: root.toggled
-            }
 
             states: State {
                 name: "expanded"
@@ -227,7 +220,7 @@ TabButton {
 
                 // Bgless press feedback: the glyph dips on press so a click reads
                 // as registered without any plate behind it.
-                scale: root.down && !Appearance.regaliaEverywhere ? 0.82 : 1
+                scale: root.down && !Appearance.regaliaEverywhere ? (Appearance.editorialEverywhere ? 0.96 : 0.82) : 1
                 Behavior on scale {
                     enabled: Appearance.animationsEnabled
                     NumberAnimation { duration: Appearance.animation.clickBounce.duration; easing.type: Appearance.animation.clickBounce.type; easing.bezierCurve: Appearance.animation.clickBounce.bezierCurve }
@@ -256,7 +249,7 @@ TabButton {
             color: Appearance.regaliaEverywhere
                 ? (root.toggled ? Appearance.regalia.primaryPlateInk : Appearance.regalia.onMuted)
                 : Appearance.zzzEverywhere ? Appearance.zzz.ink
-                : Appearance.editorialEverywhere ? (root.toggled ? Appearance.editorial.ink : Appearance.editorial.muted)
+                : Appearance.editorialEverywhere ? (root.toggled ? Appearance.editorial.accent : Appearance.editorial.ink)
                 : Appearance.colors.colOnLayer1
             Behavior on color {
                 enabled: Appearance.animationsEnabled

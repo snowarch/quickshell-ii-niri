@@ -207,8 +207,15 @@ DockButton {
     // Suppress ripple/hover bg in macOS mode so no colored rect appears under icon
     // Island mode hovers like a Ricelin row: a faint cream frame fill with a
     // vermilion-tinted press, instead of the global style's hover chain.
-    colBackground: Appearance.editorialEverywhere && appIsActive ? Appearance.editorial.field : "transparent"
-    colBackgroundHover: Appearance.editorialEverywhere ? Appearance.editorial.field
+    readonly property bool editorialGlassActive: Appearance.editorialEverywhere && Appearance.editorial.glassActive
+
+    colBackground: Appearance.editorialEverywhere && appIsActive
+        ? (root.editorialGlassActive ? Appearance.editorial.glassSelection : Appearance.editorial.field)
+        : "transparent"
+    colBackgroundHover: Appearance.editorialEverywhere
+        ? (root.editorialGlassActive
+            ? (root.appIsActive ? Appearance.editorial.glassSelectionHover : Appearance.editorial.glassControlHover)
+            : Appearance.editorial.field)
         : macosStyle ? "transparent" : root.islandStyle ? PillTheme.frameBg
         : (root.regaliaStyle ? Appearance.regalia.hoverPlate
         : root.zzzStyle ? "transparent"
@@ -216,7 +223,8 @@ DockButton {
         : root.inirStyle ? Appearance.inir.colLayer1Hover
         : root.auroraStyle ? Appearance.aurora.colSubSurface
         : Appearance.colors.colLayer0Hover)
-    colRipple: Appearance.editorialEverywhere ? Appearance.colors.colPrimaryContainerActive
+    colRipple: Appearance.editorialEverywhere
+        ? (root.editorialGlassActive ? Appearance.editorial.glassSelectionActive : Appearance.colors.colPrimaryContainerActive)
         : macosStyle ? "transparent" : root.islandStyle ? Qt.alpha(PillTheme.vermLit, 0.18)
         : (root.regaliaStyle ? Appearance.regalia.pressPlate
         : root.zzzStyle ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.22)

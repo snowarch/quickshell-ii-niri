@@ -22,7 +22,7 @@ Item {
         background.bottomRightRadius, background.bottomLeftRadius
     ]
 
-    readonly property real fullRadius: Appearance.editorialEverywhere ? Appearance.editorial.radius : height / 2
+    readonly property real fullRadius: height / 2
     readonly property real midRadius: Config.options.bar.m3.cornerStyle === 2 ? Appearance.rounding.unsharpenmore + 2 : Appearance.rounding.unsharpenmore
     property real startRadius: {
         if (totalCount <= 1) return fullRadius;

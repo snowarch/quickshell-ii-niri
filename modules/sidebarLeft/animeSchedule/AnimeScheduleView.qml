@@ -71,20 +71,24 @@ Item {
                 colBackground: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2
                     : Appearance.auroraEverywhere ? "transparent"
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                     : Appearance.colors.colLayer1
                 colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
                     : Appearance.colors.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+                    : Appearance.editorialEverywhere ? Appearance.editorial.accent
                     : Appearance.colors.colSecondaryContainer
                 colBackgroundToggledHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainerHover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
                     : Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover
+                    : Appearance.editorialEverywhere ? Appearance.colors.colPrimaryHover
                     : Appearance.colors.colSecondaryContainerHover
                 onClicked: {
                     tabGroup.clickIndex = 0
@@ -101,20 +105,24 @@ Item {
                 colBackground: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2
                     : Appearance.auroraEverywhere ? "transparent"
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                     : Appearance.colors.colLayer1
                 colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
                     : Appearance.colors.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+                    : Appearance.editorialEverywhere ? Appearance.editorial.accent
                     : Appearance.colors.colSecondaryContainer
                 colBackgroundToggledHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainerHover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
                     : Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover
+                    : Appearance.editorialEverywhere ? Appearance.colors.colPrimaryHover
                     : Appearance.colors.colSecondaryContainerHover
                 onClicked: {
                     tabGroup.clickIndex = 1
@@ -131,20 +139,24 @@ Item {
                 colBackground: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2
                     : Appearance.auroraEverywhere ? "transparent"
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                     : Appearance.colors.colLayer1
                 colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
+                    : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
                     : Appearance.colors.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+                    : Appearance.editorialEverywhere ? Appearance.editorial.accent
                     : Appearance.colors.colSecondaryContainer
                 colBackgroundToggledHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainerHover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
                     : Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover
+                    : Appearance.editorialEverywhere ? Appearance.colors.colPrimaryHover
                     : Appearance.colors.colSecondaryContainerHover
                 onClicked: {
                     tabGroup.clickIndex = 2
@@ -190,17 +202,21 @@ Item {
                         // Same theming as tabs above
                         colBackground: Appearance.inirEverywhere ? Appearance.inir.colLayer2
                             : Appearance.auroraEverywhere ? "transparent"
+                            : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                             : Appearance.colors.colLayer1
                         colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
+                            : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
                             : Appearance.colors.colLayer1Hover
                         colBackgroundToggled: Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                             : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+                            : Appearance.editorialEverywhere ? Appearance.editorial.accent
                             : Appearance.colors.colSecondaryContainer
                         colBackgroundToggledHover: Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainerHover
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
                             : Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover
+                            : Appearance.editorialEverywhere ? Appearance.colors.colPrimaryHover
                             : Appearance.colors.colSecondaryContainerHover
                         
                         onClicked: {

@@ -13,7 +13,7 @@ Item {
     property bool shadow: Config.options?.appearance?.island?.shadow ?? true
     property real shadowOffset: 3
     property int shadowRadius: 16
-    property real radius: Appearance.editorialEverywhere ? Appearance.editorial.radius : (Config.options?.appearance?.island?.radius ?? 18)
+    property real radius: Config.options?.appearance?.island?.radius ?? 18
     property real topLeftRadiusOverride: -1
     property real topRightRadiusOverride: -1
     property real bottomLeftRadiusOverride: -1
@@ -26,7 +26,7 @@ Item {
     property real glassScreenWidth: -1
     property real glassScreenHeight: -1
 
-    readonly property real fillOpacity: Appearance.editorialEverywhere ? 1 : (Config.options?.appearance?.island?.opacity ?? 1)
+    readonly property real fillOpacity: Config.options?.appearance?.island?.opacity ?? 1
     readonly property real topLeftRadius: topLeftRadiusOverride >= 0 ? topLeftRadiusOverride : radius
     readonly property real topRightRadius: topRightRadiusOverride >= 0 ? topRightRadiusOverride : radius
     readonly property real bottomLeftRadius: bottomLeftRadiusOverride >= 0 ? bottomLeftRadiusOverride : radius
@@ -73,13 +73,27 @@ Item {
         ? root.glassScreenY : root._windowY + root._inWindow.y
     readonly property string wallpaperUrl: WallpaperListener.wallpaperUrlForScreen(root._screen)
     readonly property string glassBackend: Appearance.blurBackendFor("islands", Appearance.blurTopology.roundedRectangle)
-    readonly property bool glassActive: root.visible
-        && root.glassEnabled && !Appearance.editorialEverywhere
-        && Appearance.effectsEnabled
-        && (Config.options?.appearance?.island?.glass ?? true)
+    readonly property bool editorialGlassActive: Appearance.editorialEverywhere && Appearance.editorial.glassActive
+    readonly property bool islandGlassRequested: (Config.options?.appearance?.island?.glass ?? true)
         && root.fillOpacity < 0.999
+    readonly property bool glassRequested: root.editorialGlassActive || root.islandGlassRequested
+    readonly property bool glassActive: root.visible
+        && root.glassEnabled
+        && Appearance.effectsEnabled
+        && root.glassRequested
         && (root.glassBackend === "wallpaper"
             || (root.glassBackend === "compositor" && !root.nativeBlurActive))
+    readonly property bool backdropReady: root.glassRequested
+        && (root.nativeBlurActive || (root.glassActive && glassWallpaper.status === Image.Ready))
+    readonly property real editorialFaceOpacity: root.editorialGlassActive && root.backdropReady
+        ? Math.min(root.fillOpacity, Appearance.editorial.glassOpacity) : 1
+    readonly property real editorialBackingOpacity: root.editorialGlassActive && root.backdropReady
+        ? Math.min(root.fillOpacity, Appearance.editorial.glassBackingOpacity) : 1
+    readonly property real cardOpacity: Appearance.editorialEverywhere && Appearance.editorial.paperStack
+        ? 0
+        : root.editorialGlassActive
+            ? (root.backdropReady ? Math.min(root.fillOpacity, Appearance.editorial.glassLayerOpacity) : 1)
+            : root.fillOpacity
 
     Item {
         id: glass
@@ -116,10 +130,12 @@ Item {
             layer.effect: MultiEffect {
                 source: glassWallpaper
                 anchors.fill: source
-                saturation: 0.15
+                saturation: root.editorialGlassActive ? 0.04 : 0.15
                 blurEnabled: true
                 blurMax: 64
-                blur: Config.options?.appearance?.island?.glassBlur ?? 1
+                blur: root.editorialGlassActive
+                    ? Appearance.editorial.glassBlur
+                    : (Config.options?.appearance?.island?.glassBlur ?? 1)
             }
         }
     }
@@ -134,8 +150,8 @@ Item {
         bottomRightRadius: root.bottomRightRadius
         border.width: 0
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Appearance.editorialEverywhere ? Appearance.editorial.rail : Qt.alpha(Appearance.colors.colLayer3, root.fillOpacity) }
-            GradientStop { position: 1.0; color: Appearance.editorialEverywhere ? Appearance.editorial.rail : Qt.alpha(Appearance.colors.colLayer1, root.fillOpacity) }
+            GradientStop { position: 0.0; color: Appearance.editorialEverywhere ? Qt.alpha(Appearance.editorial.rail, root.cardOpacity) : Qt.alpha(Appearance.colors.colLayer3, root.fillOpacity) }
+            GradientStop { position: 1.0; color: Appearance.editorialEverywhere ? Qt.alpha(Appearance.editorial.rail, root.cardOpacity) : Qt.alpha(Appearance.colors.colLayer1, root.fillOpacity) }
         }
 
         Rectangle {
@@ -152,6 +168,7 @@ Item {
     }
 
     EditorialPaperStack {
+        id: editorialStack
         anchors.fill: parent
         faceColor: Appearance.editorial.rail
         radius: root.radius
@@ -159,11 +176,15 @@ Item {
         topRightRadius: root.topRightRadius
         bottomLeftRadius: root.bottomLeftRadius
         bottomRightRadius: root.bottomRightRadius
+        materialOpacity: root.editorialGlassActive ? root.editorialFaceOpacity
+            : root.islandGlassRequested && root.backdropReady ? root.fillOpacity : 1
+        backingOpacity: root.editorialGlassActive ? root.editorialBackingOpacity
+            : root.islandGlassRequested && root.backdropReady ? root.fillOpacity : 1
     }
 
     GE.DropShadow {
         anchors.fill: card
-        source: card
+        source: editorialStack.visible ? editorialStack : card
         visible: Appearance.effectsEnabled && root.shadow && root.visible
         z: -1
         color: Qt.rgba(0, 0, 0, 0.35)
