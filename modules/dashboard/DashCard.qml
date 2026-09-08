@@ -22,21 +22,30 @@ Rectangle {
     readonly property bool compact: (Config.options?.dashboard?.appearance?.density ?? "comfortable") === "compact"
     readonly property real cardOpacity: Math.max(0.3, Math.min(1, Config.options?.dashboard?.appearance?.cardOpacity ?? 1))
     readonly property bool showTitle: Config.options?.dashboard?.appearance?.showCardTitles ?? true
-    readonly property real pad: compact ? 8 : 12
+    readonly property real pad: editorialEverywhere ? Math.round(14 * Appearance.editorial.spacing) : (compact ? 8 : 12)
 
     readonly property bool inirEverywhere: Appearance.inirEverywhere
     readonly property bool auroraEverywhere: Appearance.auroraEverywhere
     readonly property bool zzzEverywhere: Appearance.zzzEverywhere
-    readonly property color colText: zzzEverywhere ? Appearance.zzz.ink
+    readonly property bool editorialEverywhere: Appearance.editorialEverywhere
+    // Editorial "ink field": paper/ink inversion reserved for the one focal
+    // card of a composition; opt-in per card.
+    property bool inkField: false
+    readonly property bool _inkActive: editorialEverywhere && root.inkField
+    readonly property color colText: _inkActive ? Appearance.editorial.paperOnInk
+        : zzzEverywhere ? Appearance.zzz.ink
         : Appearance.angelEverywhere ? Appearance.angel.colText
         : inirEverywhere ? Appearance.inir.colText
         : auroraEverywhere ? Appearance.colors.colOnSurface
         : Appearance.colors.colOnLayer1
-    readonly property color colSubtext: zzzEverywhere ? Appearance.zzz.inkMuted
+    readonly property color colSubtext: _inkActive ? ColorUtils.applyAlpha(Appearance.editorial.paperOnInk, 0.72)
+        : zzzEverywhere ? Appearance.zzz.inkMuted
         : Appearance.angelEverywhere ? Appearance.angel.colTextSecondary
         : inirEverywhere ? Appearance.inir.colTextSecondary
         : Appearance.colors.colSubtext
-    readonly property color colAccent: zzzEverywhere ? Appearance.zzz.accent
+    readonly property color colAccent: _inkActive
+        ? ColorUtils.ensureReadable(Appearance.editorial.accent, Appearance.editorial.ink, 4.5)
+        : zzzEverywhere ? Appearance.zzz.accent
         : Appearance.angelEverywhere ? Appearance.angel.colPrimary
         : inirEverywhere ? Appearance.inir.colPrimary
         : auroraEverywhere ? Appearance.colors.colPrimary
@@ -49,6 +58,8 @@ Rectangle {
         : Appearance.angelEverywhere ? Appearance.angel.roundingNormal
         : inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
     color: {
+        if (_inkActive)
+            return Appearance.editorial.ink
         const base = zzzEverywhere ? Appearance.zzz.paper
             : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
             : inirEverywhere ? Appearance.inir.colLayer1
@@ -65,8 +76,10 @@ Rectangle {
         ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
     }
     border.width: Appearance.angelEverywhere ? 0
-        : zzzEverywhere ? 0 : 1
-    border.color: Appearance.angelEverywhere ? "transparent"
+        : zzzEverywhere ? 0 : editorialEverywhere ? 0 : 1
+    border.color: _inkActive ? "transparent"
+        : editorialEverywhere ? Appearance.editorial.rule
+        : Appearance.angelEverywhere ? "transparent"
         : zzzEverywhere ? Appearance.zzz.hairline
         : inirEverywhere ? Appearance.inir.colBorder
         : ColorUtils.applyAlpha(Appearance.colors.colOnLayer1, 0.06)
@@ -87,7 +100,7 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         radius: root.radius
-        visible: !Appearance.angelEverywhere && !root.zzzEverywhere
+        visible: !Appearance.angelEverywhere && !root.zzzEverywhere && !root.editorialEverywhere
         z: 0
         gradient: Gradient {
             GradientStop { position: 0.0; color: ColorUtils.applyAlpha(Appearance.colors.colOnLayer1, 0.05) }
@@ -109,7 +122,7 @@ Rectangle {
         id: contentColumn
         anchors.fill: parent
         anchors.margins: root.pad
-        spacing: root.compact ? 6 : 8
+        spacing: root.editorialEverywhere ? Math.round(10 * Appearance.editorial.spacing) : (root.compact ? 6 : 8)
 
         RowLayout {
             visible: (root.title.length > 0 && root.showTitle) || root.headerActionIcon.length > 0
@@ -133,8 +146,9 @@ Rectangle {
                 Layout.fillWidth: true
                 visible: root.showTitle && root.title.length > 0
                 text: root.zzzEverywhere ? root.title.toUpperCase() : root.title
-                font.pixelSize: Appearance.font.pixelSize.normal
-                font.weight: root.zzzEverywhere ? Font.Black : Font.Medium
+                font.family: root.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
+                font.pixelSize: root.editorialEverywhere ? Appearance.font.pixelSize.larger * Appearance.editorial.titleScale : Appearance.font.pixelSize.normal
+                font.weight: root.zzzEverywhere ? Font.Black : root.editorialEverywhere ? Appearance.editorial.titleWeight : Font.Medium
                 color: root.colText
                 elide: Text.ElideRight
             }
@@ -143,7 +157,7 @@ Rectangle {
                 visible: root.headerActionIcon.length > 0
                 implicitWidth: 30
                 implicitHeight: 30
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: root.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 colBackground: "transparent"
                 colBackgroundHover: ColorUtils.applyAlpha(root.colAccent, 0.10)
                 colRipple: ColorUtils.applyAlpha(root.colAccent, 0.16)
@@ -158,11 +172,18 @@ Rectangle {
             }
         }
 
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            visible: root.editorialEverywhere && root.showTitle && root.title.length > 0
+            color: root._inkActive ? ColorUtils.applyAlpha(root.colText, 0.34) : Appearance.editorial.rule
+        }
+
         ColumnLayout {
             id: inner
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 8
+            spacing: root.editorialEverywhere ? Math.round(8 * Appearance.editorial.spacing) : 8
 
             // Center every card's content by default. A child that explicitly
             // fills width (lists, meters, calendars, full-bleed widgets) keeps

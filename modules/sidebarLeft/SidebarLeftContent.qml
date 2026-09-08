@@ -108,6 +108,10 @@ Item {
         return result
     }
     property string selectedTabId: ""
+    readonly property string activeTabTitle: {
+        const tab = root.tabButtonList.find(item => item.id === root.selectedTabId)
+        return tab?.name ?? ""
+    }
     property bool tabEditMode: false
 
     // Enabled tabs rendered in the user's stable-id order.
@@ -288,7 +292,8 @@ Item {
             : angelEverywhere ? Appearance.angel.colPanelBorder
             : inirEverywhere ? Appearance.inir.colBorder
             : Appearance.colors.colLayer0Border
-        radius: zzzEverywhere ? Appearance.zzz.panelRadius
+        radius: islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
+            : zzzEverywhere ? Appearance.zzz.panelRadius
             : regaliaEverywhere ? Appearance.regalia.panelRadius
             : angelEverywhere ? Appearance.angel.roundingNormal
             : inirEverywhere ? Appearance.inir.roundingNormal
@@ -311,11 +316,6 @@ Item {
             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
         }
 
-        EditorialRule {
-            anchors.fill: parent
-            emphasized: root.visible
-            inset: 24
-        }
 
         RegaliaPlate {
             anchors.fill: parent
@@ -439,6 +439,54 @@ Item {
             spacing: sidebarLeftBackground.angelEverywhere ? sidebarPadding + 2
                 : sidebarLeftBackground.inirEverywhere ? sidebarPadding + 4 : sidebarPadding
 
+            Rectangle {
+                id: editorialHeader
+                Layout.fillWidth: true
+                implicitHeight: Math.max(42, activeTabHeading.font.pixelSize + 14)
+                Layout.preferredHeight: visible ? implicitHeight : 0
+                visible: Appearance.editorialEverywhere && !sidebarLeftBackground.islandStyle
+                    && !root.pluginViewActive && root.activeTabTitle.length > 0
+                color: "transparent"
+
+                StyledText {
+                    id: activeTabHeading
+                    anchors.left: parent.left
+                    anchors.right: activeTabFlower.left
+                    anchors.rightMargin: 8
+                    anchors.bottom: rule.top
+                    anchors.bottomMargin: 7
+                    text: root.activeTabTitle
+                    font.family: Appearance.font.family.title
+                    font.pixelSize: Appearance.font.pixelSize.larger * Appearance.editorial.titleScale
+                    font.weight: Appearance.editorial.titleWeight
+                    font.letterSpacing: Appearance.editorial.titleTracking
+                    color: Appearance.editorial.ink
+                    elide: Text.ElideRight
+                    wrapMode: Text.NoWrap
+                }
+
+                MaterialShape {
+                    id: activeTabFlower
+                    anchors.right: parent.right
+                    anchors.bottom: rule.top
+                    anchors.bottomMargin: 7
+                    implicitSize: 18
+                    shape: MaterialShape.Shape.Flower
+                    color: Appearance.editorial.accent
+                    visible: Appearance.editorial.ornaments
+                }
+
+                EditorialRule {
+                    id: rule
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 2
+                    inset: 0
+                    emphasized: true
+                }
+            }
+
             // Tab bar — hidden when webapp is fullscreen in sidebar
             Toolbar {
                 id: toolbarContainer
@@ -490,6 +538,7 @@ Item {
                     if (root.fitToContent)
                         return Math.round(root.activeTabContentHeight)
                     const chromeHeight = contentColumn.anchors.topMargin + root.sidebarPadding
+                        + (editorialHeader.visible ? editorialHeader.implicitHeight + contentColumn.spacing : 0)
                         + (toolbarContainer.visible ? toolbarContainer.implicitHeight + contentColumn.spacing : 0)
                     return Math.round(Math.max(0,
                         Math.min(root.activeTabContentHeight,
@@ -497,11 +546,13 @@ Item {
                 }
                 radius: Appearance.zzzEverywhere ? Appearance.zzz.cardRadius
                     : Appearance.angelEverywhere ? Appearance.angel.roundingNormal
-                    : Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
+                    : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
+                    : Appearance.editorialEverywhere ? Appearance.editorial.radius : Appearance.rounding.normal
                 color: Appearance.zzzEverywhere ? "transparent"
                     : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer1
                      : Appearance.auroraEverywhere ? "transparent"
+                     : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                      : Appearance.colors.colLayer1
                 border.width: Appearance.zzzEverywhere ? 0
                     : Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth
@@ -540,7 +591,8 @@ Item {
                         maskSource: Rectangle {
                             width: swipeView.width
                             height: swipeView.height
-                            radius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : Appearance.rounding.small
+                            radius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+                                : Appearance.editorialEverywhere ? Appearance.editorial.radius : Appearance.rounding.small
                             Behavior on radius {
                                 enabled: Appearance.animationsEnabled
                                 NumberAnimation { duration: Appearance.animation.elementMoveFast.duration }

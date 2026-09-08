@@ -356,7 +356,7 @@ Item {
                     anchors.fill: parent
                     radius: headerCard.radius
                     visible: !root.angelStyle && !root.auroraStyle
-                    color: root.colCard
+                    color: Appearance.editorialEverywhere ? Appearance.editorial.ink : root.colCard
                 }
 
                 AngelPartialBorder { targetRadius: parent.radius; coverage: 0.45 }
@@ -374,15 +374,15 @@ Item {
                             text: DateTime.time
                             font {
                                 pixelSize: Appearance.font.pixelSize.huge * 1.8
-                                weight: Font.Light
+                                weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.Light
                                 family: Appearance.font.family.numbers
                             }
-                            color: root.colText
+                            color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colText
                         }
                         StyledText {
                             text: root.greeting
                             font { pixelSize: Appearance.font.pixelSize.normal; weight: Font.Medium }
-                            color: root.colPrimary
+                            color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colPrimary
                         }
                     }
 
@@ -399,7 +399,7 @@ Item {
                             text: Qt.formatDate(DateTime.clock.date, "dddd, MMMM")
                             elide: Text.ElideRight
                             font.pixelSize: Appearance.font.pixelSize.small
-                            color: root.colSubtext
+                            color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colSubtext
                         }
 
                         RowLayout {
@@ -435,13 +435,13 @@ Item {
                                 MaterialSymbol {
                                     text: "notifications"
                                     iconSize: 14
-                                    color: root.colSubtext
+                                    color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colSubtext
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 StyledText {
                                     text: Notifications.list.length.toString()
                                     font { pixelSize: Appearance.font.pixelSize.smallest; family: Appearance.font.family.numbers }
-                                    color: root.colSubtext
+                                    color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colSubtext
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
@@ -455,13 +455,13 @@ Item {
                                     text: "do_not_disturb_on"
                                     iconSize: 14
                                     fill: 1
-                                    color: root.colPrimary
+                                    color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colPrimary
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 StyledText {
                                     text: Translation.tr("DND")
                                     font.pixelSize: Appearance.font.pixelSize.smallest
-                                    color: root.colPrimary
+                                    color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colPrimary
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
@@ -475,13 +475,13 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                         buttonRadius: root.angelStyle ? Appearance.angel.roundingSmall : 16
                         colBackground: "transparent"
-                        colBackgroundHover: root.colCardHover
+                        colBackgroundHover: Appearance.editorialEverywhere ? ColorUtils.applyAlpha(Appearance.editorial.paperOnInk, 0.12) : root.colCardHover
                         onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
                             text: "settings"
                             iconSize: 18
-                            color: root.colSubtext
+                            color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : root.colSubtext
                         }
                         StyledToolTip { text: Translation.tr("Settings") }
                     }
@@ -1434,7 +1434,7 @@ Item {
 
         implicitHeight: chipRow.implicitHeight + 10
         implicitWidth: chipRow.implicitWidth + 20
-        radius: Appearance.rounding.full
+        radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
         color: root.angelStyle ? ColorUtils.transparentize(root.colPrimary, 0.78)
             : root.inirStyle ? Appearance.inir.colLayer2
             : root.auroraStyle ? ColorUtils.transparentize(Appearance.colors.colSecondaryContainer, 0.45)

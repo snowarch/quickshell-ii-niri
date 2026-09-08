@@ -72,8 +72,11 @@ DashCard {
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: `${Math.round(bar.value * 100)}%`
-                font.pixelSize: Appearance.font.pixelSize.smallest
+                font.pixelSize: Appearance.editorialEverywhere
+                    ? Appearance.font.pixelSize.normal
+                    : Appearance.font.pixelSize.smallest
                 font.family: Appearance.font.family.numbers
+                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Normal
                 color: root.colSubtext
             }
 

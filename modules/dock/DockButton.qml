@@ -27,6 +27,7 @@ RippleButton {
     buttonRadius: root.regaliaStyle ? Appearance.regalia.roundNormal
         : root.zzzStyle ? Appearance.zzz.controlRadius
         : root.angelStyle ? Appearance.angel.roundingSmall
+        : Appearance.editorialEverywhere ? Appearance.rounding.small
         : root.inirStyle ? Appearance.inir.roundingSmall : Appearance.rounding.normal
 
     colBackground: "transparent"

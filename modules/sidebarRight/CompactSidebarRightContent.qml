@@ -317,7 +317,7 @@ Item {
                             RippleButton {
                                 implicitWidth: 28
                                 implicitHeight: 28
-                                buttonRadius: Appearance.rounding.full
+                                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                                 colBackground: "transparent"
                                 colBackgroundHover: Appearance.colors.colLayer2Hover
                                 colRipple: Appearance.colors.colLayer2Active
@@ -874,7 +874,8 @@ Item {
             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
         }
 
-        radius: zzzEverywhere ? Appearance.zzz.panelRadius
+        radius: islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
+              : zzzEverywhere ? Appearance.zzz.panelRadius
               : angelEverywhere  ? Appearance.angel.roundingNormal
               : inirEverywhere   ? (cardStyle ? Appearance.inir.roundingLarge : Appearance.inir.roundingNormal)
               : cardStyle        ? Appearance.rounding.normal

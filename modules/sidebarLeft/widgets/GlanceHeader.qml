@@ -34,8 +34,9 @@ Item {
 
             StyledText {
                 text: DateTime.time
-                font.pixelSize: Appearance.font.pixelSize.huge * 2
-                font.weight: Appearance.zzzEverywhere ? Font.Black : Font.Light
+                font.pixelSize: Appearance.font.pixelSize.huge * (Appearance.editorialEverywhere ? 2.15 : 2)
+                font.weight: Appearance.zzzEverywhere ? Font.Black
+                    : Appearance.editorialEverywhere ? Font.DemiBold : Font.Light
                 font.family: Appearance.font.family.numbers
                 font.italic: Appearance.zzzEverywhere
                 color: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? Appearance.inir.colText : Appearance.colors.colOnLayer0
@@ -56,7 +57,8 @@ Item {
                 RippleButton {
                     implicitWidth: 36
                     implicitHeight: 36
-                    buttonRadius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small
+                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
                     colBackground: Appearance.inirEverywhere ? "transparent"
                         : Appearance.auroraEverywhere ? "transparent" : Appearance.colors.colTertiaryContainer
                     colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
@@ -87,7 +89,9 @@ Item {
                 RippleButton {
                     implicitWidth: 36
                     implicitHeight: 36
-                    buttonRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : (Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full)
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small
+                        : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+                        : (Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full)
                     colBackground: Appearance.zzzEverywhere ? Appearance.zzz.sticker : Appearance.inirEverywhere ? "transparent"
                         : Appearance.auroraEverywhere ? "transparent" : Appearance.colors.colPrimaryContainer
                     colBackgroundHover: Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover : Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
@@ -131,7 +135,8 @@ Item {
                         anchors.fill: parent
                         implicitWidth: 60
                         implicitHeight: 36
-                        buttonRadius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
+                        buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small
+                            : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
                         colBackground: "transparent"
                         colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover : Appearance.colors.colLayer1Hover
@@ -193,7 +198,8 @@ Item {
                     id: settingsBtn
                     implicitWidth: 36
                     implicitHeight: 36
-                    buttonRadius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small
+                        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
                     colBackground: "transparent"
                     colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
                         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover : Appearance.colors.colLayer1Hover
@@ -238,7 +244,9 @@ Item {
                 readonly property string _configFormat: Config.options?.time?.dateFormat ?? ""
                 readonly property string _defaultFormat: Appearance.inirEverywhere ? "dddd, MMMM yyyy" : "dddd, d MMMM"
                 text: root.locale.toString(DateTime.clock.date, _configFormat.length > 0 ? _configFormat : _defaultFormat)
-                font.pixelSize: Appearance.font.pixelSize.normal
+                font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.small : Appearance.font.pixelSize.normal
+                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Normal
+                font.letterSpacing: Appearance.editorialEverywhere ? 0.8 : 0
                 color: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted : Appearance.inirEverywhere ? Appearance.inir.colTextSecondary : Appearance.colors.colSubtext
                 Behavior on color {
                     enabled: Appearance.animationsEnabled

@@ -125,7 +125,7 @@ Item {
         implicitHeight: 30
         implicitWidth: pillRow.implicitWidth + 20
         width: root.width > 0 ? root.width : implicitWidth
-        buttonRadius: Appearance.rounding.full
+        buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
         colBackground: Appearance.colors.colLayer2
         colBackgroundHover: Appearance.colors.colLayer2Hover
         onClicked: root.expanded = !root.expanded
@@ -290,7 +290,7 @@ Item {
                     implicitWidth: 34
                     implicitHeight: 34
                     enabled: !AiProviderCatalog.refreshing
-                    buttonRadius: Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     colBackground: Appearance.colors.colLayer2
                     colBackgroundHover: Appearance.colors.colLayer2Hover
                     onClicked: AiProviderCatalog.refreshAll()
@@ -327,7 +327,7 @@ Item {
                             readonly property bool selected: root.catalogFilter === modelData.id
                             Layout.preferredWidth: filterButtonContent.implicitWidth + 14
                             Layout.preferredHeight: 26
-                            buttonRadius: Appearance.rounding.full
+                            buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                             colBackground: selected
                                 ? Appearance.colors.colSecondaryContainer : "transparent"
                             colBackgroundHover: selected

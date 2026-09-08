@@ -505,7 +505,8 @@ Item {
             : angelEverywhere ? Appearance.angel.colPanelBorder
             : inirEverywhere ? Appearance.inir.colBorder
             : Appearance.colors.colLayer0Border
-        radius: zzzEverywhere ? Appearance.zzz.panelRadius
+        radius: islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
+            : zzzEverywhere ? Appearance.zzz.panelRadius
             : regaliaEverywhere ? Appearance.regalia.panelRadius
             : angelEverywhere ? Appearance.angel.roundingNormal
             : inirEverywhere ? (cardStyle ? Appearance.inir.roundingLarge : Appearance.inir.roundingNormal)
@@ -528,11 +529,6 @@ Item {
             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
         }
 
-        EditorialRule {
-            anchors.fill: parent
-            emphasized: root.panelVisible
-            inset: 24
-        }
 
         RegaliaPlate {
             anchors.fill: parent
@@ -1013,7 +1009,7 @@ Item {
                 RippleButton {
                     implicitWidth: 34
                     implicitHeight: 34
-                    buttonRadius: Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     colBackground: "transparent"
                     colBackgroundHover: Appearance.colors.colLayer2Hover
                     colRipple: Appearance.colors.colLayer2Active
@@ -1176,7 +1172,8 @@ Item {
                 ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
             }
             radius: Appearance.zzzEverywhere ? Appearance.zzz.cardRadius
-                : sidebarRightBackground.angelEverywhere ? Appearance.angel.roundingSmall : height / 2
+                : sidebarRightBackground.angelEverywhere ? Appearance.angel.roundingSmall
+                : Appearance.editorialEverywhere ? Appearance.rounding.small : height / 2
             Behavior on radius {
                 enabled: Appearance.animationsEnabled
                 NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }

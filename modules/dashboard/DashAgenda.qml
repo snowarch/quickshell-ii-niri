@@ -153,7 +153,7 @@ DashCard {
         Layout.alignment: Qt.AlignHCenter
         implicitHeight: 30
         implicitWidth: addRowContent.implicitWidth + 24
-        buttonRadius: Appearance.rounding.full
+        buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
         colBackground: "transparent"
         colBackgroundHover: Appearance.colors.colLayer1Hover
         colRipple: Appearance.colors.colLayer1Active

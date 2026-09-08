@@ -13,8 +13,10 @@ Rectangle {
     property var messageData
     property var messageInputField
 
-    property real messagePadding: 7
-    property real contentSpacing: 3
+    readonly property bool editorial: Appearance.editorialEverywhere
+    readonly property bool userMessage: messageData?.role === "user"
+    property real messagePadding: editorial ? Math.round(12 * Appearance.editorial.spacing) : 7
+    property real contentSpacing: editorial ? Math.round(8 * Appearance.editorial.spacing) : 3
 
     property bool enableMouseSelection: false
     property bool renderMarkdown: true
@@ -26,8 +28,9 @@ Rectangle {
     anchors.right: parent?.right
     implicitHeight: columnLayout.implicitHeight + root.messagePadding * 2
 
-    radius: Appearance.rounding.normal
-    color: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
+    radius: root.editorial ? Appearance.editorial.radius : Appearance.rounding.normal
+    color: root.editorial ? (root.userMessage ? Appearance.editorial.secondaryField : Appearance.editorial.layer(1))
+        : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
         : Appearance.inirEverywhere ? Appearance.inir.colLayer1
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface : Appearance.colors.colLayer1
 
@@ -123,7 +126,9 @@ Rectangle {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: Appearance.colors.colSubtext
+                font.weight: root.editorial ? Font.DemiBold : Font.Normal
+                font.letterSpacing: root.editorial ? 0.3 : 0
+                color: root.editorial ? (root.userMessage ? Appearance.editorial.secondaryFieldInk : Appearance.editorial.accent) : Appearance.colors.colSubtext
                 text: (messageData?.role == 'assistant' && Ai.models[messageData?.model]) 
                     ? Ai.models[messageData?.model].name 
                     : (messageData?.role == 'user' && SystemInfo.username) 

@@ -276,7 +276,7 @@ Item {
             RippleButton {
                 implicitWidth: 32
                 implicitHeight: 32
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 enabled: !NewsService.loading
 
                 colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover

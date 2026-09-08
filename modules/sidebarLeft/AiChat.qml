@@ -353,7 +353,7 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                 // plate, so clipping it to contain the row also swallowed the whole
                 // menu. Nothing overflows any more — the cap plus the model name
                 // eliding is what keeps the row inside.
-                radius: Appearance.rounding.normal - root.padding
+                radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.normal - root.padding
                 color: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2
                     : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurface : Appearance.colors.colLayer2
@@ -666,9 +666,11 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
 
         Rectangle { // Input area
             id: inputWrapper
+            border.width: Appearance.editorialEverywhere ? 1 : 0
+            border.color: messageInputField.activeFocus ? Appearance.editorial.accent : Appearance.editorial.rule
             property real spacing: 5
             Layout.fillWidth: true
-            radius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : Appearance.rounding.normal - root.padding
+            radius: Appearance.editorialEverywhere ? Appearance.editorial.radius : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : Appearance.rounding.normal - root.padding
             Behavior on radius {
                 enabled: Appearance.animationsEnabled
                 NumberAnimation { duration: Appearance.animation.elementMoveFast.duration }

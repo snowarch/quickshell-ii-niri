@@ -48,28 +48,34 @@ Item {
     readonly property bool _aurora: root._dialect === "aurora" || root._angel
     readonly property bool _cookie: root._dialect === "cookie"
     readonly property bool _island: root._dialect === "island"
+    readonly property bool _editorial: root._dialect === "editorial" && !root._island
 
     readonly property color _colText: root._zzz ? Appearance.zzz.ink
         : root._angel ? Appearance.angel.colText
         : root._inir ? Appearance.inir.colText
+        : root._editorial ? Appearance.editorial.ink
         : root._aurora ? Appearance.colors.colOnSurface
         : Appearance.colors.colOnLayer1
     readonly property color _colSubtext: root._zzz ? Appearance.zzz.inkMuted
         : root._angel ? Appearance.angel.colTextSecondary
         : root._inir ? Appearance.inir.colTextSecondary
+        : root._editorial ? Appearance.editorial.muted
         : Appearance.colors.colSubtext
     readonly property color _colAccent: root._zzz ? Appearance.zzz.accent
         : root._angel ? Appearance.angel.colPrimary
         : root._inir ? Appearance.inir.colPrimary
+        : root._editorial ? Appearance.editorial.accent
         : Appearance.colors.colPrimary
     readonly property color _colBannerBase: root._zzz ? Appearance.zzz.tile
         : root._angel ? Qt.alpha(Appearance.angel.colGlassCard, 1)
         : root._inir ? Qt.alpha(Appearance.inir.colLayer1, 1)
+        : root._editorial ? Appearance.editorial.layer(1)
         : root._island ? Qt.alpha(Appearance.colors.colLayer1, 1)
         : Qt.alpha(Appearance.colors.colLayer0Base, 1)
     readonly property color _avatarPlate: root._zzz ? Appearance.zzz.chrome
         : root._angel ? Qt.alpha(Appearance.angel.colGlassCard, 1)
         : root._inir ? Qt.alpha(Appearance.inir.colLayer1, 1)
+        : root._editorial ? Appearance.editorial.layer(2)
         : root._island ? Appearance.colors.colLayer1
         : Qt.alpha(Appearance.colors.colLayer1, 1)
 
@@ -110,8 +116,9 @@ Item {
         && !Appearance._gameModeActive
         && !Wallpapers.batteryPauseActive
 
-    readonly property real _contentPadding: 12
+    readonly property real _contentPadding: root._editorial ? 14 : 12
     readonly property real _bannerInset: root._zzz || root._cookie ? 6
+        : root._editorial ? 0
         : root._island ? 4
         : root._regalia ? Appearance.regalia.surfaceInset : 0
     readonly property real _bannerHeight: root._bannerAllowed
@@ -132,11 +139,13 @@ Item {
         : root._island ? (Config.options?.appearance?.island?.radius ?? 18)
         : root._angel ? Appearance.angel.roundingLarge
         : root._inir ? Appearance.inir.roundingLarge
+        : root._editorial ? Appearance.editorial.radius
         : Appearance.rounding.large
     readonly property real _panelConcentricRadius: (root.atPanelTop && root.panelRadius > root.panelInset)
         ? Appearance.concentricRadius(root.panelRadius, root.panelInset) : 0
     readonly property real _cardRadius: Math.max(root._profileRadius, root._panelConcentricRadius)
     readonly property real _bannerRadius: root._zzz ? Appearance.zzz.controlRadius
+        : root._editorial ? Appearance.editorial.radius
         : Appearance.concentricRadius(root._cardRadius, root._bannerInset)
 
     readonly property string _displayName: SystemInfo.displayName || SystemInfo.username || "user"
@@ -259,6 +268,16 @@ Item {
                     }
                 }
 
+                MaterialShape {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 12
+                    implicitSize: 18
+                    visible: root._editorial && Appearance.editorial.ornaments
+                    shape: MaterialShape.Shape.Flower
+                    color: root._colAccent
+                }
+
                 Rectangle {
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -278,6 +297,7 @@ Item {
             anchors.right: parent.right
             y: root._bannerHeight
             height: root._footerHeight
+
         }
 
         Item {
@@ -386,8 +406,9 @@ Item {
             StyledText {
                 Layout.fillWidth: true
                 text: root._displayName
-                font.pixelSize: Appearance.font.pixelSize.normal
-                font.weight: Font.DemiBold
+                font.family: root._editorial ? Appearance.font.family.title : Appearance.font.family.main
+                font.pixelSize: root._editorial ? Appearance.font.pixelSize.large * Appearance.editorial.titleScale : Appearance.font.pixelSize.normal
+                font.weight: root._editorial ? Appearance.editorial.titleWeight : Font.DemiBold
                 color: root._colText
                 elide: Text.ElideRight
                 wrapMode: Text.NoWrap
@@ -516,6 +537,7 @@ Item {
         buttonRadius: headerButton._zzz ? Appearance.zzz.controlRadius
             : headerButton._angel ? Appearance.angel.roundingSmall
             : headerButton._inir ? Appearance.inir.roundingSmall
+            : root._editorial ? Appearance.rounding.small
             : Appearance.rounding.full
         colBackground: "transparent"
         colBackgroundHover: headerButton._zzz ? Appearance.zzz.chrome

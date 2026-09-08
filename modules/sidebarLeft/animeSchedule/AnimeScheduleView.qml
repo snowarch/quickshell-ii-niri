@@ -234,7 +234,7 @@ Item {
                 RippleButton {
                     implicitWidth: 32
                     implicitHeight: 32
-                    buttonRadius: Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     enabled: !AnimeService.loading
                     
                     colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
@@ -276,7 +276,7 @@ Item {
                 RippleButton {
                     implicitWidth: 32
                     implicitHeight: 32
-                    buttonRadius: Appearance.rounding.full
+                    buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     enabled: !AnimeService.loading
                     
                     colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
@@ -433,7 +433,7 @@ Item {
             RippleButton {
                 implicitWidth: 32
                 implicitHeight: 32
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 enabled: !AnimeService.loading
                 
                 colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover

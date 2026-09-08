@@ -367,14 +367,6 @@ Scope {
                                 Behavior on border.width { enabled: Appearance.animationsEnabled; NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve } }
                                 Behavior on border.color { enabled: Appearance.animationsEnabled; ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve } }
 
-                                EditorialRule {
-                                    anchors.fill: parent
-                                    visible: Appearance.editorialEverywhere && !root.isIslandStyle && !root.isMacosStyle
-                                    vertical: root.isVertical
-                                    emphasized: dockVisualBackground.visible
-                                    inset: 16
-                                }
-
                                 RegaliaPlate {
                                     anchors.fill: parent
                                     visible: root.isPanelStyle && dockVisualBackground.regaliaEverywhere
