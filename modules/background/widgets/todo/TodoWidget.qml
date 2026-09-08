@@ -178,8 +178,11 @@ AbstractBackgroundWidget {
                     StyledText {
                         text: Translation.tr("Todo")
                         color: root.widgetSurfaceInk
-                        font.pixelSize: Math.round(Appearance.font.pixelSize.huge * root.scaleFactor)
-                        font.weight: Font.DemiBold
+                        font.family: root.widgetTitleFamily
+                        font.pixelSize: Math.round(Appearance.font.pixelSize.huge
+                            * root.widgetTitleScale * root.scaleFactor)
+                        font.weight: root.widgetTitleWeight
+                        font.letterSpacing: root.widgetTitleTracking
                     }
                     StyledText {
                         text: Todo.list.filter(item => !item.done).length === 1
@@ -343,8 +346,11 @@ AbstractBackgroundWidget {
                     Layout.fillWidth: true
                     text: Translation.tr("New task")
                     color: root.widgetSurfaceInk
-                    font.pixelSize: Math.round(Appearance.font.pixelSize.large * root.scaleFactor)
-                    font.weight: Font.DemiBold
+                    font.family: root.widgetTitleFamily
+                    font.pixelSize: Math.round(Appearance.font.pixelSize.large
+                        * root.widgetTitleScale * root.scaleFactor)
+                    font.weight: root.widgetTitleWeight
+                    font.letterSpacing: root.widgetTitleTracking
                 }
 
                 RippleButton {

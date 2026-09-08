@@ -214,12 +214,6 @@ Rectangle {
                     Math.min(1, root.surfaceBorderOpacity * 2))
     }
 
-    EditorialRule {
-        anchors.fill: parent
-        visible: root._editorial && root._backgroundVisible
-        inset: Math.max(12, root.radius + 6)
-        emphasized: root.surfaceBorderOpacity >= 0.2
-    }
 
     Rectangle {
         anchors.fill: parent

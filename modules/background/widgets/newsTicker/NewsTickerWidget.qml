@@ -276,9 +276,11 @@ AbstractBackgroundWidget {
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
-                font.pixelSize: Math.round(
-                    Appearance.font.pixelSize.small * root.scaleFactor)
-                font.weight: Font.DemiBold
+                font.family: root.widgetTitleFamily
+                font.pixelSize: Math.round(Appearance.font.pixelSize.small
+                    * root.widgetTitleScale * root.scaleFactor)
+                font.weight: root.widgetTitleWeight
+                font.letterSpacing: root.widgetTitleTracking
                 opacity: 1
                 Behavior on opacity {
                     enabled: Appearance.animationsEnabled

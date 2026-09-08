@@ -2043,6 +2043,17 @@ AbstractWidget {
     readonly property color widgetInk: root.widgetHasSurface ? root.widgetSurfaceInk : root.colText
     readonly property color widgetInkMuted: ColorUtils.applyAlpha(root.widgetInk, 0.66)
     readonly property color widgetInkSubtle: ColorUtils.applyAlpha(root.widgetInk, 0.58)
+    readonly property bool widgetEditorial: Appearance.editorialEverywhere
+    readonly property string widgetTitleFamily: root.widgetEditorial
+        ? Appearance.editorial.displayFamily : Appearance.font.family.main
+    readonly property int widgetTitleWeight: root.widgetEditorial
+        ? Appearance.editorial.titleWeight : Font.DemiBold
+    readonly property real widgetTitleTracking: root.widgetEditorial
+        ? Appearance.editorial.titleTracking : 0
+    readonly property real widgetTitleScale: root.widgetEditorial
+        ? Appearance.editorial.titleScale : 1
+    readonly property real widgetSpacingScale: root.widgetEditorial
+        ? Appearance.editorial.spacing : 1
     readonly property real widgetCardRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
         : Appearance.cookieEverywhere ? Appearance.cookie.roundLarge
         : Appearance.angelEverywhere ? Appearance.angel.roundingNormal

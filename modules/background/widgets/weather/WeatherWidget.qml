@@ -305,9 +305,10 @@ AbstractBackgroundWidget {
                     elide: Text.ElideRight
                     color: root.widgetInk
                     font {
-                        family: Appearance.font.family.expressive
-                        pixelSize: Math.round(38 * root.scaleFactor)
-                        weight: Font.Bold
+                        family: root.widgetEditorial ? root.widgetTitleFamily : Appearance.font.family.expressive
+                        pixelSize: Math.round(38 * root.widgetTitleScale * root.scaleFactor)
+                        weight: root.widgetEditorial ? root.widgetTitleWeight : Font.Bold
+                        letterSpacing: root.widgetEditorial ? root.widgetTitleTracking : 0
                     }
                 }
 
@@ -412,8 +413,9 @@ AbstractBackgroundWidget {
             height: Math.max(1, Math.round(root.height * 0.42))
             font {
                 pixelSize: root.tempFontSize
-                family: Appearance.font.family.expressive
+                family: root.widgetEditorial ? root.widgetTitleFamily : Appearance.font.family.expressive
                 weight: root.tempFontWeight
+                letterSpacing: root.widgetEditorial ? root.widgetTitleTracking : 0
             }
             fontSizeMode: Text.Fit
             minimumPixelSize: Math.max(8, Math.round(root.tempFontSize * 0.45))
@@ -460,7 +462,9 @@ AbstractBackgroundWidget {
             visible: root.showCondition
             font {
                 pixelSize: root.conditionFontSize
-                family: Appearance.font.family.expressive
+                family: root.widgetEditorial ? root.widgetTitleFamily : Appearance.font.family.expressive
+                weight: root.widgetEditorial ? root.widgetTitleWeight : Font.Normal
+                letterSpacing: root.widgetEditorial ? root.widgetTitleTracking : 0
             }
             color: root.weatherConditionColor
             text: Weather.data?.description ?? ""

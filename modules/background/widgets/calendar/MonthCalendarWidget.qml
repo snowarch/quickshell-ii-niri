@@ -168,8 +168,11 @@ AbstractBackgroundWidget {
                 StyledText {
                     text: root.viewingDate.toLocaleDateString(Qt.locale(), "MMMM")
                     color: root.widgetSurfaceInk
-                    font.pixelSize: Math.round(Appearance.font.pixelSize.larger * root.scaleFactor)
-                    font.weight: Font.DemiBold
+                    font.family: root.widgetTitleFamily
+                    font.pixelSize: Math.round(Appearance.font.pixelSize.larger
+                        * root.widgetTitleScale * root.scaleFactor)
+                    font.weight: root.widgetTitleWeight
+                    font.letterSpacing: root.widgetTitleTracking
                 }
                 StyledText {
                     text: String(root.viewingDate.getFullYear())

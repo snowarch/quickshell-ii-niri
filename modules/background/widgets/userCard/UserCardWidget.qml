@@ -184,8 +184,11 @@ AbstractBackgroundWidget {
                     text: root.userDisplay
                     elide: Text.ElideRight
                     color: root.surfaceInk
-                    font.pixelSize: Math.round(Appearance.font.pixelSize.normal * root.scaleFactor)
-                    font.weight: Font.DemiBold
+                    font.family: root.widgetTitleFamily
+                    font.pixelSize: Math.round(Appearance.font.pixelSize.normal
+                        * root.widgetTitleScale * root.scaleFactor)
+                    font.weight: root.widgetTitleWeight
+                    font.letterSpacing: root.widgetTitleTracking
                 }
 
                 StyledText {

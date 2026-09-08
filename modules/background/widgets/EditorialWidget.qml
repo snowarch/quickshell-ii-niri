@@ -22,6 +22,9 @@ AbstractBackgroundWidget {
     needsColText: true
     readonly property string composition: String(root._readConfigKey("style") ?? "poster")
     readonly property bool showAccent: Boolean(root._readConfigKey("showAccent") ?? true)
+    readonly property bool _globalEditorial: Appearance.editorialEverywhere
+    readonly property real _titleScale: root._globalEditorial ? Appearance.editorial.titleScale : 1
+    readonly property bool _ornaments: !root._globalEditorial || Appearance.editorial.ornaments
     readonly property bool centered: composition === "quote"
     readonly property real inset: 20 * scaleFactor
 
@@ -62,6 +65,7 @@ AbstractBackgroundWidget {
                 Layout.fillWidth: true
                 text: String(root._readConfigKey("caption") ?? "A LITTLE EVERY DAY")
                 textFormat: Text.PlainText
+                font.capitalization: Font.AllUppercase
                 color: root.widgetAccentVisible
                 font.pixelSize: Appearance.font.pixelSize.smallest * root.scaleFactor
                 font.weight: Font.DemiBold
@@ -69,7 +73,7 @@ AbstractBackgroundWidget {
                 elide: Text.ElideRight
             }
             MaterialShape {
-                visible: root.showAccent && root.composition === "poster"
+                visible: root.showAccent && root._ornaments && root.composition === "poster"
                 implicitSize: 24 * root.scaleFactor
                 shape: MaterialShape.Shape.Flower
                 color: root.widgetAccent
@@ -82,8 +86,10 @@ AbstractBackgroundWidget {
             text: String(root._readConfigKey("title") ?? "Make room for wonder.")
             textFormat: Text.PlainText
             color: root.widgetInk
-            font.family: root.centered ? "serif" : Appearance.font.family.main
-            font.pixelSize: (root.composition === "label" ? 34 : 48) * root.scaleFactor
+            font.family: root.centered
+                ? (root._globalEditorial ? Appearance.editorial.serifFamily : "serif")
+                : Appearance.font.family.main
+            font.pixelSize: (root.composition === "label" ? 34 : 48) * root._titleScale * root.scaleFactor
             font.weight: root.centered ? Font.Normal : Font.DemiBold
             font.italic: root.centered
             fontSizeMode: Text.Fit
@@ -95,7 +101,7 @@ AbstractBackgroundWidget {
         }
         Rectangle {
             Layout.fillWidth: true
-            visible: root.showAccent && root.composition !== "label"
+            visible: root.showAccent && root._ornaments && root.composition !== "label"
             implicitHeight: root.scaleFactor
             color: root.widgetAccent
             opacity: 0.5

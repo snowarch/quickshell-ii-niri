@@ -209,9 +209,12 @@ AbstractBackgroundWidget {
 
             StyledText {
                 text: Translation.tr("Upcoming")
-                color: root.widgetInkMuted
-                font.pixelSize: Math.round(Appearance.font.pixelSize.smaller * root.scaleFactor)
-                font.weight: Font.Medium
+                color: root.widgetEditorial ? root.widgetInk : root.widgetInkMuted
+                font.family: root.widgetTitleFamily
+                font.pixelSize: Math.round(Appearance.font.pixelSize.smaller
+                    * root.widgetTitleScale * root.scaleFactor)
+                font.weight: root.widgetEditorial ? root.widgetTitleWeight : Font.Medium
+                font.letterSpacing: root.widgetTitleTracking
             }
 
             Item { Layout.fillWidth: true }
@@ -260,8 +263,11 @@ AbstractBackgroundWidget {
                             Layout.fillWidth: true
                             text: eventDelegate.modelData?.title || Translation.tr("Untitled")
                             color: root.widgetInk
+                            font.family: root.widgetEditorial
+                                ? root.widgetTitleFamily : Appearance.font.family.main
                             font.pixelSize: Math.round(Appearance.font.pixelSize.small * root.scaleFactor)
-                            font.weight: Font.Medium
+                            font.weight: root.widgetEditorial ? root.widgetTitleWeight : Font.Medium
+                            font.letterSpacing: root.widgetEditorial ? root.widgetTitleTracking : 0
                             elide: Text.ElideRight
                             wrapMode: Text.NoWrap
                         }
