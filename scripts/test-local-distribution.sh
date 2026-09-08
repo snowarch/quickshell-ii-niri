@@ -66,6 +66,12 @@ if ! grep -Fq 'function prepareSleep(): string' "$lock_owner" \
     printf 'FAIL: lock before-sleep path does not expose compositor-confirmed secure state\n' >&2
     exit 1
 fi
+if ! grep -Fq 'inir-session-lock.state' "$lock_owner" \
+        || ! grep -Fq 'Recovering interrupted Niri session lock' "$lock_owner" \
+        || ! grep -Fq 'previousSocket === _niriSocket' "$lock_owner"; then
+    printf 'FAIL: Niri lock recovery state does not survive a Quickshell restart safely\n' >&2
+    exit 1
+fi
 if ! grep -Fq 'lock prepareSleep' "$idle_owner" \
         || grep -Eq 'before-sleep.*lock activate' "$idle_owner"; then
     printf 'FAIL: swayidle before-sleep does not wait for the secure lock handshake\n' >&2

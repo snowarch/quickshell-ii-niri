@@ -16,6 +16,60 @@ Scope {
     id: root
 
     readonly property bool _lockActivating: lockActivateDelay.running
+    readonly property string _niriSocket: Quickshell.env("NIRI_SOCKET")
+    readonly property string _lockRecoveryPath: {
+        const runtimeDir = Quickshell.env("XDG_RUNTIME_DIR")
+        return runtimeDir.length > 0 ? runtimeDir + "/inir-session-lock.state" : ""
+    }
+    property bool _recoveryStateLoaded: false
+
+    function writeRecoveryState(locked: bool): void {
+        if (_niriSocket.length === 0 || !_recoveryStateLoaded || _lockRecoveryPath.length === 0)
+            return
+        lockRecoveryFile.setText((locked ? "locked" : "unlocked") + "\n" + _niriSocket + "\n")
+    }
+
+    function loadRecoveryState(): void {
+        if (_recoveryStateLoaded)
+            return
+
+        const lines = lockRecoveryFile.text().split("\n")
+        const wasLocked = lines[0] === "locked"
+        const previousSocket = lines[1] ?? ""
+        _recoveryStateLoaded = true
+
+        if (_niriSocket.length === 0)
+            return
+
+        if (wasLocked && previousSocket === _niriSocket) {
+            console.warn("[Lock] Recovering interrupted Niri session lock")
+            GlobalStates.screenLocked = true
+            return
+        }
+
+        writeRecoveryState(GlobalStates.screenLocked)
+    }
+
+    FileView {
+        id: lockRecoveryFile
+        path: root._lockRecoveryPath
+        blockLoading: true
+        atomicWrites: true
+        printErrors: false
+
+        onLoaded: root.loadRecoveryState()
+        onLoadFailed: {
+            root._recoveryStateLoaded = true
+            root.writeRecoveryState(GlobalStates.screenLocked)
+        }
+    }
+
+    Connections {
+        target: GlobalStates
+        function onScreenLockedChanged(): void {
+            root.writeRecoveryState(GlobalStates.screenLocked)
+        }
+    }
 
     Timer {
         id: lockActivateDelay
