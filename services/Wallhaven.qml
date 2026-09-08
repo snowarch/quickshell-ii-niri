@@ -760,13 +760,17 @@ QtObject {
     function _extractJsonPayload(text): string {
         const raw = String(text ?? "")
         const objStart = raw.indexOf("{")
-        const objEnd = raw.lastIndexOf("}")
-        if (objStart >= 0 && objEnd > objStart)
-            return raw.substring(objStart, objEnd + 1)
         const arrStart = raw.indexOf("[")
-        const arrEnd = raw.lastIndexOf("]")
-        if (arrStart >= 0 && arrEnd > arrStart)
-            return raw.substring(arrStart, arrEnd + 1)
+        if (arrStart >= 0 && (objStart < 0 || arrStart < objStart)) {
+            const arrEnd = raw.lastIndexOf("]")
+            if (arrEnd > arrStart)
+                return raw.substring(arrStart, arrEnd + 1)
+        }
+        if (objStart >= 0) {
+            const objEnd = raw.lastIndexOf("}")
+            if (objEnd > objStart)
+                return raw.substring(objStart, objEnd + 1)
+        }
         return raw.trim()
     }
 
