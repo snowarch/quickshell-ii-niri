@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects as GE
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.services
@@ -24,6 +23,8 @@ Scope {
 
     property bool settingsOpen: GlobalStates.settingsOverlayOpen ?? false
     property bool navEditMode: false
+    property bool editorialChrome: false
+    readonly property bool unifiedChrome: (Config.options?.settingsUi?.overlayStyle ?? "rail") === "unified"
 
     // Keep the PanelWindow alive briefly after close so the scrim backdrop
     // can fade out (the settings card itself shows/hides instantly, matching
@@ -81,59 +82,24 @@ Scope {
             return;
         }
 
-        var terms = q.split(/\s+/).filter(t => t.length > 0);
         var results = [];
 
         var isWaffleActive = Config.options?.panelFamily === "waffle";
         var wafflePageIndex = getWaffleSettingsPageIndex();
         var easyOn = root.easyMode;
 
-        const overlaySearchIndex = SettingsPageRegistry.searchIndex();
-
-        // 1. Static index
-        for (var i = 0; i < overlaySearchIndex.length; i++) {
-            var entry = overlaySearchIndex[i];
+        var staticResults = SettingsSearchRegistry.buildStaticResults(
+            overlaySearchText, SettingsPageRegistry.searchIndex());
+        staticResults = staticResults.filter(entry => {
+            const family = String(entry.panelFamily || "")
+            if (family.length > 0 && family !== (isWaffleActive ? "waffle" : "ii"))
+                return false;
             if (wafflePageIndex >= 0 && entry.pageIndex === wafflePageIndex && !isWaffleActive)
-                continue;
-            if (easyOn && entry.pageIndex >= 0 && entry.pageIndex < overlayPages.length
-                && overlayPages[entry.pageIndex].essential !== true)
-                continue;
-
-            var label = (entry.label || "").toLowerCase();
-            var desc = (entry.description || "").toLowerCase();
-            var page = (entry.pageName || "").toLowerCase();
-            var sect = (entry.section || "").toLowerCase();
-            var kw = (entry.keywords || []).join(" ").toLowerCase();
-
-            var matchCount = 0;
-            var score = 0;
-
-            for (var j = 0; j < terms.length; j++) {
-                var term = terms[j];
-                if (label.indexOf(term) >= 0 || desc.indexOf(term) >= 0 ||
-                    page.indexOf(term) >= 0 || sect.indexOf(term) >= 0 || kw.indexOf(term) >= 0) {
-                    matchCount++;
-                    if (label.indexOf(term) === 0) score += 800;
-                    else if (label.indexOf(term) > 0) score += 400;
-                    if (kw.indexOf(term) >= 0) score += 300;
-                    if (sect.indexOf(term) >= 0) score += 200;
-                }
-            }
-
-            if (matchCount === terms.length) {
-                results.push({
-                    pageIndex: entry.pageIndex,
-                    pageName: entry.pageName,
-                    section: entry.section,
-                    label: entry.label,
-                    labelHighlighted: SettingsSearchRegistry.highlightTerms(entry.label, terms),
-                    description: entry.description,
-                    descriptionHighlighted: SettingsSearchRegistry.highlightTerms(entry.description, terms),
-                    score: score + 500,
-                    isSection: true
-                });
-            }
-        }
+                return false;
+            return !(easyOn && entry.pageIndex >= 0 && entry.pageIndex < overlayPages.length
+                && overlayPages[entry.pageIndex].essential !== true);
+        });
+        results = results.concat(staticResults);
 
         // 2. Dynamic widget registry
         if (typeof SettingsSearchRegistry !== "undefined") {
@@ -159,7 +125,8 @@ Scope {
         var unique = [];
         for (var k = 0; k < results.length; k++) {
             var r = results[k];
-            var key = String(r.pageIndex) + "|" + String(r.label || "").toLowerCase();
+            var key = [r.pageIndex, r.task || "", r.section || "", r.label || ""]
+                .join("|").toLowerCase();
             if (!seen[key]) {
                 seen[key] = { index: unique.length, hasOptionId: r.optionId !== undefined };
                 unique.push(r);
@@ -176,6 +143,7 @@ Scope {
     property int pendingSpotlightOptionId: -1
     property string pendingSpotlightLabel: ""
     property string pendingSpotlightSection: ""
+    property string pendingSpotlightTask: ""
     property int pendingSpotlightPageIndex: -1
     property bool pendingSpotlightIsSection: false
     property int spotlightRetryCount: 0
@@ -195,6 +163,7 @@ Scope {
         pendingSpotlightOptionId = (entry.optionId !== undefined) ? entry.optionId : -1;
         pendingSpotlightLabel = entry.label || "";
         pendingSpotlightSection = entry.section || "";
+        pendingSpotlightTask = entry.task || "";
         pendingSpotlightPageIndex = entry.pageIndex;
         pendingSpotlightIsSection = (entry.optionId === undefined) && (entry.isSection === true);
 
@@ -220,10 +189,12 @@ Scope {
     function trySpotlight() {
         const pageHost = panelLoader.item?.pageHostItem ?? null
         const pageItem = pageHost?.currentItem ?? null
-        if (pageItem && pageHost.currentIndex === pendingSpotlightPageIndex
-                && pendingSpotlightSection.length > 0
-                && typeof pageItem.activateSettingsSearchSection === "function")
-            pageItem.activateSettingsSearchSection(pendingSpotlightSection)
+        if (pageItem && pageHost.currentIndex === pendingSpotlightPageIndex) {
+            const targetTask = pendingSpotlightTask.length > 0
+                ? pendingSpotlightTask : pendingSpotlightSection
+            if (targetTask.length > 0)
+                SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+        }
 
         var control = null;
 
@@ -232,64 +203,15 @@ Scope {
             control = SettingsSearchRegistry.getControlById(pendingSpotlightOptionId);
         }
 
-        // Fallback: search in registry by various criteria
-        // IMPORTANT: for static index entries (no optionId), treat as section navigation.
-        // Don't guess a specific control by fuzzy label matching.
-        if (!control && (pendingSpotlightLabel.length > 0 || pendingSpotlightSection.length > 0)) {
-            var labelLower = pendingSpotlightLabel.toLowerCase();
-            var sectionLower = pendingSpotlightSection.toLowerCase();
-            // Remove page name prefix from sectionGroup if present (supports both delimiters)
-            // e.g., "Themes · Global Style" or "Themes › Global Style" -> "Global Style"
-            var sectionParts = sectionLower.split(/[·›]/).map(p => p.trim()).filter(p => p.length > 0);
-            var sectionOnly = sectionParts.length > 1 ? sectionParts[sectionParts.length - 1] : sectionLower;
+        if (!control && pageItem)
+            control = SettingsSearchRegistry.findLoadedTarget(
+                pageItem, pendingSpotlightLabel, pendingSpotlightSection, pendingSpotlightIsSection)
 
-            for (var i = 0; i < SettingsSearchRegistry.entries.length; i++) {
-                var e = SettingsSearchRegistry.entries[i];
-                if (e.pageIndex !== pendingSpotlightPageIndex)
-                    continue;
-
-                var eLabelLower = (e.label || "").toLowerCase();
-                var eSectionLower = (e.section || "").toLowerCase();
-                var eSectionParts = eSectionLower.split(/[·›]/).map(p => p.trim()).filter(p => p.length > 0);
-                var eSectionOnly = eSectionParts.length > 1 ? eSectionParts[eSectionParts.length - 1] : eSectionLower;
-
-                if (pendingSpotlightIsSection) {
-                    // Prefer matching the section title control.
-                    // Registry section titles commonly appear in e.label (SettingsCardSection/CollapsibleSection).
-                    if (eLabelLower === labelLower || eLabelLower === sectionOnly) {
-                        control = e.control;
-                        break;
-                    }
-                    if (eSectionOnly === sectionOnly || eSectionOnly === labelLower) {
-                        control = e.control;
-                        break;
-                    }
-                } else {
-                    // Exact label match
-                    if (eLabelLower === labelLower) {
-                        control = e.control;
-                        break;
-                    }
-
-                    // Section title match (for SettingsCardSection / CollapsibleSection)
-                    if (eSectionOnly === sectionOnly || eSectionOnly === labelLower) {
-                        control = e.control;
-                        break;
-                    }
-
-                    // Label contains search term
-                    if (labelLower.length > 2 && eLabelLower.indexOf(labelLower) >= 0) {
-                        control = e.control;
-                        break;
-                    }
-
-                    // Keywords contain search term
-                    if (e.keywords && e.keywords.some(k => k.toLowerCase() === labelLower)) {
-                        control = e.control;
-                        break;
-                    }
-                }
-            }
+        if (!control && pageItem && pendingSpotlightSection.length > 0
+                && SettingsSearchRegistry.revealLoadedSection(pageItem, pendingSpotlightSection)) {
+            spotlightRetryCount++
+            spotlightPageLoadTimer.restart()
+            return
         }
 
         if (control) {
@@ -302,6 +224,7 @@ Scope {
             pendingSpotlightOptionId = -1;
             pendingSpotlightLabel = "";
             pendingSpotlightSection = "";
+            pendingSpotlightTask = "";
             pendingSpotlightPageIndex = -1;
             pendingSpotlightIsSection = false;
         }
@@ -342,7 +265,11 @@ Scope {
         flick.contentY = targetScrollY;
         searchTargetControl = control;
         pendingSpotlightOptionId = -1;
+        pendingSpotlightLabel = "";
+        pendingSpotlightSection = "";
         pendingSpotlightIsSection = false;
+        pendingSpotlightTask = "";
+        pendingSpotlightPageIndex = -1;
     }
 
     function resetSearchTarget() {
@@ -350,6 +277,7 @@ Scope {
         pendingSpotlightOptionId = -1;
         pendingSpotlightLabel = "";
         pendingSpotlightSection = "";
+        pendingSpotlightTask = "";
         pendingSpotlightPageIndex = -1;
         pendingSpotlightIsSection = false;
     }
@@ -561,8 +489,12 @@ Scope {
             Rectangle {
                 id: settingsCard
 
-                readonly property real maxCardWidth: Math.min(1100, Math.max(820, settingsPanel.width * 0.7))
-                readonly property real maxCardHeight: Math.min(840, Math.max(600, settingsPanel.height * 0.82))
+                readonly property real maxCardWidth: root.unifiedChrome
+                    ? Math.min(settingsPanel.width - 24, 1280, Math.max(920, settingsPanel.width * 0.66))
+                    : Math.min(settingsPanel.width - 24, 1100, Math.max(820, settingsPanel.width * 0.7))
+                readonly property real maxCardHeight: root.unifiedChrome
+                    ? Math.min(settingsPanel.height - 24, 760, Math.max(560, settingsPanel.height * 0.72))
+                    : Math.min(settingsPanel.height - 24, 840, Math.max(600, settingsPanel.height * 0.82))
                 // Clamped, not read raw: the control used to bottom out at 20%,
                 // which left the solid styles showing a sharp wallpaper through
                 // the text and reduced aurora's tint to a raw 64 px blur. The
@@ -574,7 +506,8 @@ Scope {
                 anchors.centerIn: parent
                 width: maxCardWidth
                 height: maxCardHeight
-                radius: Appearance.zzzEverywhere ? Appearance.zzz.panelRadius
+                radius: root.editorialChrome ? Appearance.editorial.radius
+                      : Appearance.zzzEverywhere ? Appearance.zzz.panelRadius
                       : Appearance.regaliaEverywhere ? Appearance.regalia.panelRadius
                       : Appearance.angelEverywhere ? Appearance.angel.roundingLarge
                       : Appearance.inirEverywhere ? Appearance.inir.roundingLarge
@@ -589,7 +522,8 @@ Scope {
                 // that is inherited by children and would dim the whole UI
                 // instead of the panel background. At the default 1.0 both paths
                 // are identity, so no style changes appearance.
-                color: Appearance.auroraEverywhere || Appearance.regaliaEverywhere ? "transparent"
+                color: root.editorialChrome ? Appearance.editorial.paper
+                     : Appearance.auroraEverywhere || Appearance.regaliaEverywhere ? "transparent"
                      : CF.ColorUtils.applyAlpha(
                          Appearance.inirEverywhere ? Appearance.inir.colLayer0
                        : Appearance.zzzEverywhere ? Appearance.zzz.chrome
@@ -916,7 +850,9 @@ Scope {
                                         Layout.fillWidth: true
                                         text: Translation.tr("Settings")
                                         font {
-                                            family: Appearance.font.family.title
+                                            family: root.editorialChrome ? Appearance.editorial.displayFamily : Appearance.font.family.title
+                                            weight: root.editorialChrome ? Appearance.editorial.titleWeight : Font.Normal
+                                            letterSpacing: root.editorialChrome ? Appearance.editorial.titleTracking : 0
                                             pixelSize: Appearance.font.pixelSize.title
                                             variableAxes: Appearance.font.variableAxes.title
                                         }
@@ -1219,15 +1155,21 @@ Scope {
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: 10
+                        spacing: root.unifiedChrome ? 16 : 10
 
                         // Navigation rail with labels
                         Rectangle {
                             id: navColumn
                             Layout.fillHeight: true
-                            Layout.preferredWidth: root.navEditMode ? 228 : 150
-                            radius: Appearance.rounding.normal
-                            color: "transparent"
+                            Layout.preferredWidth: root.navEditMode ? 228
+                                : root.unifiedChrome ? 200
+                                : root.editorialChrome ? 166 : 150
+                            radius: root.unifiedChrome ? Appearance.rounding.large : Appearance.rounding.normal
+                            color: root.unifiedChrome
+                                ? (Appearance.auroraEverywhere ? "transparent"
+                                    : Appearance.inirEverywhere ? Appearance.inir.colLayer1
+                                    : Appearance.colors.colSurfaceContainerLow)
+                                : "transparent"
 
                             Behavior on Layout.preferredWidth {
                                 enabled: Appearance.animationsEnabled
@@ -1242,8 +1184,8 @@ Scope {
                                 id: navFlickable
                                 visible: !root.navEditMode || navEditLoader.status !== Loader.Ready
                                 anchors.fill: parent
-                                anchors.margins: 2
-                                anchors.bottomMargin: overlayNavActions.height + 6
+                                anchors.margins: root.unifiedChrome ? 6 : 2
+                                anchors.bottomMargin: overlayNavActions.height + (root.unifiedChrome ? 8 : 6)
                                 contentHeight: navCol.implicitHeight
                                 clip: true
                                 boundsBehavior: Flickable.StopAtBounds
@@ -1375,14 +1317,12 @@ Scope {
                                                         MaterialSymbol {
                                                             text: navItem.modelData.icon || ""
                                                             iconSize: 18
-                                                            color: navBtn.toggled || (Appearance.regaliaEverywhere && navBtn.buttonHovered)
-                                                                ? (Appearance.regaliaEverywhere
-                                                                    ? Appearance.regalia.hardwarePrimary
-                                                                    : Appearance.zzzEverywhere
-                                                                    ? Appearance.zzz.ink
-                                                                    : Appearance.inirEverywhere
-                                                                    ? Appearance.inir.colAccent
+                                                            color: navBtn.toggled
+                                                                ? (Appearance.regaliaEverywhere ? Appearance.regalia.hardwarePrimary
+                                                                    : Appearance.zzzEverywhere ? Appearance.zzz.ink
+                                                                    : Appearance.inirEverywhere ? Appearance.inir.colAccent
                                                                     : Appearance.colors.colPrimary)
+                                                                : navBtn.buttonHovered ? Appearance.colors.colOnLayer1
                                                                 : Appearance.colors.colOnSurfaceVariant
                                                             rotation: navItem.modelData.iconRotation || 0
 
@@ -1400,9 +1340,12 @@ Scope {
                                                                 pixelSize: Appearance.font.pixelSize.small
                                                                 weight: navBtn.toggled ? Font.Medium : Font.Normal
                                                             }
-                                                            color: navBtn.toggled || (Appearance.regaliaEverywhere && navBtn.buttonHovered)
+                                                            color: navBtn.toggled
                                                                 ? (Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlateInk
-                                                                    : Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.colors.colOnLayer1)
+                                                                    : Appearance.zzzEverywhere ? Appearance.zzz.ink
+                                                                    : Appearance.editorialEverywhere ? Appearance.editorial.accent
+                                                                    : Appearance.colors.colOnLayer1)
+                                                                : navBtn.buttonHovered ? Appearance.colors.colOnLayer1
                                                                 : Appearance.colors.colOnSurfaceVariant
                                                             elide: Text.ElideRight
 
@@ -1457,13 +1400,6 @@ Scope {
                                             color: Appearance.zzz.accent
                                         }
 
-                                        EditorialRule {
-                                            anchors.fill: parent
-                                            visible: Appearance.editorialEverywhere
-                                            vertical: true
-                                            inset: 5
-                                            emphasized: true
-                                        }
 
                                         Behavior on radius {
                                             enabled: Appearance.animationsEnabled
@@ -1704,20 +1640,24 @@ Scope {
                             id: overlayContentContainer
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            radius: Appearance.angelEverywhere ? Appearance.angel.roundingNormal
+                            radius: root.unifiedChrome ? 0
+                                 : Appearance.angelEverywhere ? Appearance.angel.roundingNormal
                                  : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
                                  : Appearance.rounding.normal
                             // ZZZ: lift the content field clearly off the chrome panel +
                             // nav rail so the reading area reads as its own plate (bg2),
                             // not the same black. Hairline seals the edge.
-                            color: Appearance.auroraEverywhere ? "transparent"
+                            color: root.unifiedChrome ? "transparent"
+                                 : Appearance.auroraEverywhere ? "transparent"
                                  : Appearance.zzzEverywhere ? Appearance.zzz.bg2
                                  : Appearance.inirEverywhere ? Appearance.inir.colLayer1
                                  : Appearance.colors.colSurfaceContainerLow
-                            border.width: Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth
+                            border.width: root.unifiedChrome ? 0
+                                        : Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth
                                         : Appearance.zzzEverywhere ? Appearance.zzz.borderThick
                                         : Appearance.inirEverywhere ? 1 : 0
-                            border.color: Appearance.angelEverywhere ? Appearance.angel.colCardBorder
+                            border.color: root.unifiedChrome ? "transparent"
+                                        : Appearance.angelEverywhere ? Appearance.angel.colCardBorder
                                         : Appearance.zzzEverywhere ? Appearance.zzz.hairline
                                         : Appearance.inirEverywhere ? Appearance.inir.colBorderSubtle : "transparent"
                             clip: true
@@ -1742,15 +1682,15 @@ Scope {
                             Item {
                                 id: overlayPageHeader
                                 anchors { top: parent.top; left: parent.left; right: parent.right }
-                                height: 48
+                                height: root.unifiedChrome ? 58 : 48
                                 readonly property var meta: root.overlayPages[root.overlayCurrentPage] ?? {}
 
                                 RowLayout {
                                     id: overlayPageHeaderRow
                                     anchors.fill: parent
-                                    anchors.leftMargin: 20
-                                    anchors.rightMargin: 20
-                                    spacing: 10
+                                    anchors.leftMargin: root.unifiedChrome ? 18 : 20
+                                    anchors.rightMargin: root.unifiedChrome ? 18 : 20
+                                    spacing: root.unifiedChrome ? 12 : 10
 
                                     MaterialShapeWrappedMaterialSymbol {
                                         text: overlayPageHeader.meta.icon ?? ""
@@ -1762,8 +1702,11 @@ Scope {
                                         text: overlayPageHeader.meta.name ?? ""
                                         font {
                                             family: Appearance.font.family.title
-                                            pixelSize: Appearance.font.pixelSize.normal
-                                            weight: Font.DemiBold
+                                            pixelSize: root.unifiedChrome ? Appearance.font.pixelSize.large : Appearance.font.pixelSize.normal
+                                            weight: root.unifiedChrome ? Font.DemiBold
+                                                : Appearance.editorialEverywhere || root.editorialChrome ? Appearance.editorial.titleWeight : Font.DemiBold
+                                            letterSpacing: root.unifiedChrome ? 0
+                                                : Appearance.editorialEverywhere || root.editorialChrome ? Appearance.editorial.titleTracking : 0
                                         }
                                         color: Appearance.colors.colOnLayer1
                                     }
@@ -1803,6 +1746,7 @@ Scope {
                                 pages: root.overlayPages
                                 requestedIndex: root.overlayCurrentPage
                                 loadEnabled: Config.ready && root.settingsOpen
+                                directNavigation: root.unifiedChrome
                             }
 
                             SettingsPageLoadingOverlay {
@@ -1842,12 +1786,23 @@ Scope {
                         transformOrigin: Item.Top
 
                         x: {
-                            var dep = overlaySearchContainer.x + overlaySearchContainer.width + settingsCard.width;
-                            var p = overlaySearchContainer.mapToItem(overlaySearchResultsOverlay, 0, 0);
-                            return p.x + (overlaySearchContainer.width - width) / 2;
+                            const slotIndex = SettingsChromeLayout.columnFor("search")
+                            const slot = slotIndex === 0 ? overlayHeaderSlot0
+                                : slotIndex === 1 ? overlayHeaderSlot1 : overlayHeaderSlot2
+                            const p = overlayHeader.mapToItem(overlaySearchResultsOverlay,
+                                slot.x, overlaySearchContainer.y + overlaySearchContainer.height)
+                            return Math.max(8, Math.min(
+                                p.x + (slot.width - width) / 2,
+                                parent.width - width - 8))
                         }
-                        anchors.top: parent.top
-                        anchors.topMargin: 56
+                        y: {
+                            const slotIndex = SettingsChromeLayout.columnFor("search")
+                            const slot = slotIndex === 0 ? overlayHeaderSlot0
+                                : slotIndex === 1 ? overlayHeaderSlot1 : overlayHeaderSlot2
+                            const p = overlayHeader.mapToItem(overlaySearchResultsOverlay,
+                                slot.x, overlaySearchContainer.y + overlaySearchContainer.height)
+                            return Math.max(0, p.y)
+                        }
                         width: noResultsRow.implicitWidth + 32
                         height: 44
                         radius: Math.min(width, height) / 2
@@ -1921,12 +1876,23 @@ Scope {
                         height: Math.min(overlayResultsList.contentHeight + 16, 380)
                         // Centered under the search box, not the whole card
                         x: {
-                            var dep = overlaySearchContainer.x + overlaySearchContainer.width + settingsCard.width;
-                            var p = overlaySearchContainer.mapToItem(overlaySearchResultsOverlay, 0, 0);
-                            return Math.max(8, Math.min(p.x + (overlaySearchContainer.width - width) / 2, parent.width - width - 8));
+                            const slotIndex = SettingsChromeLayout.columnFor("search")
+                            const slot = slotIndex === 0 ? overlayHeaderSlot0
+                                : slotIndex === 1 ? overlayHeaderSlot1 : overlayHeaderSlot2
+                            const p = overlayHeader.mapToItem(overlaySearchResultsOverlay,
+                                slot.x, overlaySearchContainer.y + overlaySearchContainer.height)
+                            return Math.max(8, Math.min(
+                                p.x + (slot.width - width) / 2,
+                                parent.width - width - 8))
                         }
-                        anchors.top: parent.top
-                        anchors.topMargin: 56
+                        y: {
+                            const slotIndex = SettingsChromeLayout.columnFor("search")
+                            const slot = slotIndex === 0 ? overlayHeaderSlot0
+                                : slotIndex === 1 ? overlayHeaderSlot1 : overlayHeaderSlot2
+                            const p = overlayHeader.mapToItem(overlaySearchResultsOverlay,
+                                slot.x, overlaySearchContainer.y + overlaySearchContainer.height)
+                            return Math.max(0, p.y)
+                        }
                         radius: Appearance.angelEverywhere ? Appearance.angel.roundingNormal
                              : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
                              : Appearance.rounding.normal

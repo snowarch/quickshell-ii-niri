@@ -658,21 +658,6 @@ ContentPage {
     onCurrentOutputChanged: armPositionEditor()
     onLayoutDataChanged: armShadowEditor()
 
-    // Force-resync display combo boxes when output data refreshes.
-    // Inline bindings on currentIndex get broken by user interaction (classic QML issue),
-    // and Binding elements inside ContentSubsection resolve `root` to ContentSubsection's
-    // own root, not NiriConfig. So we resync imperatively here.
-    onOutputListChanged: Qt.callLater(resyncDisplayCombos)
-    onSelectedOutputIndexChanged: Qt.callLater(resyncDisplayCombos)
-
-    function resyncDisplayCombos() {
-        resolutionCombo.currentIndex = choiceIndex(resolutionCombo.model, currentResolution)
-        refreshRateCombo.currentIndex = choiceIndex(refreshRateCombo.model, currentRate)
-        scaleCombo.currentIndex = choiceIndex(scaleCombo.model, currentScale)
-        rotationCombo.currentIndex = choiceIndex(rotationCombo.model, currentTransform.toLowerCase())
-        vrrCombo.currentIndex = choiceIndex(vrrCombo.model, vrrMode)
-    }
-
     // =====================
     // CONFIRMATION TIMER
     // =====================
@@ -1105,38 +1090,30 @@ ContentPage {
                     Layout.alignment: Qt.AlignRight
                     spacing: 8
 
-                    Button {
-                        text: Translation.tr("Revert")
+                    RippleButton {
+                        implicitWidth: 80
+                        implicitHeight: 36
+                        buttonRadius: SettingsMaterialPreset.groupRadius
+                        colBackground: Appearance.colors.colLayer1
+                        colBackgroundHover: Appearance.colors.colLayer1Hover
                         onClicked: root.revertDisplayChange()
-
-                        background: Rectangle {
-                            implicitWidth: 80
-                            implicitHeight: 36
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colLayer1
-                        }
-
                         contentItem: StyledText {
-                            text: parent.text
+                            text: Translation.tr("Revert")
                             color: Appearance.colors.colOnLayer1
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
                     }
 
-                    Button {
-                        text: Translation.tr("Keep changes")
+                    RippleButton {
+                        implicitWidth: 120
+                        implicitHeight: 36
+                        buttonRadius: SettingsMaterialPreset.groupRadius
+                        colBackground: Appearance.colors.colPrimary
+                        colBackgroundHover: Appearance.colors.colPrimaryHover
                         onClicked: root.confirmDisplayChange()
-
-                        background: Rectangle {
-                            implicitWidth: 120
-                            implicitHeight: 36
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colPrimary
-                        }
-
                         contentItem: StyledText {
-                            text: parent.text
+                            text: Translation.tr("Keep changes")
                             color: Appearance.colors.colOnPrimary
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1154,6 +1131,16 @@ ContentPage {
         summary: Translation.tr("Displays · Input · Layout · Animations · Rules")
         currentValue: root.activeSection
         onSelected: value => root.activeSection = value
+        searchAliases: ({
+            "applications": "rules",
+            "keyboard": "input",
+            "touchpad": "input",
+            "mouse": "input",
+            "trackpoint": "input",
+            "general input": "input",
+            "cursor": "input",
+            "niri config status": "rules"
+        })
         options: [
             { displayName: Translation.tr("Displays"), icon: "monitor", value: "displays" },
             { displayName: Translation.tr("Input"), icon: "keyboard", value: "input" },
@@ -1230,20 +1217,16 @@ ContentPage {
                     Layout.alignment: Qt.AlignRight
                     spacing: 8
 
-                    Button {
+                    RippleButton {
                         visible: !root.validationData.valid || root.hasAnyProcessError
-                        text: Translation.tr("Retry")
+                        implicitWidth: 80
+                        implicitHeight: 36
+                        buttonRadius: SettingsMaterialPreset.groupRadius
+                        colBackground: Appearance.colors.colPrimary
+                        colBackgroundHover: Appearance.colors.colPrimaryHover
                         onClicked: root.refreshAll()
-
-                        background: Rectangle {
-                            implicitWidth: 80
-                            implicitHeight: 36
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colPrimary
-                        }
-
                         contentItem: StyledText {
-                            text: parent.text
+                            text: Translation.tr("Retry")
                             color: Appearance.colors.colOnPrimary
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1251,23 +1234,19 @@ ContentPage {
                         }
                     }
 
-                    Button {
+                    RippleButton {
                         visible: root.lastActionError.length > 0 || root.lastActionInfo.length > 0
-                        text: Translation.tr("Dismiss")
+                        implicitWidth: 80
+                        implicitHeight: 36
+                        buttonRadius: SettingsMaterialPreset.groupRadius
+                        colBackground: Appearance.colors.colLayer1
+                        colBackgroundHover: Appearance.colors.colLayer1Hover
                         onClicked: {
                             root.lastActionError = ""
                             root.lastActionInfo = ""
                         }
-
-                        background: Rectangle {
-                            implicitWidth: 80
-                            implicitHeight: 36
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colLayer1
-                        }
-
                         contentItem: StyledText {
-                            text: parent.text
+                            text: Translation.tr("Dismiss")
                             color: Appearance.colors.colOnLayer1
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1282,12 +1261,31 @@ ContentPage {
     // =====================
     // DISPLAYS SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "displays"
+        sourceComponent: Component {
     SettingsCardSection {
+        id: displaysSection
         settingsTaskSection: "displays"
-        visible: root.activeSection === "displays"
         expanded: true
         icon: "monitor"
         title: Translation.tr("Displays")
+
+        function resyncDisplayCombos(): void {
+            resolutionCombo.currentIndex = root.choiceIndex(resolutionCombo.model, root.currentResolution)
+            refreshRateCombo.currentIndex = root.choiceIndex(refreshRateCombo.model, root.currentRate)
+            scaleCombo.currentIndex = root.choiceIndex(scaleCombo.model, root.currentScale)
+            rotationCombo.currentIndex = root.choiceIndex(rotationCombo.model, root.currentTransform.toLowerCase())
+            vrrCombo.currentIndex = root.choiceIndex(vrrCombo.model, root.vrrMode)
+        }
+
+        Component.onCompleted: Qt.callLater(displaysSection.resyncDisplayCombos)
+
+        Connections {
+            target: root
+            function onOutputListChanged(): void { Qt.callLater(displaysSection.resyncDisplayCombos) }
+            function onSelectedOutputIndexChanged(): void { Qt.callLater(displaysSection.resyncDisplayCombos) }
+        }
 
         SettingsGroup {
             StyledText {
@@ -1505,13 +1503,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // LAYOUT SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "layout"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "layout"
-        visible: root.activeSection === "layout"
         expanded: true
         icon: "grid_view"
         title: Translation.tr("Layout")
@@ -1944,13 +1946,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // WINDOW RULES SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "rules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "rules"
-        visible: root.activeSection === "rules"
         expanded: true
         icon: "rounded_corner"
         title: Translation.tr("Window Rules")
@@ -2038,13 +2044,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // KEYBOARD SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
         expanded: true
         icon: "keyboard"
         title: Translation.tr("Keyboard")
@@ -2195,14 +2205,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // TOUCHPAD SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
-        expanded: true
+        expanded: false
         icon: "touch_app"
         title: Translation.tr("Touchpad")
 
@@ -2392,14 +2406,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // MOUSE SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
-        expanded: true
+        expanded: false
         icon: "mouse"
         title: Translation.tr("Mouse")
 
@@ -2510,14 +2528,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // TRACKPOINT SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
-        expanded: true
+        expanded: false
         icon: "joystick"
         title: Translation.tr("Trackpoint")
 
@@ -2626,14 +2648,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // CURSOR SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
-        expanded: true
+        expanded: false
         icon: "point_scan"
         title: Translation.tr("Cursor")
 
@@ -2696,14 +2722,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // GENERAL INPUT SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "input"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "input"
-        visible: root.activeSection === "input"
-        expanded: true
+        expanded: false
         icon: "settings_input_component"
         title: Translation.tr("General Input")
 
@@ -2792,13 +2822,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // ANIMATIONS SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "animations"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "animations"
-        visible: root.activeSection === "animations"
         expanded: true
         icon: "animation"
         title: Translation.tr("Animations")
@@ -2961,14 +2995,18 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // =====================
     // APPLICATIONS SECTION
     // =====================
+    SettingsTaskLoader {
+        requested: root.activeSection === "rules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "rules"
-        visible: root.activeSection === "rules"
-        expanded: true
+        expanded: false
         icon: "apps"
         title: Translation.tr("Applications")
 
@@ -3058,6 +3096,8 @@ ContentPage {
             }
         }
     }
+        }
+    }
     // =====================
     // NIRI CONFIG STATUS
     // =====================
@@ -3132,20 +3172,16 @@ ContentPage {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Button {
+                RippleButton {
                     visible: root.niriConfigDir.length > 0
-                    text: Translation.tr("Open config folder")
+                    implicitWidth: 140
+                    implicitHeight: 36
+                    buttonRadius: SettingsMaterialPreset.groupRadius
+                    colBackground: Appearance.colors.colLayer2
+                    colBackgroundHover: Appearance.colors.colLayer2Hover
                     onClicked: root.openConfigFolderExternally()
-
-                    background: Rectangle {
-                        implicitWidth: 140
-                        implicitHeight: 36
-                        radius: Appearance.rounding.small
-                        color: Appearance.colors.colLayer2
-                    }
-
                     contentItem: StyledText {
-                        text: parent.text
+                        text: Translation.tr("Open config folder")
                         color: Appearance.colors.colOnLayer1
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -3153,20 +3189,16 @@ ContentPage {
                     }
                 }
 
-                Button {
+                RippleButton {
                     visible: root.niriConfigPath.length > 0
-                    text: Translation.tr("Open config file")
+                    implicitWidth: 120
+                    implicitHeight: 36
+                    buttonRadius: SettingsMaterialPreset.groupRadius
+                    colBackground: Appearance.colors.colLayer2
+                    colBackgroundHover: Appearance.colors.colLayer2Hover
                     onClicked: root.openConfigFileExternally()
-
-                    background: Rectangle {
-                        implicitWidth: 120
-                        implicitHeight: 36
-                        radius: Appearance.rounding.small
-                        color: Appearance.colors.colLayer2
-                    }
-
                     contentItem: StyledText {
-                        text: parent.text
+                        text: Translation.tr("Open config file")
                         color: Appearance.colors.colOnLayer1
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter

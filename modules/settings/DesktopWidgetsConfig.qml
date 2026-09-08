@@ -1534,9 +1534,11 @@ ContentPage {
         text: Translation.tr("Loading section…")
     }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && root.activeSection === "manage"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "manage"
-        visible: root.isIiActive && root.activeSection === "manage"
         expanded: true
         icon: "dashboard_customize"
         title: Translation.tr("Widgets at a glance")
@@ -1589,12 +1591,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ── Edit Mode & Grid ─────────────────────────────────────
+    SettingsTaskLoader {
+        requested: root.isIiActive && root.activeSection === "manage"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "manage"
-        visible: root.isIiActive && root.activeSection === "manage"
-        expanded: true
+        expanded: false
         icon: "grid_on"
         title: Translation.tr("Edit Mode")
 
@@ -1639,12 +1645,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ── Widget colors ─────────────────────────────────────────
+    SettingsTaskLoader {
+        requested: root.isIiActive && root.activeSection === "manage"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "manage"
-        visible: root.isIiActive && root.activeSection === "manage"
-        expanded: true
+        expanded: false
         icon: "palette"
         title: Translation.tr("Widget Colors")
 
@@ -1677,13 +1687,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ── Power Saving ──────────────────────────────────────────
+    SettingsTaskLoader {
+        requested: root.isIiActive && root.activeSection === "manage"
+        sourceComponent: Component {
     SettingsCardSection {
         id: powerSavingSection
         settingsTaskSection: "manage"
-        visible: root.isIiActive && root.activeSection === "manage"
-        expanded: true
+        expanded: false
         icon: "battery_saver"
         title: Translation.tr("Power Saving")
 
@@ -1758,6 +1772,8 @@ ContentPage {
                     }
                 }
             }
+        }
+    }
         }
     }
 
@@ -2332,7 +2348,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
                 icon: "calendar_month"
                 title: Translation.tr("Month Calendar")
 
@@ -2416,7 +2432,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
                 icon: "timer"
                 title: Translation.tr("Timers")
 
@@ -2529,7 +2545,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "translate"
         title: Translation.tr("Japanese Typography")
 
@@ -3243,7 +3259,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "media"
-                expanded: true
+                expanded: false
         icon: "add_photo_alternate"
         title: Translation.tr("Custom image")
 
@@ -3605,7 +3621,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "media"
-                expanded: true
+                expanded: false
         icon: "transform"
         title: Translation.tr("Image converter")
 
@@ -3995,7 +4011,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "media"
-                expanded: true
+                expanded: false
         icon: "equalizer"
         title: Translation.tr("Visualizer")
 
@@ -4731,7 +4747,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "system"
-                expanded: true
+                expanded: false
         icon: "battery_full"
         title: Translation.tr("Battery")
 
@@ -4937,7 +4953,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "sticky_note_2"
         title: Translation.tr("Notes")
 
@@ -5039,7 +5055,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
         icon: "event"
         title: Translation.tr("Upcoming Events")
 
@@ -5145,7 +5161,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
                 icon: "text_fields"
                 title: Translation.tr("Editorial")
                 SettingsGroup {
@@ -5226,7 +5242,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
         icon: "today"
         title: Translation.tr("Date badge")
 
@@ -5298,7 +5314,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "category"
         title: Translation.tr("Decorative shape")
 
@@ -5378,7 +5394,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
         icon: "avg_pace"
         title: Translation.tr("System uptime")
 
@@ -5439,7 +5455,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
         icon: "public"
         title: Translation.tr("World clock")
 
@@ -5525,7 +5541,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "account_circle"
         title: Translation.tr("User card")
 
@@ -5588,7 +5604,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "pets"
         title: Translation.tr("Mascot")
 
@@ -5732,7 +5748,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "time"
-                expanded: true
+                expanded: false
         icon: "newspaper"
         title: Translation.tr("News Ticker")
 
@@ -5794,7 +5810,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "personal"
-                expanded: true
+                expanded: false
         icon: "widgets"
         title: Translation.tr("Custom Widgets")
 

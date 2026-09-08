@@ -203,13 +203,12 @@ Scope {
     }
 
     function recomputeSearch(): void {
-        var q = String(root.searchText || "").toLowerCase().trim();
+        var q = SettingsSearchRegistry.normalizeSearchText(root.searchText);
         if (!q.length) {
             root.searchResults = [];
             return;
         }
 
-        var terms = q.split(/\s+/).filter(t => t.length > 0);
         var isWaffle = Config.options?.panelFamily === "waffle";
         var wafflePage = SettingsPageRegistry.pages.findIndex(
             p => String(p.component || "").indexOf("WaffleConfig.qml") >= 0);
@@ -225,39 +224,15 @@ Scope {
             return true;
         }
 
-        // Static section index — coarse targets, ranked below real controls.
-        var index = SettingsPageRegistry.searchIndex();
-        for (var i = 0; i < index.length; i++) {
-            var e = index[i];
-            if (!allowed(e.pageIndex))
-                continue;
-
-            var haystack = [e.label, e.description, e.pageName, e.section,
-                (e.keywords || []).join(" ")].join(" ").toLowerCase();
-            var matched = terms.every(t => haystack.indexOf(t) >= 0);
-            if (!matched)
-                continue;
-
-            var label = String(e.label || "").toLowerCase();
-            var score = 500;
-            for (var t = 0; t < terms.length; t++) {
-                if (label.indexOf(terms[t]) === 0)
-                    score += 800;
-                else if (label.indexOf(terms[t]) > 0)
-                    score += 400;
-            }
-
-            results.push({
-                pageIndex: e.pageIndex,
-                pageName: e.pageName,
-                section: e.section,
-                label: e.label,
-                labelHighlighted: SettingsSearchRegistry.highlightTerms(e.label, terms),
-                description: e.description,
-                score: score,
-                isSection: true
-            });
+        function familyAllowed(entry) {
+            var family = String(entry?.panelFamily || "")
+            return family.length === 0 || family === (isWaffle ? "waffle" : "ii")
         }
+
+        var staticResults = SettingsSearchRegistry.buildStaticResults(
+            root.searchText, SettingsPageRegistry.searchIndex())
+            .filter(e => allowed(e.pageIndex) && familyAllowed(e));
+        results = results.concat(staticResults);
 
         // Live control registry — the precise targets, so they outrank sections.
         if (typeof SettingsSearchRegistry !== "undefined") {
@@ -274,7 +249,8 @@ Scope {
         var unique = [];
         for (var k = 0; k < results.length; k++) {
             var r = results[k];
-            var key = String(r.pageIndex) + "|" + String(r.label || "").toLowerCase();
+            var key = [r.pageIndex, r.task || "", r.section || "", r.label || ""]
+                .join("|").toLowerCase();
             if (seen[key] === undefined) {
                 seen[key] = unique.length;
                 unique.push(r);
@@ -289,6 +265,8 @@ Scope {
     // ── Spotlight: land on the page, then scroll the matched control in ──
     property int _pendingOptionId: -1
     property int _pendingPageIndex: -1
+    property string _pendingLabel: ""
+    property string _pendingTask: ""
     property string _pendingSection: ""
     property int _spotlightRetries: 0
     readonly property int _spotlightMaxRetries: 15
@@ -301,17 +279,20 @@ Scope {
         if (!entry || entry.pageIndex === undefined || entry.pageIndex < 0) {
             root._pendingOptionId = -1;
             root._pendingPageIndex = -1;
+            root._pendingLabel = "";
+            root._pendingTask = "";
             root._pendingSection = "";
             return;
         }
 
         root._pendingOptionId = (entry.optionId !== undefined) ? entry.optionId : -1;
         root._pendingPageIndex = entry.pageIndex;
-        root._pendingSection = (root._pendingOptionId < 0 && entry.section)
-            ? String(entry.section) : "";
+        root._pendingLabel = String(entry.label || "");
+        root._pendingTask = String(entry.task || "");
+        root._pendingSection = String(entry.section || "");
         root.openPage(entry.pageIndex);
 
-        if (root._pendingOptionId >= 0 || root._pendingSection.length > 0)
+        if (root._pendingOptionId >= 0 || root._pendingLabel.length > 0 || root._pendingSection.length > 0)
             spotlightTimer.restart();
         else
             root._pendingPageIndex = -1;
@@ -324,18 +305,26 @@ Scope {
     }
 
     function _trySpotlight(): void {
-        if (root._pendingOptionId < 0 && root._pendingSection.length === 0)
+        if (root._pendingOptionId < 0 && root._pendingLabel.length === 0 && root._pendingSection.length === 0)
             return;
 
         const pageItem = pageHost.currentItem
-        if (pageItem && pageHost.currentIndex === root._pendingPageIndex
-                && root._pendingSection.length > 0
-                && typeof pageItem.activateSettingsSearchSection === "function")
-            pageItem.activateSettingsSearchSection(root._pendingSection)
+        if (pageItem && pageHost.currentIndex === root._pendingPageIndex) {
+            const targetTask = root._pendingTask.length > 0 ? root._pendingTask : root._pendingSection
+            if (targetTask.length > 0)
+                SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+        }
 
         var control = root._pendingOptionId >= 0
             ? SettingsSearchRegistry.getControlById(root._pendingOptionId)
-            : SettingsSearchRegistry.findSectionControl(root._pendingPageIndex, root._pendingSection);
+            : (pageItem ? SettingsSearchRegistry.findLoadedTarget(
+                pageItem, root._pendingLabel, root._pendingSection, false) : null);
+        if (!control && pageItem && root._pendingSection.length > 0
+                && SettingsSearchRegistry.revealLoadedSection(pageItem, root._pendingSection)) {
+            root._spotlightRetries++;
+            spotlightTimer.restart();
+            return;
+        }
         if (!control) {
             if (root._spotlightRetries < root._spotlightMaxRetries) {
                 root._spotlightRetries++;
@@ -343,6 +332,8 @@ Scope {
             } else {
                 root._pendingOptionId = -1;
                 root._pendingPageIndex = -1;
+                root._pendingLabel = "";
+                root._pendingTask = "";
                 root._pendingSection = "";
             }
             return;
@@ -361,6 +352,8 @@ Scope {
 
         root._pendingOptionId = -1;
         root._pendingPageIndex = -1;
+        root._pendingLabel = "";
+        root._pendingTask = "";
         root._pendingSection = "";
     }
 

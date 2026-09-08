@@ -37,9 +37,15 @@ ContentPage {
                 }
             }
 
-            PillOptionsEditor {
+            Loader {
                 Layout.fillWidth: true
-                visible: root.pillActive
+                active: root.pillActive
+                asynchronous: false
+                sourceComponent: Component {
+                    PillOptionsEditor {
+                        width: parent?.width ?? implicitWidth
+                    }
+                }
             }
 
             SettingsNote {
@@ -51,13 +57,21 @@ ContentPage {
     }
 
     SettingsCardSection {
+        id: islandSurfacesSection
         expanded: false
         icon: "layers"
         title: Translation.tr("Island surfaces")
 
         SettingsGroup {
-            RicelinIslandEditor {
+            Loader {
                 Layout.fillWidth: true
+                active: islandSurfacesSection.expanded
+                asynchronous: false
+                sourceComponent: Component {
+                    RicelinIslandEditor {
+                        width: parent?.width ?? implicitWidth
+                    }
+                }
             }
         }
     }

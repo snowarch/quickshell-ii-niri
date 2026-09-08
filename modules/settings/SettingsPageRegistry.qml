@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.services
 import qs.modules.common
 
@@ -296,6 +297,51 @@ Singleton {
 
     property var _staticSearchIndex: null
 
+    FileView {
+        id: generatedSearchIndexFile
+        path: Qt.resolvedUrl("settings-search-index.generated.json")
+        blockLoading: true
+        printErrors: false
+        watchChanges: false
+        onLoadedChanged: root._staticSearchIndex = null
+    }
+
+    function generatedSearchIndex(): var {
+        if (!generatedSearchIndexFile.loaded)
+            return []
+        try {
+            const raw = JSON.parse(generatedSearchIndexFile.text())
+            if (!Array.isArray(raw))
+                return []
+            const result = []
+            for (let i = 0; i < raw.length; ++i) {
+                const entry = raw[i] ?? ({})
+                const pageIndex = Number(entry.pageIndex)
+                if (!Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= root.pages.length)
+                    continue
+                const section = String(entry.section || "")
+                const label = String(entry.label || "")
+                if (!label.length)
+                    continue
+                result.push({
+                    pageIndex: pageIndex,
+                    pageName: root.pages[pageIndex].name,
+                    task: String(entry.task || ""),
+                    panelFamily: String(entry.panelFamily || ""),
+                    section: section.length > 0 ? Translation.tr(section) : "",
+                    label: Translation.tr(label),
+                    description: "",
+                    keywords: entry.keywords || [],
+                    generated: true
+                })
+            }
+            return result
+        } catch (error) {
+            console.warn("SettingsPageRegistry: invalid generated search index", error)
+            return []
+        }
+    }
+
     Connections {
         target: Translation
         function onLanguageCodeChanged(): void { root._staticSearchIndex = null }
@@ -307,7 +353,7 @@ Singleton {
         if (_staticSearchIndex !== null)
             return _staticSearchIndex
 
-        _staticSearchIndex = [
+        const manualIndex = [
         {
             pageIndex: 10, pageName: root.pages[10].name,
             section: Translation.tr("Modules"),
@@ -535,7 +581,7 @@ Singleton {
         {
             pageIndex: 1, pageName: root.pages[1].name,
             section: Translation.tr("Sounds"),
-            label: Translation.tr("Notification sound"),
+            label: Translation.tr("Notifications"),
             description: Translation.tr("Play sound when a notification arrives"),
             keywords: ["sound", "notification", "alert", "ring", "chime"]
         },
@@ -1868,6 +1914,59 @@ Singleton {
         { pageIndex: 25, pageName: root.pages[25].name, section: Translation.tr("Per-area overrides"), label: Translation.tr("Bars, dock, panels, islands and widgets"), description: Translation.tr("Override the blur backend independently for each shell area"), keywords: ["effects", "area", "bar", "dock", "panel", "island", "ricelin", "widget"] },
         { pageIndex: 25, pageName: root.pages[25].name, section: Translation.tr("Motion and power"), label: Translation.tr("Reduce animations"), description: Translation.tr("Use immediate reduced-motion state changes"), keywords: ["motion", "animation", "reduce", "accessibility", "performance"] }
         ]
+
+        const generatedIndex = root.generatedSearchIndex()
+        const generatedByLabel = ({})
+        for (let i = 0; i < generatedIndex.length; ++i) {
+            const entry = generatedIndex[i] ?? ({})
+            const labelKey = `${entry.pageIndex}|${String(entry.label || "").toLowerCase()}`
+            if (!generatedByLabel[labelKey])
+                generatedByLabel[labelKey] = []
+            generatedByLabel[labelKey].push(entry)
+        }
+
+        const destinationKey = entry => [
+            entry.pageIndex,
+            String(entry.panelFamily || "").toLowerCase(),
+            String(entry.task || "").toLowerCase(),
+            String(entry.section || "").toLowerCase(),
+            String(entry.label || "").toLowerCase()
+        ].join("|")
+
+        const merged = []
+        const seen = ({})
+        for (let i = 0; i < manualIndex.length; ++i) {
+            const entry = manualIndex[i] ?? ({})
+            const labelKey = `${entry.pageIndex}|${String(entry.label || "").toLowerCase()}`
+            const candidates = generatedByLabel[labelKey] ?? []
+            if (!entry.task && candidates.length > 0) {
+                const section = String(entry.section || "").toLowerCase()
+                const sectionMatches = candidates.filter(candidate =>
+                    String(candidate.section || "").toLowerCase() === section)
+                const resolved = sectionMatches.length === 1
+                    ? sectionMatches[0]
+                    : (candidates.length === 1 ? candidates[0] : null)
+                if (resolved) {
+                    entry.task = resolved.task || ""
+                    entry.panelFamily = resolved.panelFamily || ""
+                    if (candidates.length === 1 && resolved.section)
+                        entry.section = resolved.section
+                }
+            }
+            const key = destinationKey(entry)
+            merged.push(entry)
+            seen[key] = true
+        }
+        for (let i = 0; i < generatedIndex.length; ++i) {
+            const entry = generatedIndex[i] ?? ({})
+            const key = destinationKey(entry)
+            if (seen[key])
+                continue
+            seen[key] = true
+            merged.push(entry)
+        }
+
+        _staticSearchIndex = merged
         return _staticSearchIndex
     }
 }

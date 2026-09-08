@@ -1197,9 +1197,11 @@ ContentPage {
         }
     }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "outputs" && CompositorService.isNiri
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "outputs"
-        visible: root.activeSection === "outputs" && CompositorService.isNiri
         expanded: true
         icon: "screen_rotation_alt"
         title: Translation.tr("Monitor arrangement")
@@ -1360,11 +1362,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "outputs"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "outputs"
-        visible: root.activeSection === "outputs"
-        expanded: true
+        expanded: false
         icon: "settings_input_component"
         title: Translation.tr("Shell visibility")
 
@@ -1405,11 +1411,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "outputs"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "outputs"
-        visible: root.activeSection === "outputs"
-        expanded: true
+        expanded: false
         icon: "preview"
         title: Translation.tr("Overview placement")
 
@@ -1425,10 +1435,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "surfaces"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "surfaces"
-        visible: root.activeSection === "surfaces"
         expanded: true
         icon: "web_asset"
         title: Translation.tr("Material shell surfaces")
@@ -1453,10 +1467,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "widgets"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "widgets"
-        visible: root.activeSection === "widgets"
         expanded: true
         icon: "widgets"
         title: Translation.tr("Desktop widgets")
@@ -1482,10 +1500,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "popups"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "popups"
-        visible: root.activeSection === "popups"
         expanded: true
         icon: "notifications"
         title: Translation.tr("Popups")
@@ -1508,6 +1530,8 @@ ContentPage {
                     surface: modelData
                 }
             }
+        }
+    }
         }
     }
 }

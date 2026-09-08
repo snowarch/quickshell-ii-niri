@@ -13,7 +13,7 @@ ContentPage {
     settingsPageName: Translation.tr("Bar")
 
     property bool isIiActive: Config.options?.panelFamily !== "waffle"
-    property string activeSection: "modules"
+    property string activeSection: "appearance"
     property int _taskLoadingCount: 0
 
     function activateSettingsSearchSection(section: string): bool {
@@ -49,7 +49,7 @@ ContentPage {
         property bool _countedLoading: false
 
         Layout.fillWidth: true
-        asynchronous: true
+        asynchronous: false
         active: resident
         visible: requested && status !== Loader.Null
         enabled: requested && status === Loader.Ready && opacity > 0.99
@@ -59,7 +59,7 @@ ContentPage {
         transform: Translate {
             y: sectionLoader.requested && sectionLoader.status === Loader.Ready ? 0 : 4
             Behavior on y {
-                enabled: Appearance.animationsEnabled
+                enabled: Appearance.animationsEnabled && !SettingsMaterialPreset.unified
                 NumberAnimation {
                     duration: Appearance.animation.elementMoveEnter.duration
                     easing.type: Appearance.animation.elementMoveEnter.type
@@ -69,7 +69,7 @@ ContentPage {
         }
 
         Behavior on opacity {
-            enabled: Appearance.animationsEnabled
+            enabled: Appearance.animationsEnabled && !SettingsMaterialPreset.unified
             NumberAnimation {
                 duration: Appearance.animation.elementMoveEnter.duration
                 easing.type: Appearance.animation.elementMoveEnter.type
@@ -89,6 +89,8 @@ ContentPage {
             if (requested) {
                 unloadDelay.stop()
                 resident = true
+            } else if (SettingsMaterialPreset.unified) {
+                unloadDelay.stop()
             } else if (status === Loader.Ready) {
                 unloadDelay.restart()
             } else {
@@ -429,9 +431,11 @@ ContentPage {
     // ═══════════════════════════════════════════════════════════════════
     // APPEARANCE & LAYOUT
     // ═══════════════════════════════════════════════════════════════════
+    LazySection {
+        requested: root.isIiActive && root.activeSection === "appearance"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "appearance"
-        visible: root.isIiActive && root.activeSection === "appearance"
         expanded: true
         icon: "dashboard"
         title: Translation.tr("Appearance & Layout")
@@ -545,6 +549,8 @@ ContentPage {
                     }
                 }
             }
+        }
+    }
         }
     }
 
@@ -1340,10 +1346,12 @@ ContentPage {
         }
     }
 
+    LazySection {
+        requested: root.isIiActive && root.activeSection === "appearance"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "appearance"
-        visible: root.isIiActive && root.activeSection === "appearance"
-        expanded: true
+        expanded: false
         icon: "straighten"
         title: Translation.tr("Sizing & surface")
 
@@ -1433,6 +1441,8 @@ ContentPage {
                 text: Translation.tr("Opacity has no effect while ‘Show background’ is off.")
             }
 
+        }
+    }
         }
     }
 
@@ -2317,7 +2327,7 @@ ContentPage {
         sourceComponent: Component {
             SettingsCardSection {
                 settingsTaskSection: "modules"
-                expanded: true
+                expanded: false
         icon: "reorder"
         title: Translation.tr("Bar module layout")
 

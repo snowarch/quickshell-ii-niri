@@ -120,6 +120,20 @@ Singleton {
         }
     }
 
+    function toggleSettings(): void {
+        const isWaffle = Config.options?.panelFamily === "waffle"
+            && Config.options?.waffles?.settings?.useMaterialStyle !== true
+        if (isWaffle) {
+            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                "waffle-settings-window"])
+        } else if (Config.options?.settingsUi?.overlayMode ?? false) {
+            root.settingsOverlayOpen = !root.settingsOverlayOpen
+        } else {
+            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                "settings-window"])
+        }
+    }
+
     function setSettingsNativeDialogVisible(dialogKey: string, visible: bool): void {
         const key = String(dialogKey ?? "").trim()
         if (!key) return

@@ -487,24 +487,10 @@ ShellRoot {
     IpcHandler {
         target: "settings"
         function open(): void {
-            const isWaffle = Config.options?.panelFamily === "waffle"
-                && Config.options?.waffles?.settings?.useMaterialStyle !== true
-
-            if (isWaffle) {
-                // Waffle always opens its own Win11-style settings window
-                Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
-                    "waffle-settings-window"])
-            } else if (Config.options?.settingsUi?.overlayMode ?? false) {
-                // ii overlay mode — toggle inline panel
-                GlobalStates.settingsOverlayOpen = !GlobalStates.settingsOverlayOpen
-            } else {
-                // ii window mode (default) — launch separate process
-                Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
-                    "settings-window"])
-            }
+            GlobalStates.toggleSettings()
         }
         function toggle(): void {
-            open()
+            GlobalStates.toggleSettings()
         }
     }
 
@@ -524,12 +510,12 @@ ShellRoot {
     }
 
     // Settings overlay panel (loaded only when overlay mode is enabled).
-    // overlayStyle picks the chrome; two sibling loaders instead of a
-    // conditional `component:` so only the selected one is ever constructed.
-    // Any unrecognised style falls back to the nav rail.
+    // overlayStyle picks the chrome; sibling loaders keep only the selected
+    // presentation alive. Any unrecognised style falls back to the nav rail.
     LazyLoader {
         active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
             && (Config.options?.settingsUi?.overlayStyle ?? "rail") !== "focus"
+            && (Config.options?.settingsUi?.overlayStyle ?? "rail") !== "editorial"
         component: SettingsOverlay {}
     }
 
@@ -537,6 +523,12 @@ ShellRoot {
         active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
             && (Config.options?.settingsUi?.overlayStyle ?? "rail") === "focus"
         component: SettingsFocus {}
+    }
+
+    LazyLoader {
+        active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
+            && (Config.options?.settingsUi?.overlayStyle ?? "rail") === "editorial"
+        component: SettingsEditorial {}
     }
 
     // === Panel Loaders ===

@@ -74,11 +74,26 @@ ContentPage {
 
     function activateSettingsSearchSection(section: string): bool {
         const label = String(section || "").toLowerCase().trim()
-        if (label === "modules" || label === "optional") {
-            modulesPage.activeSection = "modules"
-            return true
+        const sections = {
+            "shell modules": "panels",
+            "panel style": "panels",
+            "default terminal": "terminal",
+            "modules": "modules",
+            "core": "modules",
+            "feedback": "modules",
+            "utilities": "modules",
+            "optional": "modules",
+            "waffle core": "modules",
+            "shared modules": "modules",
+            "display scaling": "interface",
+            "wallpaper selector": "interface",
+            "settings ui": "interface"
         }
-        return false
+        const target = sections[label] ?? ""
+        if (!target)
+            return false
+        modulesPage.activeSection = target
+        return true
     }
 
     SettingsTaskNavigator {
@@ -96,9 +111,11 @@ ContentPage {
         ]
     }
 
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "panels"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "panels"
-        visible: modulesPage.activeSection === "panels"
         expanded: true
         icon: "extension"
         title: Translation.tr("Shell Modules")
@@ -143,11 +160,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "panels"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "panels"
-        visible: modulesPage.activeSection === "panels"
-        expanded: true
+        expanded: false
         icon: "style"
         title: Translation.tr("Panel Style")
 
@@ -230,12 +251,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ==================== DEFAULT TERMINAL ====================
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "terminal"
+        sourceComponent: Component {
     SettingsCardSection {
         id: terminalSection
         settingsTaskSection: "terminal"
-        visible: modulesPage.activeSection === "terminal"
         expanded: true
         icon: "terminal"
         title: Translation.tr("Default Terminal")
@@ -502,11 +527,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ==================== MATERIAL II ====================
+    SettingsTaskLoader {
+        requested: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
         expanded: true
         icon: "dashboard"
         title: Translation.tr("Core")
@@ -577,11 +606,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
-        expanded: true
+        expanded: false
         icon: "notifications"
         title: Translation.tr("Feedback")
 
@@ -611,11 +644,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
-        expanded: true
+        expanded: false
         icon: "build"
         title: Translation.tr("Utilities")
 
@@ -693,11 +730,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: !modulesPage.isWaffle && modulesPage.activeSection === "modules"
-        expanded: true
+        expanded: false
         icon: "more_horiz"
         title: Translation.tr("Optional")
 
@@ -735,12 +776,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // ==================== WAFFLE ====================
+    SettingsTaskLoader {
+        requested: modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: modulesPage.isWaffle && modulesPage.activeSection === "modules"
-        expanded: true
+        expanded: false
         icon: "window"
         title: Translation.tr("Waffle Core")
 
@@ -810,11 +855,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: modulesPage.isWaffle && modulesPage.activeSection === "modules"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "modules"
-        visible: modulesPage.isWaffle && modulesPage.activeSection === "modules"
-        expanded: true
+        expanded: false
         icon: "share"
         title: Translation.tr("Shared Modules")
 
@@ -932,10 +981,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "interface"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "interface"
-        visible: modulesPage.activeSection === "interface"
         expanded: true
         icon: "aspect_ratio"
         title: Translation.tr("Display scaling")
@@ -981,11 +1034,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "interface"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "interface"
-        visible: modulesPage.activeSection === "interface"
-        expanded: true
+        expanded: false
         icon: "wallpaper_slideshow"
         title: Translation.tr("Wallpaper selector")
 
@@ -1030,11 +1087,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: modulesPage.activeSection === "interface"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "interface"
-        visible: modulesPage.activeSection === "interface"
-        expanded: true
+        expanded: false
         icon: "web_asset"
         title: Translation.tr("Settings UI")
 
@@ -1075,16 +1136,23 @@ ContentPage {
                     currentValue: Config.options?.settingsUi?.overlayStyle ?? "rail"
                     options: [
                         { displayName: Translation.tr("Nav rail"), icon: "view_sidebar", value: "rail" },
-                        { displayName: Translation.tr("Focus"), icon: "grid_view", value: "focus" }
+                        { displayName: Translation.tr("Focus"), icon: "grid_view", value: "focus" },
+                        { displayName: Translation.tr("Unified"), icon: "side_navigation", value: "unified" },
+                        { displayName: Translation.tr("Editorial"), icon: "auto_stories", value: "editorial" }
                     ]
                     onSelected: value => Config.setNestedValue("settingsUi.overlayStyle", value)
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: (Config.options?.settingsUi?.overlayStyle ?? "rail") === "focus"
+                    readonly property string overlayStyle: Config.options?.settingsUi?.overlayStyle ?? "rail"
+                    text: overlayStyle === "focus"
                         ? Translation.tr("One page at a time: a grid of every settings page, then the page you pick, full width. Escape steps back.")
-                        : Translation.tr("A persistent category rail beside the page you are editing.")
+                        : overlayStyle === "editorial"
+                            ? Translation.tr("A paper Settings studio with expressive typography. Pair with the Editorial global style for the complete composition.")
+                        : overlayStyle === "unified"
+                            ? Translation.tr("A fast, consistent Settings layout with a fixed sidebar and unified controls.")
+                            : Translation.tr("A persistent category rail beside the page you are editing.")
                     color: Appearance.colors.colSubtext
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     wrapMode: Text.WordWrap
@@ -1214,6 +1282,8 @@ ContentPage {
                     }
                 }
             }
+        }
+    }
         }
     }
 }

@@ -54,9 +54,11 @@ ContentPage {
         ]
     }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.isPanelEnabled("wBackground") && root.activeSection === "wallpaper"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "wallpaper"
-        visible: root.isWaffleActive && root.isPanelEnabled("wBackground") && root.activeSection === "wallpaper"
         expanded: true
         title: Translation.tr("Wallpaper")
 
@@ -119,10 +121,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.isPanelEnabled("wBackground") && root.activeSection === "wallpaper"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "wallpaper"
-        visible: root.isWaffleActive && root.isPanelEnabled("wBackground") && root.activeSection === "wallpaper"
         expanded: true
         title: Translation.tr("Wallpaper Effects")
 
@@ -161,10 +167,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.activeSection === "wallpaper"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "wallpaper"
-        visible: root.isWaffleActive && root.activeSection === "wallpaper"
         expanded: true
         title: Translation.tr("Backdrop (Niri Overview)")
 
@@ -287,10 +297,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.isPanelEnabled("wBar") && root.activeSection === "taskbar"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "taskbar"
-        visible: root.isWaffleActive && root.isPanelEnabled("wBar") && root.activeSection === "taskbar"
         expanded: true
         title: Translation.tr("Taskbar")
 
@@ -324,11 +338,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.activeSection === "style"
+        sourceComponent: Component {
     SettingsCardSection {
         id: themingSection
         settingsTaskSection: "style"
-        visible: root.isWaffleActive && root.activeSection === "style"
         expanded: true
         title: Translation.tr("Theming")
 
@@ -407,10 +425,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isWaffleActive && root.activeSection === "style"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "style"
-        visible: root.isWaffleActive && root.activeSection === "style"
         expanded: true
         title: Translation.tr("Behavior")
 
@@ -423,10 +445,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "transition"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "transition"
-        visible: root.activeSection === "transition"
         expanded: true
         title: Translation.tr("Family Transition")
 
@@ -446,6 +472,8 @@ ContentPage {
                 onCheckedChanged: Config.setNestedValue("familyTransitionAnimation", checked)
                 StyledToolTip { text: Translation.tr("Show a smooth animated overlay when switching between panel families") }
             }
+        }
+    }
         }
     }
 

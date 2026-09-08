@@ -84,7 +84,7 @@ Item { // Bar content region
                 monochromeIcon: true,
                 text: Translation.tr("Settings"),
                 action: () => {
-                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
+                    GlobalStates.toggleSettings()
                 },
             },
         ]

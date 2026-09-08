@@ -72,9 +72,11 @@ ContentPage {
         ]
     }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "general"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "general"
-        visible: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "general"
         expanded: true
         icon: "tune"
         title: Translation.tr("General")
@@ -230,10 +232,14 @@ ContentPage {
 
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "left"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "left"
-        visible: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "left"
         expanded: true
         icon: "first_page"
         title: Translation.tr("Left sidebar")
@@ -367,10 +373,14 @@ ContentPage {
 
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "right"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "right"
-        visible: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "right"
         expanded: true
         icon: "last_page"
         title: Translation.tr("Right sidebar")
@@ -761,10 +771,14 @@ ContentPage {
 
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "media"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "media"
-        visible: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "media"
         expanded: true
         icon: "music_note"
         title: Translation.tr("Media & content")
@@ -991,10 +1005,14 @@ ContentPage {
 
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "open"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "open"
-        visible: root.isIiActive && !(Config.options?.settingsUi?.easyMode ?? false) && root.activeSection === "open"
         expanded: true
         icon: "swipe"
         title: Translation.tr("Opening")
@@ -1154,6 +1172,8 @@ ContentPage {
                     }
                 }
             }
+        }
+    }
         }
     }
 

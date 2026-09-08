@@ -12,6 +12,8 @@ ContentPage {
 
     readonly property string savedThemesDir: Directories.shellConfig + "/themes"
     property var savedThemePresets: []
+    property string activeSavedTheme: ""
+    property bool customThemeEditorExpanded: false
 
     function refreshSavedThemes(): void {
         if (!savedThemesProcess.running)
@@ -20,7 +22,7 @@ ContentPage {
 
     function applyThemeChoice(preset): void {
         if (preset.saved !== true) {
-            themesGroup.activeSavedTheme = ""
+            root.activeSavedTheme = ""
             ThemeService.setTheme(preset.id)
             return
         }
@@ -31,7 +33,7 @@ ContentPage {
                 updates[`appearance.customTheme.${key}`] = preset.colors[key]
         }
         Config.setNestedValues(updates)
-        themesGroup.activeSavedTheme = preset.id
+        root.activeSavedTheme = preset.id
         ThemePresets.applyPreset("custom")
         if (ThemeService.currentTheme !== "custom")
             ThemeService.setTheme("custom")
@@ -56,7 +58,7 @@ ContentPage {
     Timer {
         interval: 2000
         repeat: true
-        running: root.visible && customThemeEditorSection.expanded
+        running: root.visible && root.activeSection === "advanced" && root.customThemeEditorExpanded
         triggeredOnStart: true
         onTriggered: root.refreshSavedThemes()
     }
@@ -70,6 +72,28 @@ ContentPage {
     settingsPageIndex: 4
     settingsPageName: Translation.tr("Themes")
     property string activeSection: "colors"
+
+    function activateSettingsSearchSection(section: string): bool {
+        const label = String(section || "").toLowerCase().trim()
+        const sections = {
+            "color themes": "colors",
+            "scheme variant": "colors",
+            "global style": "style",
+            "typography": "type",
+            "icon theme": "type",
+            "motion": "motion",
+            "theme scheduling": "motion",
+            "terminal colors": "advanced",
+            "custom theme editor": "advanced",
+            "gowall wallpaper editor": "advanced",
+            "about themes": "advanced"
+        }
+        const target = sections[label] ?? ""
+        if (!target)
+            return false
+        root.activeSection = target
+        return true
+    }
 
     SettingsTaskNavigator {
         icon: "palette"
@@ -93,9 +117,11 @@ ContentPage {
         return testFont.family.toLowerCase() === fontName.toLowerCase()
     }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "colors"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "colors"
-        visible: root.activeSection === "colors"
         expanded: true
         icon: "palette"
         title: Translation.tr("Color Themes")
@@ -110,7 +136,6 @@ ContentPage {
             property string selectedTag: Persistent.states?.settings?.themeTag ?? ""  // Single active tag filter
             onSelectedTagChanged: if (Persistent.ready && Persistent.states?.settings)
                 Persistent.states.settings.themeTag = selectedTag
-            property string activeSavedTheme: ""
 
             function isDarkTheme(preset) {
                 if (preset.id === "auto" || preset.id === "custom") return true
@@ -575,18 +600,20 @@ ContentPage {
                             required property var modelData
                             width: Math.max(140, (parent.width - 8) / 3)
                             preset: modelData
-                            forceActive: themesGroup.activeSavedTheme === modelData.id
+                            forceActive: root.activeSavedTheme === modelData.id
                             onClicked: root.applyThemeChoice(modelData)
                         }
                     }
                 }
             }
 
-            // Built-in theme grid - scrollable with 3 columns
+            // Built-in theme grid - virtualized so opening Colors does not
+            // instantiate every preset card and its swatches at once.
             Rectangle {
                 Layout.fillWidth: true
                 Layout.topMargin: 10
-                Layout.preferredHeight: Math.min(300, themeGridContent.implicitHeight + 12)
+                Layout.preferredHeight: Math.min(300,
+                    Math.max(48, Math.ceil(themesGroup.filteredBuiltInPresets.length / 3) * 40 + 12))
                 color: Appearance.colors.colLayer1
                 radius: Appearance.rounding.small
                 clip: true
@@ -600,31 +627,31 @@ ContentPage {
                     }
                 }
 
-                ScrollView {
-                    id: themeScrollView
+                GridView {
+                    id: themeGridView
                     anchors.fill: parent
                     anchors.margins: 6
-                    contentWidth: availableWidth
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    ScrollBar.vertical.policy: themeGridContent.implicitHeight > parent.height - 12 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                    model: themesGroup.filteredBuiltInPresets
+                    cellWidth: width / 3
+                    cellHeight: 40
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.vertical: ScrollBar {
+                        policy: themeGridView.contentHeight > themeGridView.height
+                            ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+                    }
 
-                    Grid {
-                        id: themeGridContent
-                        width: themeScrollView.availableWidth
-                        columns: 3
-                        columnSpacing: 4
-                        rowSpacing: 4
+                    delegate: Item {
+                        required property var modelData
+                        width: themeGridView.cellWidth
+                        height: themeGridView.cellHeight
 
-                        Repeater {
-                            model: themesGroup.filteredBuiltInPresets
-
-                            ThemePresetCard {
-                                required property var modelData
-                                width: (themeGridContent.width - themeGridContent.columnSpacing * 2) / 3
-                                preset: modelData
-                                forceActive: modelData.saved === true && themesGroup.activeSavedTheme === modelData.id
-                                onClicked: root.applyThemeChoice(modelData)
-                            }
+                        ThemePresetCard {
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            preset: modelData
+                            forceActive: modelData.saved === true && root.activeSavedTheme === modelData.id
+                            onClicked: root.applyThemeChoice(modelData)
                         }
                     }
                 }
@@ -655,12 +682,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // Scheme Variant Section
+    SettingsTaskLoader {
+        requested: root.activeSection === "colors"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "colors"
-        visible: root.activeSection === "colors"
-        expanded: true
+        expanded: false
         icon: "tune"
         title: Translation.tr("Scheme Variant")
 
@@ -710,11 +741,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // Motion Section
+    SettingsTaskLoader {
+        requested: root.activeSection === "motion" && (Config.options?.panelFamily ?? "ii") !== "waffle"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "motion"
-        visible: root.activeSection === "motion" && (Config.options?.panelFamily ?? "ii") !== "waffle"
         expanded: true
         icon: "animation"
         title: Translation.tr("Motion")
@@ -852,12 +887,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // Theme Scheduling Section
+    SettingsTaskLoader {
+        requested: root.activeSection === "motion" && !(Config.options?.settingsUi?.easyMode ?? false)
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "motion"
-        visible: root.activeSection === "motion" && !(Config.options?.settingsUi?.easyMode ?? false)
-        expanded: true
+        expanded: false
         icon: "schedule"
         title: Translation.tr("Theme Scheduling")
 
@@ -1087,12 +1126,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
     // Terminal Colors Section
+    SettingsTaskLoader {
+        requested: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
+        sourceComponent: Component {
     SettingsCardSection {
         id: terminalColorsSection
         settingsTaskSection: "advanced"
-        visible: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
         expanded: true
         icon: "terminal"
         title: Translation.tr("Terminal Colors")
@@ -1560,10 +1603,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "style"
-        visible: root.activeSection === "style"
         expanded: true
         icon: "style"
         title: Translation.tr("Global Style")
@@ -1607,12 +1654,16 @@ ContentPage {
 
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style" && Appearance.editorialEverywhere
+        sourceComponent: Component {
     SettingsCardSection {
         id: editorialStyleEditorSection
-        visible: root.activeSection === "style" && Appearance.editorialEverywhere
         settingsTaskSection: "style"
-        expanded: true
+        expanded: false
         icon: "auto_stories"
         title: Translation.tr("Editorial")
 
@@ -1625,12 +1676,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style" && Appearance.auroraEverywhere && !Appearance.angelEverywhere
+        sourceComponent: Component {
     SettingsCardSection {
         id: auroraStyleEditorSection
         settingsTaskSection: "style"
-        visible: root.activeSection === "style" && Appearance.auroraEverywhere && !Appearance.angelEverywhere
-        expanded: true
+        expanded: false
         icon: "blur_on"
         title: Translation.tr("Aurora Style Editor")
 
@@ -1643,12 +1698,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style" && Appearance.angelEverywhere
+        sourceComponent: Component {
     SettingsCardSection {
         id: angelStyleEditorSection
         settingsTaskSection: "style"
-        visible: root.activeSection === "style" && Appearance.angelEverywhere
-        expanded: true
+        expanded: false
         icon: "raven"
         title: Translation.tr("Angel Style Editor")
 
@@ -1661,12 +1720,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style" && Appearance.regaliaEverywhere
+        sourceComponent: Component {
     SettingsCardSection {
         id: regaliaStyleEditorSection
         settingsTaskSection: "style"
-        visible: root.activeSection === "style" && Appearance.regaliaEverywhere
-        expanded: true
+        expanded: false
         icon: "event_seat"
         title: Translation.tr("Regalia Style Editor")
 
@@ -1679,12 +1742,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "style" && Appearance.zzzEverywhere
+        sourceComponent: Component {
     SettingsCardSection {
         id: zzzStyleEditorSection
         settingsTaskSection: "style"
-        visible: root.activeSection === "style" && Appearance.zzzEverywhere
-        expanded: true
+        expanded: false
         icon: "bolt"
         title: Translation.tr("ZZZ Style Editor")
 
@@ -1697,12 +1764,17 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
+        sourceComponent: Component {
     SettingsCardSection {
         id: customThemeEditorSection
         settingsTaskSection: "advanced"
-        visible: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
-        expanded: true
+        expanded: root.customThemeEditorExpanded
+        onExpandedChanged: root.customThemeEditorExpanded = expanded
         icon: "edit"
         title: Translation.tr("Custom Theme Editor")
 
@@ -1716,12 +1788,16 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
+        sourceComponent: Component {
     SettingsCardSection {
         id: gowallEditorSection
         settingsTaskSection: "advanced"
-        visible: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
-        expanded: true
+        expanded: false
         icon: "wallpaper"
         title: Translation.tr("Gowall Wallpaper Editor")
 
@@ -1735,10 +1811,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "type"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "type"
-        visible: root.activeSection === "type"
         expanded: true
         icon: "text_format"
         title: Translation.tr("Typography")
@@ -1969,11 +2049,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "type"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "type"
-        visible: root.activeSection === "type"
-        expanded: true
+        expanded: false
         icon: "folder"
         title: Translation.tr("Icon Theme")
 
@@ -2005,11 +2089,15 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "advanced"
-        visible: root.activeSection === "advanced" && !(Config.options?.settingsUi?.easyMode ?? false)
-        expanded: true
+        expanded: false
         icon: "info"
         title: Translation.tr("About Themes")
 
@@ -2021,6 +2109,8 @@ ContentPage {
                 font.pixelSize: Appearance.font.pixelSize.smaller
                 wrapMode: Text.WordWrap
             }
+        }
+    }
         }
     }
 }

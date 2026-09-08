@@ -23,17 +23,17 @@ ComboBox {
     hoverEnabled: true
     opacity: root.enabled ? 1 : 0.4
 
-    readonly property color _bgColor: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlate
+    readonly property color _bgColor: Appearance.editorialEverywhere ? Appearance.editorial.input : Appearance.regaliaEverywhere ? Appearance.regalia.controlPlate
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
         : Appearance.colors.colLayer2
-    readonly property color _bgHoverColor: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
+    readonly property color _bgHoverColor: Appearance.editorialEverywhere ? Appearance.editorial.inputHover : Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
         : Appearance.colors.colLayer2Hover
-    readonly property color _bgActiveColor: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateActive
+    readonly property color _bgActiveColor: Appearance.editorialEverywhere ? Appearance.editorial.inputFocus : Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateActive
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCardActive
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Active
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceActive
@@ -63,7 +63,7 @@ ComboBox {
     // Dropdown row hover/selected — matched to _popupColor's own layer (Layer3, or
     // inir's Layer2). The angel/aurora "glass card" tokens used here previously were
     // tuned for card surfaces, not this opaque popup, and read as barely-there.
-    readonly property color _popupHoverColor: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
+    readonly property color _popupHoverColor: Appearance.editorialEverywhere ? Appearance.editorial.controlHover : Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
         : Appearance.colors.colLayer3Hover
     readonly property color _selectedColor: Appearance.editorialEverywhere ? Appearance.editorial.field
@@ -78,9 +78,9 @@ ComboBox {
             : root.down ? root._bgActiveColor
             : root.hovered ? root._bgHoverColor
             : root._bgColor
-        border.width: root._borderWidth
+        border.width: Appearance.editorialEverywhere && root.activeFocus ? 2 : root._borderWidth
         border.color: root.activeFocus
-            ? (Appearance.editorialEverywhere ? Appearance.editorial.accent
+            ? (Appearance.editorialEverywhere ? Appearance.editorial.focusRing
                 : Appearance.angelEverywhere ? Appearance.angel.colPrimary
                 : Appearance.inirEverywhere ? Appearance.inir.colBorderFocus
                 : root._borderColor)
@@ -271,7 +271,7 @@ ComboBox {
                     return delegateItem.modelData?.toString() ?? ""
                 }
                 font.pixelSize: Appearance.font.pixelSize.small
-                font.weight: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex ? Font.DemiBold : Font.Normal
+                font.weight: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex ? Appearance.editorial.labelWeight : Font.Normal
                 color: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex
                     ? Appearance.editorial.fieldInk
                     : Appearance.regaliaEverywhere && delegateItem.index === root.currentIndex
@@ -330,6 +330,8 @@ ComboBox {
         if (!enableSettingsSearch)
             return;
         if (typeof SettingsSearchRegistry === "undefined")
+            return;
+        if (!SettingsSearchRegistry.dynamicRegistrationEnabled)
             return;
 
         var ctx = _findSettingsContext();

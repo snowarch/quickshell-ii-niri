@@ -20,3 +20,5 @@ SettingsNativeDialogGuard 1.0 SettingsNativeDialogGuard.qml
 PillOptionsEditor 1.0 PillOptionsEditor.qml
 RicelinIslandEditor 1.0 RicelinIslandEditor.qml
 OrbitShelfEditor 1.0 OrbitShelfEditor.qml
+
+SettingsEditorial 1.0 SettingsEditorial.qml

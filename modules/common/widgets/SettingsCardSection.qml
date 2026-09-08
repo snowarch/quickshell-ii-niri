@@ -45,6 +45,8 @@ Item {
             return;
         if (typeof SettingsSearchRegistry === "undefined")
             return;
+        if (!SettingsSearchRegistry.dynamicRegistrationEnabled)
+            return;
 
         if (SettingsSearchRegistry.registerCollapsibleSection) {
             SettingsSearchRegistry.registerCollapsibleSection(root);
@@ -77,7 +79,8 @@ Item {
     // Material/aurora: simple offset rectangle instead of GPU-blurred RectangularShadow
     // for much better performance (especially with many cards visible at once).
     Rectangle {
-        visible: !Appearance.angelEverywhere
+        visible: !SettingsMaterialPreset.unified
+            && !Appearance.angelEverywhere
             && !Appearance.editorialEverywhere
             && !Appearance.zzzEverywhere
             && Appearance.effectsEnabled
@@ -114,7 +117,8 @@ Item {
     // Non-ZZZ, non-angel: subtle left accent bar when expanded
     Rectangle {
         id: accentBar
-        visible: !Appearance.angelEverywhere && !Appearance.regaliaEverywhere
+        visible: !SettingsMaterialPreset.unified
+            && !Appearance.angelEverywhere && !Appearance.regaliaEverywhere
             && !Appearance.zzzEverywhere && !Appearance.cookieEverywhere && !Appearance.editorialEverywhere
         anchors {
             left: card.left
@@ -162,7 +166,8 @@ Item {
         radius: SettingsMaterialPreset.cardRadius
         color: Appearance.cookieEverywhere || Appearance.regaliaEverywhere
             ? "transparent" : SettingsMaterialPreset.cardColor
-        border.width: Appearance.angelEverywhere ? 0
+        border.width: SettingsMaterialPreset.unified ? 0
+                     : Appearance.angelEverywhere ? 0
                      : (Appearance.regaliaEverywhere ? 0
                      : (Appearance.zzzEverywhere ? 0
                      : (Appearance.cookieEverywhere ? 0

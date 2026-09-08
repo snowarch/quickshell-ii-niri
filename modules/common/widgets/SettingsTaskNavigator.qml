@@ -16,8 +16,67 @@ ColumnLayout {
     property bool showIntro: true
     property string currentValue: ""
     property var options: []
+    property var searchAliases: ({})
 
     signal selected(string value)
+
+    function _normalizeSearchLabel(value): string {
+        return String(value || "")
+            .toLowerCase()
+            .split(/[·›]/)
+            .map(part => part.trim())
+            .filter(part => part.length > 0)
+            .pop() || ""
+    }
+
+    function resolveSearchSection(section): string {
+        const label = _normalizeSearchLabel(section)
+        if (!label.length)
+            return ""
+
+        const aliased = searchAliases?.[label]
+        if (aliased !== undefined)
+            return String(aliased)
+
+        for (let i = 0; i < options.length; ++i) {
+            const option = options[i] ?? ({})
+            if (_normalizeSearchLabel(option.displayName) === label
+                    || _normalizeSearchLabel(option.value) === label)
+                return String(option.value ?? "")
+        }
+        return ""
+    }
+
+    function activateSearchSection(section): bool {
+        const value = resolveSearchSection(section)
+        if (!value.length)
+            return false
+        root.selected(value)
+        return true
+    }
+
+    function _findSettingsPage(): var {
+        let item = root.parent
+        while (item) {
+            if (item.hasOwnProperty("settingsPageIndex")
+                    && item.hasOwnProperty("settingsTaskNavigator"))
+                return item
+            item = item.parent
+        }
+        return null
+    }
+
+    Component.onCompleted: {
+        const page = _findSettingsPage()
+        if (page)
+            page.settingsTaskNavigator = root
+    }
+
+    Component.onDestruction: {
+        const page = _findSettingsPage()
+        if (page && page.settingsTaskNavigator === root)
+            page.settingsTaskNavigator = null
+    }
 
     Layout.fillWidth: true
     spacing: 12

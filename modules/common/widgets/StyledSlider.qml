@@ -142,6 +142,8 @@ Slider {
             return;
         if (typeof SettingsSearchRegistry === "undefined")
             return;
+        if (!SettingsSearchRegistry.dynamicRegistrationEnabled)
+            return;
 
         var ctx = _findSettingsContext();
         var page = ctx.page;

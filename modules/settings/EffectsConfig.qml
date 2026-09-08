@@ -17,6 +17,10 @@ ContentPage {
         summary: Translation.tr("Glass · per-area policy · motion")
         currentValue: root.activeSection
         onSelected: value => root.activeSection = value
+        searchAliases: ({
+            "motion and power": "motion",
+            "blur and glass": "glass"
+        })
         options: [
             { displayName: Translation.tr("Glass"), icon: "blur_on", value: "glass" },
             { displayName: Translation.tr("Areas"), icon: "tune", value: "areas" },
@@ -38,9 +42,11 @@ ContentPage {
         { key: "widgets", icon: "widgets", label: Translation.tr("Desktop widgets") }
     ]
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "glass"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "glass"
-        visible: root.activeSection === "glass"
         expanded: true
         icon: "blur_on"
         title: Translation.tr("Blur and glass")
@@ -78,10 +84,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "areas"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "areas"
-        visible: root.activeSection === "areas"
         expanded: true
         icon: "tune"
         title: Translation.tr("Per-area overrides")
@@ -115,10 +125,14 @@ ContentPage {
             }
         }
     }
+        }
+    }
 
+    SettingsTaskLoader {
+        requested: root.activeSection === "motion"
+        sourceComponent: Component {
     SettingsCardSection {
         settingsTaskSection: "motion"
-        visible: root.activeSection === "motion"
         expanded: true
         icon: "animation"
         title: Translation.tr("Motion and power")
@@ -141,6 +155,8 @@ ContentPage {
                 checked: Config.options?.performance?.memoryWarningNotification ?? false
                 onCheckedChanged: Config.setNestedValue("performance.memoryWarningNotification", checked)
             }
+        }
+    }
         }
     }
 }

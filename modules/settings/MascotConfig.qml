@@ -37,6 +37,7 @@ ContentPage {
     id: root
     settingsPageIndex: 19
     settingsPageName: Translation.tr("Mascot")
+    property bool surfacePosesExpanded: false
 
     SettingsCardSection {
         expanded: true
@@ -450,6 +451,7 @@ ContentPage {
                 delegate: ColumnLayout {
                     id: eventRow
                     required property var modelData
+                    property bool poseExpanded: false
                     Layout.fillWidth: true
                     spacing: 4
 
@@ -461,14 +463,30 @@ ContentPage {
                         onCheckedChanged: Config.setNestedValue("mascot.companion.events." + eventRow.modelData.key, checked)
                     }
 
-                    MascotPoseGallery {
+                    RippleButtonWithIcon {
                         Layout.fillWidth: true
                         Layout.leftMargin: 12
                         visible: Config.options?.mascot?.companion?.events?.[eventRow.modelData.key] ?? true
-                        label: Translation.tr("Pose for this event")
-                        options: mascotReactionsGroup.poseOptions
-                        currentValue: Config.options?.mascot?.companion?.eventPoses?.[eventRow.modelData.key] ?? ""
-                        onSelected: value => Config.setNestedValue("mascot.companion.eventPoses." + eventRow.modelData.key, value)
+                        materialIcon: eventRow.poseExpanded ? "expand_less" : "image"
+                        mainText: eventRow.poseExpanded
+                            ? Translation.tr("Hide event pose")
+                            : Translation.tr("Configure event pose")
+                        onClicked: eventRow.poseExpanded = !eventRow.poseExpanded
+                    }
+
+                    Loader {
+                        active: eventRow.poseExpanded
+                        visible: active
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 12
+                        sourceComponent: Component {
+                            MascotPoseGallery {
+                                label: Translation.tr("Pose for this event")
+                                options: mascotReactionsGroup.poseOptions
+                                currentValue: Config.options?.mascot?.companion?.eventPoses?.[eventRow.modelData.key] ?? ""
+                                onSelected: value => Config.setNestedValue("mascot.companion.eventPoses." + eventRow.modelData.key, value)
+                            }
+                        }
                     }
                 }
             }
@@ -488,8 +506,15 @@ ContentPage {
                 color: Appearance.colors.colSubtext
                 wrapMode: Text.Wrap
             }
+            RippleButtonWithIcon {
+                materialIcon: root.surfacePosesExpanded ? "expand_less" : "tune"
+                mainText: root.surfacePosesExpanded
+                    ? Translation.tr("Hide surface pose overrides")
+                    : Translation.tr("Configure surface pose overrides")
+                onClicked: root.surfacePosesExpanded = !root.surfacePosesExpanded
+            }
             Repeater {
-                model: [
+                model: root.surfacePosesExpanded ? [
                     { key: "notifications", label: Translation.tr("Notifications") },
                     { key: "clipboard", label: Translation.tr("Clipboard") },
                     { key: "mediaControls", label: Translation.tr("Media controls") },
@@ -507,7 +532,7 @@ ContentPage {
                     { key: "cheatsheet", label: Translation.tr("Cheatsheet") },
                     { key: "updates", label: Translation.tr("Update overlay") },
                     { key: "dialogs", label: Translation.tr("Dialogs") }
-                ]
+                ] : []
                 delegate: MascotPoseGallery {
                     required property var modelData
                     Layout.fillWidth: true
@@ -609,6 +634,7 @@ ContentPage {
     }
 
     SettingsCardSection {
+        id: kiraCollectionSection
         icon: "photo_library"
         title: Translation.tr("Kira collection")
         expanded: false
@@ -622,8 +648,15 @@ ContentPage {
                 wrapMode: Text.Wrap
             }
 
-            MascotCollection {
+            Loader {
                 Layout.fillWidth: true
+                active: kiraCollectionSection.expanded
+                asynchronous: false
+                sourceComponent: Component {
+                    MascotCollection {
+                        width: parent?.width ?? 0
+                    }
+                }
             }
         }
     }
