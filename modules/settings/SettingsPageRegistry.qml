@@ -1804,7 +1804,7 @@ Singleton {
         },
 
         // =====================================================================
-        { pageIndex: 4, pageName: root.pages[4].name, section: Translation.tr("Global Style"), label: Translation.tr("Editorial style"), description: Translation.tr("Paper surfaces, poster sans or reading serif, title scale, warmth, accent intensity, spacing, corners, ornaments and motion"), keywords: ["editorial", "style", "paper", "ink", "serif", "sans", "typography", "poster", "reading", "title scale", "warmth", "accent", "accent intensity", "color", "tonal", "spacing", "radius", "corners", "flower", "ornaments", "motion", "reset"] },
+        { pageIndex: 4, pageName: root.pages[4].name, section: Translation.tr("Global Style"), label: Translation.tr("Editorial style"), description: Translation.tr("Layered paper, light or charcoal, wallpaper or custom tint, headline weight and tracking, accents, spacing, corners and motion"), keywords: ["editorial", "style", "paper", "second paper layer", "paper layer depth", "layers", "light paper", "charcoal", "paper pigment", "paper tint", "custom color", "wallpaper", "ink", "serif", "sans", "typography", "poster", "studio", "reading", "title scale", "headline weight", "headline tracking", "warmth", "accent", "accent intensity", "color", "tonal", "spacing", "radius", "corners", "flower", "ornaments", "motion", "reset"] },
 
         // Desktop Widgets (page 14)
         // =====================================================================

@@ -1,8 +1,8 @@
 # Editorial style
 
-Editorial gives iNiR a quiet, high-contrast composition: charcoal or warm paper surfaces, a prominent inverse card, strong sans-serif headlines, small metadata, compact rounded corners and short accent marks. It follows the selected light/dark theme. The Reading typography option uses a serif display face; controls retain the interface font.
+Editorial gives iNiR a quiet, high-contrast composition: charcoal or warm paper surfaces, a prominent inverse card, strong sans-serif headlines, small metadata, compact rounded corners and short accent marks. Paper can follow the selected theme or use its own light/charcoal mode. The Reading typography option uses a serif display face; controls retain the interface font.
 
-Select **Settings → Themes → Style → Editorial**. The Editorial editor exposes typography, headline scale, warmth, accent intensity, spacing, corners, ornaments and motion. These values are stored under `appearance.editorial`. A global style is distinct from the panel family: Waffle keeps its layouts and uses its `Looks` palette to present Editorial.
+Select **Settings → Themes → Style → Editorial**. The Editorial editor exposes paper mode, wallpaper-derived or custom pigment, tint depth, an optional second paper layer, typography, headline scale/weight/tracking, warmth, accent intensity, spacing, corners, ornaments and motion. These values are stored under `appearance.editorial`. A global style is distinct from the panel family: Waffle keeps its layouts and uses its `Looks` palette to present Editorial.
 
 ## Color and hierarchy
 
@@ -25,6 +25,14 @@ An inverse card reverses the background/text pair. In dark mode it becomes the p
 Shared Material controls already consume `Appearance.colors`, whose layer, primary and secondary roles resolve to Editorial. Use their normal color API. Error, warning and application artwork retain their meaning. Waffle components consume `Looks.colors` and `Looks.radius`; do not replace their layout tree with Material controls.
 
 Accent intensity controls both the colored ink used for highlights and the primary/secondary/tertiary tonal fields. Zero gives neutral paper and ink while retaining tonal separation for selection; higher values bring more of the selected theme palette into controls and cards. Each field keeps its matching readable foreground. Poster uses a balanced accent, Studio a quieter one, and Reading a restrained middle ground. The editor previews all three tonal roles.
+
+## Paper layers and tint
+
+**Paper & color** offers neutral, primary, secondary, tertiary and custom pigments. Paper tint colors both the panel and inverse focal cards while retaining readable text. Primary/secondary/tertiary follow the active theme palette; a custom pigment stays fixed. This does not change the light/dark mode of other global styles or applications.
+
+**Second paper layer** adds a restrained tinted backing inside the surface bounds. Its 2–6 px depth does not expand the layout or input area. It appears on dock shelves, bar groups/islands, sidebars and opted-in focal cards, not every button. Studio enables the backing and primary paper tint; Reset Editorial returns to single-sheet, theme-following neutral paper.
+
+Editorial retains the dock and bar layouts but uses solid paper in place of their glass washes and sheen. App artwork, meaningful circular indicators and macOS magnification retain their behavior.
 
 ## Typography and geometry
 

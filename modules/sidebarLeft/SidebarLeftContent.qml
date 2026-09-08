@@ -292,7 +292,8 @@ Item {
             : angelEverywhere ? Appearance.angel.colPanelBorder
             : inirEverywhere ? Appearance.inir.colBorder
             : Appearance.colors.colLayer0Border
-        radius: islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
+        radius: Appearance.editorialEverywhere ? Appearance.editorial.radius
+            : islandStyle ? (Config.options?.appearance?.island?.radius ?? 18)
             : zzzEverywhere ? Appearance.zzz.panelRadius
             : regaliaEverywhere ? Appearance.regalia.panelRadius
             : angelEverywhere ? Appearance.angel.roundingNormal
@@ -316,6 +317,14 @@ Item {
             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
         }
 
+
+        EditorialPaperStack {
+            anchors.fill: parent
+            visible: Appearance.editorialEverywhere && Appearance.editorial.paperStack
+                && !sidebarLeftBackground.islandStyle && !sidebarLeftBackground.gameModeMinimal
+            faceColor: sidebarLeftBackground.color
+            radius: sidebarLeftBackground.radius
+        }
 
         RegaliaPlate {
             anchors.fill: parent

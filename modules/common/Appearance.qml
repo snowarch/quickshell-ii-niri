@@ -587,7 +587,15 @@ Singleton {
     }
 
     editorial: QtObject {
-        readonly property bool dark: root.m3colors.darkmode
+        readonly property string paperMode: Config.options?.appearance?.editorial?.paperMode ?? "theme"
+        readonly property bool dark: paperMode === "dark" || (paperMode !== "light" && root.m3colors.darkmode)
+        readonly property string paperTone: Config.options?.appearance?.editorial?.paperTone ?? "neutral"
+        readonly property real paperTint: Math.max(0, Math.min(1, Number(Config.options?.appearance?.editorial?.paperTint ?? 0.35)))
+        readonly property color paperColor: Config.options?.appearance?.editorial?.paperColor ?? "#b8c4b0"
+        readonly property color tintSource: paperTone === "primary" ? root.m3colors.m3primary
+            : paperTone === "secondary" ? root.m3colors.m3secondary
+            : paperTone === "tertiary" ? root.m3colors.m3tertiary : paperColor
+        readonly property real tintAmount: paperTone === "neutral" ? 0 : paperTint
         readonly property real titleScale: Math.max(0.8, Math.min(1.3, Number(Config.options?.appearance?.editorial?.titleScale ?? 1.0)))
         readonly property real warmth: Math.max(0, Math.min(1, Number(Config.options?.appearance?.editorial?.warmth ?? 0.55)))
         readonly property real accentStrength: Math.max(0, Math.min(1, Number(Config.options?.appearance?.editorial?.accentStrength ?? 0.55)))
@@ -598,8 +606,12 @@ Singleton {
         readonly property color paperBase: ColorUtils.mix(dark ? "#191918" : "#f5f2eb", root.m3colors.m3background, 0.82)
         // ColorUtils weights its first argument. At warmth 0 this is exactly
         // paperBase; the warm tint is introduced only at the high end.
-        readonly property color paper: ColorUtils.mix(dark ? "#2a2722" : "#f5eee2", paperBase, warmth * 0.28)
-        readonly property color ink: ColorUtils.ensureReadable(root.m3colors.m3onSurface, paper, 7)
+        readonly property color paper: ColorUtils.mix(
+            ColorUtils.mix(dark ? "#2a2722" : "#f5eee2", paperBase, warmth * 0.28),
+            tintSource, 1 - tintAmount * (dark ? 0.18 : 0.38))
+        readonly property color inkBase: paperMode === "theme" ? root.m3colors.m3onSurface : dark ? "#eeeae3" : "#242321"
+        readonly property color ink: ColorUtils.ensureReadable(
+            ColorUtils.mix(inkBase, tintSource, 1 - tintAmount * (dark ? 0.38 : 0.18)), paper, 7)
         readonly property color paperOnInk: ColorUtils.ensureReadable(paper, ink, 7)
         readonly property color muted: ColorUtils.ensureReadable(root.m3colors.m3onSurfaceVariant, paper, 4.5)
         readonly property color accent: ColorUtils.ensureReadable(ColorUtils.mix(ink, root.m3colors.m3primary, 1 - accentStrength * 0.85), paper, 4.5)
@@ -612,6 +624,10 @@ Singleton {
         readonly property color secondaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.secondaryField, 7)
         readonly property color tertiaryField: ColorUtils.mix(layer(2), root.m3colors.m3tertiary, 1 - accentStrength * 0.18)
         readonly property color tertiaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.tertiaryField, 7)
+        readonly property color rail: ColorUtils.mix(layer(1), field, 0.72)
+        readonly property bool paperStack: Config.options?.appearance?.editorial?.paperStack ?? false
+        readonly property real paperDepth: Math.max(2, Math.min(6, Number(Config.options?.appearance?.editorial?.paperDepth ?? 3)))
+        readonly property color paperBacking: ColorUtils.mix(rail, accent, 0.68)
         readonly property int inset: Math.round(20 * spacing)
         readonly property int radius: Math.max(4, Math.round(10 * radiusScale))
         // Poster is deliberately sans; reading/quote composition keeps an
@@ -625,8 +641,8 @@ Singleton {
             }
             return "serif"
         }
-        readonly property int titleWeight: typography === "reading" ? Font.DemiBold : 650
-        readonly property real titleTracking: typography === "reading" ? 0 : -0.6
+        readonly property int titleWeight: Math.max(400, Math.min(900, Number(Config.options?.appearance?.editorial?.titleWeight ?? 650)))
+        readonly property real titleTracking: Math.max(-1.5, Math.min(1.5, Number(Config.options?.appearance?.editorial?.titleTracking ?? -0.6)))
         readonly property string displayFamily: typography === "reading"
             ? serifFamily : (Config.options?.appearance?.typography?.mainFont ?? "Roboto Flex")
         function layer(level: int): color {

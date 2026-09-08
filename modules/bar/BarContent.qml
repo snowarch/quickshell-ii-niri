@@ -843,6 +843,9 @@ Item { // Bar content region
             if (customRounding >= 0) {
                 return customRounding
             }
+            if (Appearance.editorialEverywhere) {
+                return root.isFrame || floatingStyle ? Appearance.editorial.radius : 0
+            }
             if (root.isFrame) {
                 return root.angelEverywhere ? Appearance.angel.roundingNormal
                     : root.inirEverywhere ? Appearance.inir.roundingNormal

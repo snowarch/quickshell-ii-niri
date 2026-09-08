@@ -92,6 +92,7 @@ OptionalMaterialSymbol 1.0 OptionalMaterialSymbol.qml
 PagePlaceholder 1.0 PagePlaceholder.qml
 PanelSurface 1.0 PanelSurface.qml
 EditorialRule 1.0 EditorialRule.qml
+EditorialPaperStack 1.0 EditorialPaperStack.qml
 PointingHandInteraction 1.0 PointingHandInteraction.qml
 PointingHandLinkHover 1.0 PointingHandLinkHover.qml
 PopupToolTip 1.0 PopupToolTip.qml

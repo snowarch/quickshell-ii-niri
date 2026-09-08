@@ -237,6 +237,14 @@ Item {
         index: root.frameIndex
     }
 
+    EditorialPaperStack {
+        anchors.fill: parent
+        visible: root._editorial && Appearance.editorial.paperStack && !root.borderless
+            && (root.editorialFocus || (root.outlined && root.elevation <= 1))
+        faceColor: root._fill
+        radius: root._radius
+    }
+
     // Contenido encima de la cara.
     Item {
         id: contentHolder

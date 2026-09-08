@@ -804,6 +804,14 @@ Singleton {
                 // Editorial is an independent composition layer. It is kept
                 // separate from the desktop Editorial widget's instance data.
                 property JsonObject editorial: JsonObject {
+                    property bool paperStack: false
+                    property real paperDepth: 3
+                    property string paperMode: "theme"
+                    property string paperTone: "neutral"
+                    property real paperTint: 0.35
+                    property string paperColor: "#b8c4b0"
+                    property int titleWeight: 650
+                    property real titleTracking: -0.6
                     property string typography: "poster" // "poster" sans titles | "reading" Source Serif 4
                     property real titleScale: 1.0
                     property real warmth: 0.55

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Dialogs
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
@@ -13,6 +14,9 @@ ColumnLayout {
     spacing: Math.round(14 * Appearance.editorial.spacing)
 
     readonly property var _defaults: ({
+        paperStack: false, paperDepth: 3,
+        paperMode: "theme", paperTone: "neutral", paperTint: 0.35, paperColor: "#b8c4b0",
+        titleWeight: 650, titleTracking: -0.6,
         typography: "poster", titleScale: 1.0, warmth: 0.55, accentStrength: 0.55,
         spacing: 1.0, radiusScale: 1.0, ornaments: true, motionScale: 1.0
     })
@@ -24,7 +28,8 @@ ColumnLayout {
             }) },
         { key: "studio", label: Translation.tr("Studio"), icon: "tune",
             description: Translation.tr("Compact and quiet"), values: ({
-                typography: "poster", titleScale: 0.9, warmth: 0.35, accentStrength: 0.25,
+                paperStack: true, paperTone: "primary", paperTint: 0.35,
+                typography: "poster", titleScale: 0.9, warmth: 0.35, accentStrength: 0.4,
                 spacing: 0.86, radiusScale: 0.8, ornaments: false, motionScale: 0.8
             }) },
         { key: "reading", label: Translation.tr("Reading"), icon: "auto_stories",
@@ -52,7 +57,15 @@ ColumnLayout {
         }
         for (const preset of root._presets) {
             const values = preset.values
-            if (values.typography === current.typography
+            if (Boolean(root.value("paperStack", false)) === (values.paperStack ?? false)
+                    && Number(root.value("paperDepth", 3)) === (values.paperDepth ?? 3)
+                    && root.value("paperMode", "theme") === (values.paperMode ?? "theme")
+                    && root.value("paperTone", "neutral") === (values.paperTone ?? "neutral")
+                    && Math.abs(Number(root.value("paperTint", 0.35)) - (values.paperTint ?? 0.35)) < 0.001
+                    && root.value("paperColor", "#b8c4b0") === (values.paperColor ?? "#b8c4b0")
+                    && Number(root.value("titleWeight", 650)) === (values.titleWeight ?? (preset.key === "reading" ? 600 : 650))
+                    && Math.abs(Number(root.value("titleTracking", -0.6)) - (values.titleTracking ?? (preset.key === "reading" ? 0 : -0.6))) < 0.001
+                    && values.typography === current.typography
                     && Math.abs(values.titleScale - current.titleScale) < 0.001
                     && Math.abs(values.warmth - current.warmth) < 0.001
                     && Math.abs(values.accentStrength - current.accentStrength) < 0.001
@@ -67,6 +80,14 @@ ColumnLayout {
 
     function applyValues(values): void {
         Config.setNestedValues({
+            "appearance.editorial.paperStack": values.paperStack ?? false,
+            "appearance.editorial.paperDepth": values.paperDepth ?? 3,
+            "appearance.editorial.paperMode": values.paperMode ?? "theme",
+            "appearance.editorial.paperTone": values.paperTone ?? "neutral",
+            "appearance.editorial.paperTint": values.paperTint ?? 0.35,
+            "appearance.editorial.paperColor": values.paperColor ?? "#b8c4b0",
+            "appearance.editorial.titleWeight": values.titleWeight ?? (values.typography === "reading" ? 600 : 650),
+            "appearance.editorial.titleTracking": values.titleTracking ?? (values.typography === "reading" ? 0 : -0.6),
             "appearance.editorial.typography": values.typography,
             "appearance.editorial.titleScale": values.titleScale,
             "appearance.editorial.warmth": values.warmth,
@@ -102,7 +123,7 @@ ColumnLayout {
                 color: Appearance.editorial.ink
             }
             StyledText {
-                text: sliderRoot.value.toFixed(2) + sliderRoot.suffix
+                text: sliderRoot.value.toFixed(sliderRoot.stepSize >= 1 ? 0 : 2) + sliderRoot.suffix
                 font.family: Appearance.font.family.monospace
                 font.pixelSize: Appearance.font.pixelSize.small
                 color: Appearance.editorial.accent
@@ -167,7 +188,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 text: Translation.tr("Make room for wonder.")
                 font.family: Appearance.font.family.title
-                font.pixelSize: Math.max(34, 36 * Appearance.editorial.titleScale) * Appearance.fontSizeScale
+                font.pixelSize: 32 * Appearance.editorial.titleScale * Appearance.fontSizeScale
+                font.letterSpacing: Appearance.editorial.titleTracking
                 font.weight: Appearance.editorial.titleWeight
                 font.italic: Appearance.editorial.typography === "reading"
                 wrapMode: Text.WordWrap
@@ -257,6 +279,109 @@ ColumnLayout {
             value: Number(root.value("titleScale", 1.0))
             configPath: "appearance.editorial.titleScale"
         }
+        SliderRow {
+            label: Translation.tr("Headline weight")
+            from: 400; to: 900; stepSize: 50
+            value: Appearance.editorial.titleWeight
+            configPath: "appearance.editorial.titleWeight"
+        }
+        SliderRow {
+            label: Translation.tr("Headline tracking")
+            from: -1.5; to: 1.5; stepSize: 0.1; suffix: " px"
+            value: Appearance.editorial.titleTracking
+            configPath: "appearance.editorial.titleTracking"
+        }
+    }
+
+    ContentSubsection { title: Translation.tr("Paper & color")
+        ConfigSwitch {
+            buttonIcon: "layers"
+            text: Translation.tr("Second paper layer")
+            description: Translation.tr("A tinted sheet beneath dock, bar islands and focal cards. Small controls remain flat.")
+            checked: Appearance.editorial.paperStack
+            onToggledByUser: checked => Config.setNestedValue("appearance.editorial.paperStack", checked)
+        }
+        SliderRow {
+            visible: Appearance.editorial.paperStack
+            label: Translation.tr("Paper layer depth")
+            description: Translation.tr("Inset offset, kept inside the surface without changing its layout or hit area.")
+            from: 2; to: 6; stepSize: 1; suffix: " px"
+            value: Appearance.editorial.paperDepth
+            configPath: "appearance.editorial.paperDepth"
+        }
+        ConfigSelectionArray {
+            currentValue: Appearance.editorial.paperMode
+            options: [
+                { displayName: Translation.tr("Follow theme"), value: "theme" },
+                { displayName: Translation.tr("Light paper"), value: "light" },
+                { displayName: Translation.tr("Charcoal"), value: "dark" }
+            ]
+            onSelected: value => Config.setNestedValue("appearance.editorial.paperMode", value)
+        }
+        ConfigSelectionArray {
+            currentValue: Appearance.editorial.paperTone
+            options: [
+                { displayName: Translation.tr("Neutral"), value: "neutral" },
+                { displayName: Translation.tr("Primary"), value: "primary" },
+                { displayName: Translation.tr("Secondary"), value: "secondary" },
+                { displayName: Translation.tr("Tertiary"), value: "tertiary" },
+                { displayName: Translation.tr("Custom"), value: "custom" }
+            ]
+            onSelected: value => Config.setNestedValue("appearance.editorial.paperTone", value)
+        }
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Tint paper and inverse cards with the wallpaper palette or your own pigment. Text contrast is preserved; other global styles are unchanged.")
+            wrapMode: Text.WordWrap
+            font.pixelSize: Appearance.font.pixelSize.smallest
+            color: Appearance.editorial.muted
+        }
+        RippleButton {
+            visible: Appearance.editorial.paperTone === "custom"
+            Layout.fillWidth: true
+            implicitHeight: 40
+            buttonRadius: Appearance.rounding.small
+            colBackground: Appearance.editorial.layer(2)
+            onClicked: paperColorDialog.open()
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.margins: 10
+                Rectangle {
+                    implicitWidth: 18; implicitHeight: 18
+                    radius: 4
+                    color: Appearance.editorial.paperColor
+                    border.width: 1
+                    border.color: Appearance.editorial.edge
+                }
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Translation.tr("Paper pigment")
+                    font.pixelSize: Appearance.font.pixelSize.small
+                }
+                StyledText {
+                    text: Appearance.editorial.paperColor.toString().toUpperCase()
+                    font.family: Appearance.font.family.monospace
+                    font.pixelSize: Appearance.font.pixelSize.smallest
+                }
+            }
+        }
+        SliderRow {
+            visible: Appearance.editorial.paperTone !== "neutral"
+            label: Translation.tr("Paper tint")
+            description: Translation.tr("Color depth of paper and the pale focal cards.")
+            value: Appearance.editorial.paperTint
+            configPath: "appearance.editorial.paperTint"
+        }
+    }
+
+    ColorDialog {
+        id: paperColorDialog
+        selectedColor: Appearance.editorial.paperColor
+        onAccepted: Config.setNestedValue("appearance.editorial.paperColor", selectedColor.toString())
+    }
+    SettingsNativeDialogGuard {
+        dialog: paperColorDialog
+        dialogKey: "editorial-paper-pigment"
     }
 
     ContentSubsection { title: Translation.tr("Material & composition")

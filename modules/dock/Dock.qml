@@ -292,7 +292,7 @@ Scope {
                                 screen: dockRoot.screen
                                 // Docked panels round a touch harder than the bar;
                                 // still follows the shared island skin knob.
-                                radius: (Config.options?.appearance?.island?.radius ?? 18) + 4
+                                radius: Appearance.editorialEverywhere ? Appearance.editorial.radius : (Config.options?.appearance?.island?.radius ?? 18) + 4
                             }
 
                                 Rectangle {
@@ -338,7 +338,8 @@ Scope {
                                 // islands bar).
                                 visible: (Config.options?.dock?.showBackground ?? true) && !gameModeMinimal && ((root.zzzEverywhere && !root.isIslandStyle) || (!root.isPillStyle && !root.isMacosStyle && !root.isIslandStyle))
                                 // ZZZ: the visible shelf is the chamfered ZzzPlate below.
-                                color: root.isM3Style ? Appearance.colors.colLayer0
+                                color: Appearance.editorialEverywhere ? Appearance.editorial.rail
+                                    : root.isM3Style ? Appearance.colors.colLayer0
                                     : root.zzzEverywhere || regaliaEverywhere ? "transparent"
                                     : auroraEverywhere ? ColorUtils.applyAlpha(
                                         (blendedColors?.colLayer0 ?? Appearance.colors.colLayer0),
@@ -353,13 +354,19 @@ Scope {
                                     : angelEverywhere ? Appearance.angel.colPanelBorder
                                     : inirEverywhere ? Appearance.inir.colBorder
                                     : Appearance.colors.colLayer0Border
-                                radius: root.isM3Style ? Appearance.rounding.normal + 6
+                                radius: Appearance.editorialEverywhere ? Appearance.editorial.radius
+                                    : root.isM3Style ? Appearance.rounding.normal + 6
                                     : root.zzzEverywhere ? Appearance.zzz.panelRadius
                                     : regaliaEverywhere && root.isPanelStyle ? Appearance.regalia.roundLarge
                                     : regaliaEverywhere ? Appearance.regalia.panelRadius
                                     : angelEverywhere ? Appearance.angel.roundingNormal
                                     : inirEverywhere ? Appearance.inir.roundingNormal
                                     : cardStyle ? Appearance.rounding.normal : Appearance.rounding.large
+                                EditorialPaperStack {
+                                    anchors.fill: parent
+                                    faceColor: Appearance.editorial.rail
+                                    radius: dockVisualBackground.radius
+                                }
                                 // Radius is a direct style binding. Adding a Behavior here
                                 // installs a second interceptor when the dock Rectangle is
                                 // rebuilt after an edge move, which Qt rejects at runtime.

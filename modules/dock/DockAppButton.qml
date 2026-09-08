@@ -139,7 +139,7 @@ DockButton {
     // Subtle highlight for active app (disabled in macOS and pill modes —
     // macOS uses magnify, pill uses its own background highlight)
     scale: (!macosStyle && !pillStyle && appIsActive)
-        ? (root.regaliaStyle ? 1.0 : root.zzzStyle ? 1.02 : 1.05) : 1.0
+        ? (Appearance.editorialEverywhere || root.regaliaStyle ? 1.0 : root.zzzStyle ? 1.02 : 1.05) : 1.0
     Behavior on scale {
         enabled: Appearance.animationsEnabled
         animation: NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
@@ -207,14 +207,17 @@ DockButton {
     // Suppress ripple/hover bg in macOS mode so no colored rect appears under icon
     // Island mode hovers like a Ricelin row: a faint cream frame fill with a
     // vermilion-tinted press, instead of the global style's hover chain.
-    colBackgroundHover: macosStyle ? "transparent" : root.islandStyle ? PillTheme.frameBg
+    colBackground: Appearance.editorialEverywhere && appIsActive ? Appearance.editorial.field : "transparent"
+    colBackgroundHover: Appearance.editorialEverywhere ? Appearance.editorial.field
+        : macosStyle ? "transparent" : root.islandStyle ? PillTheme.frameBg
         : (root.regaliaStyle ? Appearance.regalia.hoverPlate
         : root.zzzStyle ? "transparent"
         : root.angelStyle ? Appearance.angel.colGlassCard
         : root.inirStyle ? Appearance.inir.colLayer1Hover
         : root.auroraStyle ? Appearance.aurora.colSubSurface
         : Appearance.colors.colLayer0Hover)
-    colRipple: macosStyle ? "transparent" : root.islandStyle ? Qt.alpha(PillTheme.vermLit, 0.18)
+    colRipple: Appearance.editorialEverywhere ? Appearance.colors.colPrimaryContainerActive
+        : macosStyle ? "transparent" : root.islandStyle ? Qt.alpha(PillTheme.vermLit, 0.18)
         : (root.regaliaStyle ? Appearance.regalia.pressPlate
         : root.zzzStyle ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.22)
         : root.angelStyle ? Appearance.angel.colGlassCardActive

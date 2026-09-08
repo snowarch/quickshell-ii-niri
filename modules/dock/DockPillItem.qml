@@ -38,6 +38,7 @@ Item {
     // Background only visible when app is active/focused - translucent and aesthetic
     readonly property color _pillBg: {
         if (!appIsActive) return "transparent"
+        if (Appearance.editorialEverywhere) return Appearance.editorial.field
         if (root.zzzStyle) return Appearance.zzz.bg2
         if (root.angelStyle) return ColorUtils.transparentize(Appearance.angel.colGlassCard, 0.35)
         if (root.inirStyle) return ColorUtils.transparentize(Appearance.inir.colLayer2, 0.45)
@@ -55,7 +56,7 @@ Item {
         return ColorUtils.transparentize(Appearance.colors.colPrimary, 0.65)
     }
 
-    readonly property real _pillBorderWidth: appIsActive ? 1 : 0
+    readonly property real _pillBorderWidth: appIsActive && !Appearance.editorialEverywhere ? 1 : 0
 
     // Smart window-count indicators — same visual language as panel mode (flat pill dots).
     // Shows one dot per open window (up to maxDots). The focused window's dot is wider
@@ -152,6 +153,7 @@ Item {
     // Background rectangle - only visible on active apps
     Rectangle {
         id: pillRect
+        z: Appearance.editorialEverywhere ? -1 : 0
         anchors.fill: parent
         radius: parent.pillRadius
         color: root._pillBg

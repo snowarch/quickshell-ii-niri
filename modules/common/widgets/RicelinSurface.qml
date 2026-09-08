@@ -13,7 +13,7 @@ Item {
     property bool shadow: Config.options?.appearance?.island?.shadow ?? true
     property real shadowOffset: 3
     property int shadowRadius: 16
-    property real radius: Config.options?.appearance?.island?.radius ?? 18
+    property real radius: Appearance.editorialEverywhere ? Appearance.editorial.radius : (Config.options?.appearance?.island?.radius ?? 18)
     property real topLeftRadiusOverride: -1
     property real topRightRadiusOverride: -1
     property real bottomLeftRadiusOverride: -1
@@ -26,7 +26,7 @@ Item {
     property real glassScreenWidth: -1
     property real glassScreenHeight: -1
 
-    readonly property real fillOpacity: Config.options?.appearance?.island?.opacity ?? 1
+    readonly property real fillOpacity: Appearance.editorialEverywhere ? 1 : (Config.options?.appearance?.island?.opacity ?? 1)
     readonly property real topLeftRadius: topLeftRadiusOverride >= 0 ? topLeftRadiusOverride : radius
     readonly property real topRightRadius: topRightRadiusOverride >= 0 ? topRightRadiusOverride : radius
     readonly property real bottomLeftRadius: bottomLeftRadiusOverride >= 0 ? bottomLeftRadiusOverride : radius
@@ -74,7 +74,7 @@ Item {
     readonly property string wallpaperUrl: WallpaperListener.wallpaperUrlForScreen(root._screen)
     readonly property string glassBackend: Appearance.blurBackendFor("islands", Appearance.blurTopology.roundedRectangle)
     readonly property bool glassActive: root.visible
-        && root.glassEnabled
+        && root.glassEnabled && !Appearance.editorialEverywhere
         && Appearance.effectsEnabled
         && (Config.options?.appearance?.island?.glass ?? true)
         && root.fillOpacity < 0.999
@@ -134,8 +134,8 @@ Item {
         bottomRightRadius: root.bottomRightRadius
         border.width: 0
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.alpha(Appearance.colors.colLayer3, root.fillOpacity) }
-            GradientStop { position: 1.0; color: Qt.alpha(Appearance.colors.colLayer1, root.fillOpacity) }
+            GradientStop { position: 0.0; color: Appearance.editorialEverywhere ? Appearance.editorial.rail : Qt.alpha(Appearance.colors.colLayer3, root.fillOpacity) }
+            GradientStop { position: 1.0; color: Appearance.editorialEverywhere ? Appearance.editorial.rail : Qt.alpha(Appearance.colors.colLayer1, root.fillOpacity) }
         }
 
         Rectangle {
@@ -146,9 +146,19 @@ Item {
             anchors.leftMargin: root.radius * 0.6
             anchors.rightMargin: root.radius * 0.6
             height: 1
-            visible: Config.options?.appearance?.island?.sheen ?? true
+            visible: !Appearance.editorialEverywhere && (Config.options?.appearance?.island?.sheen ?? true)
             color: Qt.alpha(Appearance.colors.colOnLayer0, 0.07)
         }
+    }
+
+    EditorialPaperStack {
+        anchors.fill: parent
+        faceColor: Appearance.editorial.rail
+        radius: root.radius
+        topLeftRadius: root.topLeftRadius
+        topRightRadius: root.topRightRadius
+        bottomLeftRadius: root.bottomLeftRadius
+        bottomRightRadius: root.bottomRightRadius
     }
 
     GE.DropShadow {

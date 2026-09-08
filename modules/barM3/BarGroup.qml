@@ -22,7 +22,7 @@ Item {
         background.bottomRightRadius, background.bottomLeftRadius
     ]
 
-    readonly property real fullRadius: height / 2
+    readonly property real fullRadius: Appearance.editorialEverywhere ? Appearance.editorial.radius : height / 2
     readonly property real midRadius: Config.options.bar.m3.cornerStyle === 2 ? Appearance.rounding.unsharpenmore + 2 : Appearance.rounding.unsharpenmore
     property real startRadius: {
         if (totalCount <= 1) return fullRadius;
@@ -75,6 +75,16 @@ Item {
         bottomLeftRadius: (root.isMaterial && root.paintMaterialPill) ? root.fullRadius : (Config.options?.bar.m3.borderless === "separated" ? root.fullRadius : root.vertical ? root.endRadius : root.startRadius)
         topRightRadius: (root.isMaterial && root.paintMaterialPill) ? root.fullRadius : (Config.options?.bar.m3.borderless === "separated" ? root.fullRadius : root.vertical ? root.startRadius : root.endRadius)
         bottomRightRadius: (root.isMaterial && root.paintMaterialPill) ? root.fullRadius : (Config.options?.bar.m3.borderless === "separated" ? root.fullRadius : root.endRadius)
+
+        EditorialPaperStack {
+            anchors.fill: parent
+            visible: Appearance.editorialEverywhere && Appearance.editorial.paperStack && background.color.a > 0
+            faceColor: background.color
+            topLeftRadius: background.topLeftRadius
+            topRightRadius: background.topRightRadius
+            bottomLeftRadius: background.bottomLeftRadius
+            bottomRightRadius: background.bottomRightRadius
+        }
 
         Behavior on color {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)

@@ -92,6 +92,13 @@ Rectangle {
         NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
     }
 
+    EditorialPaperStack {
+        anchors.fill: parent
+        visible: root._inkActive && Appearance.editorial.paperStack
+        faceColor: Appearance.editorial.ink
+        radius: root.radius
+    }
+
     AngelPartialBorder { targetRadius: root.radius; coverage: 0.45 }
 
     // Glassy top-edge highlight: a faint light sheen down the upper third reads

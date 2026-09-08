@@ -29,14 +29,15 @@ Rectangle {
     readonly property bool gameModeMinimal:  Appearance.gameModeMinimal
 
     // ─── Shape ───────────────────────────────────────────────────────
-    radius: zzzEverywhere   ? Appearance.zzz.panelRadius
+    radius: Appearance.editorialEverywhere ? Appearance.editorial.radius
+          : zzzEverywhere   ? Appearance.zzz.panelRadius
           : angelEverywhere ? Appearance.angel.roundingNormal
           : inirEverywhere  ? Appearance.inir.roundingNormal
           :                   Appearance.rounding.large
     Behavior on radius { enabled: Appearance.animationsEnabled; NumberAnimation { duration: Appearance.animation.elementResize.duration; easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve } }
 
     // ─── Fill: genuinely translucent for macOS look ──────────────────
-    color: zzzEverywhere
+    color: Appearance.editorialEverywhere ? Appearance.editorial.rail : zzzEverywhere
         ? Appearance.zzz.bg0
         : auroraEverywhere
         ? ColorUtils.transparentize(blendedLayer0, 0.18)
@@ -55,7 +56,7 @@ Rectangle {
         enabled: Appearance.animationsEnabled
         NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
     }
-    border.color: zzzEverywhere
+    border.color: Appearance.editorialEverywhere ? Appearance.editorial.rule : zzzEverywhere
         ? Appearance.zzz.borderColor
         : angelEverywhere
         ? Appearance.angel.colPanelBorder
@@ -88,8 +89,8 @@ Rectangle {
     // ─── Blurred wallpaper ────────────────────────────────────────────
     Image {
         id: macBlurWall
-        visible: root.visible && !root.gameModeMinimal
-        source: root.visible && !root.nativeBlurActive ? root.wallpaperUrl : ""
+        visible: root.visible && !root.gameModeMinimal && !Appearance.editorialEverywhere
+        source: visible && !root.nativeBlurActive ? root.wallpaperUrl : ""
         fillMode: Image.PreserveAspectCrop
         cache: true
         sourceSize.width: macBlurWall.scrW
@@ -133,6 +134,12 @@ Rectangle {
                       root.blendedLayer0,
                       (Appearance.aurora.overlayTransparentize ?? 0.5) * 0.65)
         }
+    }
+
+    EditorialPaperStack {
+        anchors.fill: parent
+        faceColor: Appearance.editorial.rail
+        radius: root.radius
     }
 
     // ─── Angel partial border highlight ──────────────────────────────
