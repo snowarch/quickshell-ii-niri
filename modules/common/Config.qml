@@ -1181,6 +1181,7 @@ Singleton {
                 property bool autoDetect: true
                 property bool disableAnimations: true
                 property bool disableEffects: true
+                property bool disableVisualizers: true
                 property bool disableNiriAnimations: true
                 property bool disableReloadToasts: true
                 property bool disableDiscoverOverlay: true

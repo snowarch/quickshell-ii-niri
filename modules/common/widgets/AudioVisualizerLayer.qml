@@ -23,6 +23,9 @@ Item {
     property string frequencyProfile: "flat"
     property real accentStrength: 0.7
     property real fillRatio: 0.9
+    readonly property bool effectiveActive: root.active
+        && !GameMode.visualizersSuppressed
+        && !Appearance.gameModeMinimal
 
     property int barCount: 32
     // Compatibility with CavaSpectrum callers that size bars by pixel density.
@@ -100,7 +103,7 @@ Item {
 
         OrganicAudioBlob {
             anchors.fill: parent
-            active: root.active && edgeField.visible
+            active: root.effectiveActive && edgeField.visible
             points: root.organicPoints
             normalizationCeiling: root.normalizationCeiling
             primaryColor: root.spectrumColors?.length > 0
@@ -154,7 +157,7 @@ Item {
         startTaper: root.startTaper
         endTaper: root.endTaper
         clipSegments: root.clipSegments
-        active: root.active && root.visualizerType !== "organic"
+        active: root.effectiveActive && root.visualizerType !== "organic"
         threadedRendering: root.threadedRendering
         visualizerType: root.visualizerType
         normalizationCeiling: root.normalizationCeiling
@@ -187,7 +190,7 @@ Item {
         id: organic
         anchors.fill: parent
         visible: root.visualizerType === "organic" && !root.organicEdgeAura
-        active: root.active && visible
+        active: root.effectiveActive && visible
         points: root.organicPoints
         // Bar hosts constrain the halo to their surface; standalone Organic
         // widgets retain their intentional overscan.

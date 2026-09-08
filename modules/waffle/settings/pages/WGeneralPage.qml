@@ -422,7 +422,15 @@ WSettingsPage {
             checked: Config.options?.gameMode?.disableEffects ?? true
             onCheckedChanged: Config.setNestedValue("gameMode.disableEffects", checked)
         }
-        
+
+        WSettingsSwitch {
+            label: Translation.tr("Disable audio visualizers")
+            icon: "music-note-2"
+            description: Translation.tr("Stop Cava and hide audio visualizers while game mode is active")
+            checked: Config.options?.gameMode?.disableVisualizers ?? true
+            onCheckedChanged: Config.setNestedValue("gameMode.disableVisualizers", checked)
+        }
+
         WSettingsSwitch {
             label: Translation.tr("Disable Niri animations")
             icon: "pulse"

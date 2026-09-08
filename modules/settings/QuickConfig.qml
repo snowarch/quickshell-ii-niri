@@ -1870,6 +1870,18 @@ ContentPage {
             }
 
             SettingsSwitch {
+                buttonIcon: "graphic_eq"
+                text: Translation.tr("Disable audio visualizers")
+                checked: Config.options?.gameMode?.disableVisualizers ?? true
+                onCheckedChanged: {
+                    Config.setNestedValue("gameMode.disableVisualizers", checked)
+                }
+                StyledToolTip {
+                    text: Translation.tr("Stop Cava and hide audio visualizers while Game Mode is active")
+                }
+            }
+
+            SettingsSwitch {
                 buttonIcon: "desktop_windows"
                 text: Translation.tr("Disable Niri animations")
                 checked: Config.options?.gameMode?.disableNiriAnimations ?? true

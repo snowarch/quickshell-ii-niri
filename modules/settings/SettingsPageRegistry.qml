@@ -1492,8 +1492,8 @@ Singleton {
             pageIndex: 0, pageName: root.pages[0].name,
             section: Translation.tr("Game Mode"),
             label: Translation.tr("GameMode"),
-            description: Translation.tr("Auto-detect fullscreen games and reduce effects"),
-            keywords: ["game", "mode", "fullscreen", "performance", "fps", "auto", "detect", "animations", "effects"]
+            description: Translation.tr("Auto-detect fullscreen games and reduce background work"),
+            keywords: ["game", "mode", "fullscreen", "performance", "fps", "auto", "detect", "animations", "effects", "cava", "visualizer", "spectrum"]
         },
         {
             pageIndex: 12, pageName: root.pages[12].name,

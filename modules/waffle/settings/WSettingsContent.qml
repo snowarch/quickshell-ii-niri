@@ -105,6 +105,7 @@ Item {
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Auto-detect fullscreen", targetLabel: "Auto-detect fullscreen", keywords: ["game", "gaming", "fullscreen", "auto", "detect"] },
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable animations", targetLabel: "Disable animations", keywords: ["game", "gaming", "animations", "performance"] },
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable effects", targetLabel: "Disable effects", keywords: ["game", "gaming", "effects", "blur", "shadows", "performance"] },
+        { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable audio visualizers", targetLabel: "Disable audio visualizers", keywords: ["game", "gaming", "cava", "visualizer", "spectrum", "audio", "performance"] },
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable Niri animations", targetLabel: "Disable Niri animations", keywords: ["game", "gaming", "niri", "compositor", "animations"] },
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Disable Discover overlay", targetLabel: "Disable Discover overlay", keywords: ["game", "gaming", "discover", "overlay", "discord", "performance"] },
         { pageIndex: 1, pageName: "General", section: "Game Mode", label: "Minimal mode", targetLabel: "Minimal mode", keywords: ["game", "gaming", "minimal", "lightweight", "performance", "shell"] },

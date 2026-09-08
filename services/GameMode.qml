@@ -74,8 +74,10 @@ Singleton {
     // Config-driven behavior (reactive bindings - re-evaluated when Config changes)
     readonly property bool disableAnimations: Config.options?.gameMode?.disableAnimations ?? true
     readonly property bool disableEffects: Config.options?.gameMode?.disableEffects ?? true
+    readonly property bool disableVisualizers: Config.options?.gameMode?.disableVisualizers ?? true
     readonly property bool disableReloadToasts: Config.options?.gameMode?.disableReloadToasts ?? true
     readonly property bool minimalMode: Config.options?.gameMode?.minimalMode ?? true
+    readonly property bool visualizersSuppressed: active && disableVisualizers
     readonly property int checkInterval: Config.options?.gameMode?.checkInterval ?? 5000
     readonly property bool controlNiriAnimations: Config.options?.gameMode?.disableNiriAnimations ?? true
     

@@ -1085,6 +1085,28 @@ fi
 
 step "release polish guards"
 config_qml="$runtime_root/modules/common/Config.qml"
+game_mode_qml="$runtime_root/services/GameMode.qml"
+cava_wrapper="$runtime_root/modules/common/widgets/CavaProcess.qml"
+visualizer_layer="$runtime_root/modules/common/widgets/AudioVisualizerLayer.qml"
+pill_music_bars="$runtime_root/modules/pill/MusicBars.qml"
+quick_config="$runtime_root/modules/settings/QuickConfig.qml"
+waffle_general="$runtime_root/modules/waffle/settings/pages/WGeneralPage.qml"
+if ! grep -Fq 'property bool disableVisualizers: true' "$config_qml" \
+        || ! grep -Fq 'readonly property bool disableVisualizers:' "$game_mode_qml" \
+        || ! grep -Fq 'readonly property bool visualizersSuppressed: active && disableVisualizers' "$game_mode_qml" \
+        || ! grep -Fq '!GameMode.visualizersSuppressed' "$cava_wrapper" \
+        || ! grep -Fq '!GameMode.visualizersSuppressed' "$visualizer_layer" \
+        || ! grep -Fq 'CavaProcess {' "$pill_music_bars" \
+        || ! grep -Fq 'gameMode.disableVisualizers' "$quick_config" \
+        || ! grep -Fq 'gameMode.disableVisualizers' "$waffle_general"; then
+    printf 'FAIL: Game Mode does not suppress shared Cava/render consumers through Settings policy\n' >&2
+    exit 1
+fi
+if grep -RIl 'CavaService\.subscribe' "$runtime_root/modules" \
+        | grep -Fv '/modules/common/widgets/CavaProcess.qml' >/dev/null; then
+    printf 'FAIL: a visualizer bypasses the Game Mode-aware shared CavaProcess owner\n' >&2
+    exit 1
+fi
 if ! grep -Fq 'property var _pendingMutations: ({})' "$config_qml" \
         || ! grep -Fq 'property bool _rebasingExternalChange: false' "$config_qml" \
         || ! grep -Fq 'root._reapplyPendingMutations();' "$config_qml" \
