@@ -40,6 +40,8 @@ Item {
     // keeps that). Desktop host overrides it with the wallpaper seed for cohesion.
     property color themeSourceColor: playerBase.artDominantColor
     property QtObject blendedColors: AdaptedMaterialScheme { color: root.themeSourceColor }
+    readonly property QtObject effectiveColors: Appearance.editorialEverywhere && Appearance.colors
+        ? Appearance.colors : root.blendedColors
     
     StyledRectangularShadow { 
         target: card
@@ -56,9 +58,9 @@ Item {
         color: Appearance.zzzEverywhere ? Appearance.zzz.paper
              : Appearance.inirEverywhere ? playerBase.inirLayer1
              : Appearance.auroraEverywhere ? ColorUtils.transparentize(
-                 blendedColors?.colLayer0 ?? Appearance.colors.colLayer0, 0.7
+                 effectiveColors?.colLayer0 ?? Appearance.colors.colLayer0, 0.7
                )
-             : (blendedColors?.colLayer0 ?? Appearance.colors.colLayer0)
+             : (effectiveColors?.colLayer0 ?? Appearance.colors.colLayer0)
         border.width: root.vizType === "organic" && root.vizPosition !== "none"
             ? 0 : (Appearance.zzzEverywhere ? Appearance.zzz.borderThick
                 : Appearance.inirEverywhere ? 1 : 0)
@@ -78,7 +80,7 @@ Item {
         
         ZzzGraphicPlate {
             anchors.fill: parent
-            accentColor: blendedColors?.colPrimary ?? Appearance.zzz.accent
+            accentColor: effectiveColors?.colPrimary ?? Appearance.zzz.accent
         }
 
         // Visualizer overlay
@@ -110,11 +112,11 @@ Item {
                 placeholderColor: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
                     : Appearance.inirEverywhere
                     ? playerBase.inirLayer2 
-                    : (blendedColors?.colLayer1 ?? Appearance.colors.colLayer1)
+                    : (effectiveColors?.colLayer1 ?? Appearance.colors.colLayer1)
                 iconColor: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
                     : Appearance.inirEverywhere
                     ? playerBase.inirTextSecondary 
-                    : (blendedColors?.colSubtext ?? Appearance.colors.colSubtext)
+                    : (effectiveColors?.colSubtext ?? Appearance.colors.colSubtext)
             }
             
             // Info & controls centered
@@ -134,7 +136,7 @@ Item {
                     color: Appearance.zzzEverywhere ? Appearance.zzz.ink
                         : Appearance.inirEverywhere
                         ? playerBase.inirText 
-                        : (blendedColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
+                        : (effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
                     Behavior on color {
                         enabled: Appearance.animationsEnabled
                         ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
@@ -154,7 +156,7 @@ Item {
                     color: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
                         : Appearance.inirEverywhere
                         ? playerBase.inirTextSecondary 
-                        : (blendedColors?.colSubtext ?? Appearance.colors.colSubtext)
+                        : (effectiveColors?.colSubtext ?? Appearance.colors.colSubtext)
                     Behavior on color {
                         enabled: Appearance.animationsEnabled
                         ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
@@ -183,21 +185,21 @@ Item {
                         : Appearance.auroraEverywhere 
                             ? Appearance.aurora.colSubSurface
                             : ColorUtils.transparentize(
-                                blendedColors?.colLayer1 ?? Appearance.colors.colLayer1, 0.5
+                                effectiveColors?.colLayer1 ?? Appearance.colors.colLayer1, 0.5
                               )
-                    buttonRippleColor: Appearance.zzzEverywhere ? ColorUtils.transparentize(blendedColors?.colPrimary ?? Appearance.zzz.accent, 0.62)
+                    buttonRippleColor: Appearance.zzzEverywhere ? ColorUtils.transparentize(effectiveColors?.colPrimary ?? Appearance.zzz.accent, 0.62)
                         : Appearance.inirEverywhere
                         ? Appearance.inir.colLayer2Active
                         : Appearance.auroraEverywhere 
                             ? Appearance.aurora.colSubSurfaceActive
-                            : (blendedColors?.colLayer1Active ?? Appearance.colors.colLayer1Active)
+                            : (effectiveColors?.colLayer1Active ?? Appearance.colors.colLayer1Active)
                     iconColor: Appearance.zzzEverywhere ? Appearance.zzz.ink
                         : Appearance.inirEverywhere
                         ? playerBase.inirText
                         : Appearance.auroraEverywhere 
                             ? Appearance.colors.colOnLayer0
-                            : (blendedColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
-                    playIconColor: Appearance.zzzEverywhere ? (blendedColors?.colPrimary ?? Appearance.zzz.accent)
+                            : (effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
+                    playIconColor: Appearance.zzzEverywhere ? (effectiveColors?.colPrimary ?? Appearance.zzz.accent)
                         : Appearance.inirEverywhere
                         ? playerBase.inirPrimary
                         : Appearance.auroraEverywhere 
@@ -218,18 +220,18 @@ Item {
                     length: playerBase.effectiveLength
                     canSeek: playerBase.effectiveCanSeek
                     isPlaying: playerBase.effectiveIsPlaying
-                    highlightColor: Appearance.zzzEverywhere ? (blendedColors?.colPrimary ?? Appearance.zzz.accent)
+                    highlightColor: Appearance.zzzEverywhere ? (effectiveColors?.colPrimary ?? Appearance.zzz.accent)
                         : Appearance.inirEverywhere
                         ? playerBase.inirPrimary
                         : Appearance.auroraEverywhere 
                             ? Appearance.colors.colPrimary
-                            : (blendedColors?.colPrimary ?? Appearance.colors.colPrimary)
+                            : (effectiveColors?.colPrimary ?? Appearance.colors.colPrimary)
                     trackColor: Appearance.zzzEverywhere ? Appearance.zzz.metricTrack
                         : Appearance.inirEverywhere
                         ? playerBase.inirLayer2
                         : Appearance.auroraEverywhere 
                             ? Appearance.aurora.colElevatedSurface
-                            : (blendedColors?.colSecondaryContainer ?? Appearance.colors.colSecondaryContainer)
+                            : (effectiveColors?.colSecondaryContainer ?? Appearance.colors.colSecondaryContainer)
                     onSeekRequested: seconds => playerBase.seek(seconds)
                 }
                 
@@ -245,7 +247,7 @@ Item {
                         color: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
                             : Appearance.inirEverywhere
                             ? playerBase.inirText 
-                            : (blendedColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
+                            : (effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
                         Behavior on color {
                             enabled: Appearance.animationsEnabled
                             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
@@ -261,7 +263,7 @@ Item {
                         color: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
                             : Appearance.inirEverywhere
                             ? playerBase.inirText 
-                            : (blendedColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
+                            : (effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
                         Behavior on color {
                             enabled: Appearance.animationsEnabled
                             ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }

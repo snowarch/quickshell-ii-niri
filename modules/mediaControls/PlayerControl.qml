@@ -142,7 +142,9 @@ Item {
         Appearance.colors.colPrimaryContainer, 0.7
     )
 
-    property QtObject blendedColors: AdaptedMaterialScheme { color: root.artDominantColor }
+    property QtObject artColors: AdaptedMaterialScheme { color: root.artDominantColor }
+    readonly property QtObject blendedColors: Appearance.editorialEverywhere && Appearance.colors
+        ? Appearance.colors : root.artColors
 
     // Inir fixed colors
     readonly property color inirText: Appearance.inir.colText
@@ -253,7 +255,7 @@ Item {
             opacity: Appearance.zzzEverywhere ? 0.20
                 : Appearance.inirEverywhere ? 0.15
                 : (Appearance.auroraEverywhere ? 0.2 : 0.5)
-            visible: root.displayedArtFilePath !== ""
+            visible: !Appearance.editorialEverywhere && root.displayedArtFilePath !== ""
             effectEnabled: Appearance.effectsEnabled
             blurEnabled: true
             blur: Appearance.inirEverywhere ? 0.3 : 0.15
@@ -265,7 +267,7 @@ Item {
         // clashes with the flat ZZZ console plate, so exclude it there.
         Rectangle {
             anchors.fill: parent
-            visible: !Appearance.zzzEverywhere && !Appearance.inirEverywhere && !Appearance.auroraEverywhere
+            visible: !Appearance.editorialEverywhere && !Appearance.zzzEverywhere && !Appearance.inirEverywhere && !Appearance.auroraEverywhere
             gradient: Gradient {
                 orientation: Gradient.Horizontal
                 GradientStop { position: 0.0; color: "transparent" }
@@ -352,7 +354,7 @@ Item {
                         visible: EasyEffects.available
                             && (Config.options?.panelFamily ?? "ii") === "ii"
                             && (Config.options?.enabledPanels ?? []).includes("iiEqualizer")
-                        buttonRadius: Appearance.rounding.full
+                        buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                         colBackground: "transparent"
                         colBackgroundHover: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
                             : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover

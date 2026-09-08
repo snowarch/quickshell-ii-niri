@@ -38,7 +38,7 @@ ColumnLayout {
         Layout.fillWidth: true
         text: root.cleanTitle ? StringUtils.cleanMusicTitle(root.title) || "—" : (root.title || "—")
         font.pixelSize: root.titleSize
-        font.weight: Appearance.zzzEverywhere ? Font.Black : root.titleWeight
+        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Appearance.zzzEverywhere ? Font.Black : root.titleWeight
         font.italic: Appearance.zzzEverywhere
         color: root.titleColor
         elide: Text.ElideRight

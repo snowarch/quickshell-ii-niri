@@ -12,24 +12,29 @@ Item {
     id: root
 
     readonly property bool compact: width < 470
+    readonly property bool editorial: Appearance.editorialEverywhere
     readonly property var presetNames: ["Flat", "Bass", "Treble", "Vocal", "Pop", "Rock", "Jazz", "Classic"]
     readonly property color accentColor: Appearance.regaliaEverywhere ? Appearance.regalia.hardwarePrimary
         : Appearance.zzzEverywhere ? Appearance.zzz.accent
+        : editorial ? Appearance.editorial.accent
         : Appearance.angelEverywhere ? Appearance.angel.colPrimary
         : Appearance.inirEverywhere ? Appearance.inir.colPrimary
         : Appearance.colors.colPrimary
     readonly property color textColor: Appearance.regaliaEverywhere ? Appearance.regalia.onColor
         : Appearance.zzzEverywhere ? Appearance.zzz.ink
+        : editorial ? Appearance.editorial.ink
         : Appearance.angelEverywhere ? Appearance.angel.colText
         : Appearance.inirEverywhere ? Appearance.inir.colText
         : Appearance.colors.colOnLayer1
     readonly property color subtextColor: Appearance.regaliaEverywhere ? Appearance.regalia.onMuted
         : Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
+        : editorial ? Appearance.editorial.muted
         : Appearance.angelEverywhere ? Appearance.angel.colTextSecondary
         : Appearance.inirEverywhere ? Appearance.inir.colTextSecondary
         : Appearance.colors.colSubtext
     readonly property color cardInk: Appearance.regaliaEverywhere ? Appearance.regalia.onColor
         : Appearance.zzzEverywhere ? Appearance.zzz.ink
+        : editorial ? Appearance.editorial.ink
         : Appearance.angelEverywhere ? Appearance.angel.colText
         : Appearance.inirEverywhere ? Appearance.inir.colText
         : Appearance.colors.colOnLayer2
@@ -142,9 +147,10 @@ Item {
             Rectangle {
                 implicitWidth: root.compact ? 40 : 46
                 implicitHeight: implicitWidth
-                radius: Appearance.rounding.full
+                radius: root.editorial ? Appearance.rounding.small : Appearance.rounding.full
                 color: Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlate
                     : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+                    : root.editorial ? Appearance.editorial.field
                     : Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurface
                     : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainer
@@ -168,10 +174,13 @@ Item {
                 StyledText {
                     Layout.fillWidth: true
                     text: Services.Translation.tr("Equalizer")
-                    font.family: Appearance.font.family.title
+                    font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.title
                     font.variableAxes: Appearance.font.variableAxes.title
                     font.pixelSize: Appearance.font.pixelSize.larger
-                    font.weight: Appearance.zzzEverywhere ? Font.Black : Font.DemiBold
+                    font.weight: Appearance.zzzEverywhere ? Font.Black
+                        : root.editorial ? Appearance.editorial.titleWeight
+                        : Font.DemiBold
+                    font.letterSpacing: root.editorial ? Appearance.editorial.titleTracking : 0
                     color: root.textColor
                 }
 
@@ -245,10 +254,11 @@ Item {
 
                             StyledText {
                                 text: Services.Translation.tr("10-band equalizer")
-                                font.family: Appearance.font.family.title
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.title
                                 font.variableAxes: Appearance.font.variableAxes.title
                                 font.pixelSize: Appearance.font.pixelSize.small
-                                font.weight: Font.DemiBold
+                                font.weight: root.editorial ? Appearance.editorial.titleWeight : Font.DemiBold
+                                font.letterSpacing: root.editorial ? Appearance.editorial.titleTracking * 0.45 : 0
                                 color: root.cardInk
                             }
 
@@ -263,9 +273,10 @@ Item {
                         Rectangle {
                             Layout.preferredHeight: 26
                             Layout.preferredWidth: rangeLabel.implicitWidth + 18
-                            radius: Appearance.rounding.full
+                            radius: root.editorial ? Appearance.rounding.small : Appearance.rounding.full
                             color: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlate
                                 : Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
+                                : root.editorial ? Appearance.editorial.layer(2)
                                 : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                                 : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                                 : Appearance.inirEverywhere ? Appearance.inir.colLayer2

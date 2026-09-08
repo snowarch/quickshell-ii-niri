@@ -6,6 +6,7 @@ import qs.modules.common.widgets
 
 Item {
     id: root
+    readonly property bool editorial: Appearance.editorialEverywhere
 
     required property int index
     required property var modelData
@@ -22,13 +23,16 @@ Item {
     readonly property real zeroY: trackWell.y + 8 + (1 - root.zeroNormalized) * (trackWell.height - 16)
     readonly property color accentColor: Appearance.regaliaEverywhere ? Appearance.regalia.hardwarePrimary
         : Appearance.zzzEverywhere ? Appearance.zzz.accent
+        : editorial ? Appearance.editorial.accent
         : Appearance.angelEverywhere ? Appearance.angel.colPrimary
         : Appearance.inirEverywhere ? Appearance.inir.colPrimary
         : Appearance.colors.colPrimary
-    readonly property color trackColor: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
+    readonly property color trackColor: editorial ? Appearance.editorial.field
+        : Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
         : Appearance.inirEverywhere ? Appearance.inir.colLayer3
         : Appearance.colors.colSurfaceContainerHighest
     readonly property color quietText: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
+        : editorial ? Appearance.editorial.muted
         : Appearance.angelEverywhere ? Appearance.angel.colTextSecondary
         : Appearance.inirEverywhere ? Appearance.inir.colTextSecondary
         : Appearance.colors.colSubtext
@@ -55,9 +59,10 @@ Item {
         anchors.top: parent.top
         width: Math.max(34, valueText.implicitWidth + 12)
         height: 23
-        radius: Appearance.rounding.full
+        radius: root.editorial ? Appearance.rounding.small : Appearance.rounding.full
         color: dragArea.pressed || dragArea.containsMouse
             ? (Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
+                : root.editorial ? Appearance.editorial.layer(2)
                 : Appearance.inirEverywhere ? Appearance.inir.colLayer2
                 : Appearance.colors.colSecondaryContainer)
             : "transparent"

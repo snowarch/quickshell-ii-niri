@@ -37,11 +37,13 @@ Item {
     property QtObject blendedColors: AdaptedMaterialScheme {
         color: root.themeSourceColor
     }
+    readonly property QtObject effectiveColors: Appearance.editorialEverywhere && Appearance.colors
+        ? Appearance.colors : root.blendedColors
 
-    readonly property color surfaceColor: Appearance.zzzEverywhere ? Appearance.zzz.paper : Appearance.inirEverywhere ? playerBase.inirLayer1 : (root.blendedColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer)
-    readonly property color ink: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? playerBase.inirText : (root.blendedColors?.colOnPrimaryContainer ?? Appearance.colors.colOnPrimaryContainer)
-    readonly property color accent: Appearance.zzzEverywhere ? Appearance.zzz.accent : Appearance.inirEverywhere ? playerBase.inirPrimary : (root.blendedColors?.colPrimary ?? Appearance.colors.colPrimary)
-    readonly property color onAccent: root.blendedColors?.colOnPrimary ?? Appearance.colors.colOnPrimary
+    readonly property color surfaceColor: Appearance.zzzEverywhere ? Appearance.zzz.paper : Appearance.inirEverywhere ? playerBase.inirLayer1 : (root.effectiveColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer)
+    readonly property color ink: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? playerBase.inirText : (root.effectiveColors?.colOnPrimaryContainer ?? Appearance.colors.colOnPrimaryContainer)
+    readonly property color accent: Appearance.zzzEverywhere ? Appearance.zzz.accent : Appearance.inirEverywhere ? playerBase.inirPrimary : (root.effectiveColors?.colPrimary ?? Appearance.colors.colPrimary)
+    readonly property color onAccent: root.effectiveColors?.colOnPrimary ?? Appearance.colors.colOnPrimary
 
     StyledRectangularShadow {
         target: card
@@ -102,7 +104,7 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? playerBase.inirLayer2 : (root.blendedColors?.colSurfaceContainerLow ?? Appearance.colors.colLayer1)
+                        color: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? playerBase.inirLayer2 : (root.effectiveColors?.colSurfaceContainerLow ?? Appearance.colors.colLayer1)
 
                         MaterialSymbol {
                             anchors.centerIn: parent
@@ -181,8 +183,8 @@ Item {
                                 implicitHeight: root.buttonSize
                                 buttonRadius: Appearance.rounding.full
                                 colBackground: root.lyricsExpanded ? root.accent : "transparent"
-                                colBackgroundHover: root.blendedColors?.colPrimaryContainerHover ?? Appearance.colors.colPrimaryContainerHover
-                                colRipple: root.blendedColors?.colPrimaryContainerActive ?? Appearance.colors.colPrimaryContainerActive
+                                colBackgroundHover: root.effectiveColors?.colPrimaryContainerHover ?? Appearance.colors.colPrimaryContainerHover
+                                colRipple: root.effectiveColors?.colPrimaryContainerActive ?? Appearance.colors.colPrimaryContainerActive
                                 onClicked: Config.setNestedValue("background.widgets.mediaControls.lyricsExpanded", !root.lyricsExpanded)
 
                                 contentItem: MaterialSymbol {
@@ -229,8 +231,8 @@ Item {
                                 implicitHeight: root.buttonSize
                                 buttonRadius: Appearance.rounding.full
                                 colBackground: "transparent"
-                                colBackgroundHover: root.blendedColors?.colPrimaryContainerHover ?? Appearance.colors.colPrimaryContainerHover
-                                colRipple: root.blendedColors?.colPrimaryContainerActive ?? Appearance.colors.colPrimaryContainerActive
+                                colBackgroundHover: root.effectiveColors?.colPrimaryContainerHover ?? Appearance.colors.colPrimaryContainerHover
+                                colRipple: root.effectiveColors?.colPrimaryContainerActive ?? Appearance.colors.colPrimaryContainerActive
                                 onClicked: playerBase.next()
 
                                 contentItem: MaterialSymbol {
@@ -286,7 +288,7 @@ Item {
                     lineSpacing: 8
                     activeColor: root.accent
                     textColor: ColorUtils.applyAlpha(root.ink, 0.8)
-                    indicatorColor: root.blendedColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer
+                    indicatorColor: root.effectiveColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer
 
                     Behavior on opacity {
                         enabled: Appearance.animationsEnabled

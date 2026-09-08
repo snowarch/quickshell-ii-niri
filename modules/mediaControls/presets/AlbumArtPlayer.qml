@@ -41,6 +41,8 @@ Item {
     // keeps that). Desktop host overrides it with the wallpaper seed for cohesion.
     property color themeSourceColor: playerBase.artDominantColor
     property QtObject blendedColors: AdaptedMaterialScheme { color: root.themeSourceColor }
+    readonly property QtObject effectiveColors: Appearance.editorialEverywhere && Appearance.colors
+        ? Appearance.colors : root.blendedColors
     
     StyledRectangularShadow { 
         target: card
@@ -99,7 +101,7 @@ Item {
             color: Appearance.inirEverywhere 
                 ? playerBase.inirLayer1
                 : Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
-                : (blendedColors?.colLayer0 ?? Appearance.colors.colLayer0)
+                : (effectiveColors?.colLayer0 ?? Appearance.colors.colLayer0)
             
             MaterialSymbol {
                 anchors.centerIn: parent
@@ -108,7 +110,7 @@ Item {
                 color: Appearance.inirEverywhere 
                     ? playerBase.inirTextSecondary 
                     : Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
-                    : (blendedColors?.colSubtext ?? Appearance.colors.colSubtext)
+                    : (effectiveColors?.colSubtext ?? Appearance.colors.colSubtext)
             }
         }
 
@@ -117,7 +119,7 @@ Item {
             visible: Appearance.zzzEverywhere
             label: "NOW PLAYING"
             index: "ART"
-            accentColor: blendedColors?.colPrimary ?? Appearance.zzz.accent
+            accentColor: effectiveColors?.colPrimary ?? Appearance.zzz.accent
             margin: 12
             showTicks: false
         }
@@ -177,7 +179,7 @@ Item {
                 length: playerBase.effectiveLength
                 canSeek: playerBase.effectiveCanSeek
                 isPlaying: playerBase.effectiveIsPlaying
-                highlightColor: Appearance.zzzEverywhere ? (blendedColors?.colPrimary ?? Appearance.zzz.accent) : "white"
+                highlightColor: Appearance.zzzEverywhere ? (effectiveColors?.colPrimary ?? Appearance.zzz.accent) : "white"
                 trackColor: Appearance.zzzEverywhere ? Appearance.zzz.metricTrack : ColorUtils.transparentize("white", 0.6)
                 onSeekRequested: seconds => playerBase.seek(seconds)
             }
@@ -213,7 +215,7 @@ Item {
                     buttonHoverColor: Appearance.zzzEverywhere ? ColorUtils.mix(Appearance.zzz.paperAlt, Appearance.zzz.signal, 0.92) : ColorUtils.transparentize("black", 0.3)
                     buttonRippleColor: Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.32) : ColorUtils.transparentize("white", 0.5)
                     iconColor: Appearance.zzzEverywhere ? Appearance.zzz.ink : "white"
-                    playIconColor: Appearance.zzzEverywhere ? (blendedColors?.colPrimary ?? Appearance.zzz.accent) : "white"
+                    playIconColor: Appearance.zzzEverywhere ? (effectiveColors?.colPrimary ?? Appearance.zzz.accent) : "white"
                     onPreviousClicked: playerBase.previous()
                     onPlayPauseClicked: playerBase.togglePlaying()
                     onNextClicked: playerBase.next()

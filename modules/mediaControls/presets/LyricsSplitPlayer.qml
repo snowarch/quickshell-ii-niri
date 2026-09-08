@@ -35,9 +35,11 @@ Item {
     property QtObject blendedColors: AdaptedMaterialScheme {
         color: root.themeSourceColor
     }
+    readonly property QtObject effectiveColors: Appearance.editorialEverywhere && Appearance.colors
+        ? Appearance.colors : root.blendedColors
 
-    readonly property color ink: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? playerBase.inirText : (root.blendedColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
-    readonly property color subInk: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted : Appearance.inirEverywhere ? playerBase.inirTextSecondary : (root.blendedColors?.colSubtext ?? Appearance.colors.colSubtext)
+    readonly property color ink: Appearance.zzzEverywhere ? Appearance.zzz.ink : Appearance.inirEverywhere ? playerBase.inirText : (root.effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
+    readonly property color subInk: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted : Appearance.inirEverywhere ? playerBase.inirTextSecondary : (root.effectiveColors?.colSubtext ?? Appearance.colors.colSubtext)
     readonly property color accent: Appearance.zzzEverywhere ? Appearance.zzz.accent
         : Appearance.inirEverywhere ? playerBase.inirPrimary
         : root.themeSourceColor
@@ -64,7 +66,7 @@ Item {
         radius: Appearance.zzzEverywhere ? Appearance.zzz.panelRadius : Appearance.inirEverywhere ? Appearance.inir.roundingNormal : root.radius
         color: Appearance.zzzEverywhere ? Appearance.zzz.paper
             : Appearance.inirEverywhere ? playerBase.inirLayer1
-            : ColorUtils.mix(root.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0,
+            : ColorUtils.mix(root.effectiveColors?.colLayer0 ?? Appearance.colors.colLayer0,
                 root.accent, 0.94)
         border.width: root.vizType === "organic" && root.vizPosition !== "none"
             ? 0 : (Appearance.zzzEverywhere ? Appearance.zzz.borderThick : 0)
@@ -132,7 +134,7 @@ Item {
 
         ZzzGraphicPlate {
             anchors.fill: parent
-            accentColor: root.blendedColors?.colPrimary ?? Appearance.zzz.accent
+            accentColor: root.effectiveColors?.colPrimary ?? Appearance.zzz.accent
         }
 
         ColumnLayout {
@@ -156,7 +158,7 @@ Item {
                     downloaded: playerBase.downloaded
                     slideDirection: playerBase.slideDirection
                     artRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.normal
-                    placeholderColor: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? playerBase.inirLayer2 : (root.blendedColors?.colLayer1 ?? Appearance.colors.colLayer1)
+                    placeholderColor: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? playerBase.inirLayer2 : (root.effectiveColors?.colLayer1 ?? Appearance.colors.colLayer1)
                     iconColor: root.subInk
                     iconSize: 32
                 }
@@ -178,7 +180,7 @@ Item {
                         textAlignment: Text.AlignLeft
                         activeColor: root.accent
                         textColor: root.subInk
-                        indicatorColor: root.blendedColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer
+                        indicatorColor: root.effectiveColors?.colPrimaryContainer ?? Appearance.colors.colPrimaryContainer
 
                         Behavior on opacity {
                             enabled: Appearance.animationsEnabled
@@ -268,7 +270,7 @@ Item {
                     canSeek: playerBase.effectiveCanSeek
                     isPlaying: playerBase.effectiveIsPlaying
                     highlightColor: root.accent
-                    trackColor: Appearance.zzzEverywhere ? Appearance.zzz.metricTrack : Appearance.inirEverywhere ? playerBase.inirLayer2 : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurface : (root.blendedColors?.colSecondaryContainer ?? Appearance.colors.colSecondaryContainer)
+                    trackColor: Appearance.zzzEverywhere ? Appearance.zzz.metricTrack : Appearance.inirEverywhere ? playerBase.inirLayer2 : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurface : (root.effectiveColors?.colSecondaryContainer ?? Appearance.colors.colSecondaryContainer)
                     onSeekRequested: seconds => playerBase.seek(seconds)
                 }
 
@@ -282,12 +284,12 @@ Item {
                     canGoNext: playerBase.effectiveCanGoNext
                     isPlaying: playerBase.effectiveIsPlaying
                     buttonRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
-                    buttonHoverColor: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface : ColorUtils.transparentize(root.blendedColors?.colLayer1 ?? Appearance.colors.colLayer1, 0.5)
-                    buttonRippleColor: Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.28) : Appearance.inirEverywhere ? Appearance.inir.colLayer2Active : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceActive : (root.blendedColors?.colLayer1Active ?? Appearance.colors.colLayer1Active)
+                    buttonHoverColor: Appearance.zzzEverywhere ? Appearance.zzz.paperAlt : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface : ColorUtils.transparentize(root.effectiveColors?.colLayer1 ?? Appearance.colors.colLayer1, 0.5)
+                    buttonRippleColor: Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.28) : Appearance.inirEverywhere ? Appearance.inir.colLayer2Active : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceActive : (root.effectiveColors?.colLayer1Active ?? Appearance.colors.colLayer1Active)
                     iconColor: root.ink
                     playButtonColor: root.accent
                     playIconColor: ColorUtils.ensureReadable(
-                        root.blendedColors?.colOnPrimary ?? Appearance.colors.colOnPrimary,
+                        root.effectiveColors?.colOnPrimary ?? Appearance.colors.colOnPrimary,
                         root.accent, 4.5)
                     onPreviousClicked: playerBase.previous()
                     onPlayPauseClicked: playerBase.togglePlaying()

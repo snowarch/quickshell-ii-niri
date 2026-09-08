@@ -10,11 +10,13 @@ RippleButton {
 
     required property string presetName
     property bool selected: false
+    readonly property bool editorial: Appearance.editorialEverywhere
 
     toggled: selected
     implicitHeight: Appearance.regaliaEverywhere ? Appearance.regalia.compactControlHeight : 40
     buttonRadius: Appearance.regaliaEverywhere ? Appearance.regalia.controlRadius
         : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+        : editorial ? Appearance.rounding.small
         : Appearance.angelEverywhere ? Appearance.rounding.full
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
         : Appearance.cookieEverywhere ? Appearance.cookie.roundSmall
@@ -24,6 +26,7 @@ RippleButton {
 
     colBackground: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlate
         : Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.ink, 0.035)
+        : editorial ? Appearance.editorial.layer(1)
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2
@@ -31,6 +34,7 @@ RippleButton {
         : "transparent"
     colBackgroundHover: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
         : Appearance.zzzEverywhere ? Appearance.colors.colLayer1Hover
+        : editorial ? Appearance.colors.colLayer1Hover
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
@@ -38,6 +42,7 @@ RippleButton {
         : Appearance.colors.colSurfaceContainerHigh
     colBackgroundToggled: Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlate
         : Appearance.zzzEverywhere ? Appearance.zzz.sticker
+        : editorial ? Appearance.editorial.accent
         : Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
         : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurface
         : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainer
@@ -45,6 +50,7 @@ RippleButton {
         : Appearance.colors.colSecondaryContainer
     colBackgroundToggledHover: Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlateHover
         : Appearance.zzzEverywhere ? Appearance.colors.colPrimaryHover
+        : editorial ? Appearance.colors.colPrimaryHover
         : Appearance.angelEverywhere ? Appearance.angel.colGlassElevatedHover
         : Appearance.auroraEverywhere ? Appearance.aurora.colElevatedSurfaceHover
         : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainerHover
@@ -68,6 +74,7 @@ RippleButton {
         ? (root.selected ? Appearance.regalia.primaryPlateInk : Appearance.regalia.onColor)
         : Appearance.zzzEverywhere
             ? (root.selected ? Appearance.zzz.onSticker : Appearance.zzz.ink)
+        : editorial ? (root.selected ? Appearance.editorial.accentInk : Appearance.editorial.ink)
         : Appearance.angelEverywhere ? Appearance.angel.colText
         : Appearance.inirEverywhere
             ? (root.selected ? Appearance.inir.colOnPrimaryContainer : Appearance.inir.colText)
@@ -77,6 +84,7 @@ RippleButton {
 
     readonly property color _accentColor: Appearance.regaliaEverywhere ? Appearance.regalia.hardwarePrimary
         : Appearance.zzzEverywhere ? (root.selected ? Appearance.zzz.onSticker : Appearance.zzz.accent)
+        : editorial ? Appearance.editorial.accent
         : Appearance.angelEverywhere ? Appearance.angel.colPrimary
         : Appearance.inirEverywhere ? Appearance.inir.colPrimary
         : Appearance.colors.colPrimary
@@ -90,6 +98,7 @@ RippleButton {
         border.width: root.visualFocus ? 2 : 1
         border.color: root.visualFocus ? root._accentColor
             : Appearance.zzzEverywhere ? Appearance.zzz.hairline
+            : root.editorial ? Appearance.editorial.rule
             : Appearance.angelEverywhere ? Appearance.angel.colCardBorder
             : Appearance.inirEverywhere ? Appearance.inir.colBorderSubtle
             : Appearance.auroraEverywhere ? Appearance.aurora.colPopupBorder
@@ -132,13 +141,14 @@ RippleButton {
         StyledText {
             anchors.centerIn: parent
             text: Appearance.zzzEverywhere ? root.presetName.toUpperCase() : root.presetName
-            font.family: Appearance.font.family.title
+            font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.title
             font.pixelSize: Appearance.font.pixelSize.smallie
             font.weight: Appearance.zzzEverywhere ? Font.Black
                 : root.selected ? Font.DemiBold : Font.Medium
-            font.italic: Appearance.zzzEverywhere && root.selected
-            font.letterSpacing: Appearance.zzzEverywhere ? 0.35
+            font.letterSpacing: root.editorial ? 0.35
+                : Appearance.zzzEverywhere ? 0.35
                 : Appearance.inirEverywhere ? 0.2 : 0
+            font.italic: Appearance.zzzEverywhere && root.selected
             color: root._textColor
 
             Behavior on color {
