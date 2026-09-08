@@ -394,7 +394,8 @@ Playful mascot companion (needs `mascot.enable` and the companion switch in Sett
 | `chase` | Chase game: she hunts your mouse, every click is a spot she pounces on; click *her* to catch her and win |
 | `hideSeek` | Hide-and-seek: she tucks into a spot on the desktop. Click her before the 20s timeout to find her, otherwise she wins by default |
 | `tidy` | Undo the chaos: every displaced widget returns to its pre-chaos position |
-| `hide` | Send her away immediately |
+| `hide` | Dismiss the peek or active chaos, cancel follow-ups, tidy widgets and pause automatic visits for 30 minutes |
+| `snooze <minutes>` | Dismiss Kira and pause automatic visits for 1–480 minutes |
 
 ---
 

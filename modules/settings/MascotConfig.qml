@@ -92,6 +92,47 @@ ContentPage {
             }
 
             ConfigSpinBox {
+                icon: "timelapse"
+                text: Translation.tr("Minimum quiet time")
+                from: 3; to: 60; stepSize: 1
+                value: Config.options?.mascot?.companion?.minQuietMinutes ?? 10
+                property bool _ready: false
+                Component.onCompleted: _ready = true
+                onValueChanged: if (_ready) Config.setNestedValue("mascot.companion.minQuietMinutes", value)
+            }
+
+            ConfigSpinBox {
+                icon: "schedule"
+                text: Translation.tr("Maximum visits per hour")
+                from: 1; to: 6; stepSize: 1
+                value: Config.options?.mascot?.companion?.maxVisitsPerHour ?? 3
+                property bool _ready: false
+                Component.onCompleted: _ready = true
+                onValueChanged: if (_ready) Config.setNestedValue("mascot.companion.maxVisitsPerHour", value)
+            }
+
+            SettingsSwitch {
+                text: Translation.tr("Respect Do Not Disturb and quiet hours")
+                buttonIcon: "chat"
+                checked: Config.options?.mascot?.companion?.respectQuiet ?? true
+                onCheckedChanged: Config.setNestedValue("mascot.companion.respectQuiet", checked)
+            }
+
+            SettingsSwitch {
+                text: Translation.tr("React to opened shell panels")
+                buttonIcon: "chat"
+                checked: Config.options?.mascot?.companion?.shellReactions ?? true
+                onCheckedChanged: Config.setNestedValue("mascot.companion.shellReactions", checked)
+            }
+
+            SettingsSwitch {
+                text: Translation.tr("Speech bubbles")
+                buttonIcon: "chat"
+                checked: Config.options?.mascot?.companion?.dialogue ?? true
+                onCheckedChanged: Config.setNestedValue("mascot.companion.dialogue", checked)
+            }
+
+            ConfigSpinBox {
                 icon: "schedule"
                 text: Translation.tr("Companion visit interval") + " (min)"
                 value: Config.options?.mascot?.companion?.intervalMinutes ?? 25
@@ -255,10 +296,31 @@ ContentPage {
             }
             StyledText {
                 Layout.fillWidth: true
-                text: Translation.tr("Rarely, instead of a quiet visit, she runs across the desktop and bonks your widgets, hurls them around or rattles the bar")
+                text: Translation.tr("Occasional visits to your widgets and panels, with small pranks that return home. Mouse chase only starts when you ask.")
                 font.pixelSize: Appearance.font.pixelSize.smaller
                 color: Appearance.colors.colSubtext
                 wrapMode: Text.Wrap
+            }
+            ContentSubsection {
+                title: Translation.tr("Character art")
+                ConfigSelectionArray {
+                    currentValue: Config.options?.mascot?.chaos?.artStyle ?? "jrpg"
+                    options: [
+                    { displayName: Translation.tr("JRPG"), value: "jrpg" },
+                    { displayName: Translation.tr("Codex sprites"), value: "codex" },
+                    { displayName: Translation.tr("Classic art"), value: "classic" }
+                ]
+                    onSelected: newValue => Config.setNestedValue("mascot.chaos.artStyle", newValue)
+                }
+            }
+            ConfigSpinBox {
+                icon: "timer"
+                text: Translation.tr("Minimum time between chaos visits") + " (min)"
+                from: 15; to: 180; stepSize: 5
+                value: Config.options?.mascot?.chaos?.intervalMinutes ?? 45
+                property bool _ready: false
+                Component.onCompleted: _ready = true
+                onValueChanged: if (_ready) Config.setNestedValue("mascot.chaos.intervalMinutes", value)
             }
             SettingsSwitch {
                 buttonIcon: "cyclone"
@@ -294,7 +356,17 @@ ContentPage {
                 enabled: Config.options?.mascot?.chaos?.enable ?? false
                 onCheckedChanged: Config.setNestedValue("mascot.chaos.systemEvents", checked)
                 StyledToolTip {
-                    text: Translation.tr("Rare, reason-flavored romps for low battery, a notification pileup, or very late hours")
+                    text: Translation.tr("Occasional reactions to real shell activity, sharing the same quiet time and visit limit")
+                }
+            }
+            SettingsSwitch {
+                buttonIcon: "notifications"
+                text: Translation.tr("Calling-card notifications")
+                checked: Config.options?.mascot?.chaos?.callingCards ?? false
+                enabled: Config.options?.mascot?.chaos?.enable ?? false
+                onCheckedChanged: Config.setNestedValue("mascot.chaos.callingCards", checked)
+                StyledToolTip {
+                    text: Translation.tr("After a destructive prank, Kira may leave a playful desktop notification")
                 }
             }
             Flow {
@@ -310,6 +382,20 @@ ContentPage {
                     materialIcon: "cleaning_services"
                     mainText: Translation.tr("Tidy up")
                     onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "mascot", "tidy"])
+                }
+                RippleButtonWithIcon {
+                    materialIcon: "sports_esports"
+                    mainText: Translation.tr("Play chase")
+                    enabled: Config.options?.mascot?.chaos?.enable ?? false
+                    onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "mascot", "chase"])
+                    StyledToolTip { text: Translation.tr("Explicitly start the mouse chase game; it never starts on its own") }
+                }
+                RippleButtonWithIcon {
+                    materialIcon: "search"
+                    mainText: Translation.tr("Hide and seek")
+                    enabled: Config.options?.mascot?.chaos?.enable ?? false
+                    onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "mascot", "hideSeek"])
+                    StyledToolTip { text: Translation.tr("Explicitly start hide-and-seek; find Kira before the timer expires") }
                 }
             }
         }

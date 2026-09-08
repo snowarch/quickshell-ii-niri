@@ -2,7 +2,7 @@
 # Auto-generated from QML IpcHandler declarations + docs/IPC.md metadata.
 # Do not edit manually.
 # Regenerate: python3 scripts/lib/generate-ipc-registry.py
-# IPC.md hash: b4a4806b9812ec75
+# IPC.md hash: 48d4a1ebbeb3201e
 # Targets: 62
 
 declare -gA IPC_TARGET_DESC=(
@@ -158,7 +158,7 @@ declare -gA IPC_TARGET_FUNCTIONS=(
   [globalActions]="run runWithArgs list search open"
   [keyboard]="switchLayout switchLayoutPrevious getCurrentLayout getLayouts"
   [lock]="activate prepareSleep deactivate status focus"
-  [mascot]="poke status setVoice romp chase hideSeek tidy appear appearContextual appearWithLine hide"
+  [mascot]="poke status setVoice romp chase hideSeek tidy appear appearContextual appearWithLine hide snooze"
   [mascotMood]="set current"
   [mediaControls]="toggle close open"
   [memory]="collect stats restart dismiss reset"
@@ -311,7 +311,8 @@ declare -gA IPC_FUNCTION_DESC=(
   ["mascot:appear"]="Show a specific catalog pose from \`left\`, \`right\`, \`top\` or \`bottom\`"
   ["mascot:appearContextual"]="Show near the triggering widget (\`battery\`, \`media\`, \`update\`, \`network\`, \`dnd\`). Requires \`mascot.companion.contextualPlacement\` to be enabled for event reactions; this IPC call bypasses that check for testing."
   ["mascot:appearWithLine"]="Show a specific pose saying an exact line (used by the bar widget easter eggs)"
-  ["mascot:hide"]="Send her away immediately"
+  ["mascot:hide"]="Dismiss the peek or active chaos, cancel follow-ups, tidy widgets and pause automatic visits for 30 minutes"
+  ["mascot:snooze"]="Dismiss Kira and pause automatic visits for 1–480 minutes"
   ["mascotMood:set"]="Force a mood: \`neutral\`, \`sleepy\`, \`hyper\`, \`snarky\` or \`contemplative\`"
   ["mascotMood:current"]="Print the current mood"
   ["mediaControls:toggle"]="Open/close media controls"
@@ -511,6 +512,7 @@ declare -gA IPC_FUNCTION_ARGS=(
   ["mascot:appear"]="<pose> <edge>"
   ["mascot:appearContextual"]="<pose> <sourceWidget>"
   ["mascot:appearWithLine"]="<pose> <edge> <line>"
+  ["mascot:snooze"]="<minutes>"
   ["mascotMood:set"]="<mood>"
   ["minimize:minimizeId"]="<windowId>"
   ["minimize:restore"]="<windowId>"
