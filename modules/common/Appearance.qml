@@ -300,7 +300,8 @@ Singleton {
     // passed by the named presets in `animation` below for granular per-category control.
     function calcEffectiveDuration(baseDuration, speedMultiplier) {
         if (!animationsEnabled) return 0
-        return Math.round(baseDuration * (speedMultiplier ?? 1.0))
+        const editorialScale = root.editorialEverywhere ? root.editorial.motionScale : 1.0
+        return Math.round(baseDuration * (speedMultiplier ?? 1.0) * editorialScale)
     }
 
     // Concentric corner radius: a child inset by `inset` inside a `parentRadius`
@@ -524,10 +525,10 @@ Singleton {
         property color colPrimaryContainerActive: root.regaliaEverywhere ? root.regalia.primaryPlateActive : ColorUtils.mix(colors.colPrimaryContainer, colors.colOnPrimaryContainer, 0.8)
         property color colOnPrimaryContainer: root.editorialEverywhere ? root.editorial.fieldInk : root.regaliaEverywhere ? root.regalia.primaryPlateInk : root.cookieEverywhere ? root.cookie.onFace : root.zzzEverywhere ? root.zzz.onColor : m3colors.m3onPrimaryContainer
         // Secondary
-        property color colSecondary: root.regaliaEverywhere ? root.regalia.hardwareSecondary : root.zzzEverywhere ? root.zzz.secondary : m3colors.m3secondary
+        property color colSecondary: root.editorialEverywhere ? root.editorial.accent : root.regaliaEverywhere ? root.regalia.hardwareSecondary : root.zzzEverywhere ? root.zzz.secondary : m3colors.m3secondary
         property color colSecondaryHover: root.regaliaEverywhere ? root.regalia.hardwareSecondaryHover : ColorUtils.mix(colSecondary, colLayer1Hover, 0.85)
         property color colSecondaryActive: root.regaliaEverywhere ? root.regalia.hardwareSecondaryActive : ColorUtils.mix(colSecondary, colLayer1Active, 0.4)
-        property color colOnSecondary: root.regaliaEverywhere ? root.regalia.hardwareSecondaryInk : root.zzzEverywhere ? root.zzz.onSecondary : m3colors.m3onSecondary
+        property color colOnSecondary: root.editorialEverywhere ? root.editorial.accentInk : root.regaliaEverywhere ? root.regalia.hardwareSecondaryInk : root.zzzEverywhere ? root.zzz.onSecondary : m3colors.m3onSecondary
         property color colSecondaryContainer: root.editorialEverywhere ? root.editorial.secondaryField : root.regaliaEverywhere ? root.regalia.secondaryPlate : root.cookieEverywhere ? root.cookie.secondaryFace : root.zzzEverywhere ? ColorUtils.mix(root.zzz.bg3, root.zzz.secondary, 0.18) : m3colors.m3secondaryContainer
         property color colSecondaryContainerHover: root.regaliaEverywhere ? root.regalia.secondaryPlateHover : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.90)
         property color colSecondaryContainerActive: root.regaliaEverywhere ? root.regalia.secondaryPlateActive : ColorUtils.mix(colSecondaryContainer, colOnSecondaryContainer, 0.54)
@@ -587,22 +588,47 @@ Singleton {
 
     editorial: QtObject {
         readonly property bool dark: root.m3colors.darkmode
-        readonly property color paper: ColorUtils.mix(dark ? "#191918" : "#f5f2eb", root.m3colors.m3background, 0.82)
+        readonly property real titleScale: Math.max(0.8, Math.min(1.3, Number(Config.options?.appearance?.editorial?.titleScale ?? 1.0)))
+        readonly property real warmth: Math.max(0, Math.min(1, Number(Config.options?.appearance?.editorial?.warmth ?? 0.55)))
+        readonly property real accentStrength: Math.max(0, Math.min(1, Number(Config.options?.appearance?.editorial?.accentStrength ?? 0.55)))
+        readonly property real spacing: Math.max(0.8, Math.min(1.2, Number(Config.options?.appearance?.editorial?.spacing ?? 1.0)))
+        readonly property real radiusScale: Math.max(0.5, Math.min(1.5, Number(Config.options?.appearance?.editorial?.radiusScale ?? 1.0)))
+        readonly property bool ornaments: Config.options?.appearance?.editorial?.ornaments ?? true
+        readonly property real motionScale: Math.max(0.6, Math.min(1.4, Number(Config.options?.appearance?.editorial?.motionScale ?? 1.0)))
+        readonly property color paperBase: ColorUtils.mix(dark ? "#191918" : "#f5f2eb", root.m3colors.m3background, 0.82)
+        // ColorUtils weights its first argument. At warmth 0 this is exactly
+        // paperBase; the warm tint is introduced only at the high end.
+        readonly property color paper: ColorUtils.mix(dark ? "#2a2722" : "#f5eee2", paperBase, warmth * 0.28)
         readonly property color ink: ColorUtils.ensureReadable(root.m3colors.m3onSurface, paper, 7)
         readonly property color paperOnInk: ColorUtils.ensureReadable(paper, ink, 7)
         readonly property color muted: ColorUtils.ensureReadable(root.m3colors.m3onSurfaceVariant, paper, 4.5)
-        readonly property color accent: ColorUtils.ensureReadable(root.m3colors.m3primary, paper, 4.5)
-        readonly property color accentInk: ColorUtils.ensureReadable(root.m3colors.m3onPrimary, accent, 4.5)
+        readonly property color accent: ColorUtils.ensureReadable(ColorUtils.mix(ink, root.m3colors.m3primary, 1 - accentStrength * 0.85), paper, 4.5)
+        readonly property color accentInk: ColorUtils.ensureReadable(paper, accent, 7)
         readonly property color rule: ColorUtils.mix(paper, ink, 0.82)
         readonly property color edge: ColorUtils.mix(paper, ink, 0.68)
-        readonly property color field: ColorUtils.mix(root.editorial.paper, root.m3colors.m3primary, 0.84)
+        readonly property color field: ColorUtils.mix(ColorUtils.mix(paper, ink, 0.90), root.m3colors.m3primary, 1 - accentStrength * 0.28)
         readonly property color fieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.field, 7)
-        readonly property color secondaryField: ColorUtils.mix(root.editorial.paper, root.m3colors.m3secondary, 0.90)
+        readonly property color secondaryField: ColorUtils.mix(layer(2), root.m3colors.m3secondary, 1 - accentStrength * 0.18)
         readonly property color secondaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.secondaryField, 7)
-        readonly property color tertiaryField: ColorUtils.mix(root.editorial.paper, root.m3colors.m3tertiary, 0.90)
+        readonly property color tertiaryField: ColorUtils.mix(layer(2), root.m3colors.m3tertiary, 1 - accentStrength * 0.18)
         readonly property color tertiaryFieldInk: ColorUtils.ensureReadable(root.editorial.ink, root.editorial.tertiaryField, 7)
-        readonly property int inset: 20
-        readonly property int radius: 10
+        readonly property int inset: Math.round(20 * spacing)
+        readonly property int radius: Math.max(4, Math.round(10 * radiusScale))
+        // Poster is deliberately sans; reading/quote composition keeps an
+        // explicit Source Serif 4 choice with a generic serif fallback.
+        readonly property string typography: Config.options?.appearance?.editorial?.typography === "reading"
+            ? "reading" : "poster"
+        readonly property string serifFamily: {
+            const families = Qt.fontFamilies()
+            for (const family of families) {
+                if (String(family).toLowerCase() === "source serif 4") return family
+            }
+            return "serif"
+        }
+        readonly property int titleWeight: typography === "reading" ? Font.DemiBold : 650
+        readonly property real titleTracking: typography === "reading" ? 0 : -0.6
+        readonly property string displayFamily: typography === "reading"
+            ? serifFamily : (Config.options?.appearance?.typography?.mainFont ?? "Roboto Flex")
         function layer(level: int): color {
             return ColorUtils.mix(paper, ink, 1 - Math.min(4, Math.max(0, level)) * (dark ? 0.025 : 0.018))
         }
@@ -616,13 +642,13 @@ Singleton {
         property int unsharpen: root.regaliaEverywhere ? 2 : root.cookieEverywhere ? 4 : root.zzzEverywhere ? 2 : Math.max(0, Math.round(2 * scale))
         property int unsharpenmore: root.regaliaEverywhere ? root.regalia.roundVerySmall : root.cookieEverywhere ? 8 : root.zzzEverywhere ? 4 : Math.max(0, Math.round(6 * scale))
         property int verysmall: root.regaliaEverywhere ? root.regalia.roundVerySmall : root.cookieEverywhere ? root.cookie.roundVerySmall : root.zzzEverywhere ? root.zzz.roundSmall : Math.max(0, Math.round(8 * scale))
-        property int small: root.editorialEverywhere ? 6 : root.regaliaEverywhere ? root.regalia.roundSmall : root.cookieEverywhere ? root.cookie.roundSmall : root.zzzEverywhere ? root.zzz.roundSmall : Math.max(0, Math.round(12 * scale))
-        property int normal: root.editorialEverywhere ? 10 : root.regaliaEverywhere ? root.regalia.roundNormal : root.cookieEverywhere ? root.cookie.roundNormal : root.zzzEverywhere ? root.zzz.roundNormal : Math.max(0, Math.round(17 * scale))
-        property int large: root.editorialEverywhere ? 14 : root.regaliaEverywhere ? root.regalia.roundLarge : root.cookieEverywhere ? root.cookie.roundLarge : root.zzzEverywhere ? root.zzz.roundLarge : Math.max(0, Math.round(23 * scale))
-        property int verylarge: root.editorialEverywhere ? 18 : root.regaliaEverywhere ? root.regalia.panelRadius : root.cookieEverywhere ? root.cookie.panelRadius : root.zzzEverywhere ? root.zzz.panelRadius : Math.max(0, Math.round(30 * scale))
+        property int small: root.editorialEverywhere ? Math.max(3, Math.round(6 * root.editorial.radiusScale)) : root.regaliaEverywhere ? root.regalia.roundSmall : root.cookieEverywhere ? root.cookie.roundSmall : root.zzzEverywhere ? root.zzz.roundSmall : Math.max(0, Math.round(12 * scale))
+        property int normal: root.editorialEverywhere ? Math.max(5, Math.round(10 * root.editorial.radiusScale)) : root.regaliaEverywhere ? root.regalia.roundNormal : root.cookieEverywhere ? root.cookie.roundNormal : root.zzzEverywhere ? root.zzz.roundNormal : Math.max(0, Math.round(17 * scale))
+        property int large: root.editorialEverywhere ? Math.max(7, Math.round(14 * root.editorial.radiusScale)) : root.regaliaEverywhere ? root.regalia.roundLarge : root.cookieEverywhere ? root.cookie.roundLarge : root.zzzEverywhere ? root.zzz.roundLarge : Math.max(0, Math.round(23 * scale))
+        property int verylarge: root.editorialEverywhere ? Math.max(9, Math.round(18 * root.editorial.radiusScale)) : root.regaliaEverywhere ? root.regalia.panelRadius : root.cookieEverywhere ? root.cookie.panelRadius : root.zzzEverywhere ? root.zzz.panelRadius : Math.max(0, Math.round(30 * scale))
         property int full: root.zzzEverywhere ? (root.zzz.round ? 9999 : root.zzz.controlRadius) : 9999
         property int screenRounding: large
-        property int windowRounding: root.editorialEverywhere ? 14 : root.regaliaEverywhere ? root.regalia.panelRadius : root.zzzEverywhere ? root.zzz.panelRadius : Math.max(0, Math.round(18 * scale))
+        property int windowRounding: root.editorialEverywhere ? Math.max(7, Math.round(14 * root.editorial.radiusScale)) : root.regaliaEverywhere ? root.regalia.panelRadius : root.zzzEverywhere ? root.zzz.panelRadius : Math.max(0, Math.round(18 * scale))
     }
 
     // Typography scale factor from config
@@ -658,7 +684,7 @@ Singleton {
             property string numbers: root._useZzzFont ? root._zzzFont
                                 : root._useAngelFont ? root._angelFont
                                 : root._useRegaliaFont ? root._regaliaTechFont : "Rubik"
-            property string title: root.editorialEverywhere ? "serif" : root._useZzzFont ? root._zzzFont
+            property string title: root.editorialEverywhere ? root.editorial.displayFamily : root._useZzzFont ? root._zzzFont
                                  : root._useAngelFont ? root._angelFont
                                  : root._useRegaliaFont ? root._regaliaFont
                                  : root._forceMono ? monospace
@@ -671,7 +697,7 @@ Singleton {
         }
         property QtObject variableAxes: QtObject {
             // Roboto Flex is customized to feel geometric, unserious yet not overly kiddy
-            property var main: root.regaliaEverywhere ? ({
+            property var main: root.editorialEverywhere ? ({}) : root.regaliaEverywhere ? ({
                 "wght": 430,
             }) : ({
                 "YTUC": 716,
@@ -687,7 +713,7 @@ Singleton {
                 "wght": 400,
             })
             property var title: ({
-                "wght": root.editorialEverywhere ? 500 : root.regaliaEverywhere ? 650 : 900,
+                "wght": root.editorialEverywhere ? root.editorial.titleWeight : root.regaliaEverywhere ? 650 : 900,
             })
         }
         property QtObject pixelSize: QtObject {

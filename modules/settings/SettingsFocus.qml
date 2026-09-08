@@ -1015,10 +1015,12 @@ Scope {
                             Layout.minimumWidth: 160
                             Layout.preferredHeight: 36
                             Layout.alignment: Qt.AlignVCenter
-                            radius: Appearance.rounding.full
+                            radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                             color: Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                                  : Appearance.inirEverywhere
                                     ? (focusSearchField.activeFocus ? Appearance.inir.colLayer1 : Appearance.inir.colLayer0)
+                                 : Appearance.editorialEverywhere
+                                    ? (focusSearchField.activeFocus ? Appearance.editorial.field : Appearance.editorial.layer(1))
                                     : (focusSearchField.activeFocus ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)
                             border.width: focusSearchField.activeFocus ? 2
                                 : (Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth : 1)
@@ -1026,6 +1028,7 @@ Scope {
                                 ? Appearance.colors.colPrimary
                                 : (Appearance.angelEverywhere ? Appearance.angel.colCardBorder
                                   : Appearance.inirEverywhere ? Appearance.inir.colBorderMuted
+                                  : Appearance.editorialEverywhere ? Appearance.editorial.rule
                                   : Appearance.m3colors.m3outlineVariant)
 
                             Behavior on color {

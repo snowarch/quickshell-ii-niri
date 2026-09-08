@@ -50,7 +50,7 @@ RippleButton {
         root.selected ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnLayer1,
         root.buttonHovered ? root._hoverFill : root._restFill, 4.5)
 
-    readonly property color _border: Appearance.regaliaEverywhere ? "transparent"
+    readonly property color _border: Appearance.editorialEverywhere ? "transparent" : Appearance.regaliaEverywhere ? "transparent"
         : root.selected ? "transparent"
         : (root.buttonHovered ? Appearance.colors.colOutline : Appearance.colors.colOutlineVariant)
 

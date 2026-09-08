@@ -92,6 +92,16 @@
             "customPreset": ""
         },
         "angelSubStyle": "frost",
+        "editorial": {
+            "typography": "poster",
+            "titleScale": 1.0,
+            "warmth": 0.55,
+            "accentStrength": 0.55,
+            "spacing": 1.0,
+            "radiusScale": 1.0,
+            "ornaments": true,
+            "motionScale": 1.0
+        },
         "zzz": {
             "shape": "square",
             "glass": true,

@@ -170,10 +170,10 @@ ContentPage {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 32
-                    radius: 16
-                    color: Appearance.colors.colLayer1
+                    radius: Appearance.editorialEverywhere ? Appearance.rounding.small : 16
+                    color: Appearance.editorialEverywhere ? Appearance.editorial.layer(1) : Appearance.colors.colLayer1
                     border.width: searchField.activeFocus ? 1.5 : 0
-                    border.color: Appearance.colors.colPrimary
+                    border.color: Appearance.editorialEverywhere ? Appearance.editorial.accent : Appearance.colors.colPrimary
 
                     RowLayout {
                         anchors.fill: parent
@@ -1609,49 +1609,20 @@ ContentPage {
     }
 
     SettingsCardSection {
+        id: editorialStyleEditorSection
         visible: root.activeSection === "style" && Appearance.editorialEverywhere
         settingsTaskSection: "style"
         expanded: true
         icon: "auto_stories"
         title: Translation.tr("Editorial")
-        PanelSurface {
-            Layout.fillWidth: true
-            implicitHeight: editorialPreview.implicitHeight + 40
-            elevation: 2
-            ColumnLayout {
-                id: editorialPreview
-                anchors.fill: parent
-                anchors.margins: 20
-                spacing: 12
-                StyledText {
-                    text: Translation.tr("A LITTLE EVERY DAY")
-                    color: Appearance.editorial.accent
-                    font.pixelSize: Appearance.font.pixelSize.smallest
-                    font.weight: Font.DemiBold
-                }
-                StyledText {
-                    Layout.fillWidth: true
-                    text: Translation.tr("Make room for wonder.")
-                    font.family: Appearance.font.family.title
-                    font.pixelSize: 32 * Appearance.fontSizeScale
-                    wrapMode: Text.WordWrap
-                    color: Appearance.editorial.ink
-                }
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 1
-                    color: Appearance.editorial.rule
-                }
-                StyledText {
-                    Layout.fillWidth: true
-                    text: Translation.tr("Quiet surfaces. Expressive headings. Your colors.")
-                    wrapMode: Text.WordWrap
-                    color: Appearance.editorial.muted
-                }
+
+        SettingsGroup {
+            Loader {
+                Layout.fillWidth: true
+                active: root.activeSection === "style" && editorialStyleEditorSection.expanded
+                    && Appearance.editorialEverywhere
+                source: "EditorialStyleEditor.qml"
             }
-        }
-        SettingsNote {
-            text: Translation.tr("Editorial follows your color theme and light or dark mode. Serif headings are paired with your chosen interface font.")
         }
     }
 

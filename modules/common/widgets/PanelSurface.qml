@@ -47,6 +47,7 @@ Item {
     // Some nested cards already have enough separation from fill/shape and do
     // not need a second outer contour.
     property bool outlined: true
+    property bool editorialFocus: false
     // Optional explicit stroke width for consumers that expose border tuning.
     // -1 preserves the dialect/default width.
     property real borderWidthOverride: -1
@@ -110,6 +111,7 @@ Item {
         : root.elevation === 3 ? Appearance.colors.colLayer3Base
         : Appearance.colors.colLayer4Base
     readonly property color _fill: root.borderless ? "transparent"
+        : root._editorial && root.editorialFocus ? Appearance.editorial.ink
         : root.opaqueSurface ? root._solidFill
         : root._angel ? Appearance.angel.colGlassCard
         : root._regalia ? (root.elevation <= 0 ? Appearance.regalia.bg0
@@ -131,6 +133,7 @@ Item {
         : root._angel ? Appearance.angel.roundingSmall
         : root._regalia ? Appearance.regalia.roundNormal
         : root._inir ? Appearance.inir.roundingNormal
+        : root._editorial ? Appearance.editorial.radius
         : (root.cardStyle ? Appearance.rounding.normal : Appearance.rounding.small)
 
     // ── Borde ──
@@ -232,15 +235,6 @@ Item {
         showLabels: root.frameLabel.length > 0 || root.frameIndex.length > 0
         label: root.frameLabel
         index: root.frameIndex
-    }
-
-    EditorialRule {
-        visible: root._editorial && !root.borderless && root.outlined
-        width: parent.width
-        height: parent.height
-        vertical: root.height > root.width * 2
-        inset: root._radius + 8
-        emphasized: root.activeFocus || root.elevation >= 2
     }
 
     // Contenido encima de la cara.

@@ -1804,7 +1804,7 @@ Singleton {
         },
 
         // =====================================================================
-        { pageIndex: 4, pageName: root.pages[4].name, section: Translation.tr("Global Style"), label: Translation.tr("Editorial style"), description: Translation.tr("Paper surfaces, serif headings and subtle geometric accents"), keywords: ["editorial", "style", "paper", "serif", "typography", "poster"] },
+        { pageIndex: 4, pageName: root.pages[4].name, section: Translation.tr("Global Style"), label: Translation.tr("Editorial style"), description: Translation.tr("Paper surfaces, poster sans or reading serif, title scale, warmth, accent intensity, spacing, corners, ornaments and motion"), keywords: ["editorial", "style", "paper", "ink", "serif", "sans", "typography", "poster", "reading", "title scale", "warmth", "accent", "accent intensity", "color", "tonal", "spacing", "radius", "corners", "flower", "ornaments", "motion", "reset"] },
 
         // Desktop Widgets (page 14)
         // =====================================================================

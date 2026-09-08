@@ -78,6 +78,7 @@ Item {
     // for much better performance (especially with many cards visible at once).
     Rectangle {
         visible: !Appearance.angelEverywhere
+            && !Appearance.editorialEverywhere
             && !Appearance.zzzEverywhere
             && Appearance.effectsEnabled
         x: card.x + 0.5
@@ -114,7 +115,7 @@ Item {
     Rectangle {
         id: accentBar
         visible: !Appearance.angelEverywhere && !Appearance.regaliaEverywhere
-            && !Appearance.zzzEverywhere && !Appearance.cookieEverywhere
+            && !Appearance.zzzEverywhere && !Appearance.cookieEverywhere && !Appearance.editorialEverywhere
         anchors {
             left: card.left
             top: card.top
@@ -165,8 +166,9 @@ Item {
                      : (Appearance.regaliaEverywhere ? 0
                      : (Appearance.zzzEverywhere ? 0
                      : (Appearance.cookieEverywhere ? 0
+                     : (Appearance.editorialEverywhere ? 0
                      : (Appearance.inirEverywhere ? 1
-                     : (Appearance.auroraEverywhere ? 1 : 1)))))
+                     : (Appearance.auroraEverywhere ? 1 : 1))))))
         border.color: Appearance.angelEverywhere ? "transparent" : SettingsMaterialPreset.cardBorderColor
 
         Behavior on color {
@@ -247,10 +249,10 @@ Item {
                     anchors.fill: parent
                     anchors.leftMargin: SettingsMaterialPreset.headerPaddingX
                     anchors.rightMargin: SettingsMaterialPreset.headerPaddingX
-                    spacing: 8
+                    spacing: Appearance.editorialEverywhere ? Math.round(8 * Appearance.editorial.spacing) : 8
 
                     Loader {
-                        active: Appearance.editorialEverywhere
+                        active: Appearance.editorialEverywhere && Appearance.editorial.ornaments
                         Layout.preferredWidth: active ? 28 : 0
                         Layout.preferredHeight: active ? 28 : 0
                         visible: active
@@ -330,8 +332,9 @@ Item {
                     StyledText {
                         text: Appearance.zzzEverywhere ? root.title.toUpperCase() : root.title
                         font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
-                        font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.huge : Appearance.font.pixelSize.normal
-                        font.weight: Appearance.editorialEverywhere ? Font.Normal : Appearance.zzzEverywhere ? Font.ExtraBold : Font.DemiBold
+                        font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.huge * Appearance.editorial.titleScale : Appearance.font.pixelSize.normal
+                        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Appearance.zzzEverywhere ? Font.ExtraBold : Font.DemiBold
+                        font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
                         color: root.expanded
                             ? SettingsMaterialPreset.titleExpandedColor
                             : SettingsMaterialPreset.titleCollapsedColor

@@ -66,7 +66,8 @@ ComboBox {
     readonly property color _popupHoverColor: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
         : Appearance.colors.colLayer3Hover
-    readonly property color _selectedColor: Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlate
+    readonly property color _selectedColor: Appearance.editorialEverywhere ? Appearance.editorial.field
+        : Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlate
         : Appearance.inirEverywhere ? Appearance.inir.colPrimaryContainer
         : Appearance.colors.colPrimaryContainer
 
@@ -235,7 +236,7 @@ ComboBox {
                 : Appearance.rounding.unsharpenmore
             color: Appearance.regaliaEverywhere ? "transparent"
                 : delegateItem.index === root.currentIndex ? root._selectedColor
-                : delegateItem.hovered ? root._popupHoverColor
+                : (delegateItem.hovered || (Appearance.editorialEverywhere && delegateItem.highlighted)) ? root._popupHoverColor
                 : "transparent"
 
             RegaliaControlFace {
@@ -270,7 +271,10 @@ ComboBox {
                     return delegateItem.modelData?.toString() ?? ""
                 }
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: Appearance.regaliaEverywhere && delegateItem.index === root.currentIndex
+                font.weight: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex ? Font.DemiBold : Font.Normal
+                color: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex
+                    ? Appearance.editorial.fieldInk
+                    : Appearance.regaliaEverywhere && delegateItem.index === root.currentIndex
                     ? Appearance.regalia.primaryPlateInk : root._textColor
                 elide: Text.ElideRight
                 verticalAlignment: Text.AlignVCenter
@@ -280,7 +284,9 @@ ComboBox {
                 Layout.rightMargin: Appearance.regaliaEverywhere ? Appearance.regalia.controlPaddingHorizontal : 8
                 text: "check"
                 iconSize: Appearance.font.pixelSize.small
-                color: Appearance.regaliaEverywhere && delegateItem.index === root.currentIndex
+                color: Appearance.editorialEverywhere && delegateItem.index === root.currentIndex
+                    ? Appearance.editorial.fieldInk
+                    : Appearance.regaliaEverywhere && delegateItem.index === root.currentIndex
                     ? Appearance.regalia.primaryPlateInk : root._textColor
                 visible: delegateItem.index === root.currentIndex
             }

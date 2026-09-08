@@ -801,6 +801,18 @@ Singleton {
                     property string customPreset: ""
                 }
                 property string angelSubStyle: "frost" // "frost" | "neon" | "void"
+                // Editorial is an independent composition layer. It is kept
+                // separate from the desktop Editorial widget's instance data.
+                property JsonObject editorial: JsonObject {
+                    property string typography: "poster" // "poster" sans titles | "reading" Source Serif 4
+                    property real titleScale: 1.0
+                    property real warmth: 0.55
+                    property real accentStrength: 0.55
+                    property real spacing: 1.0
+                    property real radiusScale: 1.0
+                    property bool ornaments: true
+                    property real motionScale: 1.0
+                }
                 // ZZZ personality axis: silhouette variant. "square" = sharp
                 // console plates with cut-corner chamfers (classic ZZZ). "round" =
                 // softer anime UI — pills for controls, rounded panels, no chamfer.

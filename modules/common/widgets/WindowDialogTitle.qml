@@ -12,5 +12,6 @@ StyledText {
         family: Appearance.font.family.title
         pixelSize: Appearance.font.pixelSize.title
         variableAxes: Appearance.font.variableAxes.title
+        letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
     }
 }

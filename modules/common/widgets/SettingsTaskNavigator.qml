@@ -27,19 +27,10 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: visible ? introColumn.implicitHeight + (root.title.length > 0 ? 24 : 20) : 0
         radius: Appearance.rounding.normal
-        color: Appearance.editorialEverywhere ? Appearance.editorial.field : Appearance.colors.colPrimaryContainer
+        color: Appearance.editorialEverywhere ? Appearance.editorial.ink : Appearance.colors.colPrimaryContainer
         border.width: Appearance.editorialEverywhere ? 1 : 0
         border.color: Appearance.editorialEverywhere ? Appearance.editorial.rule : Appearance.colors.colOutlineVariant
 
-        EditorialRule {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: 2
-            visible: Appearance.editorialEverywhere
-            inset: Appearance.editorial.inset
-            emphasized: true
-        }
 
         // Full variant (icon + title + description) for pages that onboard;
         // compact variant (centered description + summary) when the page header
@@ -62,9 +53,9 @@ ColumnLayout {
                     MaterialShape {
                         anchors.centerIn: parent
                         visible: Appearance.editorialEverywhere
-                        implicitSize: 38
+                        implicitSize: Appearance.editorialEverywhere ? 22 : 38
                         shape: MaterialShape.Shape.Flower
-                        color: Appearance.editorial.accent
+                        color: Appearance.editorial.paperOnInk
                     }
 
                     MaterialCookie {
@@ -90,8 +81,9 @@ ColumnLayout {
                         text: root.title
                         font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
                         font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.hugeass : Appearance.font.pixelSize.normal
-                        font.weight: Appearance.editorialEverywhere ? Font.Normal : Font.DemiBold
-                        color: Appearance.colors.colOnPrimaryContainer
+                        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.DemiBold
+                        font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
+                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
                         wrapMode: Text.WordWrap
                     }
                     StyledText {
@@ -99,7 +91,7 @@ ColumnLayout {
                         visible: root.description.length > 0
                         text: root.description
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colOnPrimaryContainer
+                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
                         opacity: 0.82
                         wrapMode: Text.WordWrap
                     }
@@ -112,7 +104,7 @@ ColumnLayout {
                 text: root.description
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: Font.Medium
-                color: Appearance.colors.colOnPrimaryContainer
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
                 opacity: 0.92
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
@@ -124,7 +116,7 @@ ColumnLayout {
                 text: root.summary
                 font.pixelSize: Appearance.font.pixelSize.smallest
                 font.weight: Font.Medium
-                color: Appearance.colors.colOnPrimaryContainer
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
                 opacity: 0.7
                 horizontalAlignment: root.title.length > 0 ? Text.AlignLeft : Text.AlignHCenter
                 wrapMode: Text.WordWrap

@@ -112,15 +112,7 @@ TabButton {
             animation: ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
         }
 
-        EditorialRule {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: 2
-            visible: Appearance.editorialEverywhere && root.selected
-            inset: 8
-            emphasized: true
-        }
+
 
         Item {
             id: ripple

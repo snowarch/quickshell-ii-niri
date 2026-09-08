@@ -339,8 +339,11 @@ ContentPage {
             SettingsSwitch {
                 buttonIcon: "format_color_fill"
                 text: Translation.tr("Use Material colors")
-                checked: Config.options?.waffles?.theming?.useMaterialColors ?? false
-                onCheckedChanged: Config.setNestedValue("waffles.theming.useMaterialColors", checked)
+                enabled: !Appearance.editorialEverywhere
+                checked: Appearance.editorialEverywhere || (Config.options?.waffles?.theming?.useMaterialColors ?? false)
+                onCheckedChanged: {
+                    if (!Appearance.editorialEverywhere) Config.setNestedValue("waffles.theming.useMaterialColors", checked)
+                }
                 StyledToolTip { text: Translation.tr("Apply the Material ii color scheme instead of Windows 11 grey") }
             }
 

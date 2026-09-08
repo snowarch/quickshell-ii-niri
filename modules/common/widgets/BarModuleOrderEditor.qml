@@ -213,7 +213,7 @@ ColumnLayout {
         }
         RippleButton {
             implicitWidth: 30; implicitHeight: 30
-            buttonRadius: Appearance.rounding.full
+            buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
             onClicked: root._resetToDefaults()
             contentItem: MaterialSymbol { anchors.centerIn: parent; text: "restart_alt"; iconSize: Appearance.font.pixelSize.small; color: Appearance.colors.colOnLayer1 }
             StyledToolTip { text: Translation.tr("Reset bar layout to defaults") }
@@ -307,7 +307,7 @@ ColumnLayout {
             RippleButton {
                 visible: rowRoot.visibilityKey.length > 0
                 implicitWidth: 26; implicitHeight: 26
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 onClicked: {
                     const k = rowRoot.visibilityKey
                     Config.setNestedValue("bar.modules." + k, !(Config.options?.bar?.modules?.[k] ?? true))
@@ -326,7 +326,7 @@ ColumnLayout {
             // Remove from layout
             RippleButton {
                 implicitWidth: 26; implicitHeight: 26
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 onClicked: root._remove(rowRoot.zone, rowRoot.rowIndex)
                 contentItem: MaterialSymbol { anchors.centerIn: parent; text: "do_not_disturb_on"; iconSize: Appearance.font.pixelSize.small; color: rowRoot._fgSubtle }
                 StyledToolTip { text: Translation.tr("Remove from layout") }
@@ -366,7 +366,7 @@ ColumnLayout {
                     spacing: 8
                     Rectangle {
                         implicitWidth: 24; implicitHeight: 24
-                        radius: Appearance.rounding.full
+                        radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                         color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.85)
                         MaterialSymbol { anchors.centerIn: parent; text: root._zoneIcon(zoneCard.zoneName); iconSize: Appearance.font.pixelSize.small; color: Appearance.colors.colPrimary }
                     }
@@ -374,13 +374,13 @@ ColumnLayout {
                         Layout.fillWidth: true
                         text: root._zoneLabel(zoneCard.zoneName)
                         font.pixelSize: Appearance.font.pixelSize.small
-                        font.weight: Font.DemiBold
+                        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.DemiBold
                         color: Appearance.colors.colOnLayer0
                     }
                     Rectangle {
                         implicitHeight: 18
                         implicitWidth: Math.max(22, countLabel.implicitWidth + 12)
-                        radius: Appearance.rounding.full
+                        radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                         color: ColorUtils.transparentize(Appearance.colors.colOnLayer1, 0.92)
                         StyledText {
                             id: countLabel
@@ -506,7 +506,7 @@ ColumnLayout {
                 spacing: 8
                 Rectangle {
                     implicitWidth: 24; implicitHeight: 24
-                    radius: Appearance.rounding.full
+                    radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.85)
                     MaterialSymbol { anchors.centerIn: parent; text: "add_box"; iconSize: Appearance.font.pixelSize.small; color: Appearance.colors.colPrimary }
                 }
@@ -514,7 +514,7 @@ ColumnLayout {
                     Layout.fillWidth: true
                     text: Translation.tr("Available modules")
                     font.pixelSize: Appearance.font.pixelSize.small
-                    font.weight: Font.DemiBold
+                    font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.DemiBold
                     color: Appearance.colors.colOnLayer0
                 }
                 StyledText {
@@ -538,7 +538,7 @@ ColumnLayout {
 
                         implicitHeight: 30
                         implicitWidth: chipRow.implicitWidth + 16
-                        radius: Appearance.rounding.full
+                        radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                         color: chipMa.containsMouse || beingDragged
                             ? ColorUtils.transparentize(Appearance.colors.colPrimary, 0.85)
                             : ColorUtils.transparentize(Appearance.colors.colOnLayer1, 0.95)

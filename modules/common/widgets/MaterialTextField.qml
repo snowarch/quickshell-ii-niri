@@ -121,6 +121,7 @@ TextField {
                     right: parent.right
                     bottom: parent.bottom
                 }
+                visible: !Appearance.editorialEverywhere || root.activeFocus
                 height: Appearance.editorialEverywhere && root.activeFocus ? 2 : 1
                 color: Appearance.editorialEverywhere
                     ? (root.activeFocus ? Appearance.editorial.accent

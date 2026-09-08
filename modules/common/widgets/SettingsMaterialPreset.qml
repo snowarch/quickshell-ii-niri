@@ -10,38 +10,38 @@ QtObject {
 
     // ── Page layout ──
     readonly property int pageSpacing: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.tileGap
-        : Appearance.editorialEverywhere ? 14 : 12) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 14 * Appearance.editorial.spacing : 12) * Appearance.fontSizeScale)
 
     // ── Card (SettingsCardSection) ──
     readonly property int cardRadius: Appearance.angelEverywhere ? Appearance.angel.roundingNormal
         : Appearance.regaliaEverywhere ? Appearance.regalia.roundNormal
         : Appearance.zzzEverywhere ? Appearance.zzz.cornerRadius + 1
         : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
-        : Appearance.rounding.normal
+        : Appearance.editorialEverywhere ? Appearance.editorial.radius : Appearance.rounding.normal
     readonly property int cardPadding: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.tilePadding
-        : Appearance.editorialEverywhere ? 16 : 14) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 16 * Appearance.editorial.spacing : 14) * Appearance.fontSizeScale)
 
     // ── Card header ──
     readonly property int headerRadius: Appearance.angelEverywhere ? Appearance.angel.roundingSmall
         : Appearance.regaliaEverywhere ? Appearance.regalia.controlRadius
         : Appearance.zzzEverywhere ? Appearance.zzz.cornerRadius
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
-        : Appearance.rounding.small
+        : Appearance.editorialEverywhere ? Math.max(4, Math.round(Appearance.editorial.radius * 0.7)) : Appearance.rounding.small
     readonly property int headerPaddingX: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.controlPaddingHorizontal
-        : Appearance.editorialEverywhere ? 14 : 12) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 14 * Appearance.editorial.spacing : 12) * Appearance.fontSizeScale)
     readonly property int headerPaddingY: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.controlPaddingVertical
-        : Appearance.editorialEverywhere ? 8 : 7) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 8 * Appearance.editorial.spacing : 7) * Appearance.fontSizeScale)
 
     // ── Group (SettingsGroup) ──
     readonly property int groupRadius: Appearance.angelEverywhere ? Appearance.angel.roundingSmall
         : Appearance.regaliaEverywhere ? Appearance.regalia.roundSmall
         : Appearance.zzzEverywhere ? Appearance.zzz.cornerRadius
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
-        : Appearance.rounding.small
+        : Appearance.editorialEverywhere ? Math.max(4, Math.round(Appearance.editorial.radius * 0.7)) : Appearance.rounding.small
     readonly property int groupPadding: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.tilePadding
-        : Appearance.editorialEverywhere ? 14 : 12) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 14 * Appearance.editorial.spacing : 12) * Appearance.fontSizeScale)
     readonly property int groupSpacing: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.tileGap
-        : Appearance.editorialEverywhere ? 8 : 7) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 8 * Appearance.editorial.spacing : 7) * Appearance.fontSizeScale)
 
     // ── Colors ──
     // In angel/aurora, cards are more transparent to let the content area's
@@ -143,8 +143,8 @@ QtObject {
     // ── Navigation rail ──
     readonly property int navWidth: 180
     readonly property int navItemHeight: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.controlHeight
-        : Appearance.editorialEverywhere ? 36 : 34) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 36 * Appearance.editorial.spacing : 34) * Appearance.fontSizeScale)
     readonly property int navCategorySpacing: Math.round((Appearance.regaliaEverywhere ? Appearance.regalia.tileGap + Appearance.regalia.controlGap
-        : Appearance.editorialEverywhere ? 12 : 10) * Appearance.fontSizeScale)
+        : Appearance.editorialEverywhere ? 12 * Appearance.editorial.spacing : 10) * Appearance.fontSizeScale)
     readonly property int navItemSpacing: Appearance.regaliaEverywhere ? Appearance.regalia.controlGap : 2
 }

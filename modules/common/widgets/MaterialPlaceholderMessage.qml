@@ -44,8 +44,8 @@ Item {
     ColumnLayout {
         id: placeholderColumn
         anchors.centerIn: parent
-        width: Math.min(root.maximumWidth, parent ? parent.width - 24 : root.maximumWidth)
-        spacing: root.compact ? 6 : (Appearance.inirEverywhere ? 8 : 10)
+        width: Math.max(0, Math.min(root.maximumWidth, parent ? parent.width - 24 : root.maximumWidth))
+        spacing: Appearance.editorialEverywhere ? Math.round((root.compact ? 8 : 12) * Appearance.editorial.spacing) : root.compact ? 6 : (Appearance.inirEverywhere ? 8 : 10)
 
         Item {
             visible: root.icon !== ""
@@ -55,29 +55,29 @@ Item {
 
             Rectangle {
                 anchors.fill: parent
-                visible: Appearance.inirEverywhere
-                radius: Appearance.inir.roundingNormal
-                color: Appearance.inir.colLayer2
-                border.width: 1
+                visible: Appearance.inirEverywhere || (Appearance.editorialEverywhere && !Appearance.editorial.ornaments)
+                radius: Appearance.editorialEverywhere ? Appearance.editorial.radius : Appearance.inir.roundingNormal
+                color: Appearance.editorialEverywhere ? Appearance.editorial.secondaryField : Appearance.inir.colLayer2
+                border.width: Appearance.editorialEverywhere ? 0 : 1
                 border.color: Appearance.inir.colBorder
             }
 
             MaterialSymbol {
                 anchors.centerIn: parent
-                visible: Appearance.inirEverywhere
+                visible: Appearance.inirEverywhere || (Appearance.editorialEverywhere && !Appearance.editorial.ornaments)
                 text: root.icon
                 iconSize: 32
-                color: Appearance.inir.colTextSecondary
+                color: Appearance.editorialEverywhere ? Appearance.editorial.secondaryFieldInk : Appearance.inir.colTextSecondary
             }
 
             MaterialShapeWrappedMaterialSymbol {
                 id: materialShape
                 anchors.centerIn: parent
-                visible: !Appearance.inirEverywhere
+                visible: !Appearance.inirEverywhere && (!Appearance.editorialEverywhere || Appearance.editorial.ornaments)
                 text: root.icon
                 shape: root.shape
                 padding: 12
-                iconSize: 56
+                iconSize: Appearance.editorialEverywhere ? (root.compact ? 28 : 36) : 56
             }
         }
 
@@ -89,7 +89,9 @@ Item {
             horizontalAlignment: root.textHorizontalAlignment
             wrapMode: Text.Wrap
             font.pixelSize: root.compact ? Appearance.font.pixelSize.normal : Appearance.font.pixelSize.large
-            font.weight: Font.DemiBold
+            font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
+            font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.DemiBold
+            font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
             color: Appearance.inirEverywhere ? Appearance.inir.colText : Appearance.colors.colOnSurface
         }
 

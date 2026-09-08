@@ -951,15 +951,17 @@ Scope {
                             anchors.fill: parent
                             anchors.topMargin: root.navEditMode ? 10 : 4
                             anchors.bottomMargin: root.navEditMode ? 10 : 4
-                            radius: Appearance.rounding.full
+                            radius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                             color: overlaySearchField.activeFocus
                                 ? (Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                                   : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                                   : Appearance.inirEverywhere ? Appearance.inir.colLayer1
+                                  : Appearance.editorialEverywhere ? Appearance.editorial.field
                                   : Appearance.colors.colLayer1)
                                 : (Appearance.angelEverywhere ? Appearance.angel.colGlassCard
                                   : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                                   : Appearance.inirEverywhere ? Appearance.inir.colLayer0
+                                  : Appearance.editorialEverywhere ? Appearance.editorial.layer(1)
                                   : Appearance.colors.colSurfaceContainerLow)
                             border.width: overlaySearchField.activeFocus ? 2
                                 : (Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth : 1)
@@ -967,6 +969,7 @@ Scope {
                                 ? Appearance.colors.colPrimary
                                 : (Appearance.angelEverywhere ? Appearance.angel.colCardBorder
                                   : Appearance.inirEverywhere ? Appearance.inir.colBorderMuted
+                                  : Appearance.editorialEverywhere ? Appearance.editorial.rule
                                   : Appearance.colors.colOutlineVariant)
 
                             Behavior on color {
@@ -1321,6 +1324,7 @@ Scope {
                                                 // colour, not a Material ripple bleeding out from the
                                                 // click point on a transparent nav item.
                                                 rippleEnabled: !Appearance.zzzEverywhere
+                                                stateTransitionsEnabled: false
 
                                                 buttonRadius: Appearance.regaliaEverywhere
                                                     ? Appearance.regalia.roundSmall
@@ -1470,19 +1474,8 @@ Scope {
                                         property real targetH: 0
                                         property bool hasTarget: false
 
-                                        // Leading/trailing edges travel at different speeds, so the
-                                        // pill stretches toward the target and contracts on arrival
-                                        // (same morph as the bar Workspaces indicator).
                                         property real edgeTop: targetY
                                         property real edgeBottom: targetY + targetH
-                                        Behavior on edgeTop {
-                                            enabled: Appearance.animationsEnabled
-                                            animation: NumberAnimation { duration: Appearance.animation.elementResize.duration; easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve }
-                                        }
-                                        Behavior on edgeBottom {
-                                            enabled: Appearance.animationsEnabled
-                                            animation: NumberAnimation { duration: Math.round(Appearance.animation.elementResize.duration * 1.18); easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve }
-                                        }
 
                                         function updatePosition() {
                                             for (var i = 0; i < navRepeater.count; i++) {
@@ -1531,12 +1524,16 @@ Scope {
 
                                         Connections {
                                             target: root
-                                            function onOverlayCurrentPageChanged() { Qt.callLater(sharedNavIndicator.updatePosition); }
+                                            function onOverlayCurrentPageChanged() { sharedNavIndicator.updatePosition(); }
                                             function onVisibleNavItemsChanged() { Qt.callLater(sharedNavIndicator.updatePosition); }
                                         }
                                         Connections {
                                             target: navRepeater
                                             function onCountChanged() { Qt.callLater(sharedNavIndicator.updatePosition); }
+                                        }
+                                        Connections {
+                                            target: navCol
+                                            function onImplicitHeightChanged() { Qt.callLater(sharedNavIndicator.updatePosition); }
                                         }
                                         Component.onCompleted: Qt.callLater(updatePosition)
                                     }

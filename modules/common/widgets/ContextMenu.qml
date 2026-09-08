@@ -240,7 +240,7 @@ Loader {
                 : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
                 : Appearance.rounding.normal
             border.width: Appearance.regaliaEverywhere ? 0 : 1
-            border.color: Appearance.regaliaEverywhere ? "transparent"
+            border.color: Appearance.editorialEverywhere ? Appearance.editorial.rule : Appearance.regaliaEverywhere ? "transparent"
                         : Appearance.angelEverywhere ? Appearance.angel.colBorder
                         : Appearance.inirEverywhere ? Appearance.inir.colBorder
                         : Appearance.auroraEverywhere
@@ -310,11 +310,14 @@ Loader {
                         DelegateChoice {
                             roleValue: "separator"
                             Rectangle {
-                                Layout.topMargin: 2
-                                Layout.bottomMargin: 2
+                                Layout.topMargin: Appearance.editorialEverywhere ? 5 : 2
+                                Layout.bottomMargin: Appearance.editorialEverywhere ? 5 : 2
+                                Layout.leftMargin: Appearance.editorialEverywhere ? 10 : 0
+                                Layout.rightMargin: Appearance.editorialEverywhere ? 10 : 0
                                 Layout.fillWidth: true
                                 implicitHeight: 1
-                                color: Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle
+                                color: Appearance.editorialEverywhere ? Appearance.editorial.rule
+                                    : Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle
                                     : Appearance.inirEverywhere ? Appearance.inir.colBorderSubtle
                                     : Appearance.colors.colOutlineVariant
                             }
