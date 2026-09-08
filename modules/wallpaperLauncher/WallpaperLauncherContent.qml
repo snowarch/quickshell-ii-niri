@@ -10,6 +10,7 @@ import QtQuick.Layouts
 
 FocusScope {
     id: root
+    readonly property bool editorial: Appearance.editorialEverywhere
 
     required property string monitorName
 
@@ -213,22 +214,27 @@ FocusScope {
 
     StyledRectangularShadow {
         target: panel
-        visible: !Appearance.inirEverywhere && !Appearance.zzzEverywhere
+        visible: !root.editorial && !Appearance.inirEverywhere && !Appearance.zzzEverywhere
     }
 
     GlassBackground {
         id: panel
         anchors.fill: parent
         fallbackColor: ColorUtils.applyAlpha(
-            Appearance.zzzEverywhere ? Appearance.zzz.paper : Appearance.colors.colLayer0, 1)
+            Appearance.zzzEverywhere ? Appearance.zzz.paper
+                : root.editorial ? Appearance.editorial.paper
+                : Appearance.colors.colLayer0, 1)
         inirColor: Appearance.inir.colLayer0
         auroraTransparency: Appearance.aurora.overlayTransparentize
+        wallpaperBackdropEnabled: !root.editorial
         radius: Appearance.zzzEverywhere ? Appearance.zzz.panelRadius
+            : root.editorial ? Appearance.editorial.radius
             : Appearance.angelEverywhere ? Appearance.angel.roundingLarge
             : Appearance.inirEverywhere ? Appearance.inir.roundingLarge
             : Appearance.rounding.large
         border.width: 1
         border.color: Appearance.zzzEverywhere ? Appearance.zzz.hairlineStrong
+            : root.editorial ? Appearance.editorial.rule
             : Appearance.angelEverywhere ? Appearance.angel.colCardBorder
             : Appearance.inirEverywhere ? Appearance.inir.colBorder
             : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder
