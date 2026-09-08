@@ -203,7 +203,8 @@ Item {
             return GameMode.hasAnyFullscreenWindow;
         return GameMode.hasFullscreenOnOutput(screenName);
     }
-    readonly property bool fsHide: fsCovered
+    readonly property bool gameHide: Appearance.gameModeMinimal
+    readonly property bool fsHide: (fsCovered || gameHide)
         && (mode === "rest" || mode === "hover" || mode === "game")
 
     opacity: fsHide ? 0 : 1
