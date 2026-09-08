@@ -38,6 +38,28 @@ source_config_path_helper() {
 
 source_config_path_helper
 
+source_niri_session_env_helper() {
+    local helper_candidates=(
+        "$script_dir/lib/niri-session-env.sh"
+        "$launcher_root/share/quickshell/inir/scripts/lib/niri-session-env.sh"
+        "$user_config_dir/scripts/lib/niri-session-env.sh"
+        "$system_config_dir/scripts/lib/niri-session-env.sh"
+        "$fallback_system_config_dir/scripts/lib/niri-session-env.sh"
+    )
+
+    local helper_path
+    for helper_path in "${helper_candidates[@]}"; do
+        if [[ -f "$helper_path" ]]; then
+            source "$helper_path"
+            return
+        fi
+    done
+
+    inir_resolve_niri_service_environment() { return 1; }
+}
+
+source_niri_session_env_helper
+
 _ipc_registry_loaded=false
 
 source_ipc_registry() {
@@ -130,6 +152,26 @@ read_version_field() {
     fi
 
     sed -n "s/.*${fallback_regex}.*/\\1/p" "$version_file" 2>/dev/null | head -1
+}
+
+current_install_mode() {
+    local version_file install_mode
+    local candidates=(
+        "$(inir_version_file 2>/dev/null || true)"
+        "$user_config_dir/version.json"
+        "$system_config_dir/version.json"
+        "$fallback_system_config_dir/version.json"
+    )
+
+    for version_file in "${candidates[@]}"; do
+        [[ -f "$version_file" ]] || continue
+        install_mode="$(read_version_field "$version_file" '.installMode // .install_mode' '"installMode"[[:space:]]*:[[:space:]]*"\([^"]*\)"')"
+        [[ -z "$install_mode" ]] && install_mode="$(read_version_field "$version_file" '.install_mode' '"install_mode"[[:space:]]*:[[:space:]]*"\([^"]*\)"')"
+        if [[ -n "$install_mode" ]]; then
+            printf '%s\n' "$install_mode"
+            return 0
+        fi
+    done
 }
 
 resolve_live_version_context() {
@@ -247,7 +289,7 @@ service_usage() {
 Usage: inir service <install|uninstall|enable|disable|start|stop|restart|status|logs> [args...]
 
 What it does:
-  install     Write the user unit file from the current launcher path
+  install     Ensure the service unit matches the current install mode
   enable      Wire inir.service to the detected compositor service
   disable     Remove compositor wants links
   start       Start the user service
@@ -1778,6 +1820,11 @@ apply_qt_runtime_env() {
         fi
     fi
 
+    if inir_resolve_niri_service_environment; then
+        export NIRI_SOCKET="$INIR_RESOLVED_NIRI_SOCKET"
+        export WAYLAND_DISPLAY="$INIR_RESOLVED_WAYLAND_DISPLAY"
+    fi
+
     # Electron Wayland hint for the shell's startup environment and legacy
     # internal child paths. User-facing apps take the live user-manager value
     # through ShellExec, so this fallback never becomes a forced app policy.
@@ -2032,21 +2079,19 @@ cleanup_orphans() {
         done
     fi
 
-    # Phase 4: Kill orphaned quickshell/qs processes not owned by the live service.
-    # Only target qs processes, never user apps.
+    # Phase 4: Kill only orphaned Quickshell processes that still belong to
+    # inir.service. A foreground `qs -p ...` or another Quickshell config is not
+    # owned by this service and must survive its ExecStopPost cleanup.
     local alive_pids service_main_pid=""
     service_main_pid="$(systemctl --user show -p MainPID inir.service 2>/dev/null | cut -d= -f2 || true)"
     alive_pids="$(pgrep -x 'quickshell|qs' 2>/dev/null || true)"
     if [[ -n "$alive_pids" ]]; then
         while IFS= read -r pid; do
             [[ -n "$pid" ]] || continue
-            # Skip the live service PID and its direct children
-            if [[ -n "$service_main_pid" && "$service_main_pid" != "0" ]]; then
-                [[ "$pid" == "$service_main_pid" ]] && continue
-                local ppid
-                ppid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ' || true)"
-                [[ "$ppid" == "$service_main_pid" ]] && continue
-            fi
+            [[ "$pid" == "$service_main_pid" ]] && continue
+            local qs_cgroup
+            qs_cgroup="$(cat "/proc/$pid/cgroup" 2>/dev/null || true)"
+            [[ "$qs_cgroup" == *"/inir.service"* ]] || continue
             kill "$pid" 2>/dev/null || true
         done <<< "$alive_pids"
     fi
@@ -2652,8 +2697,7 @@ install_user_service() {
     asset_path="$setup_dir/assets/systemd/inir.service"
     launcher_path="$(resolve_launcher_path)"
     version_file="$(inir_version_file 2>/dev/null || true)"
-    install_mode="$(read_version_field "$version_file" '.installMode // .install_mode' '"installMode"[[:space:]]*:[[:space:]]*"\([^"]*\)"')"
-    [[ -z "$install_mode" ]] && install_mode="$(read_version_field "$version_file" '.install_mode' '"install_mode"[[:space:]]*:[[:space:]]*"\([^"]*\)"')"
+    install_mode="$(current_install_mode)"
     if [[ -z "$install_mode" || "$install_mode" == "unknown" ]]; then
         local launcher_real repo_launcher_real
         launcher_real="$(readlink -f "$launcher_path" 2>/dev/null || true)"
@@ -2666,6 +2710,18 @@ install_user_service() {
     if [[ ! -f "$asset_path" ]]; then
         echo "service asset not found in $setup_dir" >&2
         exit 1
+    fi
+
+    if [[ "$install_mode" == "package-managed" ]]; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+        local fragment_path
+        fragment_path="$(systemctl --user show -p FragmentPath --value inir.service 2>/dev/null || true)"
+        if [[ ! -f "$fragment_path" ]]; then
+            echo "packaged inir.service is not available; reinstall the iNiR package" >&2
+            return 1
+        fi
+        printf '%s\n' "$fragment_path"
+        return 0
     fi
 
     mkdir -p "$systemd_user_dir"
@@ -2761,9 +2817,12 @@ enable_inir_service() {
     fi
 
     local wants_dir="$systemd_user_dir/${target}.wants"
+    local service_path
+    service_path="$(systemctl --user show -p FragmentPath --value inir.service 2>/dev/null || true)"
+    [[ -f "$service_path" ]] || service_path="$systemd_user_dir/inir.service"
 
     mkdir -p "$wants_dir"
-    ln -sf "$systemd_user_dir/inir.service" "$wants_dir/inir.service"
+    ln -sf "$service_path" "$wants_dir/inir.service"
     systemctl --user daemon-reload
 
     printf 'Enabled inir.service (wired to %s)\n' "$target"

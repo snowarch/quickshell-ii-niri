@@ -368,7 +368,7 @@ Singleton {
         const fallbackFile = niriConfigPath
         const sedExpr = enabled
             ? "sed -i '/^animations {/,/^}/ s/^\\([ \\t]*\\)off$/\\1\\/\\/off/'"
-            : "sed -i '/^animations {/,/^}/ s/^\\([ \\t]*\\)\\/\\/off$/\\1off/'"
+            : "sed -i '/^animations {/,/^}/ s/^\\([ \\t]*\\)\\/\\/[ \\t]*off$/\\1off/'"
 
         niriAnimProcess.command = [
             "/usr/bin/bash",

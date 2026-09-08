@@ -167,6 +167,8 @@ case "${SKIP_QUICKSHELL}" in
       fi
     fi
 
+    repair_legacy_niri_shell_startup >/dev/null 2>&1 || true
+
     local _service_refresh_status=1
     local _service_dir="${XDG_CONFIG_HOME}/systemd/user"
     local _service_asset="${REPO_ROOT}/assets/systemd/inir.service"
@@ -183,54 +185,26 @@ case "${SKIP_QUICKSHELL}" in
 
       if sync_user_inir_service_from_repo_if_present; then
         _service_refresh_status=0
-        log_success "User inir.service refreshed"
+        if [[ "${INIR_SERVICE_SYNC_CHANGED:-0}" -gt 0 ]]; then
+          log_success "User inir.service refreshed"
+        else
+          log_success "User inir.service current"
+        fi
       fi
     fi
 
     if [[ -f "$_service_target" ]]; then
-      # Wire to compositor-specific wants so inir only starts under the correct
-      # compositor — NOT under KDE/GNOME/etc.  Never fall back to
-      # graphical-session.target: that target is active in ANY desktop session.
-      local _comp_target=""
-      if systemctl --user cat niri.service &>/dev/null; then
-        _comp_target="niri.service"
-      fi
-
-      if [[ -n "$_comp_target" ]]; then
-        local _wants_dir="${XDG_CONFIG_HOME}/systemd/user/${_comp_target}.wants"
-        if mkdir -p "$_wants_dir" \
-            && ln -sf "${XDG_CONFIG_HOME}/systemd/user/inir.service" "$_wants_dir/inir.service" \
-            && systemctl --user daemon-reload >/dev/null 2>&1 \
-            && [[ -e "$_wants_dir/inir.service" || -L "$_wants_dir/inir.service" ]]; then
-          log_success "User inir.service enabled (wired to ${_comp_target})"
-        else
-          log_warning "Could not wire inir.service to ${_comp_target} — run 'inir service enable'"
-        fi
+      if ensure_user_inir_service_enabled; then
+        log_success "User inir.service enabled (wired to niri.service)"
       else
-        log_warning "niri.service not detected"
-        log_warning "inir.service not enabled — start Niri as a managed session and run 'inir service enable'"
+        log_warning "Could not wire inir.service to niri.service — run 'inir service enable'"
       fi
     fi
 
-    if [[ -f "${REPO_ROOT}/assets/icons/desktop-symbolic.svg" ]]; then
-      install_file "${REPO_ROOT}/assets/icons/desktop-symbolic.svg" "${INIR_ICON_DIR}/inir.svg"
-      log_success "Launcher icon installed"
-    fi
-
-    if [[ -f "${REPO_ROOT}/assets/applications/inir.desktop" ]]; then
-      INIR_DESKTOP_TMP="${XDG_CACHE_HOME}/inir.desktop.$$"
-      sed "s|^Exec=.*|Exec=${INIR_LAUNCHER_PATH//&/\\&} service restart|" "${REPO_ROOT}/assets/applications/inir.desktop" > "${INIR_DESKTOP_TMP}"
-      install_file "${INIR_DESKTOP_TMP}" "${INIR_APPLICATIONS_DIR}/inir.desktop"
-      rm -f "${INIR_DESKTOP_TMP}"
-      log_success "Shell desktop entry installed"
-    fi
-
-    if [[ -f "${REPO_ROOT}/assets/applications/inir-settings.desktop" ]]; then
-      INIR_SETTINGS_DESKTOP_TMP="${XDG_CACHE_HOME}/inir-settings.desktop.$$"
-      sed "s|^Exec=.*|Exec=${INIR_LAUNCHER_PATH//&/\\&} settings|" "${REPO_ROOT}/assets/applications/inir-settings.desktop" > "${INIR_SETTINGS_DESKTOP_TMP}"
-      install_file "${INIR_SETTINGS_DESKTOP_TMP}" "${INIR_APPLICATIONS_DIR}/inir-settings.desktop"
-      rm -f "${INIR_SETTINGS_DESKTOP_TMP}"
-      log_success "Settings desktop entry installed"
+    if sync_user_desktop_integration_from_repo; then
+      log_success "Desktop integration installed"
+    else
+      log_warning "Could not install desktop integration"
     fi
 
     log_success "Quickshell inir config installed"

@@ -38,10 +38,23 @@ SESSION_IMPACT_NOTICE_REASONS=()
 SESSION_IMPACT_NOTICE_EFFECTS=()
 SESSION_IMPACT_NOTICE_ACTIONS=()
 
-# Historical migrations whose side effects are no longer part of the product.
-# Keep their files for upgrade history, but never execute them again.
+# Historical migrations that no longer own current upgrade state.
+# Keep their files for history, but repair current state through present owners.
 RETIRED_MIGRATIONS=(
+    "001-gamemode-animation-toggle"
+    "002-backdrop-layer-rules"
+    "003-qt-theming-kde"
+    "004-audio-keybinds-ipc"
+    "005-dolphin-xdg-menu"
+    "006-close-confirm"
+    "007-brightness-keybinds"
+    "008-media-keybinds"
+    "009-quickshell-dbus-properties-logspam"
     "014-malloc-arena-optimization"
+    "021-systemd-single-instance"
+    "022-service-compositor-wants"
+    "028-bar-modular-layout"
+    "040-niri-session-environment-lifecycle"
 )
 
 is_migration_retired() {

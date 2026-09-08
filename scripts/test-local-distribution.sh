@@ -39,14 +39,54 @@ if grep -Fq '/tmp/.X11-unix/X' "$runtime_root/scripts/inir" \
     printf 'FAIL: iNiR still guesses compositor-owned DISPLAY/NIRI_SOCKET from filesystem sockets\n' >&2
     exit 1
 fi
-session_migration="$runtime_root/sdata/migrations/040-niri-session-environment-lifecycle.sh"
-if [[ ! -f "$session_migration" ]] \
-        || ! grep -Fq 'MIGRATION_SESSION_IMPACT=true' "$session_migration" \
-        || ! grep -Fq 'show_session_impact_notices' "$runtime_root/setup" \
-        || ! grep -Fq 'record_migration_session_impact' "$runtime_root/sdata/lib/migrations.sh"; then
-    printf 'FAIL: session-level lifecycle updates no longer emit a one-shot restart advisory\n' >&2
+session_helper="$runtime_root/scripts/lib/niri-session-env.sh"
+if [[ ! -f "$session_helper" ]] \
+        || ! grep -Fq 'MainPID --value niri.service' "$session_helper" \
+        || ! grep -Fq 'inir_resolve_niri_service_environment' "$runtime_root/scripts/inir" \
+        || ! grep -Fq 'inir_resolve_niri_service_environment' "$runtime_root/sdata/lib/doctor.sh" \
+        || ! grep -Fq '"040-niri-session-environment-lifecycle"' "$runtime_root/sdata/lib/migrations.sh"; then
+    printf 'FAIL: Niri session recovery is not owned by launcher/Doctor with the legacy migration retired\n' >&2
     exit 1
 fi
+
+session_env_root="$(mktemp -d)"
+mkdir -p "$session_env_root/bin" "$session_env_root/runtime"
+python3 - "$session_env_root/runtime" <<'PYSESSION'
+import pathlib
+import socket
+import sys
+root = pathlib.Path(sys.argv[1])
+for name in ("wayland-7", "niri.wayland-7.4242.sock"):
+    sock = socket.socket(socket.AF_UNIX)
+    sock.bind(str(root / name))
+    sock.close()
+PYSESSION
+cat > "$session_env_root/bin/systemctl" <<'SH'
+#!/usr/bin/env bash
+if [[ "$*" == "--user is-active --quiet niri.service" ]]; then exit 0; fi
+if [[ "$*" == "--user show -p MainPID --value niri.service" ]]; then printf '%s\n' "${INIR_TEST_NIRI_PID:-4242}"; exit 0; fi
+exit 1
+SH
+chmod +x "$session_env_root/bin/systemctl"
+if ! PATH="$session_env_root/bin:$PATH" XDG_RUNTIME_DIR="$session_env_root/runtime" SESSION_HELPER="$session_helper" bash -c '
+    source "$SESSION_HELPER"
+    inir_resolve_niri_service_environment
+    [[ "$INIR_RESOLVED_NIRI_SOCKET" == "$XDG_RUNTIME_DIR/niri.wayland-7.4242.sock" ]]
+    [[ "$INIR_RESOLVED_WAYLAND_DISPLAY" == "wayland-7" ]]
+'; then
+    rm -rf "$session_env_root"
+    printf 'FAIL: Niri service-scoped environment recovery cannot resolve the service-owned sockets\n' >&2
+    exit 1
+fi
+if PATH="$session_env_root/bin:$PATH" XDG_RUNTIME_DIR="$session_env_root/runtime" INIR_TEST_NIRI_PID=9999 SESSION_HELPER="$session_helper" bash -c '
+    source "$SESSION_HELPER"
+    inir_resolve_niri_service_environment
+'; then
+    rm -rf "$session_env_root"
+    printf 'FAIL: Niri environment recovery accepts a socket not owned by niri.service MainPID\n' >&2
+    exit 1
+fi
+rm -rf "$session_env_root"
 if ! grep -Fq 'property var _trayService: TrayService' "$runtime_root/shell.qml"; then
     printf 'FAIL: shell startup does not instantiate the StatusNotifier watcher\n' >&2
     exit 1
@@ -138,7 +178,79 @@ if ! (
     rm -rf "$service_mask_root"
     exit 1
 fi
+service_wiring_function="$(sed -n '/^ensure_user_inir_service_enabled() {/,/^}/p' "$runtime_root/setup")"
+mkdir -p "$service_mask_root/systemd/user/graphical-session.target.wants"
+ln -sf "$service_mask_root/systemd/user/inir.service" "$service_mask_root/systemd/user/graphical-session.target.wants/inir.service"
+if ! (
+    export XDG_CONFIG_HOME="$service_mask_root"
+    export PATH="$service_mask_root/bin:$PATH"
+    export INIR_TEST_SYSTEMCTL_STATE=disabled
+    source "$runtime_root/sdata/lib/functions.sh"
+    eval "$service_wiring_function"
+    ensure_user_inir_service_enabled
+    [[ "$INIR_SERVICE_WIRING_CHANGED" -eq 1 ]]
+    [[ ! -e "$service_mask_root/systemd/user/graphical-session.target.wants/inir.service" ]]
+    [[ -L "$service_mask_root/systemd/user/niri.service.wants/inir.service" ]]
+    ensure_user_inir_service_enabled
+    [[ "$INIR_SERVICE_WIRING_CHANGED" -eq 0 ]]
+); then
+    printf 'FAIL: service wiring does not remove legacy wants links and converge idempotently\n' >&2
+    rm -rf "$service_mask_root"
+    exit 1
+fi
 rm -rf "$service_mask_root"
+
+package_service_root="$(mktemp -d)"
+mkdir -p "$package_service_root/xdg/systemd/user" "$package_service_root/bin" "$package_service_root/pkg"
+printf '[Unit]\nDescription=iNiR package fixture\n' > "$package_service_root/pkg/inir.service"
+cat > "$package_service_root/bin/systemctl" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+    "--user is-enabled inir.service") printf 'disabled\n' ;;
+    "--user cat niri.service") printf '[Unit]\nDescription=Niri fixture\n' ;;
+    "--user show -p FragmentPath --value inir.service") printf '%s\n' "$INIR_TEST_PACKAGE_UNIT" ;;
+    "--user show -p KillMode inir.service") printf 'KillMode=process\n' ;;
+    "--user daemon-reload") : ;;
+    *) exit 1 ;;
+esac
+SH
+chmod +x "$package_service_root/bin/systemctl"
+if ! (
+    export XDG_CONFIG_HOME="$package_service_root/xdg"
+    export PATH="$package_service_root/bin:$PATH"
+    export INIR_TEST_PACKAGE_UNIT="$package_service_root/pkg/inir.service"
+    source "$runtime_root/sdata/lib/functions.sh"
+    get_installed_update_strategy() { printf 'package-manager\n'; }
+    eval "$service_wiring_function"
+    ensure_user_inir_service_enabled
+    [[ "$INIR_SERVICE_WIRING_CHANGED" -eq 1 ]]
+    [[ ! -e "$XDG_CONFIG_HOME/systemd/user/inir.service" ]]
+    [[ "$(readlink -f "$XDG_CONFIG_HOME/systemd/user/niri.service.wants/inir.service")" == "$INIR_TEST_PACKAGE_UNIT" ]]
+); then
+    printf 'FAIL: package-managed service wiring creates or depends on a stale user unit copy\n' >&2
+    rm -rf "$package_service_root"
+    exit 1
+fi
+
+mkdir -p "$package_service_root/home/.config" "$package_service_root/runtime"
+cat > "$package_service_root/runtime/version.json" <<'EOF'
+{"installMode":"package-managed","updateStrategy":"package-manager"}
+EOF
+if ! HOME="$package_service_root/home" XDG_CONFIG_HOME="$package_service_root/home/.config" \
+        PATH="$package_service_root/bin:$PATH" INIR_TEST_PACKAGE_UNIT="$package_service_root/pkg/inir.service" \
+        INIR_FALLBACK_SYSTEM_RUNTIME_DIR="$package_service_root/runtime" \
+        "$runtime_root/scripts/inir" service enable >/dev/null; then
+    printf 'FAIL: packaged launcher cannot enable the Niri service from packaged version metadata\n' >&2
+    rm -rf "$package_service_root"
+    exit 1
+fi
+if [[ -e "$package_service_root/home/.config/systemd/user/inir.service" ]] \
+        || [[ "$(readlink -f "$package_service_root/home/.config/systemd/user/niri.service.wants/inir.service")" != "$package_service_root/pkg/inir.service" ]]; then
+    printf 'FAIL: packaged launcher shadows the package-owned service with a user copy\n' >&2
+    rm -rf "$package_service_root"
+    exit 1
+fi
+rm -rf "$package_service_root"
 if ! grep -Fq 'inir_user_service_is_masked && return 2' "$runtime_root/setup" \
         || ! grep -Fq 'User inir.service is masked; leaving it unchanged' "$runtime_root/setup" \
         || ! grep -Fq 'Shell restart skipped: inir.service is masked' "$runtime_root/setup" \
@@ -146,6 +258,10 @@ if ! grep -Fq 'inir_user_service_is_masked && return 2' "$runtime_root/setup" \
         || ! grep -Fq 'systemctl --user unmask inir.service' "$runtime_root/sdata/subcmd-install/3.files.sh" \
         || ! grep -Fq 'systemctl --user unmask --runtime inir.service' "$runtime_root/scripts/inir"; then
     printf 'FAIL: install/update/doctor do not preserve the service mask contract\n' >&2
+    exit 1
+fi
+if ! grep -Fq '[[ "$qs_cgroup" == *"/inir.service"* ]] || continue' "$runtime_root/scripts/inir"; then
+    printf 'FAIL: cleanup-orphans can terminate Quickshell processes outside inir.service\n' >&2
     exit 1
 fi
 
@@ -1347,6 +1463,21 @@ if ! grep -Fq 'wl-paste --no-newline --type text --watch ~/.config/quickshell/in
     printf 'FAIL: clipboard text watcher can synthesize trailing newlines and bypass cliphist dedupe\n' >&2
     exit 1
 fi
+clipboard_restore_migration="$runtime_root/sdata/migrations/034-cliphist-text-watcher.sh"
+if [[ ! -f "$clipboard_restore_migration" ]]; then
+    printf 'FAIL: clipboard text-watcher repair migration is missing\n' >&2
+    exit 1
+fi
+clipboard_migration_home="$(mktemp -d)"
+mkdir -p "$clipboard_migration_home/.config/niri/config.d"
+cp "$clipboard_startup" "$clipboard_migration_home/.config/niri/config.d/50-startup.kdl"
+if ! HOME="$clipboard_migration_home" XDG_CONFIG_HOME="$clipboard_migration_home/.config" REPO_ROOT="$runtime_root" \
+        bash -c 'source "$REPO_ROOT/sdata/lib/migrations.sh"; load_migration 034-cliphist-text-watcher; ! migration_check'; then
+    rm -rf "$clipboard_migration_home"
+    printf 'FAIL: current clipboard watcher is falsely reported as missing by migration 034\n' >&2
+    exit 1
+fi
+rm -rf "$clipboard_migration_home"
 if ! grep -Fq 'previewRefreshTimer' "$runtime_root/modules/dock/DockPreview.qml" \
         || ! grep -Fq 'pendingPreviewIds' "$runtime_root/modules/dock/DockPreview.qml" \
         || ! grep -Fq 'hoverDelayTimer.stop()' "$runtime_root/modules/dock/DockAppButton.qml"; then
@@ -1397,12 +1528,109 @@ fi
 migration_lib="$runtime_root/sdata/lib/migrations.sh"
 repair_lib="$runtime_root/sdata/lib/functions.sh"
 doctor_lib="$runtime_root/sdata/lib/doctor.sh"
-if ! grep -Fq '"014-malloc-arena-optimization"' "$migration_lib" \
+if ! MIGRATION_LIB="$migration_lib" bash -c '
+        source "$MIGRATION_LIB"
+        for id in \
+            001-gamemode-animation-toggle 002-backdrop-layer-rules 003-qt-theming-kde \
+            004-audio-keybinds-ipc 005-dolphin-xdg-menu 006-close-confirm \
+            007-brightness-keybinds 008-media-keybinds 009-quickshell-dbus-properties-logspam \
+            014-malloc-arena-optimization 021-systemd-single-instance \
+            022-service-compositor-wants 028-bar-modular-layout \
+            040-niri-session-environment-lifecycle; do
+            is_migration_retired "$id" || exit 1
+        done
+    ' \
         || ! grep -Fq 'is_migration_retired "$migration_id" && return 1' "$migration_lib" \
         || ! grep -Fq 'repair_legacy_quickshell_malloc_environment()' "$repair_lib" \
         || ! grep -Fq 'repair_legacy_quickshell_malloc_environment' "$runtime_root/setup" \
         || ! grep -Fq 'repair_legacy_quickshell_malloc_environment' "$doctor_lib"; then
-    printf 'FAIL: retired allocator migration is not repaired through install/update/doctor\n' >&2
+    printf 'FAIL: retired runtime migrations are not repaired through current owners\n' >&2
+    exit 1
+fi
+if ! grep -Fq '! -name "test-*.py"' "$doctor_lib" \
+        || ! grep -Fq '! -name "test-*.py"' "$runtime_root/setup"; then
+    printf 'FAIL: Doctor/update can turn non-command Python test modules executable\n' >&2
+    exit 1
+fi
+
+declare -A _migration_ids_seen=()
+for _migration_file in "$runtime_root"/sdata/migrations/*.sh; do
+    [[ -f "$_migration_file" ]] || continue
+    _migration_file_id="$(basename "$_migration_file" .sh)"
+    _migration_declared_id="$(sed -n 's/^MIGRATION_ID="\([^"]*\)".*/\1/p' "$_migration_file" | head -1)"
+    if [[ -z "$_migration_declared_id" || "$_migration_declared_id" != "$_migration_file_id" || -n "${_migration_ids_seen[$_migration_declared_id]:-}" ]]; then
+        printf 'FAIL: migration IDs must be unique and match their filenames (%s -> %s)\n' "$_migration_file_id" "${_migration_declared_id:-missing}" >&2
+        exit 1
+    fi
+    _migration_ids_seen["$_migration_declared_id"]=1
+done
+
+uninstall_root="$(mktemp -d)"
+mkdir -p "$uninstall_root/home/.config/kitty" "$uninstall_root/home/.config/foot" \
+    "$uninstall_root/home/.config/fish/conf.d" \
+    "$uninstall_root/home/.local/state" "$uninstall_root/home/.local/share" \
+    "$uninstall_root/home/.local/bin" "$uninstall_root/home/inir-backup/.config/kitty"
+printf '# USER ORIGINAL KITTY\n' > "$uninstall_root/home/.config/kitty/kitty.conf.old"
+printf '# iNiR kitty\ninclude current-theme.conf\n' > "$uninstall_root/home/.config/kitty/kitty.conf"
+printf '# Auto-generated by ii wallpaper theming system\n' > "$uninstall_root/home/.config/kitty/theme.conf"
+ln -s theme.conf "$uninstall_root/home/.config/kitty/current-theme.conf"
+printf '# USER ORIGINAL FOOT\n' > "$uninstall_root/home/.config/foot/foot.ini.old"
+printf '# iNiR foot\n' > "$uninstall_root/home/.config/foot/foot.ini"
+printf '# ORIGINAL USER THEME\n' > "$uninstall_root/home/inir-backup/.config/kitty/theme.conf"
+cat > "$uninstall_root/home/.bashrc" <<'EOF'
+export USER_KEEP=1
+# iNiR launcher PATH
+export PATH="$HOME/.local/bin:$PATH"
+# end iNiR launcher PATH
+# iNiR environment
+export INIR_VENV="$HOME/.local/state/quickshell/.venv"
+# end iNiR
+export USER_KEEP_TOO=1
+EOF
+printf 'set -gx PATH ~/.local/bin $PATH\n' > "$uninstall_root/home/.config/fish/conf.d/inir-path.fish"
+printf 'set -gx INIR_VENV foo\n' > "$uninstall_root/home/.config/fish/conf.d/inir-env.fish"
+if ! HOME="$uninstall_root/home" XDG_CONFIG_HOME="$uninstall_root/home/.config" \
+        XDG_STATE_HOME="$uninstall_root/home/.local/state" XDG_DATA_HOME="$uninstall_root/home/.local/share" \
+        XDG_CACHE_HOME="$uninstall_root/home/.cache" XDG_BIN_HOME="$uninstall_root/home/.local/bin" \
+        BACKUP_DIR="$uninstall_root/home/inir-backup" REPO_ROOT="$runtime_root" bash -c '
+    source "$REPO_ROOT/sdata/lib/environment-variables.sh"
+    source "$REPO_ROOT/sdata/lib/functions.sh"
+    source "$REPO_ROOT/sdata/lib/tui.sh"
+    source "$REPO_ROOT/sdata/lib/versioning.sh"
+    source "$REPO_ROOT/sdata/lib/uninstall.sh"
+    backup=$(uninstall_create_backup)
+    uninstall_restore_preinstall_configs >/dev/null
+    uninstall_remove_shell_integration >/dev/null
+    [[ "$(head -1 "$XDG_CONFIG_HOME/kitty/kitty.conf")" == "# USER ORIGINAL KITTY" ]]
+    [[ "$(head -1 "$XDG_CONFIG_HOME/foot/foot.ini")" == "# USER ORIGINAL FOOT" ]]
+    [[ "$(head -1 "$XDG_CONFIG_HOME/kitty/theme.conf")" == "# ORIGINAL USER THEME" ]]
+    [[ "$(head -1 "$backup/shared-configs/kitty/kitty.conf")" == "# iNiR kitty" ]]
+    [[ "$(head -1 "$backup/shared-configs/kitty/kitty.conf.old")" == "# USER ORIGINAL KITTY" ]]
+    grep -qx "export USER_KEEP=1" "$HOME/.bashrc"
+    grep -qx "export USER_KEEP_TOO=1" "$HOME/.bashrc"
+    ! grep -q "iNiR launcher PATH\|iNiR environment\|INIR_VENV" "$HOME/.bashrc"
+    [[ ! -e "$XDG_CONFIG_HOME/fish/conf.d/inir-path.fish" ]]
+    [[ ! -e "$XDG_CONFIG_HOME/fish/conf.d/inir-env.fish" ]]
+    grep -q "# iNiR environment" "$backup/shell-integration/.bashrc"
+'; then
+    rm -rf "$uninstall_root"
+    printf 'FAIL: uninstall does not restore exact pre-iNiR configs while preserving a safety backup\n' >&2
+    exit 1
+fi
+rm -rf "$uninstall_root"
+
+game_mode="$runtime_root/services/GameMode.qml"
+animations_default="$runtime_root/defaults/niri/config.d/60-animations.kdl"
+if ! grep -Fq '[ \\t]*off$' "$game_mode" || ! grep -Eq '^[[:space:]]*//[[:space:]]+off[[:space:]]*$' "$animations_default"; then
+    printf 'FAIL: GameMode cannot toggle the current spaced Niri animation marker\n' >&2
+    exit 1
+fi
+
+arch_install="$runtime_root/distro/arch/inir-shell-git/inir-shell-git.install"
+if grep -Fq 'systemctl --user enable --now inir.service' "$arch_install" \
+        || ! grep -Fq 'inir service enable' "$arch_install" \
+        || ! grep -Fq '~/.config/inir/config.json' "$arch_install"; then
+    printf 'FAIL: Arch package post-install guidance contradicts the Niri-owned service/config contract\n' >&2
     exit 1
 fi
 

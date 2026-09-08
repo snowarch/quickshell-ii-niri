@@ -317,10 +317,10 @@ check_script_permissions() {
     target="${target}/scripts"
     [[ ! -d "$target" ]] && return 0
     
-    local bad=$(find "$target" \( -name "*.sh" -o -name "*.fish" -o -name "*.py" \) ! -executable 2>/dev/null | wc -l)
+    local bad=$(find "$target" \( -name "*.sh" -o -name "*.fish" -o \( -name "*.py" ! -name "test-*.py" \) \) ! -executable 2>/dev/null | wc -l)
     
     if [[ $bad -gt 0 ]]; then
-        find "$target" \( -name "*.sh" -o -name "*.fish" -o -name "*.py" \) -exec chmod +x {} \;
+        find "$target" \( -name "*.sh" -o -name "*.fish" -o \( -name "*.py" ! -name "test-*.py" \) \) -exec chmod +x {} \;
         doctor_fix "Fixed permissions on $bad script(s)"
     else
         doctor_pass "Script permissions OK"
@@ -457,6 +457,17 @@ check_launcher_health() {
         doctor_fail "PATH resolves an outdated launcher: ${launcher_cmd}"
         echo -e "    ${STY_FAINT}Expected launcher content from ${repo_launcher}${STY_RST}"
         return 1
+    fi
+
+    if declare -F sync_user_desktop_integration_from_repo >/dev/null 2>&1; then
+        if sync_user_desktop_integration_from_repo; then
+            if [[ "${INIR_DESKTOP_INTEGRATION_CHANGED:-0}" -gt 0 ]]; then
+                doctor_fix "Refreshed desktop integration"
+            fi
+        else
+            doctor_fail "Could not refresh desktop integration"
+            return 1
+        fi
     fi
 
     doctor_pass "Launcher current"
@@ -827,7 +838,41 @@ _try_install_font_package() {
 }
 
 check_niri_running() {
-    if [[ -n "$NIRI_SOCKET" && -S "$NIRI_SOCKET" ]]; then
+    local current_socket="${NIRI_SOCKET:-}"
+
+    if command -v systemctl >/dev/null 2>&1 \
+            && systemctl --user is-active --quiet niri.service >/dev/null 2>&1 \
+            && declare -F inir_resolve_niri_service_environment >/dev/null 2>&1; then
+        if ! inir_resolve_niri_service_environment; then
+            doctor_fail "niri.service is running but its session sockets could not be verified"
+            return 0
+        fi
+
+        export NIRI_SOCKET="$INIR_RESOLVED_NIRI_SOCKET"
+        export WAYLAND_DISPLAY="$INIR_RESOLVED_WAYLAND_DISPLAY"
+
+        local manager_env manager_socket manager_wayland
+        manager_env="$(systemctl --user show-environment 2>/dev/null || true)"
+        manager_socket="$(grep '^NIRI_SOCKET=' <<< "$manager_env" | head -1 | cut -d= -f2- || true)"
+        manager_wayland="$(grep '^WAYLAND_DISPLAY=' <<< "$manager_env" | head -1 | cut -d= -f2- || true)"
+
+        if [[ "$manager_socket" != "$INIR_RESOLVED_NIRI_SOCKET" \
+                || "$manager_wayland" != "$INIR_RESOLVED_WAYLAND_DISPLAY" ]]; then
+            if systemctl --user set-environment \
+                    "NIRI_SOCKET=$INIR_RESOLVED_NIRI_SOCKET" \
+                    "WAYLAND_DISPLAY=$INIR_RESOLVED_WAYLAND_DISPLAY" >/dev/null 2>&1; then
+                doctor_fix "Repaired Niri session environment in the user manager"
+            else
+                doctor_fail "Niri session environment is missing from the user manager"
+            fi
+            return 0
+        fi
+
+        doctor_pass "Niri compositor running"
+        return 0
+    fi
+
+    if [[ -n "$current_socket" && -S "$current_socket" ]]; then
         doctor_pass "Niri compositor running"
     else
         doctor_fail "Niri not detected (run inside Niri session)"
@@ -923,20 +968,76 @@ check_service_unit_health() {
         return 0
     fi
 
-    if [[ ! -f "$service_path" ]]; then
-        if [[ "$installed_strategy" == "package-manager" ]]; then
-            doctor_pass "User service not installed"
+    if [[ "$installed_strategy" == "package-manager" ]]; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+        service_path="$(systemctl --user show -p FragmentPath --value inir.service 2>/dev/null || true)"
+        if [[ ! -f "$service_path" ]]; then
+            doctor_fail "Packaged inir.service is missing"
+            echo -e "    ${STY_FAINT}Reinstall the iNiR shell package${STY_RST}"
+            return 0
+        fi
+
+        local user_service="${XDG_CONFIG_HOME}/systemd/user/inir.service"
+        if [[ "$service_path" == "$user_service" ]]; then
+            local packaged_asset="${REPO_ROOT}/assets/systemd/inir.service"
+            local packaged_unit=""
+            local candidate
+            for candidate in /usr/lib/systemd/user/inir.service /usr/local/lib/systemd/user/inir.service /lib/systemd/user/inir.service; do
+                if [[ -f "$candidate" ]]; then
+                    packaged_unit="$candidate"
+                    break
+                fi
+            done
+            if [[ -n "$packaged_unit" && -f "$packaged_asset" ]] \
+                    && cmp -s "$user_service" "$packaged_asset" \
+                    && cmp -s "$packaged_unit" "$packaged_asset"; then
+                rm -f "$user_service"
+                systemctl --user daemon-reload >/dev/null 2>&1 || true
+                service_path="$(systemctl --user show -p FragmentPath --value inir.service 2>/dev/null || true)"
+                if [[ "$service_path" == "$packaged_unit" ]]; then
+                    doctor_fix "Removed redundant user service shadowing the package"
+                else
+                    doctor_fail "Packaged inir.service did not become active after removing the duplicate"
+                    return 0
+                fi
+            else
+                doctor_fail "Local inir.service shadows the package-managed unit"
+                echo -e "    ${STY_FAINT}Review ${user_service}, then run: inir service uninstall && inir service enable${STY_RST}"
+                return 0
+            fi
+        fi
+    elif [[ ! -f "$service_path" ]]; then
+        if declare -F sync_user_inir_service_from_repo_if_present >/dev/null 2>&1 \
+                && sync_user_inir_service_from_repo_if_present >/dev/null 2>&1 \
+                && [[ -f "$service_path" ]]; then
+            ensure_user_inir_service_enabled >/dev/null 2>&1 || true
+            doctor_fix "Restored missing user inir.service"
         else
             doctor_fail "User inir.service missing"
             echo -e "    ${STY_FAINT}Run: inir service install${STY_RST}"
+            return 0
         fi
-        return 0
+    fi
+
+    if [[ "$installed_strategy" != "package-manager" ]] && declare -F repair_legacy_niri_shell_startup >/dev/null 2>&1; then
+        if repair_legacy_niri_shell_startup; then
+            [[ "${INIR_LEGACY_NIRI_STARTUP_REPAIRED:-0}" -gt 0 ]] && doctor_fix "Removed legacy Niri shell startup"
+        fi
     fi
 
     if [[ "$installed_strategy" != "package-manager" ]] && declare -F sync_user_inir_service_from_repo_if_present >/dev/null 2>&1; then
         if sync_user_inir_service_from_repo_if_present >/dev/null 2>&1; then
-            doctor_fix "Refreshed user inir.service from repo"
+            [[ "${INIR_SERVICE_SYNC_CHANGED:-0}" -gt 0 ]] && doctor_fix "Refreshed user inir.service from repo"
+        else
+            doctor_fail "Could not refresh user inir.service from repo"
+            return 0
         fi
+    fi
+
+    if declare -F ensure_user_inir_service_enabled >/dev/null 2>&1 \
+            && ensure_user_inir_service_enabled >/dev/null 2>&1 \
+            && [[ "${INIR_SERVICE_WIRING_CHANGED:-0}" -gt 0 ]]; then
+        doctor_fix "Repaired inir.service Niri wiring"
     fi
 
     local kill_mode fragment_path
@@ -970,7 +1071,7 @@ check_service_unit_health() {
     done
 
     if [[ -n "$expected_target" && "$has_expected_link" == false ]]; then
-        if [[ "$installed_strategy" != "package-manager" ]] && declare -F ensure_user_inir_service_enabled >/dev/null 2>&1 && ensure_user_inir_service_enabled >/dev/null 2>&1; then
+        if declare -F ensure_user_inir_service_enabled >/dev/null 2>&1 && ensure_user_inir_service_enabled >/dev/null 2>&1; then
             doctor_fix "Enabled inir.service for ${expected_target}"
         else
             doctor_fail "inir.service not wired to ${expected_target}"

@@ -3,6 +3,10 @@
 
 # shellcheck shell=bash
 
+if [[ -n "${REPO_ROOT:-}" && -f "${REPO_ROOT}/scripts/lib/niri-session-env.sh" ]]; then
+  source "${REPO_ROOT}/scripts/lib/niri-session-env.sh"
+fi
+
 function try { "$@" || sleep 0; }
 
 function v(){
@@ -310,6 +314,65 @@ EOF
       esac
     fi
   fi
+}
+
+repair_legacy_niri_shell_startup() {
+  INIR_LEGACY_NIRI_STARTUP_REPAIRED=0
+  local file tmp line changed
+
+  for file in "${XDG_CONFIG_HOME}/niri/config.d/50-startup.kdl" "${XDG_CONFIG_HOME}/niri/config.kdl"; do
+    [[ -f "$file" ]] || continue
+    tmp="${file}.inir-repair.$$"
+    changed=0
+    : > "$tmp"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if grep -Eq '^[[:space:]]*spawn-at-startup[[:space:]]+"([^"]*/)?inir"[[:space:]]+"start"([[:space:]]*//.*)?[[:space:]]*$|^[[:space:]]*spawn-at-startup[[:space:]]+"qs"[[:space:]]+"-c"[[:space:]]+"(ii|inir)"([[:space:]]*//.*)?[[:space:]]*$' <<< "$line"; then
+        changed=1
+        continue
+      fi
+      printf '%s\n' "$line" >> "$tmp"
+    done < "$file"
+    if [[ "$changed" -eq 1 ]]; then
+      mv "$tmp" "$file"
+      ((INIR_LEGACY_NIRI_STARTUP_REPAIRED++)) || true
+    else
+      rm -f "$tmp"
+    fi
+  done
+}
+
+sync_user_desktop_integration_from_repo() {
+  INIR_DESKTOP_INTEGRATION_CHANGED=0
+
+  local launcher_target="${XDG_BIN_HOME}/inir"
+  local icon_source="${REPO_ROOT}/assets/icons/desktop-symbolic.svg"
+  local icon_target="${XDG_DATA_HOME}/icons/hicolor/scalable/apps/inir.svg"
+  local applications_dir="${XDG_DATA_HOME}/applications"
+  local name source target tmp command
+
+  if [[ -f "$icon_source" ]]; then
+    mkdir -p "$(dirname "$icon_target")"
+    if [[ ! -f "$icon_target" ]] || ! cmp -s "$icon_source" "$icon_target"; then
+      cp -f "$icon_source" "$icon_target" || return 1
+      ((INIR_DESKTOP_INTEGRATION_CHANGED++)) || true
+    fi
+  fi
+
+  mkdir -p "$applications_dir" "${XDG_CACHE_HOME:-$HOME/.cache}"
+  for name in inir inir-settings; do
+    source="${REPO_ROOT}/assets/applications/${name}.desktop"
+    [[ -f "$source" ]] || continue
+    target="${applications_dir}/${name}.desktop"
+    command="service restart"
+    [[ "$name" == "inir-settings" ]] && command="settings"
+    tmp="${XDG_CACHE_HOME:-$HOME/.cache}/${name}.desktop.$$"
+    sed "s|^Exec=.*|Exec=${launcher_target//&/\\&} ${command}|" "$source" > "$tmp" || { rm -f "$tmp"; return 1; }
+    if [[ ! -f "$target" ]] || ! cmp -s "$tmp" "$target"; then
+      cp -f "$tmp" "$target" || { rm -f "$tmp"; return 1; }
+      ((INIR_DESKTOP_INTEGRATION_CHANGED++)) || true
+    fi
+    rm -f "$tmp"
+  done
 }
 
 function niri_can_resolve_launcher_dir(){

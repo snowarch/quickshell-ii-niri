@@ -128,6 +128,7 @@ package() {
   install -Dm755 "$srcroot/scripts/inir" "$pkgdir/usr/bin/inir"
   install -Dm644 "$srcroot/assets/systemd/inir.service" "$pkgdir/usr/lib/systemd/user/inir.service"
   install -Dm644 "$srcroot/assets/applications/inir.desktop" "$pkgdir/usr/share/applications/inir.desktop"
+  install -Dm644 "$srcroot/assets/applications/inir-settings.desktop" "$pkgdir/usr/share/applications/inir-settings.desktop"
   install -Dm644 "$srcroot/assets/icons/desktop-symbolic.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/inir.svg"
   install -Dm644 "$srcroot/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 "$srcroot/README.md" "$docroot/README.md"

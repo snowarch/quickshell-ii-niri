@@ -232,6 +232,7 @@ sync_launcher_from_repo() {
 }
 
 sync_user_inir_service_from_repo_if_present() {
+    INIR_SERVICE_SYNC_CHANGED=0
     local service_asset="${REPO_ROOT}/assets/systemd/inir.service"
     local service_target_dir="${XDG_CONFIG_HOME}/systemd/user"
     local service_target="${service_target_dir}/inir.service"
@@ -259,6 +260,7 @@ sync_user_inir_service_from_repo_if_present() {
             rm -f "$service_target"
             ln -s "$service_asset" "$service_target"
             changed=true
+            INIR_SERVICE_SYNC_CHANGED=1
         fi
 
         mkdir -p "$service_dropin_dir"
@@ -274,6 +276,7 @@ EOF
         if [[ ! -f "$service_override" ]] || ! cmp -s "$override_tmp" "$service_override"; then
             cp -f "$override_tmp" "$service_override"
             changed=true
+            INIR_SERVICE_SYNC_CHANGED=1
         fi
         rm -f "$override_tmp"
 
@@ -292,12 +295,14 @@ EOF
         rm -f "$service_target"
         cp -f "$tmp_file" "$service_target"
         changed=true
+        INIR_SERVICE_SYNC_CHANGED=1
     fi
 
     if [[ -f "$service_override" ]] && grep -q '^# Managed locally:' "$service_override"; then
         rm -f "$service_override"
         rmdir "$service_dropin_dir" 2>/dev/null || true
         changed=true
+        INIR_SERVICE_SYNC_CHANGED=1
     fi
 
     rm -f "$tmp_file"
@@ -306,47 +311,52 @@ EOF
         systemctl --user daemon-reload >/dev/null 2>&1 || true
     fi
 
-    if [[ "$changed" == true ]]; then
-        return 0
-    fi
-
-    return 1
+    return 0
 }
 
 ensure_user_inir_service_enabled() {
-    if ! command -v systemctl >/dev/null 2>&1; then
-        return 1
-    fi
+    INIR_SERVICE_WIRING_CHANGED=0
+    command -v systemctl >/dev/null 2>&1 || return 1
 
-    local service_path="${XDG_CONFIG_HOME}/systemd/user/inir.service"
+    local installed_strategy service_path
+    installed_strategy="$(get_installed_update_strategy 2>/dev/null || true)"
+    service_path="${XDG_CONFIG_HOME}/systemd/user/inir.service"
     inir_user_service_is_masked && return 2
-    if [[ ! -f "$service_path" ]]; then
-        return 1
+
+    if [[ "$installed_strategy" == "package-manager" ]]; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+        service_path="$(systemctl --user show -p FragmentPath --value inir.service 2>/dev/null || true)"
     fi
 
-    # iNiR is Niri-only. Never fall back to graphical-session.target or another
-    # compositor service: Niri owns the session environment and lifecycle.
-    local target=""
-    if systemctl --user cat niri.service &>/dev/null; then
-        target="niri.service"
+    [[ -f "$service_path" ]] || return 1
+    systemctl --user cat niri.service &>/dev/null || return 1
+
+    local systemd_user_dir="${XDG_CONFIG_HOME}/systemd/user"
+    local correct_wants_dir="${systemd_user_dir}/niri.service.wants"
+    local wants_dir link
+    for wants_dir in "$systemd_user_dir"/*.wants; do
+        [[ -d "$wants_dir" ]] || continue
+        link="$wants_dir/inir.service"
+        [[ -e "$link" || -L "$link" ]] || continue
+        [[ "$(realpath "$wants_dir" 2>/dev/null)" == "$(realpath "$correct_wants_dir" 2>/dev/null)" ]] && continue
+        rm -f "$link" || return 1
+        INIR_SERVICE_WIRING_CHANGED=1
+    done
+
+    mkdir -p "$correct_wants_dir" || return 1
+    link="$correct_wants_dir/inir.service"
+    local service_real link_real
+    service_real="$(readlink -f "$service_path" 2>/dev/null || printf '%s' "$service_path")"
+    link_real="$(readlink -f "$link" 2>/dev/null || true)"
+    if [[ ! -L "$link" || "$link_real" != "$service_real" ]]; then
+        ln -sf "$service_path" "$link" || return 1
+        INIR_SERVICE_WIRING_CHANGED=1
     fi
 
-    if [[ -z "$target" ]]; then
-        return 1  # no compositor found — don't enable
-    fi
-
-    local wants_dir="${XDG_CONFIG_HOME}/systemd/user/${target}.wants"
-    local changed=false
-    if [[ ! -e "$wants_dir/inir.service" ]]; then
-        mkdir -p "$wants_dir" || return 1
-        ln -sf "$service_path" "$wants_dir/inir.service" || return 1
-        changed=true
-    fi
-
-    if [[ "$changed" == true ]]; then
+    if [[ "$INIR_SERVICE_WIRING_CHANGED" -gt 0 ]]; then
         systemctl --user daemon-reload >/dev/null 2>&1 || return 1
     fi
-    [[ -e "$wants_dir/inir.service" || -L "$wants_dir/inir.service" ]]
+    [[ -e "$link" || -L "$link" ]]
 }
 
 repair_update_owned_state() {
@@ -359,12 +369,24 @@ repair_update_owned_state() {
     fi
 
     if [[ "$include_repo_integration" == "true" ]]; then
+        if repair_legacy_niri_shell_startup; then
+            [[ "${INIR_LEGACY_NIRI_STARTUP_REPAIRED:-0}" -gt 0 ]] && tui_success "Removed legacy Niri shell startup"
+        else
+            tui_warn "Could not repair legacy Niri shell startup"
+        fi
         sync_launcher_from_repo >/dev/null 2>&1 || tui_warn "Could not refresh the inir launcher"
+        if sync_user_desktop_integration_from_repo; then
+            [[ "${INIR_DESKTOP_INTEGRATION_CHANGED:-0}" -gt 0 ]] && tui_success "Refreshed desktop integration"
+        else
+            tui_warn "Could not refresh desktop integration"
+        fi
         if inir_user_service_is_masked; then
             tui_warn "User inir.service is masked; leaving it unchanged (restore with: inir service install && inir service enable)"
         else
             if sync_user_inir_service_from_repo_if_present; then
-                tui_success "Refreshed user inir.service"
+                [[ "${INIR_SERVICE_SYNC_CHANGED:-0}" -gt 0 ]] && tui_success "Refreshed user inir.service"
+            else
+                tui_warn "Could not refresh user inir.service"
             fi
             if [[ -f "${XDG_CONFIG_HOME}/systemd/user/inir.service" ]]; then
                 ensure_user_inir_service_enabled >/dev/null 2>&1 || true
@@ -2359,9 +2381,8 @@ run_update() {
             tui_warn "User inir.service is masked; package-managed update left it unchanged"
         else
             ensure_user_inir_service_enabled >/dev/null 2>&1 || true
-            # Only start inir if we're running under a supported compositor.
-            # WAYLAND_DISPLAY alone is not enough — KDE/GNOME set it too.
-            if [[ -n "${NIRI_SOCKET:-}" ]] || pgrep -x niri &>/dev/null || pgrep -x Hyprland &>/dev/null; then
+            # The shipped unit is Niri-owned (PartOf/Requisite=niri.service).
+            if [[ -n "${NIRI_SOCKET:-}" ]] || systemctl --user is-active --quiet niri.service >/dev/null 2>&1; then
                 systemctl --user reset-failed inir.service >/dev/null 2>&1 || true
                 systemctl --user start inir.service >/dev/null 2>&1 || true
             fi
@@ -2634,8 +2655,8 @@ run_update() {
     # Remove orphan files left from previous versions
     cleanup_orphans "$II_TARGET" "${II_TARGET}/.inir-manifest" || return 1
 
-    # Fix permissions
-    find "$II_TARGET/scripts" \( -name "*.sh" -o -name "*.fish" -o -name "*.py" \) -exec chmod +x {} \; 2>/dev/null || true
+    # Fix runtime command permissions without turning test modules into executables.
+    find "$II_TARGET/scripts" \( -name "*.sh" -o -name "*.fish" -o \( -name "*.py" ! -name "test-*.py" \) \) -exec chmod +x {} \; 2>/dev/null || true
     [[ -f "${II_TARGET}/setup" ]] && chmod +x "${II_TARGET}/setup"
 
     local launcher_target="${XDG_BIN_HOME}/inir"
@@ -2648,22 +2669,10 @@ run_update() {
 
     local _service_refresh_status=1
 
-    if [[ -f "${REPO_ROOT}/assets/icons/desktop-symbolic.svg" ]]; then
-        local icon_target_dir="${XDG_DATA_HOME}/icons/hicolor/scalable/apps"
-        mkdir -p "$icon_target_dir"
-        cp -f "${REPO_ROOT}/assets/icons/desktop-symbolic.svg" "${icon_target_dir}/inir.svg"
-    fi
-
-    local applications_dir="${XDG_DATA_HOME}/applications"
-    mkdir -p "$applications_dir"
-    if [[ -f "${REPO_ROOT}/assets/applications/inir.desktop" ]]; then
-        cp -f "${REPO_ROOT}/assets/applications/inir.desktop" "${applications_dir}/inir.desktop"
-    fi
-    if [[ -f "${REPO_ROOT}/assets/applications/inir-settings.desktop" ]]; then
-        local settings_tmp="${XDG_CACHE_HOME}/inir-settings.desktop.$$"
-        sed "s|^Exec=.*|Exec=${launcher_target//&/\\&} settings|" "${REPO_ROOT}/assets/applications/inir-settings.desktop" > "$settings_tmp"
-        cp -f "$settings_tmp" "${applications_dir}/inir-settings.desktop"
-        rm -f "$settings_tmp"
+    if sync_user_desktop_integration_from_repo; then
+        [[ "${INIR_DESKTOP_INTEGRATION_CHANGED:-0}" -gt 0 ]] && tui_success "Desktop integration updated"
+    else
+        tui_warn "Could not refresh desktop integration"
     fi
 
     # Update version
@@ -2740,12 +2749,16 @@ run_update() {
         else
             _service_refresh_status=$?
         fi
-        if [[ $_service_refresh_status -eq 0 ]]; then
+        if [[ $_service_refresh_status -eq 0 && "${INIR_SERVICE_SYNC_CHANGED:-0}" -gt 0 ]]; then
             tui_success "Updated existing user inir.service"
         fi
 
         if ensure_user_inir_service_enabled; then
-            tui_success "User inir.service autostart verified"
+            if [[ "${INIR_SERVICE_WIRING_CHANGED:-0}" -gt 0 ]]; then
+                tui_success "Repaired user inir.service autostart wiring"
+            else
+                tui_success "User inir.service autostart verified"
+            fi
         else
             tui_warn "Could not wire inir.service to the compositor — run 'inir service enable'"
         fi
