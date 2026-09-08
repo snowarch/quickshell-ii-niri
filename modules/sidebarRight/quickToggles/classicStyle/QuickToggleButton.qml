@@ -17,11 +17,13 @@ GroupButton {
         : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
+        : Appearance.editorialEverywhere ? Appearance.rounding.small
         : ((altAction && toggled) ? Appearance?.rounding.normal : Math.min(baseHeight, baseWidth) / 2)
     buttonRadiusPressed: Appearance.regaliaEverywhere ? Appearance.regalia.controlRadius
         : Appearance.zzzEverywhere ? Appearance.zzz.cornerRadius
         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
-        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance?.rounding?.small
+        : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
+        : Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance?.rounding?.small
     // ZZZ: the visible surface is the chamfered ZzzPlate below; hold the GroupButton
     // rounded rect transparent.
     colBackground: Appearance.regaliaEverywhere ? Appearance.regalia.controlPlate

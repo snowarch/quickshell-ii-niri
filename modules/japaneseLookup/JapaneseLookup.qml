@@ -12,6 +12,7 @@ import qs.services
 
 Scope {
     id: root
+    readonly property bool editorial: Appearance.editorialEverywhere
 
     Variants {
         model: Quickshell.screens
@@ -67,10 +68,10 @@ Scope {
             Rectangle {
                 id: card
                 anchors.fill: parent
-                radius: Math.max(14, Appearance.rounding.normal)
-                color: Appearance.colors.colLayer1
+                radius: root.editorial ? Appearance.editorial.radius : Math.max(14, Appearance.rounding.normal)
+                color: root.editorial ? Appearance.editorial.paper : Appearance.colors.colLayer1
                 border.width: 1
-                border.color: Appearance.colors.colOutlineVariant
+                border.color: root.editorial ? Appearance.editorial.rule : Appearance.colors.colOutlineVariant
 
                 ColumnLayout {
                     id: cardContent
@@ -90,9 +91,13 @@ Scope {
                             StyledText {
                                 Layout.fillWidth: true
                                 text: win.result.surface || win.result.matched || Translation.tr("Japanese lookup")
-                                font.pixelSize: Appearance.font.pixelSize.title
-                                font.weight: Font.DemiBold
-                                color: Appearance.colors.colOnLayer1
+                                font.pixelSize: root.editorial
+                                    ? Math.round(Appearance.font.pixelSize.title * Appearance.editorial.titleScale)
+                                    : Appearance.font.pixelSize.title
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                font.weight: root.editorial ? Appearance.editorial.titleWeight : Font.DemiBold
+                                font.letterSpacing: root.editorial ? Appearance.editorial.titleTracking : 0
+                                color: root.editorial ? Appearance.editorial.ink : Appearance.colors.colOnLayer1
                                 elide: Text.ElideRight
                             }
                             StyledText {
@@ -108,8 +113,9 @@ Scope {
                                     if (romaji.length) parts.push(romaji)
                                     return parts.join("  ·  ")
                                 }
-                                color: Appearance.colors.colPrimary
+                                color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colPrimary
                                 font.pixelSize: Appearance.font.pixelSize.normal
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
                                 elide: Text.ElideRight
                             }
                         }
@@ -159,16 +165,19 @@ Scope {
                         visible: (win.result.deinflection ?? "").length > 0
                         spacing: 6
                         Rectangle {
-                            radius: height / 2
-                            color: Appearance.colors.colLayer2
+                            radius: root.editorial ? Appearance.rounding.small : height / 2
+                            color: root.editorial ? Appearance.editorial.layer(2) : Appearance.colors.colLayer2
                             implicitWidth: baseText.implicitWidth + 14
                             implicitHeight: 24
                             StyledText {
                                 id: baseText
                                 anchors.centerIn: parent
                                 text: Translation.tr("Base form") + ` · ${win.result.deinflection}`
-                                color: Appearance.colors.colSubtext
+                                color: root.editorial ? Appearance.editorial.muted : Appearance.colors.colSubtext
                                 font.pixelSize: Appearance.font.pixelSize.smallest
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                font.weight: root.editorial ? Font.DemiBold : Font.Normal
+                                font.letterSpacing: root.editorial ? 0.35 : 0
                             }
                         }
                     }
@@ -179,8 +188,8 @@ Scope {
                             || JapaneseDictionary.translationText.length > 0
                             || JapaneseDictionary.translationError.length > 0
                         implicitHeight: translationColumn.implicitHeight + 16
-                        radius: Math.max(9, Appearance.rounding.small)
-                        color: Appearance.colors.colLayer2
+                        radius: root.editorial ? Appearance.rounding.small : Math.max(9, Appearance.rounding.small)
+                        color: root.editorial ? Appearance.editorial.layer(2) : Appearance.colors.colLayer2
                         ColumnLayout {
                             id: translationColumn
                             anchors.fill: parent
@@ -188,9 +197,11 @@ Scope {
                             spacing: 3
                             StyledText {
                                 text: Translation.tr("Translation") + " · " + JapaneseDictionary.resolvedTranslationTarget().toUpperCase()
-                                color: Appearance.colors.colPrimary
+                                color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colPrimary
                                 font.pixelSize: Appearance.font.pixelSize.smallest
                                 font.weight: Font.DemiBold
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                font.letterSpacing: root.editorial ? 0.45 : 0
                             }
                             StyledText {
                                 Layout.fillWidth: true
@@ -211,8 +222,8 @@ Scope {
                         Layout.fillWidth: true
                         visible: win.expanded && String(win.result.query ?? "").trim().length > 0
                         implicitHeight: originalColumn.implicitHeight + 16
-                        radius: Math.max(9, Appearance.rounding.small)
-                        color: Appearance.colors.colLayer2
+                        radius: root.editorial ? Appearance.rounding.small : Math.max(9, Appearance.rounding.small)
+                        color: root.editorial ? Appearance.editorial.layer(2) : Appearance.colors.colLayer2
                         ColumnLayout {
                             id: originalColumn
                             anchors.fill: parent
@@ -220,8 +231,11 @@ Scope {
                             spacing: 3
                             StyledText {
                                 text: Translation.tr("Recognized text")
-                                color: Appearance.colors.colSubtext
+                                color: root.editorial ? Appearance.editorial.muted : Appearance.colors.colSubtext
                                 font.pixelSize: Appearance.font.pixelSize.smallest
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                font.weight: root.editorial ? Font.DemiBold : Font.Normal
+                                font.letterSpacing: root.editorial ? 0.4 : 0
                             }
                             StyledText {
                                 Layout.fillWidth: true
@@ -268,8 +282,8 @@ Scope {
                                             required property var modelData
                                             Layout.fillWidth: true
                                             implicitHeight: senseText.implicitHeight + 14
-                                            radius: Math.max(8, Appearance.rounding.small)
-                                            color: Appearance.colors.colLayer2
+                                            radius: Appearance.rounding.small
+                                            color: root.editorial ? Appearance.editorial.layer(2) : Appearance.colors.colLayer2
 
                                             StyledText {
                                                 id: senseText
@@ -323,8 +337,8 @@ Scope {
                                 required property var modelData
                                 Layout.fillWidth: true
                                 implicitHeight: 52
-                                radius: Math.max(8, Appearance.rounding.small)
-                                color: Appearance.colors.colLayer2
+                                radius: Appearance.rounding.small
+                                color: root.editorial ? Appearance.editorial.layer(2) : Appearance.colors.colLayer2
                                 RowLayout {
                                     anchors.fill: parent
                                     anchors.margins: 7
@@ -332,7 +346,9 @@ Scope {
                                     StyledText {
                                         text: modelData.character
                                         font.pixelSize: Appearance.font.pixelSize.large
-                                        color: Appearance.colors.colPrimary
+                                        font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                        font.weight: root.editorial ? Appearance.editorial.titleWeight : Font.Normal
+                                        color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colPrimary
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -367,9 +383,11 @@ Scope {
                             StyledText {
                                 Layout.fillWidth: true
                                 text: Translation.tr("Study decks")
-                                color: Appearance.colors.colSubtext
+                                color: root.editorial ? Appearance.editorial.muted : Appearance.colors.colSubtext
                                 font.pixelSize: Appearance.font.pixelSize.smallest
                                 font.weight: Font.DemiBold
+                                font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
+                                font.letterSpacing: root.editorial ? 0.45 : 0
                             }
                             StyledText {
                                 visible: JapaneseDictionary.studyDeckStatus.length > 0
@@ -419,8 +437,9 @@ Scope {
                                 return pitch === undefined ? (win.firstTerm?.dictionary ?? "")
                                     : `${win.firstTerm?.dictionary ?? ""}  ·  Pitch ${pitch}`
                             }
-                            color: Appearance.colors.colSubtext
+                            color: root.editorial ? Appearance.editorial.muted : Appearance.colors.colSubtext
                             font.pixelSize: Appearance.font.pixelSize.smallest
+                            font.family: root.editorial ? Appearance.font.family.numbers : Appearance.font.family.main
                             elide: Text.ElideRight
                         }
                         RippleButton {

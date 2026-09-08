@@ -86,7 +86,7 @@ Item {
                 z: 5
                 implicitWidth: 32
                 implicitHeight: 32
-                buttonRadius: Appearance.rounding.full
+                buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 colBackground: "transparent"
                 colBackgroundHover: Appearance.colors.colLayer2Hover
                 onClicked: root.requestExpand()
@@ -285,6 +285,9 @@ Item {
                     color: Appearance.colors.colOnSurface
                     font.pixelSize: Appearance.font.pixelSize.larger
                     text: Translation.tr("Add task")
+                    font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
+                    font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.Normal
+                    font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
                 }
 
                 TextField {

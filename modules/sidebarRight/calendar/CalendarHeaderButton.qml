@@ -18,7 +18,7 @@ RippleButton {
     }
 
     background.anchors.fill: button
-    buttonRadius: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+    buttonRadius: Appearance.editorialEverywhere && !button.forceCircle ? Appearance.rounding.small : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.full
     colBackground: Appearance.zzzEverywhere ? "transparent"

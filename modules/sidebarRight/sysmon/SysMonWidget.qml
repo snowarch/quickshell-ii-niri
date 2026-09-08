@@ -41,8 +41,10 @@ Item {
             StyledText {
                 Layout.fillWidth: true
                 text: Translation.tr("System Monitor")
-                font.pixelSize: Appearance.font.pixelSize.larger
-                font.weight: Font.Medium
+                font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
+                font.pixelSize: Appearance.font.pixelSize.larger * (Appearance.editorialEverywhere ? Appearance.editorial.titleScale : 1)
+                font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.Medium
+                font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
                 color: root.colText
             }
             
@@ -196,9 +198,10 @@ Item {
             }
 
             StyledText {
-                text: title
+                text: Appearance.editorialEverywhere ? title.toUpperCase() : title
                 font.pixelSize: Appearance.font.pixelSize.small
-                font.weight: Font.Medium
+                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Medium
+                font.letterSpacing: Appearance.editorialEverywhere ? 0.8 : 0
                 color: root.colText
             }
 
@@ -206,8 +209,8 @@ Item {
 
             StyledText {
                 text: valueText
-                font.pixelSize: Appearance.font.pixelSize.normal
-                font.weight: Font.Bold
+                font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.large : Appearance.font.pixelSize.normal
+                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Bold
                 font.family: Appearance.font.family.numbers
                 color: graphColor
             }
@@ -336,9 +339,10 @@ Item {
             }
 
             StyledText {
-                text: Translation.tr("Network")
+                text: Appearance.editorialEverywhere ? Translation.tr("Network").toUpperCase() : Translation.tr("Network")
                 font.pixelSize: Appearance.font.pixelSize.small
-                font.weight: Font.Medium
+                font.weight: Appearance.editorialEverywhere ? Font.DemiBold : Font.Medium
+                font.letterSpacing: Appearance.editorialEverywhere ? 0.8 : 0
                 color: root.colText
             }
 
