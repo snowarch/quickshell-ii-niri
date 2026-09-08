@@ -11,10 +11,12 @@ import qs.modules.common.widgets
 
 Item {
     id: root
+    readonly property bool editorial: Appearance.editorialEverywhere
     readonly property bool usePasswordChars: !(PolkitService.flow?.responseVisible ?? false)
     readonly property color authSurface: Appearance.cookieEverywhere
         ? Appearance.cookie.secondaryFace
         : Appearance.zzzEverywhere ? Appearance.zzz.paperAlt
+        : editorial ? Appearance.editorial.layer(1)
         : Appearance.angelEverywhere ? Appearance.angel.colGlassCard
         : Appearance.inirEverywhere ? Appearance.inir.colLayer1
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
@@ -22,6 +24,7 @@ Item {
     readonly property color authBorder: Appearance.cookieEverywhere
         ? Appearance.cookie.borderColor
         : Appearance.zzzEverywhere ? Appearance.zzz.hairlineStrong
+        : editorial ? Appearance.editorial.rule
         : Appearance.angelEverywhere ? Appearance.angel.colCardBorder
         : Appearance.inirEverywhere ? Appearance.inir.colBorderSubtle
         : Appearance.auroraEverywhere ? Appearance.aurora.colPopupBorder
@@ -29,6 +32,7 @@ Item {
     readonly property int authRadius: Appearance.cookieEverywhere
         ? Appearance.cookie.roundNormal
         : Appearance.zzzEverywhere ? Appearance.zzz.controlRadius
+        : editorial ? Appearance.rounding.small
         : Appearance.angelEverywhere ? Appearance.angel.roundingSmall
         : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
         : Appearance.rounding.small
@@ -125,7 +129,7 @@ Item {
                     iconSize: 28
                     text: PolkitService.batteryChargeLimitRequest ? "battery_saver" : "security"
                     fill: 1
-                    color: Appearance.colors.colSecondary
+                    color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colSecondary
                 }
             }
 
@@ -145,8 +149,11 @@ Item {
                     visible: PolkitService.actionLabel !== Translation.tr("Authentication")
                     text: PolkitService.actionLabel
                     font.pixelSize: Appearance.font.pixelSize.small
+                    font.family: root.editorial ? Appearance.editorial.displayFamily : Appearance.font.family.main
                     font.weight: Font.DemiBold
-                    color: Appearance.colors.colSecondary
+                    font.letterSpacing: root.editorial ? 0.7 : 0
+                    font.capitalization: root.editorial ? Font.AllUppercase : Font.MixedCase
+                    color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colSecondary
                     elide: Text.ElideRight
                 }
             }
@@ -170,7 +177,7 @@ Item {
                     text: "admin_panel_settings"
                     iconSize: Appearance.font.pixelSize.larger
                     fill: 1
-                    color: Appearance.colors.colSecondary
+                    color: root.editorial ? Appearance.editorial.accent : Appearance.colors.colSecondary
                     Layout.alignment: Qt.AlignTop
                 }
 
