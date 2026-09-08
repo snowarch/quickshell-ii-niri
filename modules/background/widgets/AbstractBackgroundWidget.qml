@@ -361,13 +361,13 @@ AbstractWidget {
     Timer {
         id: _chaosReportDebounce
         interval: 250
-        onTriggered: MascotChaos.report(root.configEntryName, root.x, root.y, root.width, root.height)
+        onTriggered: MascotChaos.report(root.editInstanceKey, root.x, root.y, root.width, root.height, root.outputName, root.configEntryName)
         // widgets born while chaos is already on still need a first report
         Component.onCompleted: if (root._chaosWatch) restart()
     }
     on_ChaosWatchChanged: {
         if (_chaosWatch) _chaosReportDebounce.restart()
-        else MascotChaos.unreport(root.configEntryName)
+        else MascotChaos.unreport(root.editInstanceKey)
     }
     Connections {
         target: root
@@ -420,17 +420,16 @@ AbstractWidget {
 
     Connections {
         target: MascotChaos
-        enabled: MascotChaos.enabled
         function onImpact(widgetKey, vx, vy, mode) {
-            if (widgetKey !== root.configEntryName) return
-            if (GlobalStates.screenLocked || !root.visible) return
+            if (!MascotChaos.enabled || widgetKey !== root.editInstanceKey) return
+            if (MascotChaos.suppressed || !root.visible || root.locked) return
             _chaosFling.stop()
             _chaosReturn.stop()
-            MascotChaos.rememberOriginal(root.configEntryName, root.x, root.y)
-            root._flingWreck = mode === "wreck" || mode === "vanish"
-            root._flingPersist = mode === "persist" && root.placementStrategy === "free" && !root.locked
+            root._flingWreck = MascotChaos.allowRearrange && (mode === "wreck" || mode === "vanish")
+            root._flingPersist = MascotChaos.allowRearrange && mode === "persist" && root.placementStrategy === "free" && !root.locked
+            if (root._flingPersist) MascotChaos.rememberOriginal(root.editInstanceKey, root.x, root.y)
             root._flingX = vx
-            if (mode === "vanish") {
+            if (mode === "vanish" && root._flingWreck) {
                 // stolen: carried clean off the screen edge until tidy
                 root._flingX = vx >= 0
                     ? root.scaledScreenWidth - root.x + root.width
@@ -451,6 +450,8 @@ AbstractWidget {
             _chaosFling.restart()
         }
         function onTidied() {
+            root._flingPersist = false
+            root._flingWreck = false
             _chaosFling.stop()
             _chaosReturn.stop()
             root._flingWreck = false

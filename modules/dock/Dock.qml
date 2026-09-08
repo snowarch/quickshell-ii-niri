@@ -243,7 +243,8 @@ Scope {
                         Connections {
                             target: MascotChaos
                             enabled: MascotChaos.enabled
-                            function onPanelShake(intensity) {
+                            function onPanelShake(intensity, output) {
+                                if (dockRoot.screen?.name !== output || MascotChaos.suppressed) return
                                 dockHoverRegion._quakeScale = Math.max(1, intensity)
                                 if (Appearance.animationsEnabled) _dockQuakeAnim.restart()
                             }

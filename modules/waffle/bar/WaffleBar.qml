@@ -83,7 +83,8 @@ Scope {
                     Connections {
                         target: MascotChaos
                         enabled: MascotChaos.enabled
-                        function onPanelShake(intensity) {
+                        function onPanelShake(intensity, output) {
+                            if (barRoot.screen?.name !== output || MascotChaos.suppressed) return
                             content._quakeScale = Math.max(1, intensity)
                             if (Looks.transition.enabled) _quakeAnim.restart()
                         }

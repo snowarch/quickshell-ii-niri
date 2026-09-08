@@ -1398,6 +1398,11 @@
             "size": 150,
             "visibleSeconds": 5,
             "slideMs": 400,
+            "minQuietMinutes": 10,
+            "maxVisitsPerHour": 3,
+            "respectQuiet": true,
+            "shellReactions": true,
+            "dialogue": true,
             "musicRequireArtist": true,
             "events": {
                 "music": true,
@@ -1465,6 +1470,9 @@
             "enable": false,
             "allowRearrange": false,
             "sfx": true,
+            "artStyle": "jrpg",
+            "intervalMinutes": 45,
+            "callingCards": false,
             "systemEvents": true
         }
     },

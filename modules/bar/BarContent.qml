@@ -39,7 +39,8 @@ Item { // Bar content region
     Connections {
         target: MascotChaos
         enabled: MascotChaos.enabled
-        function onPanelShake(intensity) {
+        function onPanelShake(intensity, output) {
+            if (root.screen?.name !== output || MascotChaos.suppressed) return
             root._quakeScale = Math.max(1, intensity)
             if (Appearance.animationsEnabled) _quakeAnim.restart()
         }

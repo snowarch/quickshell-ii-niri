@@ -693,6 +693,11 @@ Singleton {
                     property int visibleSeconds: 5 // How long a peek stays before she slides away (hover keeps her)
                     property int slideMs: 400 // Slide in/out animation duration
                     property bool musicRequireArtist: true // Ignore artist-less MPRIS players (browser videos posing as music)
+                    property int minQuietMinutes: 10
+                    property int maxVisitsPerHour: 3
+                    property bool respectQuiet: true
+                    property bool shellReactions: true
+                    property bool dialogue: true
                     property JsonObject events: JsonObject {
                         // Which shell events she reacts to (event reactions, not idle peeks)
                         property bool music: true
@@ -765,6 +770,9 @@ Singleton {
                     property bool allowRearrange: false // Let her actually relocate widgets (otherwise everything bounces back)
                     property bool sfx: true // Impact foley from the freedesktop sound theme during chaos
                     property bool systemEvents: true // Rare romps reacting to low battery, notification pileup, or late-night hours
+                    property string artStyle: "jrpg"
+                    property int intervalMinutes: 45
+                    property bool callingCards: false
                 }
             }
 
