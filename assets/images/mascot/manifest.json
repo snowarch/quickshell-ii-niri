@@ -1629,7 +1629,15 @@
     "jrpg-push-loop",
     "jrpg-run-left-loop",
     "jrpg-run-right-loop",
-    "jrpg-wave-loop"
+    "jrpg-wave-loop",
+    "jrpg-thinking-loop",
+    "jrpg-celebrate-loop",
+    "jrpg-listen-loop",
+    "jrpg-failed-loop",
+    "jrpg-stretch-loop",
+    "jrpg-beckon-loop",
+    "jrpg-approve-loop",
+    "jrpg-shrug-loop"
   ],
   "collectionPoses": [
     "about-confident",
@@ -2012,7 +2020,15 @@
     "jrpg-push-loop",
     "jrpg-run-left-loop",
     "jrpg-run-right-loop",
-    "jrpg-wave-loop"
+    "jrpg-wave-loop",
+    "jrpg-thinking-loop",
+    "jrpg-celebrate-loop",
+    "jrpg-listen-loop",
+    "jrpg-failed-loop",
+    "jrpg-stretch-loop",
+    "jrpg-beckon-loop",
+    "jrpg-approve-loop",
+    "jrpg-shrug-loop"
   ],
   "chibiPoses": [
     "chibi-arms-crossed",
@@ -2288,7 +2304,15 @@
     "jrpg-push-loop",
     "jrpg-run-left-loop",
     "jrpg-run-right-loop",
-    "jrpg-wave-loop"
+    "jrpg-wave-loop",
+    "jrpg-thinking-loop",
+    "jrpg-celebrate-loop",
+    "jrpg-listen-loop",
+    "jrpg-failed-loop",
+    "jrpg-stretch-loop",
+    "jrpg-beckon-loop",
+    "jrpg-approve-loop",
+    "jrpg-shrug-loop"
   ],
   "contextualOcclusionPoses": [
     "box-hideout"
@@ -2402,7 +2426,15 @@
     "jrpg-push-loop",
     "jrpg-run-left-loop",
     "jrpg-run-right-loop",
-    "jrpg-wave-loop"
+    "jrpg-wave-loop",
+    "jrpg-thinking-loop",
+    "jrpg-celebrate-loop",
+    "jrpg-listen-loop",
+    "jrpg-failed-loop",
+    "jrpg-stretch-loop",
+    "jrpg-beckon-loop",
+    "jrpg-approve-loop",
+    "jrpg-shrug-loop"
   ],
   "desktopWidgetPoses": [
     "about-confident",
@@ -2756,7 +2788,15 @@
     "jrpg-push-loop",
     "jrpg-run-left-loop",
     "jrpg-run-right-loop",
-    "jrpg-wave-loop"
+    "jrpg-wave-loop",
+    "jrpg-thinking-loop",
+    "jrpg-celebrate-loop",
+    "jrpg-listen-loop",
+    "jrpg-failed-loop",
+    "jrpg-stretch-loop",
+    "jrpg-beckon-loop",
+    "jrpg-approve-loop",
+    "jrpg-shrug-loop"
   ],
   "fullBodyReplacements": {
     "about-confident": "presence-idle-loop",
@@ -4172,16 +4212,16 @@
       "run-right": "jrpg-run-right-loop",
       "run-left": "jrpg-run-left-loop",
       "wave": "jrpg-wave-loop",
-      "inspect": "jrpg-inspect-loop",
+      "inspect": "jrpg-thinking-loop",
       "jump": "jrpg-jump-loop",
-      "celebrate": "jrpg-laugh-loop",
+      "celebrate": "jrpg-celebrate-loop",
       "peek": "jrpg-peek-loop",
       "push": "jrpg-push-loop",
-      "review": "jrpg-inspect-loop",
-      "look": "jrpg-peek-loop",
-      "failed": "jrpg-inspect-loop",
-      "listen": "jrpg-peek-loop",
-      "waiting": "jrpg-idle-loop"
+      "review": "jrpg-approve-loop",
+      "look": "jrpg-listen-loop",
+      "failed": "jrpg-failed-loop",
+      "listen": "jrpg-listen-loop",
+      "waiting": "jrpg-stretch-loop"
     }
   },
   "widgetLines": {
