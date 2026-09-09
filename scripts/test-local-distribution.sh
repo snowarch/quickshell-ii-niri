@@ -1091,6 +1091,19 @@ visualizer_layer="$runtime_root/modules/common/widgets/AudioVisualizerLayer.qml"
 pill_music_bars="$runtime_root/modules/pill/MusicBars.qml"
 quick_config="$runtime_root/modules/settings/QuickConfig.qml"
 waffle_general="$runtime_root/modules/waffle/settings/pages/WGeneralPage.qml"
+
+mascot_pack_nix="$runtime_root/nix/mascot-pack.nix"
+mascot_package_nix="$runtime_root/nix/mascot-package.nix"
+mascot_tag="$(sed -n 's#.*releases/download/\(v[0-9][^/]*\)/inir-mascot-pack\.tar\.gz.*#\1#p' "$mascot_pack_nix" | head -n1)"
+mascot_version="$(sed -n 's/^[[:space:]]*version = "\([^"]*\)";.*/\1/p' "$mascot_package_nix" | head -n1)"
+if [[ -z "$mascot_tag" || -z "$mascot_version" || "$mascot_tag" != "v${mascot_version}" ]]; then
+    printf 'FAIL: Nix mascot package version (%s) does not match pinned release tag (%s)\n' "$mascot_version" "$mascot_tag" >&2
+    exit 1
+fi
+if grep -Eq '354 poses|354 poses/animations|~32 MiB' "$runtime_root/setup" "$runtime_root/sdata/lib/extras.sh" "$runtime_root/docs/INSTALL.md" "$mascot_package_nix"; then
+    printf 'FAIL: mascot install UX contains a stale hard-coded pack size/count\n' >&2
+    exit 1
+fi
 if ! grep -Fq 'property bool disableVisualizers: true' "$config_qml" \
         || ! grep -Fq 'readonly property bool disableVisualizers:' "$game_mode_qml" \
         || ! grep -Fq 'readonly property bool visualizersSuppressed: active && disableVisualizers' "$game_mode_qml" \

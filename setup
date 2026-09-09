@@ -1567,7 +1567,7 @@ run_extras() {
         "${ICON_DOT}|Install iNiR-Walls|Download optional wallpaper pack and copy image files" \
         "${ICON_DOT}|Install ii-pixel-sddm|Install/apply iNiR SDDM login theme" \
         "${ICON_DOT}|Install YAMIS icons|Install/update yet-another-monochrome-icon-set (GPL-3, ~23 MiB)" \
-        "${ICON_DOT}|Install mascot pack|Kira mascot art (354 poses/animations, ~32 MiB, feature stays opt-in)" \
+        "${ICON_DOT}|Install mascot pack|Kira mascot art pack (optional download, feature stays opt-in)" \
         "${ICON_DOT}|Install all|Run all optional installers" \
         "${ICON_CIRCLE}|Back|Return to main menu")
 

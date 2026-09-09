@@ -14,7 +14,7 @@ pkgs.stdenvNoCC.mkDerivation {
   '';
 
   meta = {
-    description = "iNiR mascot art pack (354 poses/animations)";
+    description = "Optional Kira mascot art pack for iNiR";
     homepage = "https://github.com/snowarch/inir-mascot";
     license = pkgs.lib.licenses.mit;
     platforms = pkgs.lib.platforms.linux;

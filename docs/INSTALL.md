@@ -64,7 +64,7 @@ For everything else, check [PACKAGES.md](PACKAGES.md). It's organized by categor
 >
 > **Optional content packs** (`./setup` → Extras): the iNiR-Walls wallpaper
 > pack, the ii-pixel-sddm login theme, YAMIS icons, and the Kira mascot art
-> pack (354 poses and animations, about 32 MiB). The mascot feature ships
+> pack. The mascot feature ships
 > disabled and does nothing until you install the pack and enable her in
 > Settings › Mascot.
 >
@@ -76,6 +76,9 @@ For everything else, check [PACKAGES.md](PACKAGES.md). It's organized by categor
 > verifies the complete archive before touching live assets, records the release
 > tag plus an installed-tree hash, and repairs missing or corrupt files during a
 > later `./setup update` without auto-installing the optional pack for new users.
+> iNiR must never publish a shell manifest that depends on mascot art which has
+> not been published by `snowarch/inir-mascot` yet. For Nix, bump the pinned
+> mascot release only after that art release exists.
 >
 > **Important for minimal installs (Arch base / netinstall):**
 > If shell startup fails with `module "org.kde.syntaxhighlighting" is not installed`, install:
