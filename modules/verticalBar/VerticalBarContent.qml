@@ -199,8 +199,7 @@ Item { // Bar content region
             }
             return root.cardStyleEverywhere ? Appearance.colors.colLayer1 : ((Config.options?.bar?.cornerStyle ?? 0) === 3 ? Appearance.colors.colLayer1 : Appearance.colors.colLayer0)
         }
-        radius: Appearance.editorialEverywhere ? (floatingStyle ? Appearance.editorial.radius : 0)
-            : root.zzzEverywhere ? 0
+        radius: root.zzzEverywhere ? 0
             : Appearance.angelEverywhere ? Appearance.angel.roundingNormal
             : root.inirEverywhere ? Appearance.inir.roundingNormal
             : floatingStyle ? ((Config.options?.bar?.cornerStyle ?? 0) === 3 ? Appearance.rounding.normal : Appearance.rounding.windowRounding) : 0

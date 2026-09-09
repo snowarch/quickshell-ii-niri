@@ -717,6 +717,15 @@ Item { // Bar content region
         id: barBackground
         readonly property bool auroraEverywhere: root.surfaceDialect === "aurora" || root.angelEverywhere
         readonly property bool gameModeMinimal: Appearance.gameModeMinimal
+        readonly property bool editorialGlassActive: Appearance.editorialEverywhere
+            && Appearance.editorial.glassActive
+            && !gameModeMinimal && root.barAppearance === "classic"
+        readonly property bool editorialPaperStackActive: Appearance.editorialEverywhere
+            && Appearance.editorial.paperStack
+            && root.barAppearance === "classic"
+            && !root.isFrame && !root.isScenic
+        readonly property bool editorialBackdropReady: editorialGlassActive
+            && (root.nativeBlurActive || blurredWallpaper.status === Image.Ready)
         readonly property int cornerStyle: Config.options?.bar?.cornerStyle ?? 0
         readonly property bool zzzGlassActive: root.zzzEverywhere
             && root.barAppearance === "classic"
@@ -790,6 +799,10 @@ Item { // Bar content region
             if (root.regaliaEverywhere) {
                 return "transparent"
             }
+            if (barBackground.editorialGlassActive) {
+                if (!barBackground.editorialBackdropReady) return Appearance.editorial.paper
+                return root.nativeBlurActive ? Appearance.editorial.glassPaper : "transparent"
+            }
             if (root.angelEverywhere) {
                 const base = blendedColors?.colLayer0 ?? Appearance.colors.colLayer0
                 if (root.nativeBlurActive)
@@ -843,9 +856,6 @@ Item { // Bar content region
             const customRounding = Config.options?.bar?.customRounding ?? -1
             if (customRounding >= 0) {
                 return customRounding
-            }
-            if (Appearance.editorialEverywhere) {
-                return root.isFrame || floatingStyle ? Appearance.editorial.radius : 0
             }
             if (root.isFrame) {
                 return root.angelEverywhere ? Appearance.angel.roundingNormal
@@ -909,6 +919,7 @@ Item { // Bar content region
             if (root.isScenic) return 0
             if (root.zzzEverywhere) return 1
             if (root.regaliaEverywhere) return 0
+            if (barBackground.editorialPaperStackActive) return 0
             if (root.isFrame) return root.angelEverywhere ? Appearance.angel.panelBorderWidth : 1
             if (root.angelEverywhere) return Appearance.angel.panelBorderWidth
             if (root.inirEverywhere) {
@@ -972,7 +983,9 @@ Item { // Bar content region
             z: -1
         }
 
-        layer.enabled: auroraEverywhere && !root.inirEverywhere && !root.zzzEverywhere && !gameModeMinimal && root.barAppearance === "classic"
+        layer.enabled: (auroraEverywhere || barBackground.editorialGlassActive)
+            && !root.inirEverywhere && !root.zzzEverywhere && !gameModeMinimal
+            && !root.nativeBlurActive && root.barAppearance === "classic"
         layer.effect: GE.OpacityMask {
             maskSource: Rectangle {
                 width: barBackground.width
@@ -983,15 +996,19 @@ Item { // Bar content region
 
         Image {
             id: blurredWallpaper
+            readonly property bool requested: (barBackground.auroraEverywhere || barBackground.editorialGlassActive)
+                && !root.inirEverywhere && !root.zzzEverywhere
+                && !barBackground.gameModeMinimal && !root.nativeBlurActive
+                && root.barAppearance === "classic"
             x: -barBackground.barMargin
             y: barBackground.isBottom ? -(root.screen?.height ?? 1080) + barBackground.height + barBackground.barMargin : -barBackground.barMargin
             width: root.screen?.width ?? 1920
             height: root.screen?.height ?? 1080
-            visible: barBackground.auroraEverywhere && !root.inirEverywhere && !root.zzzEverywhere && !barBackground.gameModeMinimal && !root.nativeBlurActive && root.barAppearance === "classic"
+            visible: requested && status === Image.Ready
             // An invisible Image still downloads and decodes its source, so gating
             // only `visible` on the style left a screen-sized wallpaper bitmap
             // resident for every user NOT on aurora. Gate the source too.
-            source: visible ? root.wallpaperUrl : ""
+            source: requested ? root.wallpaperUrl : ""
             fillMode: Image.PreserveAspectCrop
             cache: true
             sourceSize.width: root.screen?.width ?? 1920
@@ -1000,17 +1017,21 @@ Item { // Bar content region
 
             // Skip QML blur when the compositor is already blurring this layer
             // (avoids double-blur and the FBO cost). See #159.
-            layer.enabled: Appearance.effectsEnabled && barBackground.auroraEverywhere && !root.inirEverywhere && !root.nativeBlurActive
+            layer.enabled: Appearance.effectsEnabled
+                && (barBackground.auroraEverywhere || barBackground.editorialGlassActive)
+                && !root.inirEverywhere && !root.nativeBlurActive
             layer.effect: MultiEffect {
                 source: blurredWallpaper
                 anchors.fill: source
                 saturation: root.angelEverywhere
                     ? (Appearance.angel.blurSaturation * Appearance.angel.colorStrength)
+                    : barBackground.editorialGlassActive ? 0.04
                     : (Appearance.effectsEnabled ? 0.2 : 0)
                 blurEnabled: Appearance.effectsEnabled
                 blurMax: 64
                 blur: Appearance.effectsEnabled
-                    ? (root.angelEverywhere ? Appearance.angel.blurIntensity : 1)
+                    ? (root.angelEverywhere ? Appearance.angel.blurIntensity
+                        : barBackground.editorialGlassActive ? Appearance.editorial.glassBlur : 1)
                     : 0
             }
 
@@ -1018,8 +1039,24 @@ Item { // Bar content region
                 anchors.fill: parent
                 color: root.angelEverywhere
                     ? ColorUtils.transparentize((barBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0Base), Appearance.angel.overlayOpacity * Appearance.angel.panelTransparentize)
+                    : barBackground.editorialGlassActive ? Appearance.editorial.glassPaper
                     : ColorUtils.transparentize((barBackground.blendedColors?.colLayer0 ?? Appearance.colors.colLayer0Base), Appearance.aurora.overlayTransparentize)
             }
+        }
+
+        EditorialPaperStack {
+            anchors.fill: parent
+            visible: barBackground.editorialPaperStackActive
+            faceColor: Appearance.editorial.paper
+            radius: barBackground.radius
+            topLeftRadius: barBackground.topLeftRadius
+            topRightRadius: barBackground.topRightRadius
+            bottomLeftRadius: barBackground.bottomLeftRadius
+            bottomRightRadius: barBackground.bottomRightRadius
+            materialOpacity: barBackground.editorialBackdropReady
+                ? Appearance.editorial.glassOpacity : 1
+            backingOpacity: barBackground.editorialBackdropReady
+                ? Appearance.editorial.glassBackingOpacity : 1
         }
 
         // Angel inset glow — top edge
