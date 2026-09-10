@@ -28,6 +28,7 @@ Singleton {
     // last >0 level per screen.name; survives monitor recreation after dpms
     property var lastValidBrightness: ({})
     property bool asleep: false
+    property var _sleepDisabledOutputs: []
 
     // Reconcile against the live screen list rather than binding to
     // Quickshell.screens: createObject() parents each monitor to root, so a
@@ -64,13 +65,33 @@ Singleton {
     }
 
     function sleepBegin(): void {
+        if (!CompositorService.isNiri)
+            return
         root.asleep = true
-        for (let i = 0; i < root.monitors.length; ++i)
-            root.monitors[i].sleepPowerOff()
+        const disabled = []
+        for (let i = 0; i < Quickshell.screens.length; ++i) {
+            const name = Quickshell.screens[i].name
+            if (!BrightnessPolicy.isExternalOutput(name))
+                continue
+            disabled.push(name)
+            Quickshell.execDetached(BrightnessPolicy.niriOutputOffArgs(name))
+        }
+        root._sleepDisabledOutputs = disabled
+        Quickshell.execDetached(BrightnessPolicy.niriPowerOffMonitorsArgs())
     }
 
     function restoreAfterWake(): void {
+        if (!CompositorService.isNiri) {
+            root.asleep = false
+            return
+        }
+        const disabled = root._sleepDisabledOutputs
+        root._sleepDisabledOutputs = []
+        for (let i = 0; i < disabled.length; ++i)
+            Quickshell.execDetached(BrightnessPolicy.niriOutputOnArgs(disabled[i]))
+        Quickshell.execDetached(BrightnessPolicy.niriPowerOnMonitorsArgs())
         root.asleep = false
+        root._syncMonitors()
         for (let i = 0; i < root.monitors.length; ++i)
             root.monitors[i].restoreLastGood()
     }
@@ -223,13 +244,6 @@ Singleton {
             monitor.writePending = true
             if (!setTimer.running)
                 setTimer.start()
-        }
-
-        function sleepPowerOff(): void {
-            if (monitor.isDdc && monitor.busNum)
-                Quickshell.execDetached(BrightnessPolicy.ddcPowerOffArgs(monitor.busNum))
-            else if (root.backlightDevice.length > 0)
-                Quickshell.execDetached(BrightnessPolicy.backlightOffArgs(root.backlightDevice))
         }
 
         function restoreLastGood(): void {

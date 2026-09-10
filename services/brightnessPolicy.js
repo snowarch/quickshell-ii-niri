@@ -34,10 +34,27 @@ function pickRestoreValue(lastGood, currentBrightness) {
     return Number.NaN
 }
 
-function ddcPowerOffArgs(busNum) {
-    return ["ddcutil", "-b", String(busNum), "setvcp", "10", "0", "--noverify"]
+function isExternalOutput(name) {
+    const n = String(name || "").toUpperCase()
+    if (!n)
+        return false
+    if (n.startsWith("EDP") || n.startsWith("DSI") || n.startsWith("LVDS"))
+        return false
+    return n.startsWith("HDMI") || n.startsWith("DP") || n.startsWith("DISPLAYPORT")
 }
 
-function backlightOffArgs(device) {
-    return ["brightnessctl", "-d", device, "s", "0", "--quiet"]
+function niriPowerOffMonitorsArgs() {
+    return ["niri", "msg", "action", "power-off-monitors"]
+}
+
+function niriPowerOnMonitorsArgs() {
+    return ["niri", "msg", "action", "power-on-monitors"]
+}
+
+function niriOutputOffArgs(name) {
+    return ["niri", "msg", "output", String(name), "off"]
+}
+
+function niriOutputOnArgs(name) {
+    return ["niri", "msg", "output", String(name), "on"]
 }

@@ -15,22 +15,28 @@ function assert(cond, msg) {
     }
 }
 
-const off = ctx.ddcPowerOffArgs("1")
-const bl = ctx.backlightOffArgs("amdgpu_bl1")
+assert(ctx.isExternalOutput("HDMI-A-1") === true, "HDMI is external")
+assert(ctx.isExternalOutput("DP-3") === true, "DP is external")
+assert(ctx.isExternalOutput("eDP-1") === false, "eDP is internal")
+assert(ctx.isExternalOutput("DSI-1") === false, "DSI is internal")
 
-assert(Array.isArray(off) && off[0] === "ddcutil", "ddc off uses ddcutil")
-assert(off.includes("10") && off.includes("0"), "ddc off is VCP 10 0, not D6 (D6 drops HPD)")
-assert(off.includes("--noverify"), "ddc off skips verify at zero")
-assert(!off.join(" ").includes("D6"), "must not use DDC power mode D6")
-assert(!off.includes("power-off-monitors"), "ddc off must not use niri dpms")
-assert(bl[0] === "brightnessctl" && bl.includes("0"), "backlight off writes 0")
+const off = ctx.niriPowerOffMonitorsArgs()
+const on = ctx.niriPowerOnMonitorsArgs()
+const outOff = ctx.niriOutputOffArgs("HDMI-A-1")
+const outOn = ctx.niriOutputOnArgs("HDMI-A-1")
+
+assert(off.join(" ").includes("power-off-monitors"), "sleep uses niri dpms")
+assert(on.join(" ").includes("power-on-monitors"), "wake uses niri power-on")
+assert(outOff.join(" ") === "niri msg output HDMI-A-1 off", "externals are disabled so hpd cannot reconnect")
+assert(outOn.join(" ") === "niri msg output HDMI-A-1 on", "wake re-enables externals")
 
 const idleQml = fs.readFileSync(path.resolve(__dirname, "../services/Idle.qml"), "utf8")
 assert(!idleQml.includes("idle-blank"), "Idle.qml must not paint a fake overlay")
 assert(!idleQml.includes("WlrLayershell"), "Idle.qml must not keep a blank layer")
 
 const brightnessQml = fs.readFileSync(path.resolve(__dirname, "../services/Brightness.qml"), "utf8")
-assert(brightnessQml.includes("sleepPowerOff"), "sleepBegin drives hardware power-off")
-assert(!brightnessQml.includes("power-off-monitors"), "Brightness.qml must not use niri dpms")
+assert(brightnessQml.includes("niriPowerOffMonitorsArgs"), "sleepBegin must dpms")
+assert(brightnessQml.includes("niriOutputOffArgs"), "sleepBegin disables external outputs")
+assert(!brightnessQml.includes("sleepPowerOff"), "ddc/backlight sleep path is gone")
 
 console.log("ok")

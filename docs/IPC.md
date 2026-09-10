@@ -593,8 +593,8 @@ Display brightness control.
 |----------|-------------|
 | `increment` | Increase brightness |
 | `decrement` | Decrease brightness |
-| `sleepBegin` | HDMI luminance 0 via DDC and eDP backlight 0; do not call niri DPMS |
-| `restoreAfterWake` | Restore the last good brightness on each monitor |
+| `sleepBegin` | DPMS off, then disable external outputs so HDMI HPD cannot reconnect |
+| `restoreAfterWake` | Re-enable those outputs, power monitors on, restore brightness |
 
 ---
 
