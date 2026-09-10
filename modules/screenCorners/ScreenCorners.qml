@@ -41,13 +41,14 @@ Scope {
         readonly property string outputName: cornerPanelWindow.screen?.name ?? ""
         readonly property bool orbitConflictsWithNiriOverview: CompositorService.isNiri
             && NiriService.isOverviewHotCornerActive(outputName, cornerName)
+        readonly property bool orbitInteractionSuppressed: fullscreen || GameMode.manuallyActivated
         readonly property bool shouldShowOrbitHotCorner: CompositorService.isNiri
             && (Config.options?.panelFamily ?? "ii") !== "waffle"
             && (Config.options?.orbit?.enable ?? true)
             && (Config.options?.orbit?.hotCornerEnable ?? true)
             && cornerName === orbitCorner
             && !orbitConflictsWithNiriOverview
-            && !fullscreen
+            && !orbitInteractionSuppressed
         readonly property bool shouldShowSidebarCornerOpen: shouldShowCornerOpen
             && !shouldShowOrbitHotCorner
 
@@ -127,7 +128,7 @@ Scope {
                     property bool atCorner: false
 
                     function triggerOrbit(): void {
-                        if (!armed || !atCorner)
+                        if (!armed || !atCorner || cornerPanelWindow.orbitInteractionSuppressed)
                             return
                         armed = false
                         orbitDwellTimer.stop()
