@@ -264,6 +264,12 @@ if ! grep -Fq '[[ "$qs_cgroup" == *"/inir.service"* ]] || continue' "$runtime_ro
     printf 'FAIL: cleanup-orphans can terminate Quickshell processes outside inir.service\n' >&2
     exit 1
 fi
+if ! grep -Fq 'ActiveState --value inir.service' "$runtime_root/sdata/lib/doctor.sh" \
+        || ! grep -Fq 'Result --value inir.service' "$runtime_root/sdata/lib/doctor.sh" \
+        || ! grep -Fq 'service_result" == "start-limit-hit"' "$runtime_root/sdata/lib/doctor.sh"; then
+    printf 'FAIL: Doctor does not surface failed/start-limit-hit inir.service state\n' >&2
+    exit 1
+fi
 
 step "maintenance help is non-destructive"
 setup_update_help="$($runtime_root/setup update --help)"

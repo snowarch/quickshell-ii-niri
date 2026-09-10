@@ -1040,9 +1040,16 @@ check_service_unit_health() {
         doctor_fix "Repaired inir.service Niri wiring"
     fi
 
-    local kill_mode fragment_path
+    local active_state service_result kill_mode fragment_path
+    active_state="$(systemctl --user show -p ActiveState --value inir.service 2>/dev/null || true)"
+    service_result="$(systemctl --user show -p Result --value inir.service 2>/dev/null || true)"
     kill_mode="$(systemctl --user show -p KillMode inir.service 2>/dev/null | cut -d= -f2)"
     fragment_path="$(systemctl --user show -p FragmentPath inir.service 2>/dev/null | cut -d= -f2)"
+
+    if [[ "$active_state" == "failed" || "$service_result" == "start-limit-hit" ]]; then
+        doctor_fail "Shell service failed (${service_result:-unknown result})"
+        echo -e "    ${STY_FAINT}Run: inir logs${STY_RST}"
+    fi
 
     if [[ -n "$kill_mode" && "$kill_mode" != "process" ]]; then
         doctor_fail "inir.service KillMode is '${kill_mode}'"
