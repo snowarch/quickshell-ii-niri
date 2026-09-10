@@ -363,7 +363,6 @@ Scope {
             }
             if (GlobalStates.screenLocked || root._lockActivating)
                 return;
-            Brightness.sleepBegin();
             lockActivateDelay.restart();
         }
 

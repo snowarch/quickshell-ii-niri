@@ -34,13 +34,46 @@ function pickRestoreValue(lastGood, currentBrightness) {
     return Number.NaN
 }
 
-function isExternalOutput(name) {
+function isInternalPanel(name) {
     const n = String(name || "").toUpperCase()
-    if (!n)
+    return n.startsWith("EDP") || n.startsWith("DSI") || n.startsWith("LVDS")
+}
+
+function isExternalOutput(name) {
+    if (!name)
         return false
-    if (n.startsWith("EDP") || n.startsWith("DSI") || n.startsWith("LVDS"))
-        return false
-    return n.startsWith("HDMI") || n.startsWith("DP") || n.startsWith("DISPLAYPORT")
+    return !isInternalPanel(name)
+}
+
+function outputsToPinOff(names) {
+    const out = []
+    const list = names || []
+    for (let i = 0; i < list.length; ++i) {
+        if (isExternalOutput(list[i]))
+            out.push(list[i])
+    }
+    return out
+}
+
+function preservePinnedOnRepeatedSleep(existingPinned, connectedNames) {
+    return mergeOutputNames(existingPinned, outputsToPinOff(connectedNames))
+}
+
+function sleepCommandQueue(connectedNames) {
+    const pin = outputsToPinOff(connectedNames)
+    const cmds = []
+    for (let i = 0; i < pin.length; ++i)
+        cmds.push(niriOutputOffArgs(pin[i]))
+    cmds.push(niriPowerOffMonitorsArgs())
+    return cmds
+}
+
+function wakeCommandQueue(pinnedNames) {
+    const cmds = [niriPowerOnMonitorsArgs()]
+    const pin = pinnedNames || []
+    for (let i = 0; i < pin.length; ++i)
+        cmds.push(niriOutputOnArgs(pin[i]))
+    return cmds
 }
 
 function niriPowerOffMonitorsArgs() {

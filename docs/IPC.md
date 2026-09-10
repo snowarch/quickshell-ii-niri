@@ -593,8 +593,8 @@ Display brightness control.
 |----------|-------------|
 | `increment` | Increase brightness |
 | `decrement` | Decrease brightness |
-| `sleepBegin` | DPMS off, then disable external outputs so HDMI HPD cannot reconnect |
-| `restoreAfterWake` | Power on, then retry `output on` until HDMI is connected or retries run out |
+| `sleepBegin` | Disable non-internal outputs, then DPMS off (serialized niri ipc). Idle screen-off only; lock does not call this |
+| `restoreAfterWake` | DPMS on, then re-enable pinned outputs with retries until connected or the retry limit |
 
 ---
 

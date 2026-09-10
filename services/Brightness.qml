@@ -31,6 +31,8 @@ Singleton {
     property var _sleepDisabledOutputs: []
     property var _knownExternals: []
     property int _wakeRetryAttempt: 0
+    property var _niriQueue: []
+    property bool _niriBusy: false
 
     // Reconcile against the live screen list rather than binding to
     // Quickshell.screens: createObject() parents each monitor to root, so a
@@ -66,14 +68,33 @@ Singleton {
         backlightDetectProc.running = true
     }
 
+    function _connectedNames(): var {
+        const names = []
+        for (let i = 0; i < Quickshell.screens.length; ++i)
+            names.push(Quickshell.screens[i].name)
+        return names
+    }
+
+    function _enqueueNiri(args): void {
+        root._niriQueue = root._niriQueue.concat([args])
+        root._drainNiriQueue()
+    }
+
+    function _drainNiriQueue(): void {
+        if (root._niriBusy || root._niriQueue.length === 0)
+            return
+        const next = root._niriQueue[0]
+        root._niriQueue = root._niriQueue.slice(1)
+        root._niriBusy = true
+        niriSerialProc.command = next
+        niriSerialProc.running = false
+        niriSerialProc.running = true
+    }
+
     function _rememberExternals(): void {
-        const extra = []
-        for (let i = 0; i < Quickshell.screens.length; ++i) {
-            const name = Quickshell.screens[i].name
-            if (BrightnessPolicy.isExternalOutput(name))
-                extra.push(name)
-        }
-        root._knownExternals = BrightnessPolicy.mergeOutputNames(root._knownExternals, extra)
+        root._knownExternals = BrightnessPolicy.mergeOutputNames(
+            root._knownExternals,
+            BrightnessPolicy.outputsToPinOff(root._connectedNames()))
     }
 
     function sleepBegin(): void {
@@ -82,19 +103,21 @@ Singleton {
         wakeRetryTimer.stop()
         root._wakeRetryAttempt = 0
         root.asleep = true
-        root._rememberExternals()
-        const disabled = BrightnessPolicy.mergeOutputNames(root._knownExternals, [])
-        for (let i = 0; i < disabled.length; ++i)
-            Quickshell.execDetached(BrightnessPolicy.niriOutputOffArgs(disabled[i]))
-        root._sleepDisabledOutputs = disabled
-        Quickshell.execDetached(BrightnessPolicy.niriPowerOffMonitorsArgs())
+        const connected = root._connectedNames()
+        root._sleepDisabledOutputs = BrightnessPolicy.preservePinnedOnRepeatedSleep(
+            root._sleepDisabledOutputs, connected)
+        root._knownExternals = BrightnessPolicy.mergeOutputNames(
+            root._knownExternals, root._sleepDisabledOutputs)
+        const cmds = BrightnessPolicy.sleepCommandQueue(connected)
+        for (let i = 0; i < cmds.length; ++i)
+            root._enqueueNiri(cmds[i])
     }
 
     function _tryWakeOutputs(): void {
         const names = BrightnessPolicy.mergeOutputNames(root._sleepDisabledOutputs, root._knownExternals)
         root._sleepDisabledOutputs = names
         for (let i = 0; i < names.length; ++i)
-            Quickshell.execDetached(BrightnessPolicy.niriOutputOnArgs(names[i]))
+            root._enqueueNiri(BrightnessPolicy.niriOutputOnArgs(names[i]))
     }
 
     function _pollNiriOutputs(): void {
@@ -107,11 +130,12 @@ Singleton {
             root.asleep = false
             return
         }
-        Quickshell.execDetached(BrightnessPolicy.niriPowerOnMonitorsArgs())
+        const cmds = BrightnessPolicy.wakeCommandQueue(
+            BrightnessPolicy.mergeOutputNames(root._sleepDisabledOutputs, root._knownExternals))
+        for (let i = 0; i < cmds.length; ++i)
+            root._enqueueNiri(cmds[i])
         root.asleep = false
         root._wakeRetryAttempt = 0
-        root._rememberExternals()
-        root._tryWakeOutputs()
         root._pollNiriOutputs()
         wakeRetryTimer.restart()
         root._syncMonitors()
@@ -122,6 +146,14 @@ Singleton {
     Component.onCompleted: {
         root._syncMonitors()
         root._detectBacklight()
+    }
+
+    Process {
+        id: niriSerialProc
+        onExited: {
+            root._niriBusy = false
+            root._drainNiriQueue()
+        }
     }
 
     Process {

@@ -15,10 +15,22 @@ function assert(cond, msg) {
     }
 }
 
-assert(ctx.isExternalOutput("HDMI-A-1") === true, "HDMI is external")
-assert(ctx.isExternalOutput("DP-3") === true, "DP is external")
-assert(ctx.isExternalOutput("eDP-1") === false, "eDP is internal")
-assert(ctx.isExternalOutput("DSI-1") === false, "DSI is internal")
+assert(ctx.isInternalPanel("eDP-1") === true, "eDP is internal")
+assert(ctx.isInternalPanel("DSI-1") === true, "DSI is internal")
+assert(ctx.isInternalPanel("HDMI-A-1") === false, "HDMI is not internal")
+assert(ctx.isExternalOutput("DVI-I-1") === true, "DVI is pinned as non-internal")
+assert(ctx.outputsToPinOff(["eDP-1"]).join(",") === "", "laptop-only pins nothing")
+assert(ctx.outputsToPinOff(["eDP-1", "HDMI-A-1"]).join(",") === "HDMI-A-1", "laptop+hdmi pins hdmi")
+assert(ctx.outputsToPinOff(["HDMI-A-1"]).join(",") === "HDMI-A-1", "desktop external-only pins the output")
+assert(ctx.outputsToPinOff(["eDP-1", "HDMI-A-1", "DP-3"]).join(",") === "HDMI-A-1,DP-3", "multi-monitor pins all non-internal")
+
+const sleepQ = ctx.sleepCommandQueue(["eDP-1", "HDMI-A-1"])
+assert(sleepQ.length >= 2, "sleep queue has pin then dpms")
+assert(sleepQ[0].join(" ") === "niri msg output HDMI-A-1 off", "sleep pins externals first")
+assert(sleepQ[sleepQ.length - 1].join(" ").includes("power-off-monitors"), "sleep dpms last")
+const wakeQ = ctx.wakeCommandQueue(["HDMI-A-1"])
+assert(wakeQ[0].join(" ").includes("power-on-monitors"), "wake dpms on first")
+assert(wakeQ[1].join(" ") === "niri msg output HDMI-A-1 on", "wake re-enables pinned outputs after power-on")
 
 const off = ctx.niriPowerOffMonitorsArgs()
 const on = ctx.niriPowerOnMonitorsArgs()
@@ -45,14 +57,17 @@ assert(!disabled.includes("eDP-1"), "eDP is not an external to force-on")
 
 const merged = ctx.mergeOutputNames(["HDMI-A-1"], ["HDMI-A-1", "DP-1"])
 assert(merged.join(",") === "HDMI-A-1,DP-1", "wake retries remembered plus currently disabled")
+const afterLock = ctx.preservePinnedOnRepeatedSleep(["HDMI-A-1"], ["eDP-1"])
+assert(afterLock.join(",") === "HDMI-A-1", "screen-off then lock must not drop the pinned hdmi set")
 
 const idleQml = fs.readFileSync(path.resolve(__dirname, "../services/Idle.qml"), "utf8")
 assert(!idleQml.includes("idle-blank"), "Idle.qml must not paint a fake overlay")
 assert(!idleQml.includes("WlrLayershell"), "Idle.qml must not keep a blank layer")
 
 const brightnessQml = fs.readFileSync(path.resolve(__dirname, "../services/Brightness.qml"), "utf8")
-assert(brightnessQml.includes("niriPowerOffMonitorsArgs"), "sleepBegin must dpms")
-assert(brightnessQml.includes("niriOutputOffArgs"), "sleepBegin disables external outputs")
+assert(brightnessQml.includes("sleepCommandQueue"), "sleepBegin uses one serialized niri queue")
+assert(brightnessQml.includes("_enqueueNiri"), "niri ipc is queued, not fire-and-forget")
+assert(!/sleepBegin[\s\S]{0,800}execDetached/.test(brightnessQml), "sleepBegin must not execDetached niri")
 assert(brightnessQml.includes("_tryWakeOutputs"), "wake retries output on")
 assert(brightnessQml.includes("wakeRetryTimer"), "wake retries on a timer")
 assert(brightnessQml.includes("disabledExternalOutputNames"), "wake reads niri json for disabled hdmi")
