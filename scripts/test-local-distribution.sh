@@ -443,11 +443,12 @@ with (root / "defaults/config.json").open(encoding="utf-8") as handle:
     config = json.load(handle)
 schema = (root / "modules/common/Config.qml").read_text(encoding="utf-8")
 wizard = (root / "welcome.qml").read_text(encoding="utf-8")
+bar_settings = (root / "modules/settings/BarConfig.qml").read_text(encoding="utf-8")
 
 checks = {
     "settings rail": config["settingsUi"]["overlayStyle"] == "rail",
-    "balanced profile": config["welcomeWizard"]["profile"] == "balanced",
-    "fresh Material Flow preset": config["welcomeWizard"]["stylePreset"] == "material-flow",
+    "legacy profile marker preserved": config["welcomeWizard"]["profile"] == "balanced",
+    "fresh Material experience": config["welcomeWizard"]["stylePreset"] == "material",
     "fresh balanced graphics budget": config["welcomeWizard"]["performancePreset"] == "balanced",
     "fresh contextual motion": config["appearance"]["iiMotionProfile"] == "contextual",
     "fresh M3 bar": config["bar"]["appearanceStyle"] == "m3",
@@ -462,6 +463,12 @@ checks = {
     "news tab": config["sidebar"]["news"]["enable"] is True,
     "controls widget": config["sidebar"]["widgets"]["controls"] is True,
     "status widget": config["sidebar"]["widgets"]["status"] is True,
+    "media controls surface defaults": all([
+        config["background"]["widgets"]["mediaControls"]["showBackground"] is True,
+        config["background"]["widgets"]["mediaControls"]["showBorder"] is True,
+        config["background"]["widgets"]["mediaControls"]["backgroundOpacity"] == 0.16,
+        config["background"]["widgets"]["mediaControls"]["borderWidth"] == 1,
+    ]),
 }
 failed = [name for name, passed in checks.items() if not passed]
 if failed:
@@ -474,7 +481,7 @@ schema_checks = {
     "schema M3 dock": 'property string style: "m3"' in schema.split(
         "property JsonObject dock: JsonObject {", 1)[1].split(
         "property JsonObject controlPanel: JsonObject {", 1)[0],
-    "schema fresh style preset": 'property string stylePreset: "material-flow"' in schema,
+    "schema fresh Material experience": 'property string stylePreset: "material"' in schema,
     "schema fresh graphics budget": 'property string performancePreset: "balanced"' in schema,
     "schema iNiR Alt+Tab opt-in": "property bool altSwitcher: false" in schema.split(
         "property JsonObject modules: JsonObject {", 1)[1].split(
@@ -491,11 +498,99 @@ schema_checks = {
     "schema wallhaven compatibility": "property JsonObject wallhaven: JsonObject {" in schema
         and "property bool enable: true" in schema[schema.index("property JsonObject wallhaven: JsonObject {"):],
     "schema news tab": "property JsonObject news: JsonObject {\n                    property bool enable: true" in schema,
-    "wizard applies initial profile": "root.applyProfile(root.selectedProfile)" in wizard,
-    "wizard applies initial style": "root.applyStylePreset(root.selectedStylePreset)" in wizard,
+    "schema media controls surface contract": all(fragment in schema.split(
+        "property JsonObject mediaControls: JsonObject {", 1)[1].split(
+        "property JsonObject visualizer: JsonObject {", 1)[0] for fragment in [
+            "property bool showBackground: true",
+            "property bool showBorder: true",
+            "property real backgroundOpacity: 0.16",
+            "property real borderWidth: 1",
+        ]),
+    "wizard applies initial experience": "root.applyExperiencePreset(root.selectedExperiencePreset)" in wizard,
     "wizard applies initial graphics budget": "root.applyPerformancePreset(root.selectedPerformancePreset)" in wizard,
-    "wizard style catalog": all(preset in wizard for preset in [
-        'id: "material-flow"', 'id: "expressive"', 'id: "aurora-islands"', 'id: "inir-terminal"', 'id: "zzz-street"'
+    "wizard has no invented Signature preset": 'id: "signature"' not in wizard,
+    "wizard experience catalog covers existing families": all(preset in wizard for preset in [
+        'id: "material"', 'id: "cards"', 'id: "aurora"', 'id: "inir"',
+        'id: "angel"', 'id: "regalia"', 'id: "zzz"', 'id: "cookie"',
+        'id: "editorial"', 'id: "waffle"'
+    ]),
+    "wizard experiences cover all ii bar chassis": all(fragment in wizard for fragment in [
+        '"bar.appearanceStyle": "classic"', '"bar.appearanceStyle": "islands"',
+        '"bar.appearanceStyle": "scenic"', '"bar.appearanceStyle": "frame"',
+        '"bar.appearanceStyle": "m3"', '"bar.appearanceStyle": "pill"'
+    ]),
+    "wizard experiences cover all dock chassis": all(fragment in wizard for fragment in [
+        '"dock.style": "panel"', '"dock.style": "pill"', '"dock.style": "macos"',
+        '"dock.style": "island"', '"dock.style": "m3"'
+    ]),
+    "wizard Material preset uses the populated M3 Showcase layout": all(fragment in wizard for fragment in [
+        '"bar.m3.layoutMode": "showcase"',
+        '["media", "workspaces"]',
+        '["visualizer", "docktoPanel", "visualizer"]',
+        '["utilButtons", "systemIcons", "weatherBar", "clockWidget"]'
+    ]),
+    "Settings M3 Showcase matches fresh-install composition": all(fragment in bar_settings for fragment in [
+        'updates["bar.m3.layouts.leftLayout"] = ["media", "workspaces"]',
+        'updates["bar.m3.layouts.middleLayout"] = ["visualizer", "docktoPanel", "visualizer"]',
+        'updates["bar.m3.layouts.rightLayout"] = ["utilButtons", "systemIcons", "weatherBar", "clockWidget"]'
+    ]),
+    "wizard Pill experience configures Pill-owned behavior": all(fragment in wizard for fragment in [
+        '"bar.pill.musicViz": true', '"bar.pill.soul.style": "orb"',
+        '"bar.pill.surfaces.clipboard": true', '"bar.visualizer.pillWingMode": "bounded"'
+    ]),
+    "wizard sidebars are composed beyond their chassis": all(fragment in wizard for fragment in [
+        '"sidebar.widgets.widgetOrder"', '"sidebar.right.enabledWidgets"',
+        '"sidebar.right.sectionOrder"', '"sidebar.quickToggles.android.toggles"',
+        '"sidebar.quickSliders.showBrightness": true', '"sidebar.right.headerStyle"'
+    ]),
+    "wizard desktop presets use adaptive zones and internal styles": all(fragment in wizard for fragment in [
+        '"background.widgets.clock.placementStrategy": "topLeft"',
+        '"background.widgets.dateBadge.placementStrategy": "topRight"',
+        '"background.widgets.systemMonitor.placementStrategy": "bottomRight"',
+        '"background.widgets.mediaControls.placementStrategy": "bottomLeft"',
+        '"background.widgets.clock.style": "androidStacked"',
+        '"background.widgets.clock.style": "pixel"',
+        '"background.widgets.clock.style": "cookie"',
+        '"background.widgets.systemMonitor.displayMode": "tiles"',
+        '"background.widgets.systemMonitor.displayMode": "text"',
+        '"background.widgets.mediaControls.playerPreset": "albumart"',
+        '"background.widgets.mediaControls.playerPreset": "visualizer"'
+    ]),
+    "wizard Editorial experience uses Editorial-owned composition": all(fragment in wizard for fragment in [
+        '"settingsUi.overlayStyle": "editorial"', '"appearance.editorial.paperStack": true',
+        '"background.widgets.editorial.placementStrategy": "centerLeft"',
+        '"background.widgets.shape.placementStrategy": "centerRight"'
+    ]),
+    "wizard preset selection resets managed per-output widget overrides": all(fragment in wizard for fragment in [
+        'readonly property var presetManagedDesktopWidgets:',
+        'DesktopWidgetLayout.clearWidget(output, widget)',
+        'root.applyDesktopComposition(preset.id)'
+    ]),
+    "wizard desktop compositions define explicit compact geometry": all(fragment in wizard for fragment in [
+        'dateBadge: { placementStrategy: "topRight", contentWidth: 176, contentHeight: 120 }',
+        'systemMonitor: { placementStrategy: "bottomRight", contentWidth: 300, contentHeight: 100 }',
+        'editorial: { placementStrategy: "centerLeft", contentWidth: 320, contentHeight: 190 }',
+        'shape: { placementStrategy: "centerRight", contentWidth: 92, contentHeight: 92 }'
+    ]),
+    "wizard classic-family presets own the five-zone bar layout": all(fragment in wizard for fragment in [
+        '"bar.layout.migrated": true',
+        '"bar.layout.center": ["workspaces"]',
+        '"bar.layout.center": ["clock"]'
+    ]),
+    "wizard Waffle experience is native rather than ii chrome": all(fragment in wizard for fragment in [
+        'panelFamily: "waffle"', '"waffles.startMenu.sizePreset": "wide"',
+        '"waffles.taskView.mode": "carousel"', '"waffles.widgetsPanel.quickActions"',
+        '"waffles.actionCenter.toggles"', '"waffles.background.widgets.clock.style": "hero"'
+    ]),
+    "wizard showcase widgets are cardless": all(fragment in wizard for fragment in [
+        '"background.widgets.clock.showBackground": false',
+        '"background.widgets.clock.showBorder": false',
+        '"background.widgets.dateBadge.showBackground": false',
+        '"background.widgets.dateBadge.showBorder": false',
+        '"background.widgets.systemMonitor.showBackground": false',
+        '"background.widgets.systemMonitor.showBorder": false',
+        '"background.widgets.visualizer.showBackground": false',
+        '"background.widgets.visualizer.showBorder": false'
     ]),
     "wizard graphics catalog": all(preset in wizard for preset in [
         'id: "minimum"', 'id: "efficient"', 'id: "balanced"'
@@ -521,9 +616,11 @@ schema_checks = {
     "wizard dock not hover-only": '"dock.hoverToReveal": false' in wizard,
     "wizard right sidebar full height": '"sidebar.collapseEmptyNotifications": false' in wizard,
     "wizard left sidebar full height": '"sidebar.collapseWidgetsTab": false' in wizard,
-    "wizard preserves Waffle configuration": '"waffles.' not in wizard.split(
-        "readonly property var profileEssentials", 1)[1].split(
-        "// ─── Entry/exit animation state", 1)[0],
+    "wizard manual surface edits leave preset mode explicitly custom": all(fragment in wizard for fragment in [
+        'root.setExperienceFeature("bar.appearanceStyle", newValue)',
+        'root.setExperienceFeature("dock.style", newValue)',
+        'root.setExperienceFeature("sidebar.style", newValue)'
+    ]),
 }
 failed = [name for name, passed in schema_checks.items() if not passed]
 if failed:
@@ -1196,7 +1293,11 @@ bar_group="$runtime_root/modules/bar/BarGroup.qml"
 m3_bar_content="$runtime_root/modules/barM3/BarContent.qml"
 pill_spectrum="$runtime_root/modules/pill/PillSpectrumWings.qml"
 vertical_bar_content="$runtime_root/modules/verticalBar/VerticalBarContent.qml"
-if ! grep -Fq 'bool edgeMode = ubuf.presentationMode > 1.5' "$organic_shader" \
+if ! grep -Fq 'bool cardEdgeMode = ubuf.presentationMode > 1.5 && ubuf.presentationMode < 2.5' "$organic_shader" \
+        || ! grep -Fq 'bool screenEdgeMode = ubuf.presentationMode >= 2.5' "$organic_shader" \
+        || ! grep -Fq 'bool edgeMode = cardEdgeMode || screenEdgeMode' "$organic_shader" \
+        || ! grep -Fq '} else if (screenEdgeMode) {' "$organic_shader" \
+        || ! grep -Fq 'float edge = clamp(ubuf.screenEdge, 0.0, 3.0)' "$organic_shader" \
         || ! grep -Fq 'edgeDirections' "$organic_shader" \
         || ! grep -Fq 'edgeReachHalf' "$organic_shader" \
         || ! grep -Fq 'float edgeDistanceNormalized' "$organic_shader" \
@@ -1298,9 +1399,115 @@ if [[ ! -f "$audio_layer" || ! -f "$media_layer" ]] \
 fi
 organic_qsb="$runtime_root/modules/common/widgets/OrganicAudioBlob.frag.qsb"
 if [[ ! -s "$organic_qsb" ]] \
-        || ! grep -Fq 'property real pulseStrength' "$runtime_root/modules/common/widgets/OrganicAudioBlob.qml"; then
+        || ! grep -Fq 'property real pulseStrength' "$runtime_root/modules/common/widgets/OrganicAudioBlob.qml" \
+        || ! grep -Fq 'ubuf.spin / TAU' "$runtime_root/modules/common/widgets/OrganicAudioBlob.frag" \
+        || grep -Fq 'ubuf.phase * 0.035' "$runtime_root/modules/common/widgets/OrganicAudioBlob.frag"; then
     printf 'FAIL: Organic visualizer pulse renderer/shader asset is missing\n' >&2
     exit 1
+fi
+qsb_tool="$(command -v qsb 2>/dev/null || true)"
+if [[ -z "$qsb_tool" ]]; then
+    for candidate in /usr/lib/qt6/bin/qsb /usr/lib64/qt6/bin/qsb; do
+        if [[ -x "$candidate" ]]; then
+            qsb_tool="$candidate"
+            break
+        fi
+    done
+fi
+if [[ -n "$qsb_tool" ]]; then
+    qsb_dump="$($qsb_tool -d "$organic_qsb" 2>/dev/null || true)"
+    if ! grep -Fq 'GLSL 120 [Standard]' <<<"$qsb_dump" \
+            || ! grep -Fq 'GLSL 150 [Standard]' <<<"$qsb_dump"; then
+        printf 'FAIL: Organic visualizer shader pack is missing desktop GLSL targets\n' >&2
+        exit 1
+    fi
+fi
+
+organic_edge_qsb="$runtime_root/modules/common/widgets/OrganicScreenEdge.frag.qsb"
+organic_edge_shader="$runtime_root/modules/common/widgets/OrganicScreenEdge.frag"
+organic_edge_qml="$runtime_root/modules/common/widgets/OrganicScreenEdge.qml"
+organic_edge_settings="$runtime_root/modules/settings/OrganicEdgeSettings.qml"
+organic_motion="$runtime_root/modules/common/widgets/OrganicAudioMotion.qml"
+organic_edge_config="$runtime_root/modules/background/widgets/OrganicEdgeConfig.js"
+organic_edge_host="$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml"
+if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
+        || ! -f "$organic_edge_qml" || ! -f "$organic_edge_settings" \
+        || ! -f "$organic_motion" || ! -f "$organic_edge_config" \
+        || ! -f "$organic_edge_host" ]] \
+        || ! grep -Fq 'float smoothMinField(' "$organic_edge_shader" \
+        || ! grep -Fq 'void edgeInterval(' "$organic_edge_shader" \
+        || ! grep -Fq 'bool cornerJoined(' "$organic_edge_shader" \
+        || ! grep -Fq 'float edgeEndpointMask(' "$organic_edge_shader" \
+        || ! grep -Fq 'float centeredLevel = level - u.activity.x * 0.62' "$organic_edge_shader" \
+        || ! grep -Fq 'float bassEnergy =' "$organic_edge_shader" \
+        || ! grep -Fq 'float haloDecay = mix(54.0, 14.0, u.appearance.z)' "$organic_edge_shader" \
+        || ! grep -Fq 'property vector4d appearance:' "$organic_edge_qml" \
+        || ! grep -Fq 'property vector4d response:' "$organic_edge_qml" \
+        || ! grep -Fq 'property real beatGlow: 0.65' "$organic_edge_qml" \
+        || ! grep -Fq 'property vector4d peaksA: root._peakA' "$organic_edge_qml" \
+        || ! grep -Fq 'property real attackScale: 1.0' "$organic_motion" \
+        || ! grep -Fq 'property real releaseScale: 1.0' "$organic_motion" \
+        || ! grep -Fq 'property real _effectiveMotionSpeed' "$organic_motion" \
+        || ! grep -Fq 'root._effectiveMotionSpeed = follow' "$organic_motion" \
+        || ! grep -Fq 'property vector4d topology:' "$organic_edge_qml" \
+        || ! grep -Fq 'shapeMode:' "$organic_edge_host" \
+        || ! grep -Fq 'joinConnected:' "$organic_edge_host" \
+        || ! grep -Fq 'AdaptedMaterialScheme {' "$organic_edge_host" \
+        || ! grep -Fq 'Appearance.wallpaperDominantColor' "$organic_edge_host" \
+        || ! grep -Fq 'name: "Wallpaper Tide"' "$organic_edge_config" \
+        || ! grep -Fq 'name: "Afterglow Frame"' "$organic_edge_config" \
+        || ! grep -Fq 'value: "filament"' "$organic_edge_config" \
+        || ! grep -Fq 'value: "caustic"' "$organic_edge_config" \
+        || ! grep -Fq 'value: "afterglow"' "$organic_edge_config" \
+        || ! grep -Fq 'float contourReach(' "$organic_edge_shader" \
+        || ! grep -Fq 'bool unifiedPath = joinTR || joinBR || joinBL || joinTL' "$organic_edge_shader" \
+        || ! grep -Fq 'if (!unifiedPath && dot(reachable, vec4(1)) < 0.5)' "$organic_edge_shader" \
+        || ! grep -Fq 'float connectedFieldRatio = 1e9' "$organic_edge_shader" \
+        || ! grep -Fq 'vec2 connectedPhase = vec2(0.0)' "$organic_edge_shader" \
+        || ! grep -Fq 'connectedFieldRatio = smoothMinField(' "$organic_edge_shader" \
+        || ! grep -Fq 'connectedLocal = atan(connectedPhase.y, connectedPhase.x) / TAU' "$organic_edge_shader" \
+        || ! grep -Fq 'float effectiveSideDepth = u.depths[side]' "$organic_edge_shader" \
+        || ! grep -Fq 'float sharedDepth = min(' "$organic_edge_shader" \
+        || ! grep -Fq 'float fieldRatio = unifiedPath ? connectedFieldRatio' "$organic_edge_shader" \
+        || ! grep -Fq 'float fieldClip = unifiedPath' "$organic_edge_shader" \
+        || ! grep -Fq 'if (unifiedPath && iteration > 0) continue' "$organic_edge_shader" \
+        || grep -Fq 'cornerOwner' "$organic_edge_shader" \
+        || grep -Fq 'cornerReach' "$organic_edge_shader" \
+        || grep -Fq 'pathOwner' "$organic_edge_shader" \
+        || grep -Fq 'sampleConnectedPath' "$organic_edge_shader" \
+        || ! grep -Fq 'float p = fract(position) * 12.0' "$organic_edge_shader" \
+        || ! grep -Fq 'u.topology.x > 0.5 ? max(alpha, weight)' "$organic_edge_shader" \
+        || ! grep -Fq 'toggled: root.presetMatches(modelData)' "$organic_edge_settings" \
+        || ! grep -Fq 'model: EdgeConfig.responsePresets' "$organic_edge_settings" \
+        || ! grep -Fq 'options: EdgeConfig.shapes.map' "$organic_edge_settings" \
+        || ! grep -Fq 'Join connected edges' "$organic_edge_settings" \
+        || ! grep -Fq 'entries: EdgeConfig.materialBody' "$organic_edge_settings" \
+        || ! grep -Fq 'entries: EdgeConfig.materialLight' "$organic_edge_settings" \
+        || ! grep -Fq 'entries: EdgeConfig.audioDynamics' "$organic_edge_settings" \
+        || ! grep -Fq 'entries: EdgeConfig.audioTone' "$organic_edge_settings" \
+        || ! grep -Fq 'onMoved: root.setValue(metric.modelData.key' "$organic_edge_settings" \
+        || ! grep -Fq 'model: EdgeConfig.presets' "$organic_edge_settings" \
+        || ! grep -Fq 'check_circle' "$organic_edge_settings" \
+        || ! grep -Fq 'EdgeConfig.colorModes' "$organic_edge_settings" \
+        || ! grep -Fq 'EdgeConfig.effects' "$organic_edge_settings" \
+        || ! grep -Fq 'Behavior on _primaryColor' "$organic_edge_qml" \
+        || ! grep -Fq 'TuneBehavior on _effectStrength' "$organic_edge_qml" \
+        || ! grep -Fq 'property vector4d effects:' "$organic_edge_qml" \
+        || ! grep -Fq 'paletteColors:' "$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml" \
+        || ! grep -Fq 'albumColorCount:' "$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml" \
+        || ! grep -Fq 'palette === "album"' "$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml" \
+        || ! grep -Fq 'name: "Album Aura"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js" \
+        || ! grep -Fq 'name: "Club Pulse"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js"; then
+    printf 'FAIL: Organic edge renderer/settings contract is incomplete\n' >&2
+    exit 1
+fi
+if [[ -n "$qsb_tool" ]]; then
+    edge_qsb_dump="$($qsb_tool -d "$organic_edge_qsb" 2>/dev/null || true)"
+    if ! grep -Fq 'GLSL 120 [Standard]' <<<"$edge_qsb_dump" \
+            || ! grep -Fq 'GLSL 150 [Standard]' <<<"$edge_qsb_dump"; then
+        printf 'FAIL: Organic edge shader pack is missing desktop GLSL targets\n' >&2
+        exit 1
+    fi
 fi
 
 step "visualizer app filter semantics"
