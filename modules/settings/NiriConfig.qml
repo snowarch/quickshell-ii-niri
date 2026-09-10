@@ -139,6 +139,7 @@ ContentPage {
     })
     property string lastActionError: ""
     property string lastActionInfo: ""
+    property bool successFeedbackVisible: false
 
     property bool inputReady: false
     property bool layoutReady: false
@@ -317,6 +318,19 @@ ContentPage {
             message = ""
         lastActionError = ""
         lastActionInfo = message
+        successFeedbackVisible = message.length > 0
+        if (successFeedbackVisible)
+            successFeedbackTimer.restart()
+    }
+
+    Timer {
+        id: successFeedbackTimer
+        interval: 1600
+        repeat: false
+        onTriggered: {
+            root.successFeedbackVisible = false
+            root.lastActionInfo = ""
+        }
     }
 
     function handleJsonResult(rawText, processKey, onSuccess) {
@@ -1180,11 +1194,10 @@ ContentPage {
     Item {
         id: statusBanner
         Layout.fillWidth: true
-        visible: root.lastActionError.length > 0 || root.lastActionInfo.length > 0 || !root.validationData.valid || root.hasAnyProcessError
+        visible: root.lastActionError.length > 0 || !root.validationData.valid || root.hasAnyProcessError
         implicitHeight: statusColumn.implicitHeight + 24
 
-        readonly property bool isError: root.lastActionError.length > 0 || !root.validationData.valid || root.hasAnyProcessError
-        readonly property color accentColor: isError ? Appearance.colors.colError : Appearance.colors.colPrimary
+        readonly property color accentColor: Appearance.colors.colError
 
         Rectangle {
             anchors.fill: parent
@@ -1204,7 +1217,7 @@ ContentPage {
                     spacing: 8
 
                     MaterialSymbol {
-                        text: statusBanner.isError ? "error" : "check_circle"
+                        text: "error"
                         color: statusBanner.accentColor
                         iconSize: Appearance.font.pixelSize.hugeass
                     }
@@ -1219,9 +1232,7 @@ ContentPage {
                                 ? root.lastActionError
                                 : !root.validationData.valid
                                     ? (root.validationData.output?.length > 0 ? root.validationData.output : Translation.tr("Niri config validation failed."))
-                                    : root.hasAnyProcessError
-                                        ? root.processErrorSummary()
-                                        : root.lastActionInfo
+                                    : root.processErrorSummary()
                             wrapMode: Text.WordWrap
                             color: Appearance.colors.colOnLayer1
                             font.pixelSize: Appearance.font.pixelSize.small
@@ -1262,7 +1273,7 @@ ContentPage {
                     }
 
                     RippleButton {
-                        visible: root.lastActionError.length > 0 || root.lastActionInfo.length > 0
+                        visible: root.lastActionError.length > 0
                         implicitWidth: 80
                         implicitHeight: 36
                         buttonRadius: SettingsMaterialPreset.groupRadius
@@ -1270,7 +1281,6 @@ ContentPage {
                         colBackgroundHover: Appearance.colors.colLayer1Hover
                         onClicked: {
                             root.lastActionError = ""
-                            root.lastActionInfo = ""
                         }
                         contentItem: StyledText {
                             text: Translation.tr("Dismiss")
@@ -1279,6 +1289,81 @@ ContentPage {
                             verticalAlignment: Text.AlignVCenter
                             font.pixelSize: Appearance.font.pixelSize.small
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    Item {
+        id: successFeedbackHost
+        Layout.fillWidth: true
+        Layout.preferredHeight: 0
+        implicitHeight: 0
+        z: 100
+
+        Rectangle {
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            y: 8
+            width: Math.min(Math.max(successFeedbackRow.implicitWidth + 28, 220), Math.max(220, parent.width - 24))
+            height: 44
+            radius: SettingsMaterialPreset.groupRadius
+            visible: root.successFeedbackVisible && root.lastActionInfo.length > 0
+            opacity: visible ? 1 : 0
+            color: Appearance.editorialEverywhere
+                ? Appearance.editorial.layer(2)
+                : Appearance.colors.colLayer2
+            border.width: 1
+            border.color: Appearance.editorialEverywhere
+                ? Appearance.editorial.rule
+                : Appearance.colors.colOutlineVariant
+
+            Behavior on opacity {
+                NumberAnimation { duration: Appearance.animation.elementMoveFast.duration }
+            }
+
+            RowLayout {
+                id: successFeedbackRow
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                anchors.rightMargin: 12
+                spacing: 8
+
+                MaterialSymbol {
+                    text: "check_circle"
+                    iconSize: 18
+                    color: Appearance.editorialEverywhere
+                        ? Appearance.editorial.accent
+                        : Appearance.colors.colPrimary
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.lastActionInfo
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    color: Appearance.colors.colOnLayer2
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    font.weight: Font.Medium
+                }
+
+                RippleButton {
+                    implicitWidth: 30
+                    implicitHeight: 30
+                    buttonRadius: 15
+                    colBackground: "transparent"
+                    colBackgroundHover: Appearance.colors.colLayer2Hover
+                    onClicked: {
+                        root.successFeedbackVisible = false
+                        root.lastActionInfo = ""
+                    }
+                    contentItem: MaterialSymbol {
+                        text: "close"
+                        iconSize: 16
+                        color: Appearance.colors.colSubtext
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
                 }
             }
