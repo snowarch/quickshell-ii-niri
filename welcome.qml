@@ -34,105 +34,273 @@ Scope {
     readonly property int totalSteps: 5
     property var focusedScreen: GlobalStates.primaryScreen
 
-    readonly property string selectedProfile: Config.options?.welcomeWizard?.profile ?? "balanced"
-    readonly property string selectedStylePreset: Config.options?.welcomeWizard?.stylePreset ?? "material-flow"
+    readonly property string selectedExperiencePreset: Config.options?.welcomeWizard?.stylePreset ?? "material"
     readonly property string selectedPerformancePreset: Config.options?.welcomeWizard?.performancePreset ?? "balanced"
-    property bool profileCustomized: false
-    property bool initialProfileApplied: false
-    property bool initialStyleApplied: false
+    property bool experienceCustomized: false
+    property bool initialExperienceApplied: false
     property bool initialPerformanceApplied: false
     readonly property bool firstRunSetup: !(Config.options?.welcomeWizard?.completed ?? false)
         && !(Config.options?.welcomeWizard?.skipped ?? false)
 
-    readonly property string selectedProfileTitle: selectedProfile === "minimum"
-        ? Translation.tr("Minimum")
-        : selectedProfile === "full" ? Translation.tr("Full") : Translation.tr("Balanced")
-    readonly property string selectedProfileDescription: selectedProfile === "minimum"
-        ? Translation.tr("A calm desktop. Bar, dock and dashboard with one sidebar tab, two panel widgets and a bare wallpaper.")
-        : selectedProfile === "full"
-            ? Translation.tr("Everything local, composed on purpose. Five sidebar tabs, eight panel widgets, eight quick toggles, a placed desktop clock and system monitor, and Kira on the desktop.")
-            : Translation.tr("Three sidebar tabs, six panel widgets, system usage in the bar, the control and status cards, and an auto-placed desktop clock.")
-    readonly property string selectedProfileAudience: selectedProfile === "minimum"
-        ? Translation.tr("Best if you want the shell out of the way and will add pieces yourself.")
-        : selectedProfile === "full"
-            ? Translation.tr("Best if you want to see everything iNiR can do on day one.")
-            : Translation.tr("Best for most people. This is what a fresh install ships.")
-
-    readonly property var stylePresets: [
+    readonly property var experiencePresets: [
         {
-            id: "material-flow", name: Translation.tr("Flow"), icon: "category",
-            globalStyle: "material",
-            description: Translation.tr("Material colors with the dedicated M3 bar, M3 dock and contextual motion. Familiar, but no longer generic."),
+            id: "material", name: "Material", icon: "category", panelFamily: "ii", globalStyle: "material",
+            description: Translation.tr("Material II at full strength: a populated M3 bar, M3 dock, practical sidebars, rich quick controls and a balanced desktop composition."),
             values: {
-                "appearance.iiMotionProfile": "contextual",
                 "bar.appearanceStyle": "m3",
+                "bar.m3.layoutMode": "showcase",
                 "bar.m3.borderless": "separated",
-                "bar.m3.cornerStyle": 3,
-                "bar.m3.showBackground": true,
-                "bar.showBackground": true,
-                "bar.opacity": 1.0,
+                "bar.m3.layouts.leftLayout": ["media", "workspaces"],
+                "bar.m3.layouts.middleLayout": ["visualizer", "docktoPanel", "visualizer"],
+                "bar.m3.layouts.rightLayout": ["utilButtons", "systemIcons", "weatherBar", "clockWidget"],
+                "bar.m3.resources.style": "filled",
+                "bar.m3.resources.showValue": true,
+                "bar.m3.workspaces.showAppIcons": true,
+                "bar.m3.workspaces.indicatorStyle": "icon",
+                "bar.visualizer.enable": true,
+                "bar.visualizer.type": "organic",
+                "bar.visualizer.organicFit": "contained",
+                "bar.visualizer.opacity": 0.24,
+                "dock.enable": true,
                 "dock.style": "m3",
-                "dock.showBackground": true,
-                "sidebar.style": "panel"
+                "dock.cardStyle": false,
+                "sidebar.style": "panel",
+                "sidebar.cardStyle": true,
+                "sidebar.animationType": "slide",
+                "sidebar.widgets.note": true, "sidebar.widgets.launch": true, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "notepad", "calculator", "sysmon", "weather", "timer"],
+                "sidebar.right.headerStyle": "profile",
+                "sidebar.quickToggles.style": "android",
+                "controlPanel.style": "panel",
+                "dashboard.appearance.density": "comfortable",
+                "background.widgets.clock.enable": true,
+                "background.widgets.clock.placementStrategy": "topLeft",
+                "background.widgets.clock.style": "digital",
+                "background.widgets.systemMonitor.enable": true,
+                "background.widgets.systemMonitor.placementStrategy": "bottomRight",
+                "background.widgets.systemMonitor.displayMode": "rings",
+                "background.widgets.mediaControls.enable": true,
+                "background.widgets.mediaControls.placementStrategy": "bottomLeft",
+                "background.widgets.mediaControls.playerPreset": "compact"
             }
         },
         {
-            id: "expressive", name: Translation.tr("Expressive"), icon: "interests",
-            globalStyle: "cookie",
-            description: Translation.tr("Organic Material Expressive shapes, joined M3 groups and a pill dock. Playful without becoming noisy."),
+            id: "cards", name: "Cards", icon: "branding_watermark", panelFamily: "ii", globalStyle: "cards",
+            description: Translation.tr("Layered Material cards: a card-shaped classic bar, panel dock and card sidebars with a calmer information hierarchy."),
             values: {
-                "appearance.iiMotionProfile": "contextual",
-                "bar.appearanceStyle": "m3",
-                "bar.m3.borderless": "pills",
-                "bar.m3.cornerStyle": 3,
-                "bar.m3.showBackground": true,
-                "bar.showBackground": true,
-                "bar.opacity": 1.0,
-                "dock.style": "pill",
-                "dock.showBackground": true,
-                "sidebar.style": "panel"
+                "bar.appearanceStyle": "classic", "bar.cornerStyle": 3, "bar.borderless": false,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["resources", "media"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "utilButtons", "battery"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+                "bar.visualizer.enable": false,
+                "dock.enable": true, "dock.style": "panel", "dock.cardStyle": true,
+                "sidebar.style": "panel", "sidebar.cardStyle": true, "sidebar.animationType": "pop",
+                "sidebar.tools.enable": false, "sidebar.software.enable": false,
+                "sidebar.widgets.note": true, "sidebar.widgets.launch": true, "sidebar.widgets.status": false,
+                "sidebar.right.enabledWidgets": ["calendar", "todo", "notepad", "weather", "timer"],
+                "sidebar.right.headerStyle": "profile", "sidebar.quickToggles.style": "android",
+                "controlPanel.style": "panel", "dashboard.appearance.density": "comfortable",
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "digital", "background.widgets.clock.showDate": false,
+                "background.widgets.dateBadge.enable": true, "background.widgets.dateBadge.placementStrategy": "topRight", "background.widgets.dateBadge.style": "ticket",
+                "background.widgets.mediaControls.enable": true, "background.widgets.mediaControls.placementStrategy": "bottomLeft", "background.widgets.mediaControls.playerPreset": "full",
+                "background.widgets.calendarUpcoming.enable": true, "background.widgets.calendarUpcoming.placementStrategy": "bottomRight"
             }
         },
         {
-            id: "aurora-islands", name: Translation.tr("Glass"), icon: "blur_on",
-            globalStyle: "aurora",
-            description: Translation.tr("Aurora glass with separate bar, dock and sidebar islands. Best with the Medium graphics budget."),
+            id: "aurora", name: "Aurora", icon: "blur_on", panelFamily: "ii", globalStyle: "aurora",
+            description: Translation.tr("Wallpaper glass composition: Islands bar, island dock, island sidebars and floating content with restrained transparent desktop widgets."),
             values: {
-                "appearance.iiMotionProfile": "contextual",
-                "bar.appearanceStyle": "islands",
-                "bar.showBackground": true,
-                "bar.opacity": 1.0,
-                "dock.style": "island",
-                "dock.showBackground": true,
-                "sidebar.style": "island"
+                "appearance.island.glass": true, "appearance.island.glassBlur": 0.9,
+                "appearance.island.opacity": 0.78, "appearance.island.shadow": true, "appearance.island.sheen": true,
+                "appearance.aurora.transparency.overlay": 0.34, "appearance.aurora.transparency.subSurface": 0.46,
+                "bar.appearanceStyle": "islands", "bar.islands.inset": 5, "bar.islands.padding": 14,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["media"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "battery"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+                "bar.visualizer.enable": true, "bar.visualizer.type": "wave", "bar.visualizer.waveMode": "ribbon", "bar.visualizer.frequencyProfile": "warm", "bar.visualizer.opacity": 0.24,
+                "dock.enable": true, "dock.style": "island", "dock.cardStyle": false, "dock.enableBlurGlass": true,
+                "sidebar.style": "island", "sidebar.cardStyle": false, "sidebar.animationType": "reveal",
+                "sidebar.tools.enable": false, "sidebar.software.enable": false,
+                "sidebar.widgets.note": false, "sidebar.widgets.launch": false, "sidebar.widgets.status": false, "sidebar.widgets.worldClock": true,
+                "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "weather", "timer"],
+                "sidebar.right.headerStyle": "profile", "sidebar.right.headerBanner": "wallpaper", "sidebar.quickToggles.style": "android",
+                "controlPanel.style": "island", "background.widgets.style": "island",
+                "dashboard.appearance.cardOpacity": 0.78,
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "androidStacked", "background.widgets.clock.showDate": false,
+                "background.widgets.weather.enable": true, "background.widgets.weather.placementStrategy": "topRight",
+                "background.widgets.mediaControls.enable": true, "background.widgets.mediaControls.placementStrategy": "bottomLeft", "background.widgets.mediaControls.playerPreset": "visualizer"
             }
         },
         {
-            id: "inir-terminal", name: "iNiR", icon: "terminal",
-            globalStyle: "inir",
-            description: Translation.tr("The shell's technical terminal language with a framed bar and restrained panel dock. Dense, sharp and deliberate."),
+            id: "inir", name: "iNiR", icon: "terminal", panelFamily: "ii", globalStyle: "inir",
+            description: Translation.tr("Technical information layout: framed bar, dense system controls, classic quick toggles and terminal-like desktop readouts."),
             values: {
                 "appearance.iiMotionProfile": "classic",
-                "bar.appearanceStyle": "frame",
-                "bar.showBackground": true,
-                "bar.opacity": 1.0,
-                "dock.style": "panel",
-                "dock.showBackground": true,
-                "sidebar.style": "panel"
+                "bar.appearanceStyle": "frame", "bar.borderless": false,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["resources"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "battery"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "shellUpdate"],
+                "bar.visualizer.enable": false,
+                "dock.enable": true, "dock.style": "panel", "dock.cardStyle": false,
+                "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.layout": "compact", "sidebar.animationType": "fade",
+                "sidebar.news.enable": false, "sidebar.widgets.week": false, "sidebar.widgets.media": false, "sidebar.widgets.wallpaper": false,
+                "sidebar.widgets.note": false, "sidebar.widgets.launch": true, "sidebar.widgets.controls": true, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "calculator", "sysmon", "timer"],
+                "sidebar.right.headerStyle": "classic", "sidebar.right.headerBanner": "none", "sidebar.quickToggles.style": "classic",
+                "controlPanel.compactMode": true, "dashboard.appearance.density": "compact",
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "pixel",
+                "background.widgets.systemMonitor.enable": true, "background.widgets.systemMonitor.placementStrategy": "bottomRight", "background.widgets.systemMonitor.displayMode": "text",
+                "background.widgets.uptime.enable": true, "background.widgets.uptime.placementStrategy": "bottomLeft"
             }
         },
         {
-            id: "zzz-street", name: "ZZZ", icon: "bolt",
-            globalStyle: "zzz",
-            description: Translation.tr("Poster-like ZZZ surfaces with the classic bar chassis and panel dock so the graphic skin stays in control."),
+            id: "angel", name: "Angel", icon: "raven", panelFamily: "ii", globalStyle: "angel",
+            description: Translation.tr("Neo-brutalist glass: scenic edge treatment, pill dock, responsive glass sidebars and bold media/system accents."),
+            values: {
+                "appearance.angelSubStyle": "frost",
+                "appearance.angel.blur.intensity": 0.32, "appearance.angel.blur.saturation": 0.18,
+                "appearance.angel.transparency.panel": 0.32, "appearance.angel.transparency.card": 0.46,
+                "bar.appearanceStyle": "scenic",
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["media"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "utilButtons"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+                "bar.visualizer.enable": true, "bar.visualizer.type": "wave", "bar.visualizer.waveMode": "line", "bar.visualizer.frequencyProfile": "vocal", "bar.visualizer.opacity": 0.32,
+                "dock.enable": true, "dock.style": "pill", "dock.cardStyle": false, "dock.enableBlurGlass": true,
+                "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.animationType": "drop",
+                "sidebar.tools.enable": false, "sidebar.software.enable": false,
+                "sidebar.widgets.note": false, "sidebar.widgets.launch": false, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "weather"],
+                "sidebar.right.headerStyle": "profile", "sidebar.right.headerBanner": "wallpaper", "sidebar.quickToggles.style": "android",
+                "controlPanel.style": "panel", "dashboard.appearance.cardOpacity": 0.84,
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "androidStacked",
+                "background.widgets.dateBadge.enable": true, "background.widgets.dateBadge.placementStrategy": "topRight", "background.widgets.dateBadge.style": "seal",
+                "background.widgets.systemMonitor.enable": true, "background.widgets.systemMonitor.placementStrategy": "bottomRight", "background.widgets.systemMonitor.displayMode": "graph",
+                "background.widgets.mediaControls.enable": true, "background.widgets.mediaControls.placementStrategy": "bottomLeft", "background.widgets.mediaControls.playerPreset": "albumart"
+            }
+        },
+        {
+            id: "regalia", name: "Regalia", icon: "event_seat", panelFamily: "ii", globalStyle: "regalia",
+            description: Translation.tr("Engineered luxury: structured classic bar groups, macOS-style dock, compact sidebars and high-density system instrumentation."),
             values: {
                 "appearance.iiMotionProfile": "classic",
-                "bar.appearanceStyle": "classic",
-                "bar.showBackground": true,
-                "bar.opacity": 1.0,
-                "dock.style": "panel",
-                "dock.showBackground": true,
-                "sidebar.style": "panel"
+                "appearance.regalia.glass": true, "appearance.regalia.glassBlur": 0.72,
+                "appearance.regalia.glassSurfaceOpacity": 0.68, "appearance.regalia.radiusScale": 0.92,
+                "bar.appearanceStyle": "classic", "bar.cornerStyle": 1, "bar.borderless": false,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["resources"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "battery"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "shellUpdate"],
+                "bar.visualizer.enable": false,
+                "dock.enable": true, "dock.style": "macos", "dock.cardStyle": false,
+                "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.layout": "compact", "sidebar.animationType": "slide",
+                "sidebar.news.enable": false, "sidebar.widgets.week": false, "sidebar.widgets.media": true, "sidebar.widgets.wallpaper": false,
+                "sidebar.widgets.note": false, "sidebar.widgets.launch": true, "sidebar.widgets.controls": true, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "calculator", "sysmon", "timer"],
+                "sidebar.right.headerStyle": "classic", "sidebar.quickToggles.style": "classic",
+                "controlPanel.compactMode": true, "dashboard.appearance.density": "compact",
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "digital",
+                "background.widgets.systemMonitor.enable": true, "background.widgets.systemMonitor.placementStrategy": "bottomRight", "background.widgets.systemMonitor.displayMode": "tiles",
+                "background.widgets.uptime.enable": true, "background.widgets.uptime.placementStrategy": "bottomLeft"
+            }
+        },
+        {
+            id: "zzz", name: "ZZZ", icon: "bolt", panelFamily: "ii", globalStyle: "zzz",
+            description: Translation.tr("Urban graphic composition: unified ZZZ bar chrome, punchy panels, pixel typography and poster-like decorative widgets."),
+            values: {
+                "appearance.iiMotionProfile": "classic",
+                "appearance.zzz.shape": "square", "appearance.zzz.glass": true,
+                "appearance.zzz.backdrop.burst": true, "appearance.zzz.backdrop.ghost": true,
+                "appearance.zzz.backdrop.grid": true,
+                "bar.appearanceStyle": "classic", "bar.cornerStyle": 1, "bar.borderless": true,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["media"],
+                "bar.layout.center": ["workspaces"],
+                "bar.layout.centerRight": ["clock", "utilButtons"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+                "bar.visualizer.enable": true, "bar.visualizer.type": "bars", "bar.visualizer.barsOrigin": "mirror", "bar.visualizer.frequencyProfile": "bass", "bar.visualizer.opacity": 0.3,
+                "dock.enable": true, "dock.style": "panel", "dock.cardStyle": false,
+                "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.animationType": "pop",
+                "sidebar.software.enable": false, "sidebar.widgets.note": true, "sidebar.widgets.launch": true,
+                "sidebar.widgets.controls": false, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "todo", "notepad", "weather", "timer"],
+                "sidebar.right.headerStyle": "profile", "sidebar.right.headerBanner": "solid", "sidebar.quickToggles.style": "android",
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "pixel", "background.widgets.clock.showDate": false,
+                "background.widgets.dateBadge.enable": true, "background.widgets.dateBadge.placementStrategy": "topRight", "background.widgets.dateBadge.style": "seal",
+                "background.widgets.shape.enable": true, "background.widgets.shape.placementStrategy": "centerRight", "background.widgets.shape.shape": "SoftBurst",
+                "background.widgets.mediaControls.enable": true, "background.widgets.mediaControls.placementStrategy": "bottomLeft", "background.widgets.mediaControls.playerPreset": "visualizer"
+            }
+        },
+        {
+            id: "cookie", name: Translation.tr("Cookie Shapes"), icon: "cookie", panelFamily: "ii", globalStyle: "cookie",
+            description: Translation.tr("Material Expressive composition: the morphing Pill bar, live organic wings, pill dock, shape-driven widgets and playful motion."),
+            values: {
+                "bar.appearanceStyle": "pill",
+                "bar.pill.barMode": false, "bar.pill.musicViz": true, "bar.pill.showGlyphs": true,
+                "bar.pill.soul.enable": true, "bar.pill.soul.style": "orb",
+                "bar.pill.surfaces.sysmon": true, "bar.pill.surfaces.clipboard": true, "bar.pill.surfaces.glance": true, "bar.pill.surfaces.launcher": true,
+                "bar.pill.modules.workspaces": true, "bar.pill.modules.weather": true, "bar.pill.modules.tray": true, "bar.pill.modules.wifi": true, "bar.pill.modules.battery": true, "bar.pill.modules.inbox": true, "bar.pill.modules.mixer": true, "bar.pill.modules.sidebars": true, "bar.pill.modules.power": true,
+                "bar.visualizer.enable": true, "bar.visualizer.type": "organic", "bar.visualizer.organicFit": "aura", "bar.visualizer.organicGlow": 38, "bar.visualizer.pillWingMode": "bounded",
+                "dock.enable": true, "dock.style": "pill", "dock.cardStyle": false,
+                "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.animationType": "elastic", "sidebar.quickToggles.style": "android",
+                "sidebar.tools.enable": false, "sidebar.software.enable": false,
+                "sidebar.widgets.note": false, "sidebar.widgets.launch": false, "sidebar.widgets.status": true,
+                "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "weather", "timer"],
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topLeft", "background.widgets.clock.style": "cookie",
+                "background.widgets.shape.enable": true, "background.widgets.shape.placementStrategy": "centerRight", "background.widgets.shape.shape": "Flower",
+                "background.widgets.mediaControls.enable": true, "background.widgets.mediaControls.placementStrategy": "bottomLeft", "background.widgets.mediaControls.playerPreset": "visualizer"
+            }
+        },
+        {
+            id: "editorial", name: "Editorial", icon: "auto_stories", panelFamily: "ii", globalStyle: "editorial",
+            description: Translation.tr("Paper studio composition: Editorial chrome, classic card bar, quiet panel surfaces and typography-led desktop elements."),
+            values: {
+                "bar.appearanceStyle": "classic", "bar.cornerStyle": 3, "bar.borderless": false, "bar.visualizer.enable": false,
+                "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+                "bar.layout.centerLeft": ["workspaces"],
+                "bar.layout.center": ["clock"],
+                "bar.layout.centerRight": ["utilButtons", "battery"],
+                "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+                "dock.enable": true, "dock.style": "panel", "dock.cardStyle": true,
+                "sidebar.style": "panel", "sidebar.cardStyle": true, "sidebar.animationType": "fade",
+                "sidebar.tools.enable": false, "sidebar.software.enable": false, "sidebar.widgets.wallpaper": false,
+                "sidebar.widgets.note": true, "sidebar.widgets.launch": false, "sidebar.widgets.controls": false, "sidebar.widgets.status": false,
+                "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "notepad", "weather"],
+                "sidebar.right.headerStyle": "classic", "sidebar.right.headerBanner": "none", "sidebar.quickToggles.style": "classic",
+                "controlPanel.style": "panel", "settingsUi.overlayStyle": "editorial",
+                "appearance.editorial.paperStack": true, "appearance.editorial.paperDepth": 3,
+                "dashboard.appearance.density": "comfortable", "dashboard.appearance.showCardTitles": true,
+                "background.widgets.clock.enable": true, "background.widgets.clock.placementStrategy": "topRight", "background.widgets.clock.style": "digital",
+                "background.widgets.editorial.enable": true, "background.widgets.editorial.placementStrategy": "centerLeft", "background.widgets.editorial.style": "poster",
+                "background.widgets.shape.enable": true, "background.widgets.shape.placementStrategy": "centerRight", "background.widgets.shape.shape": "Flower"
+            }
+        },
+        {
+            id: "waffle", name: "Waffle", icon: "grid_view", panelFamily: "waffle", globalStyle: "material",
+            description: Translation.tr("The native Waffle experience: Windows-like bottom bar, wide Start menu, complete Action Center, Widgets panel and Waffle desktop clock."),
+            values: {
+                "waffles.settings.useMaterialStyle": false,
+                "waffles.bar.bottom": true, "waffles.bar.leftAlignApps": false, "waffles.bar.desktopPeek.hoverPeek": true,
+                "waffles.bar.monochromeIcons": false, "waffles.bar.tintTrayIcons": false,
+                "waffles.startMenu.sizePreset": "wide",
+                "waffles.taskView.mode": "carousel",
+                "waffles.widgetsPanel.showDateTime": true, "waffles.widgetsPanel.showWeather": true, "waffles.widgetsPanel.showSystem": true, "waffles.widgetsPanel.showMedia": true, "waffles.widgetsPanel.showQuickActions": true,
+                "waffles.widgetsPanel.showColorScheme": true,
+                "waffles.widgetsPanel.quickActions": ["files", "terminal", "settings", "wallpaper", "screenshot", "screenRecord", "session"],
+                "waffles.actionCenter.toggles": ["network", "hotspot", "bluetooth", "easyEffects", "powerProfile", "idleInhibitor", "nightLight", "darkMode", "mic", "notifications", "onScreenKeyboard", "gameMode", "screenSnip", "colorPicker"],
+                "waffles.background.widgets.clock.enable": true, "waffles.background.widgets.clock.placementStrategy": "leastBusy", "waffles.background.widgets.clock.style": "hero",
+                "waffles.background.widgets.clock.colorMode": "adaptive", "waffles.background.widgets.clock.showDate": true, "waffles.background.widgets.clock.showShadow": true,
+                "waffles.modules.widgets": true, "waffles.modules.sidebarLeft": false, "waffles.modules.sidebarRight": false, "waffles.modules.dock": false, "waffles.modules.mediaControls": false,
+                "dashboard.enable": false, "dock.enable": false,
+                "background.widgets.clock.enable": false, "background.widgets.dateBadge.enable": false, "background.widgets.systemMonitor.enable": false, "background.widgets.mediaControls.enable": false
             }
         }
     ]
@@ -185,6 +353,98 @@ Scope {
         }
     ]
 
+    readonly property var presetManagedDesktopWidgets: [
+        "weather", "clock", "customImage", "imageConverter", "mediaControls",
+        "visualizer", "systemMonitor", "battery", "notes", "calendarUpcoming",
+        "monthCalendar", "todo", "timers", "uptime", "shape", "dateBadge",
+        "editorial", "newsTicker", "mascot", "japaneseTypography", "worldClock",
+        "userCard"
+    ]
+
+    function desktopCompositionForPreset(id: string): var {
+        switch (id) {
+        case "material": return {
+            clock: { placementStrategy: "topLeft", timeScale: 76, dateScale: 74 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 86 },
+            systemMonitor: { placementStrategy: "bottomRight", contentWidth: 300, contentHeight: 100 }
+        }
+        case "cards": return {
+            clock: { placementStrategy: "topLeft", timeScale: 88, dateScale: 86 },
+            dateBadge: { placementStrategy: "topRight", contentWidth: 176, contentHeight: 120 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 82 },
+            calendarUpcoming: { placementStrategy: "bottomRight", contentWidth: 250, contentHeight: 168 }
+        }
+        case "aurora": return {
+            clock: { placementStrategy: "topLeft", timeScale: 86, dateScale: 84 },
+            weather: { placementStrategy: "topRight", size: 120 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 82 }
+        }
+        case "inir": return {
+            clock: { placementStrategy: "topLeft", timeScale: 86, dateScale: 82 },
+            uptime: { placementStrategy: "bottomLeft", contentWidth: 220, contentHeight: 84 },
+            systemMonitor: { placementStrategy: "bottomRight", contentWidth: 420, contentHeight: 88 }
+        }
+        case "angel": return {
+            clock: { placementStrategy: "topLeft", timeScale: 88, dateScale: 84 },
+            dateBadge: { placementStrategy: "topRight", contentWidth: 164, contentHeight: 120 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 72 },
+            systemMonitor: { placementStrategy: "bottomRight", contentWidth: 300, contentHeight: 106 }
+        }
+        case "regalia": return {
+            clock: { placementStrategy: "topLeft", timeScale: 84, dateScale: 82 },
+            uptime: { placementStrategy: "bottomLeft", contentWidth: 220, contentHeight: 84 },
+            systemMonitor: { placementStrategy: "bottomRight", contentWidth: 300, contentHeight: 150 }
+        }
+        case "zzz": return {
+            clock: { placementStrategy: "topLeft", timeScale: 88, dateScale: 84 },
+            dateBadge: { placementStrategy: "topRight", contentWidth: 160, contentHeight: 120 },
+            shape: { placementStrategy: "centerRight", contentWidth: 108, contentHeight: 108 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 80 }
+        }
+        case "cookie": return {
+            clock: { placementStrategy: "topLeft", "cookie.size": 170 },
+            shape: { placementStrategy: "centerRight", contentWidth: 104, contentHeight: 104 },
+            mediaControls: { placementStrategy: "bottomLeft", widgetScale: 82 }
+        }
+        case "editorial": return {
+            clock: { placementStrategy: "topRight", timeScale: 78, dateScale: 76 },
+            editorial: { placementStrategy: "centerLeft", contentWidth: 320, contentHeight: 190 },
+            shape: { placementStrategy: "centerRight", contentWidth: 92, contentHeight: 92 }
+        }
+        case "waffle": return {
+            "waffle.clock": { placementStrategy: "leastBusy", timeScale: 92, dateScale: 88 }
+        }
+        default: return ({})
+        }
+    }
+
+    function applyDesktopComposition(id: string): void {
+        const composition = root.desktopCompositionForPreset(id)
+        const screens = Quickshell.screens
+        for (let i = 0; i < screens.length; ++i) {
+            const output = String(screens[i]?.name ?? "")
+            if (!output)
+                continue
+            for (const widget of root.presetManagedDesktopWidgets)
+                DesktopWidgetLayout.clearWidget(output, widget)
+            DesktopWidgetLayout.clearWidget(output, "waffle.clock")
+
+            for (const widget of Object.keys(composition)) {
+                const desired = Object.assign({}, composition[widget])
+                const strategy = String(desired.placementStrategy ?? "free")
+                desired.placementStrategy = "free"
+                DesktopWidgetLayout.setValues(output, widget, desired)
+                if (strategy !== "free") {
+                    const targetOutput = output
+                    const targetWidget = widget
+                    const targetStrategy = strategy
+                    Qt.callLater(() => DesktopWidgetLayout.setValue(
+                        targetOutput, targetWidget, "placementStrategy", targetStrategy))
+                }
+            }
+        }
+    }
+
     function presetById(list: var, id: string): var {
         return list.find(preset => preset.id === id) ?? list[0]
     }
@@ -199,223 +459,141 @@ Scope {
         return true
     }
 
-    function stylePresetMatches(id: string): bool {
-        const preset = root.presetById(root.stylePresets, id)
-        return (Config.options?.appearance?.globalStyle ?? "material") === preset.globalStyle
-            && root.valuesMatch(preset.values)
-    }
-
     function performancePresetMatches(id: string): bool {
         return root.valuesMatch(root.presetById(root.performancePresets, id).values)
     }
 
-    readonly property string effectiveStylePreset: root.stylePresetMatches(root.selectedStylePreset)
-        ? root.selectedStylePreset : "custom"
     readonly property string effectivePerformancePreset: root.performancePresetMatches(root.selectedPerformancePreset)
         ? root.selectedPerformancePreset : "custom"
-    readonly property var currentStylePreset: root.presetById(root.stylePresets, root.selectedStylePreset)
+    readonly property var currentExperiencePreset: root.presetById(root.experiencePresets, root.selectedExperiencePreset)
     readonly property var currentPerformancePreset: root.presetById(root.performancePresets, root.selectedPerformancePreset)
-    readonly property string currentStylePresetDescription: root.effectiveStylePreset === "custom"
-        ? Translation.tr("Custom combination. Pick a preset to realign the global style, bar, dock, sidebars and motion in one action.")
-        : root.currentStylePreset.description
+    readonly property string currentExperienceDescription: root.experienceCustomized
+        ? Translation.tr("Custom setup. Your manual changes are now layered on top of the selected starting experience.")
+        : root.currentExperiencePreset.description
     readonly property string currentPerformancePresetDescription: root.effectivePerformancePreset === "custom"
         ? Translation.tr("Custom graphics policy. Pick a budget to reset effects, motion and blur together.")
         : root.currentPerformancePreset.description
 
-    // Every starting profile prepares shared services and the Material II
-    // family. Waffle keeps its independent `waffles.*` configuration intact,
-    // so switching families never erases or silently reconfigures it.
-    readonly property var profileEssentials: ({
-        "dock.enable": true,
-        "dock.hoverToReveal": false,
-        "dock.pinnedOnStartup": true,
-        "dashboard.enable": true,
-        "bar.weather.enable": true,
-        "bar.modules.weather": true,
-        "bar.modules.battery": true,
-        "bar.modules.sysTray": true,
-        "bar.modules.clock": true,
-        "bar.modules.workspaces": true,
-        "bar.modules.activeWindow": true,
-        "bar.modules.leftSidebarButton": true,
-        "bar.modules.rightSidebarButton": true,
-        "sounds.notifications": true,
-        "gameMode.autoDetect": true,
-        "audio.protection.enable": true,
-        "sidebar.collapseEmptyNotifications": false,
-        "sidebar.collapseWidgetsTab": false,
-        "sidebar.right.headerBanner": "wallpaper",
-        "sidebar.right.sectionOrder": ["system", "sliders", "toggles", "notifications", "widgets"],
-        "sidebar.quickToggles.style": "android",
-        "sidebar.quickToggles.android.columns": 4,
-        // Material II's embedded bar taskbar duplicates the Material II dock.
-        // Waffle owns a separate taskbar under `waffles.bar.*` and is unaffected.
-        "bar.modules.taskbar": false
-    })
-
-    // Ordering only; no profile enables a provider-backed tab.
-    readonly property var profileTabOrder: [
-        "widgets", "wallhaven", "news", "tools", "software",
-        "ai", "translator", "anime", "animeSchedule", "ytmusic"
-    ]
-
-    // Desktop widgets all default to the same corner and "leastBusy" cannot see
-    // a sibling, so a profile composing more than one must place them by hand.
-    function profileComposition(profile: string): var {
-        if (profile === "minimum")
-            return {
-                "bar.modules.resources": false,
-                "bar.modules.utilButtons": false,
-                "bar.modules.media": false,
-                "bar.m3.layoutMode": "custom",
-                "bar.m3.layouts.leftLayout": ["workspaces"],
-                "bar.m3.layouts.middleLayout": ["docktoPanel"],
-                "bar.m3.layouts.rightLayout": ["systemIcons", "clockWidget"],
-                "sidebar.news.enable": false,
-                "sidebar.wallhaven.enable": false,
-                "sidebar.tools.enable": false,
-                "sidebar.software.enable": false,
-                "sidebar.widgets.context": true,
-                "sidebar.widgets.week": true,
-                "sidebar.widgets.media": true,
-                "sidebar.widgets.controls": false,
-                "sidebar.widgets.status": false,
-                "sidebar.widgets.note": false,
-                "sidebar.widgets.launch": false,
-                "sidebar.widgets.worldClock": false,
-                "sidebar.right.enabledWidgets": ["calendar", "todo"],
-                "sidebar.quickToggles.android.toggles": [
-                    { "size": 1, "type": "network" },
-                    { "size": 1, "type": "bluetooth" },
-                    { "size": 1, "type": "audio" },
-                    { "size": 1, "type": "mic" }
-                ],
-                "background.widgets.clock.enable": false,
-                "background.widgets.clock.quote.enable": false,
-                "background.widgets.visualizer.enable": false,
-                "background.widgets.systemMonitor.enable": false,
-                "background.widgets.weather.enable": false,
-                "background.widgets.battery.enable": false,
-                "background.widgets.mediaControls.enable": false,
-                "background.widgets.calendarUpcoming.enable": false,
-                "mascot.enable": false
-            }
-        if (profile === "full")
-            return {
-                "bar.modules.resources": true,
-                "bar.modules.utilButtons": true,
-                "bar.modules.media": true,
-                "bar.m3.layoutMode": "showcase",
-                "bar.m3.layouts.leftLayout": ["media", "workspaces"],
-                "bar.m3.layouts.middleLayout": ["visualizer", "docktoPanel", "visualizer"],
-                "bar.m3.layouts.rightLayout": ["utilButtons", "systemIcons", "weatherBar", "clockWidget"],
-                "sidebar.news.enable": true,
-                "sidebar.wallhaven.enable": true,
-                "sidebar.tools.enable": true,
-                "sidebar.software.enable": true,
-                "sidebar.widgets.context": true,
-                "sidebar.widgets.week": true,
-                "sidebar.widgets.media": true,
-                "sidebar.widgets.controls": true,
-                "sidebar.widgets.status": true,
-                "sidebar.widgets.note": true,
-                "sidebar.widgets.launch": true,
-                "sidebar.widgets.worldClock": true,
-                "sidebar.right.enabledWidgets": [
-                    "calendar", "events", "todo", "notepad",
-                    "calculator", "sysmon", "weather", "timer"
-                ],
-                "sidebar.quickToggles.android.toggles": [
-                    { "size": 1, "type": "network" },
-                    { "size": 1, "type": "bluetooth" },
-                    { "size": 1, "type": "audio" },
-                    { "size": 1, "type": "mic" },
-                    { "size": 1, "type": "nightLight" },
-                    { "size": 1, "type": "gameMode" },
-                    { "size": 1, "type": "screenSnip" },
-                    { "size": 1, "type": "colorPicker" }
-                ],
-                "background.widgets.clock.enable": true,
-                "background.widgets.clock.placementStrategy": "free",
-                "background.widgets.clock.x": 60,
-                "background.widgets.clock.y": 90,
-                "background.widgets.clock.quote.enable": true,
-                "background.widgets.visualizer.enable": true,
-                "background.widgets.visualizer.placementStrategy": "free",
-                "background.widgets.visualizer.x": 60,
-                "background.widgets.visualizer.y": 400,
-                "background.widgets.clock.backgroundOpacity": 0,
-                "background.widgets.clock.borderOpacity": 0.08,
-                "background.widgets.visualizer.backgroundOpacity": 0.16,
-                "background.widgets.visualizer.borderOpacity": 0.2,
-                "background.widgets.systemMonitor.enable": false,
-                "background.widgets.weather.enable": false,
-                "background.widgets.battery.enable": false,
-                "background.widgets.mediaControls.enable": false,
-                "background.widgets.calendarUpcoming.enable": false,
-                "mascot.enable": true
-            }
+    function experienceBaseValues(): var {
         return {
-            "bar.modules.resources": true,
-            "bar.modules.utilButtons": true,
-            "bar.modules.media": true,
-            "bar.m3.layoutMode": "compact",
-            "bar.m3.layouts.leftLayout": ["media", "workspaces"],
-            "bar.m3.layouts.middleLayout": ["docktoPanel"],
-            "bar.m3.layouts.rightLayout": ["utilButtons", "systemIcons", "weatherBar", "clockWidget"],
-            "sidebar.news.enable": true,
-            "sidebar.wallhaven.enable": true,
-            "sidebar.tools.enable": false,
-            "sidebar.software.enable": false,
-            "sidebar.widgets.context": true,
-            "sidebar.widgets.week": true,
-            "sidebar.widgets.media": true,
-            "sidebar.widgets.controls": true,
-            "sidebar.widgets.status": true,
-            "sidebar.widgets.note": false,
-            "sidebar.widgets.launch": false,
+            "panelFamily": "ii",
+            "appearance.iiMotionProfile": "contextual",
+            "appearance.island.glass": true, "appearance.island.glassBlur": 1.0,
+            "appearance.island.opacity": 1.0, "appearance.island.shadow": true, "appearance.island.sheen": true,
+            "appearance.aurora.transparency.overlay": 0.38, "appearance.aurora.transparency.subSurface": 0.52,
+            "appearance.angelSubStyle": "frost", "appearance.angel.blur.intensity": 0.25,
+            "appearance.angel.blur.saturation": 0.15, "appearance.angel.transparency.panel": 0.35,
+            "appearance.angel.transparency.card": 0.50,
+            "appearance.regalia.glass": true, "appearance.regalia.glassBlur": 0.72,
+            "appearance.regalia.glassSurfaceOpacity": 0.60, "appearance.regalia.radiusScale": 1.0,
+            "appearance.zzz.shape": "square", "appearance.zzz.glass": true,
+            "appearance.zzz.backdrop.burst": true, "appearance.zzz.backdrop.ghost": true,
+            "appearance.zzz.backdrop.grid": true,
+            "appearance.editorial.paperStack": false, "appearance.editorial.paperDepth": 3,
+            "settingsUi.overlayStyle": "rail",
+            "bar.appearanceStyle": "classic", "bar.cornerStyle": 1, "bar.borderless": true,
+            "bar.showBackground": true, "bar.opacity": 1.0, "bar.autoHide.enable": false,
+            "bar.layout.migrated": true,
+            "bar.layout.left": ["leftSidebarButton", "activeWindow"],
+            "bar.layout.centerLeft": ["resources", "media"],
+            "bar.layout.center": ["workspaces"],
+            "bar.layout.centerRight": ["clock", "utilButtons", "battery"],
+            "bar.layout.right": ["rightSidebarButton", "tray", "weather"],
+            "bar.weather.enable": true,
+            "bar.modules.activeWindow": true, "bar.modules.battery": true, "bar.modules.clock": true,
+            "bar.modules.leftSidebarButton": true, "bar.modules.media": true, "bar.modules.resources": true,
+            "bar.modules.rightSidebarButton": true, "bar.modules.sysTray": true, "bar.modules.taskbar": false,
+            "bar.modules.utilButtons": true, "bar.modules.weather": true, "bar.modules.workspaces": true,
+            "bar.visualizer.enable": false, "bar.visualizer.type": "bars", "bar.visualizer.opacity": 0.25,
+            "bar.visualizer.barsOrigin": "bottom", "bar.visualizer.waveMode": "fill",
+            "bar.visualizer.frequencyProfile": "flat", "bar.visualizer.organicFit": "auto",
+            "bar.visualizer.pillWingMode": "bounded",
+            "bar.pill.musicViz": false, "bar.pill.barMode": false, "bar.pill.soul.enable": true, "bar.pill.soul.style": "orb",
+            "dock.enable": true, "dock.style": "panel", "dock.cardStyle": false, "dock.showBackground": true,
+            "dock.hoverToReveal": false, "dock.pinnedOnStartup": true, "dock.enableBlurGlass": false,
+            "sidebar.style": "panel", "sidebar.cardStyle": false, "sidebar.layout": "default",
+            "sidebar.animationType": "slide", "sidebar.instantOpen": false,
+            "sidebar.collapseEmptyNotifications": false, "sidebar.collapseWidgetsTab": false,
+            "sidebar.wallhaven.enable": true, "sidebar.news.enable": true, "sidebar.tools.enable": true,
+            "sidebar.software.enable": true, "sidebar.translator.enable": false,
+            "sidebar.animeSchedule.enable": false, "sidebar.ytmusic.enable": false,
+            "sidebar.left.tabOrder": ["widgets", "wallhaven", "news", "tools", "software", "ai", "translator", "anime", "animeSchedule", "ytmusic"],
+            "sidebar.widgets.enable": true, "sidebar.widgets.context": true, "sidebar.widgets.week": true,
+            "sidebar.widgets.media": true, "sidebar.widgets.controls": true, "sidebar.widgets.status": true,
+            "sidebar.widgets.wallpaper": true, "sidebar.widgets.note": true, "sidebar.widgets.launch": true,
             "sidebar.widgets.worldClock": false,
-            "sidebar.right.enabledWidgets": [
-                "calendar", "events", "todo", "calculator", "sysmon", "weather"
-            ],
+            "sidebar.widgets.widgetOrder": ["context", "week", "media", "controls", "status", "wallpaper", "note", "launch", "crypto", "worldclock"],
+            "sidebar.right.enabledWidgets": ["calendar", "events", "todo", "notepad", "calculator", "sysmon", "weather", "timer"],
+            "sidebar.right.sectionOrder": ["system", "sliders", "toggles", "notifications", "widgets"],
+            "sidebar.right.headerStyle": "profile", "sidebar.right.headerBanner": "wallpaper",
+            "sidebar.quickToggles.style": "android", "sidebar.quickToggles.android.columns": 4,
             "sidebar.quickToggles.android.toggles": [
-                { "size": 1, "type": "network" },
-                { "size": 1, "type": "bluetooth" },
-                { "size": 1, "type": "audio" },
-                { "size": 1, "type": "mic" }
+                { "size": 1, "type": "network" }, { "size": 1, "type": "bluetooth" },
+                { "size": 1, "type": "audio" }, { "size": 1, "type": "mic" },
+                { "size": 1, "type": "nightLight" }, { "size": 1, "type": "gameMode" },
+                { "size": 1, "type": "screenSnip" }, { "size": 1, "type": "colorPicker" }
             ],
-            // One widget is the only case where leastBusy is safe.
-            "background.widgets.clock.enable": true,
-            "background.widgets.clock.placementStrategy": "leastBusy",
-            "background.widgets.clock.quote.enable": false,
-            "background.widgets.clock.backgroundOpacity": 0,
-            "background.widgets.clock.borderOpacity": 0.08,
-            "background.widgets.visualizer.enable": false,
-            "background.widgets.systemMonitor.enable": false,
-            "background.widgets.weather.enable": false,
-            "background.widgets.battery.enable": false,
-            "background.widgets.mediaControls.enable": false,
-            "background.widgets.calendarUpcoming.enable": false,
-            "mascot.enable": false
+            "sidebar.quickSliders.enable": true, "sidebar.quickSliders.showBrightness": true,
+            "sidebar.quickSliders.showVolume": true, "sidebar.quickSliders.showMic": true,
+            "controlPanel.style": "panel", "controlPanel.compactMode": false,
+            "controlPanel.showMediaSection": true, "controlPanel.showWeatherSection": true,
+            "controlPanel.showWallpaperSection": true, "controlPanel.showSystemSection": true,
+            "controlPanel.showSlidersSection": true, "controlPanel.showQuickActionsSection": true,
+            "dashboard.enable": true, "dashboard.showHeader": true, "dashboard.showPowerButtons": true,
+            "dashboard.appearance.density": "comfortable", "dashboard.appearance.cardOpacity": 1.0,
+            "dashboard.appearance.showCardTitles": true,
+            "dashboard.layout.left": ["welcome", "clock", "system"],
+            "dashboard.layout.center": ["notifications", "todo", "agenda"],
+            "dashboard.layout.right": ["media", "weather", "calendar"],
+            "background.widgets.style": "panel",
+            "background.widgets.clock.enable": false, "background.widgets.clock.showDate": true, "background.widgets.clock.showBackground": false,
+            "background.widgets.clock.showBorder": false, "background.widgets.clock.backgroundOpacity": 0,
+            "background.widgets.clock.borderWidth": 0, "background.widgets.clock.quote.enable": false,
+            "background.widgets.dateBadge.enable": false, "background.widgets.dateBadge.showBackground": false,
+            "background.widgets.dateBadge.showBorder": false, "background.widgets.dateBadge.backgroundOpacity": 0,
+            "background.widgets.dateBadge.borderWidth": 0,
+            "background.widgets.systemMonitor.enable": false, "background.widgets.systemMonitor.showBackground": false,
+            "background.widgets.systemMonitor.showBorder": false, "background.widgets.systemMonitor.backgroundOpacity": 0,
+            "background.widgets.systemMonitor.borderWidth": 0,
+            "background.widgets.mediaControls.enable": false, "background.widgets.mediaControls.showBackground": false,
+            "background.widgets.mediaControls.showBorder": false, "background.widgets.mediaControls.backgroundOpacity": 0,
+            "background.widgets.mediaControls.borderWidth": 0,
+            "background.widgets.visualizer.enable": false, "background.widgets.visualizer.showBackground": false,
+            "background.widgets.visualizer.showBorder": false, "background.widgets.visualizer.backgroundOpacity": 0,
+            "background.widgets.visualizer.borderWidth": 0,
+            "background.widgets.editorial.enable": false, "background.widgets.editorial.showBackground": false,
+            "background.widgets.editorial.showBorder": false,
+            "background.widgets.japaneseTypography.enable": false, "background.widgets.japaneseTypography.showBackground": false,
+            "background.widgets.japaneseTypography.showBorder": false,
+            "background.widgets.shape.enable": false, "background.widgets.shape.showBackground": false,
+            "background.widgets.shape.showBorder": false,
+            "background.widgets.uptime.enable": false, "background.widgets.uptime.showBackground": false,
+            "background.widgets.uptime.showBorder": false,
+            "background.widgets.weather.enable": false, "background.widgets.battery.enable": false,
+            "background.widgets.calendarUpcoming.enable": false, "background.widgets.monthCalendar.enable": false,
+            "background.widgets.notes.enable": false, "background.widgets.todo.enable": false,
+            "background.widgets.timers.enable": false, "background.widgets.worldClock.enable": false,
+            "background.widgets.userCard.enable": false, "background.widgets.newsTicker.enable": false,
+            "background.widgets.imageConverter.enable": false, "background.widgets.customImage.enable": false,
+            "background.widgets.mascot.enable": false,
+            "mascot.enable": false,
+            "sounds.notifications": true, "gameMode.autoDetect": true, "audio.protection.enable": true,
+            "waffles.modules.widgets": true, "waffles.modules.sidebarLeft": false, "waffles.modules.sidebarRight": false,
+            "waffles.modules.dock": false, "waffles.modules.mediaControls": false, "waffles.modules.screenCorners": false,
+            "waffles.settings.useMaterialStyle": false, "waffles.background.widgets.clock.enable": false, "waffles.startMenu.sizePreset": "normal",
+            "waffles.taskView.mode": "centered", "waffles.bar.desktopPeek.hoverPeek": false
         }
     }
 
-    function applyProfile(profile: string): void {
-        Config.setNestedValues(Object.assign({},
-            root.profileEssentials,
-            root.profileComposition(profile), {
-                "sidebar.left.tabOrder": root.profileTabOrder,
-                "welcomeWizard.profile": profile
-            }))
-        root.profileCustomized = false
-    }
-
-    function applyStylePreset(id: string): void {
-        const preset = root.presetById(root.stylePresets, id)
+    function applyExperiencePreset(id: string): void {
+        const preset = root.presetById(root.experiencePresets, id)
         ThemeService.setGlobalStyle(preset.globalStyle)
-        Config.setNestedValues(Object.assign({}, preset.values, {
+        Config.setNestedValues(Object.assign({}, root.experienceBaseValues(), preset.values, {
+            "panelFamily": preset.panelFamily,
             "welcomeWizard.stylePreset": preset.id
         }))
+        root.applyDesktopComposition(preset.id)
+        root.experienceCustomized = false
     }
 
     function applyPerformancePreset(id: string): void {
@@ -425,8 +603,8 @@ Scope {
         }))
     }
 
-    function setProfileFeature(path: string, value: var): void {
-        root.profileCustomized = true
+    function setExperienceFeature(path: string, value: var): void {
+        root.experienceCustomized = true
         Config.setNestedValue(path, value)
     }
 
@@ -434,18 +612,14 @@ Scope {
         if (!root.firstRunSetup)
             return
         if (root.currentStep === 1) {
-            if (!root.initialProfileApplied) {
-                root.initialProfileApplied = true
-                root.applyProfile(root.selectedProfile)
+            if (!root.initialExperienceApplied) {
+                root.initialExperienceApplied = true
+                root.applyExperiencePreset(root.selectedExperiencePreset)
             }
             if (!root.initialPerformanceApplied) {
                 root.initialPerformanceApplied = true
                 root.applyPerformancePreset(root.selectedPerformancePreset)
             }
-        }
-        if (root.currentStep === 2 && !root.initialStyleApplied) {
-            root.initialStyleApplied = true
-            root.applyStylePreset(root.selectedStylePreset)
         }
     }
 
@@ -463,9 +637,9 @@ Scope {
             subtitle: Translation.tr("Five short steps. Everything here can be changed later in Settings.")
         },
         {
-            icon: "tune", title: Translation.tr("Starting point"),
-            headline: Translation.tr("How much should be set up for you?"),
-            subtitle: Translation.tr("Pick a starting composition, then adjust the essentials underneath. Accounts and API-backed tabs are never enabled for you.")
+            icon: "tune", title: Translation.tr("Experience"),
+            headline: Translation.tr("How should iNiR introduce itself?"),
+            subtitle: Translation.tr("Each option is a complete composition: surfaces, modules, sidebars, quick controls and desktop widgets. Accounts and credential-backed features stay opt-in.")
         },
         {
             icon: "palette", title: Translation.tr("Appearance"),
@@ -1421,59 +1595,6 @@ Scope {
             width: parent.width
             spacing: 16
 
-        SettingsGroup {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    MaterialSymbol { text: "auto_awesome"; iconSize: 20; color: Appearance.colors.colPrimary }
-                    StyledText { text: Translation.tr("Curated look"); font.pixelSize: Appearance.font.pixelSize.normal }
-                    Item { Layout.fillWidth: true }
-                    StyledText {
-                        text: root.effectiveStylePreset === "custom"
-                            ? Translation.tr("Custom") : root.currentStylePreset.name
-                        font.pixelSize: Appearance.font.pixelSize.smallest
-                        color: Appearance.colors.colPrimary
-                    }
-                }
-
-                ConfigSelectionArray {
-                    Layout.fillWidth: true
-                    currentValue: root.effectiveStylePreset
-                    onSelected: value => root.applyStylePreset(value)
-                    options: root.stylePresets.map(preset => ({
-                        displayName: preset.name,
-                        icon: preset.icon,
-                        value: preset.id
-                    }))
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: root.currentStylePresetDescription
-                    color: Appearance.colors.colSubtext
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: Translation.tr("These presets coordinate the shell's major surfaces. Wallpaper colors, light/dark mode and later fine tuning stay independent.")
-                    color: Appearance.colors.colSubtext
-                    font.pixelSize: Appearance.font.pixelSize.smallest
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    opacity: 0.8
-                }
-            }
-        }
-
         // Light/Dark toggle
         SettingsGroup {
             Layout.fillWidth: true
@@ -1529,6 +1650,7 @@ Scope {
                                  : style === "cookie" ? Translation.tr("Organic & Expressive")
                                  : style === "zzz" ? Translation.tr("Urban Graphic")
                                  : style === "regalia" ? Translation.tr("Engineered Luxury")
+                                 : style === "editorial" ? Translation.tr("Editorial Paper")
                                  : Translation.tr("Custom")
                         }
                         color: Appearance.colors.colSubtext
@@ -1540,23 +1662,128 @@ Scope {
                     Layout.fillWidth: true
                     currentValue: Config.options?.appearance?.globalStyle ?? "material"
                     onSelected: newValue => {
+                        root.experienceCustomized = true
                         ThemeService.setGlobalStyle(newValue)
                     }
                     options: [
                         { displayName: "Material", icon: "dashboard", value: "material" },
                         { displayName: "Cards", icon: "crop_square", value: "cards" },
                         { displayName: "Aurora", icon: "blur_on", value: "aurora" },
-                        { displayName: "Inir", icon: "terminal", value: "inir" }
+                        { displayName: "Inir", icon: "terminal", value: "inir" },
+                        { displayName: "Angel", icon: "raven", value: "angel" },
+                        { displayName: "Regalia", icon: "event_seat", value: "regalia" },
+                        { displayName: "ZZZ", icon: "bolt", value: "zzz" },
+                        { displayName: Translation.tr("Cookie Shapes"), icon: "cookie", value: "cookie" },
+                        { displayName: Translation.tr("Editorial"), icon: "auto_stories", value: "editorial" }
                     ]
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Translation.tr("More advanced styles and editors remain available in Settings.")
+                    text: Translation.tr("All global styles remain fully editable in Settings.")
                     color: Appearance.colors.colSubtext
                     font.pixelSize: Appearance.font.pixelSize.smallest
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
+                }
+            }
+        }
+
+        SettingsGroup {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            visible: (Config.options?.panelFamily ?? "ii") === "ii"
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    MaterialSymbol { text: "toolbar"; iconSize: 20; color: Appearance.colors.colPrimary }
+                    StyledText { text: Translation.tr("Bar style"); font.pixelSize: Appearance.font.pixelSize.normal }
+                    Item { Layout.fillWidth: true }
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.bar?.appearanceStyle ?? "m3"
+                    onSelected: newValue => root.setExperienceFeature("bar.appearanceStyle", newValue)
+                    options: [
+                        { displayName: Translation.tr("Classic"), icon: "toolbar", value: "classic" },
+                        { displayName: Translation.tr("Islands"), icon: "linear_scale", value: "islands" },
+                        { displayName: Translation.tr("Scenic"), icon: "gradient", value: "scenic" },
+                        { displayName: Translation.tr("Frame"), icon: "crop_free", value: "frame" },
+                        { displayName: "M3", icon: "category", value: "m3" },
+                        { displayName: Translation.tr("Pill"), icon: "blur_on", value: "pill" }
+                    ]
+                }
+            }
+        }
+
+        SettingsGroup {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            visible: (Config.options?.panelFamily ?? "ii") === "ii"
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    MaterialSymbol { text: "dock_to_bottom"; iconSize: 20; color: Appearance.colors.colPrimary }
+                    StyledText { text: Translation.tr("Dock style"); font.pixelSize: Appearance.font.pixelSize.normal }
+                    Item { Layout.fillWidth: true }
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.dock?.style ?? "m3"
+                    onSelected: newValue => root.setExperienceFeature("dock.style", newValue)
+                    options: [
+                        { displayName: Translation.tr("Panel"), icon: "dock_to_bottom", value: "panel" },
+                        { displayName: Translation.tr("Pill"), icon: "interests", value: "pill" },
+                        { displayName: "macOS", icon: "desktop_mac", value: "macos" },
+                        { displayName: Translation.tr("Island"), icon: "blur_on", value: "island" },
+                        { displayName: "M3", icon: "category", value: "m3" }
+                    ]
+                }
+            }
+        }
+
+        SettingsGroup {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            visible: (Config.options?.panelFamily ?? "ii") === "ii"
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    MaterialSymbol { text: "side_navigation"; iconSize: 20; color: Appearance.colors.colPrimary }
+                    StyledText { text: Translation.tr("Sidebar style"); font.pixelSize: Appearance.font.pixelSize.normal }
+                    Item { Layout.fillWidth: true }
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.sidebar?.style ?? "panel"
+                    onSelected: newValue => root.setExperienceFeature("sidebar.style", newValue)
+                    options: [
+                        { displayName: Translation.tr("Panel"), icon: "side_navigation", value: "panel" },
+                        { displayName: Translation.tr("Island"), icon: "blur_on", value: "island" }
+                    ]
+                }
+
+                SettingsSwitch {
+                    buttonIcon: "branding_watermark"
+                    text: Translation.tr("Use Card style")
+                    enabled: ["material", "inir", "editorial"].includes(Config.options?.appearance?.globalStyle ?? "material")
+                    checked: Config.options?.sidebar?.cardStyle ?? false
+                    onCheckedChanged: root.setExperienceFeature("sidebar.cardStyle", checked)
                 }
             }
         }
@@ -1774,6 +2001,7 @@ Scope {
             // Material II bar position. Waffle owns `waffles.bar.bottom`.
             SettingsGroup {
                 Layout.preferredWidth: 260
+                visible: (Config.options?.panelFamily ?? "ii") === "ii"
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 8
@@ -1787,7 +2015,7 @@ Scope {
                     ConfigSelectionArray {
                         Layout.fillWidth: true
                         currentValue: Config.options?.bar?.bottom ?? false
-                        onSelected: v => root.setProfileFeature("bar.bottom", v)
+                        onSelected: v => root.setExperienceFeature("bar.bottom", v)
                         options: [
                             { displayName: Translation.tr("Top"), icon: "vertical_align_top", value: false },
                             { displayName: Translation.tr("Bottom"), icon: "vertical_align_bottom", value: true }
@@ -1799,6 +2027,7 @@ Scope {
             // Material II dock position. Waffle family modules are independent.
             SettingsGroup {
                 Layout.preferredWidth: 260
+                visible: (Config.options?.panelFamily ?? "ii") === "ii"
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 8
@@ -1812,8 +2041,9 @@ Scope {
                     ConfigSelectionArray {
                         Layout.fillWidth: true
                         currentValue: Config.options?.dock?.position ?? "bottom"
-                        onSelected: v => root.setProfileFeature("dock.position", v)
+                        onSelected: v => root.setExperienceFeature("dock.position", v)
                         options: [
+                            { displayName: Translation.tr("Top"), icon: "arrow_upward", value: "top" },
                             { displayName: Translation.tr("Bottom"), icon: "arrow_downward", value: "bottom" },
                             { displayName: Translation.tr("Left"), icon: "arrow_back", value: "left" },
                             { displayName: Translation.tr("Right"), icon: "arrow_forward", value: "right" }
@@ -1837,7 +2067,7 @@ Scope {
                     ConfigSelectionArray {
                         Layout.fillWidth: true
                         currentValue: Config.options?.panelFamily ?? "ii"
-                        onSelected: v => root.setProfileFeature("panelFamily", v)
+                        onSelected: v => root.setExperienceFeature("panelFamily", v)
                         options: [
                             { displayName: "Material II", icon: "dashboard", value: "ii" },
                             { displayName: "Waffle", icon: "grid_view", value: "waffle" }
@@ -1871,10 +2101,12 @@ Scope {
                     ConfigSelectionArray {
                         Layout.fillWidth: true
                         currentValue: Config.options?.bar?.appearanceStyle ?? "classic"
-                        onSelected: v => root.setProfileFeature("bar.appearanceStyle", v)
+                        onSelected: v => root.setExperienceFeature("bar.appearanceStyle", v)
                         options: [
                             { displayName: Translation.tr("Classic"), icon: "horizontal_rule", value: "classic" },
                             { displayName: Translation.tr("Islands"), icon: "view_column", value: "islands" },
+                            { displayName: Translation.tr("Scenic"), icon: "gradient", value: "scenic" },
+                            { displayName: Translation.tr("Frame"), icon: "crop_free", value: "frame" },
                             { displayName: "Material 3", icon: "widgets", value: "m3" },
                             { displayName: Translation.tr("Pill"), icon: "blur_circular", value: "pill" }
                         ]
@@ -1886,27 +2118,90 @@ Scope {
         SettingsGroup {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter
+            visible: (Config.options?.panelFamily ?? "ii") === "ii"
 
             ConfigSwitch {
                 buttonIcon: "dock_to_bottom"
                 text: "Material II · " + Translation.tr("Show dock")
                 description: Translation.tr("Keep dock visible at all times (Empty workspace mode only)")
                 checked: Config.options?.dock?.enable ?? true
-                onToggledByUser: checked => root.setProfileFeature("dock.enable", checked)
+                onToggledByUser: checked => root.setExperienceFeature("dock.enable", checked)
             }
             ConfigSwitch {
                 buttonIcon: "dashboard"
                 text: "Material II · " + Translation.tr("Show dashboard")
                 description: Translation.tr("Keep a centered home panel for notifications, media, weather and daily controls.")
                 checked: Config.options?.dashboard?.enable ?? true
-                onToggledByUser: checked => root.setProfileFeature("dashboard.enable", checked)
+                onToggledByUser: checked => root.setExperienceFeature("dashboard.enable", checked)
             }
             ConfigSwitch {
                 buttonIcon: "auto_awesome_motion"
                 text: "Material II · " + Translation.tr("Auto-hide the bar")
                 description: Translation.tr("A quieter desktop; the bar returns from the edge or while holding Super.")
                 checked: Config.options?.bar?.autoHide?.enable ?? false
-                onToggledByUser: checked => root.setProfileFeature("bar.autoHide.enable", checked)
+                onToggledByUser: checked => root.setExperienceFeature("bar.autoHide.enable", checked)
+            }
+        }
+
+        SettingsGroup {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            visible: (Config.options?.panelFamily ?? "ii") === "waffle"
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                StyledText {
+                    text: Translation.tr("Waffle layout")
+                    font.pixelSize: Appearance.font.pixelSize.normal
+                    font.weight: Font.Medium
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.waffles?.bar?.bottom ?? true
+                    onSelected: value => root.setExperienceFeature("waffles.bar.bottom", value)
+                    options: [
+                        { displayName: Translation.tr("Top bar"), icon: "vertical_align_top", value: false },
+                        { displayName: Translation.tr("Bottom bar"), icon: "vertical_align_bottom", value: true }
+                    ]
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.waffles?.startMenu?.sizePreset ?? "normal"
+                    onSelected: value => root.setExperienceFeature("waffles.startMenu.sizePreset", value)
+                    options: [
+                        { displayName: Translation.tr("Compact"), icon: "view_compact", value: "compact" },
+                        { displayName: Translation.tr("Normal"), icon: "grid_view", value: "normal" },
+                        { displayName: Translation.tr("Large"), icon: "view_module", value: "large" },
+                        { displayName: Translation.tr("Wide"), icon: "view_week", value: "wide" }
+                    ]
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: true
+                    currentValue: Config.options?.waffles?.taskView?.mode ?? "centered"
+                    onSelected: value => root.setExperienceFeature("waffles.taskView.mode", value)
+                    options: [
+                        { displayName: Translation.tr("Centered task view"), icon: "filter_center_focus", value: "centered" },
+                        { displayName: Translation.tr("Carousel task view"), icon: "view_carousel", value: "carousel" }
+                    ]
+                }
+
+                ConfigSwitch {
+                    buttonIcon: "schedule"
+                    text: Translation.tr("Wallpaper clock")
+                    checked: Config.options?.waffles?.background?.widgets?.clock?.enable ?? false
+                    onToggledByUser: checked => root.setExperienceFeature("waffles.background.widgets.clock.enable", checked)
+                }
+                ConfigSwitch {
+                    buttonIcon: "widgets"
+                    text: Translation.tr("Widgets panel")
+                    checked: Config.options?.waffles?.modules?.widgets ?? true
+                    onToggledByUser: checked => root.setExperienceFeature("waffles.modules.widgets", checked)
+                }
             }
         }
         }
@@ -1938,14 +2233,14 @@ Scope {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: Translation.tr("Choose your starting point")
+                        text: Translation.tr("Choose your iNiR experience")
                         font.pixelSize: Appearance.font.pixelSize.normal
                         font.weight: Font.Medium
                         color: Appearance.colors.colOnLayer1
                     }
 
                     StyledText {
-                        text: Translation.tr("Balanced is recommended")
+                        text: Translation.tr("Material is the fresh-install default")
                         font.pixelSize: Appearance.font.pixelSize.smallest
                         color: Appearance.colors.colPrimary
                     }
@@ -1953,24 +2248,24 @@ Scope {
 
                 ConfigSelectionArray {
                     Layout.fillWidth: true
-                    currentValue: root.selectedProfile
-                    options: [
-                        { displayName: Translation.tr("Minimum"), icon: "filter_1", value: "minimum" },
-                        { displayName: Translation.tr("Balanced"), icon: "tune", value: "balanced" },
-                        { displayName: Translation.tr("Full"), icon: "auto_awesome", value: "full" }
-                    ]
-                    onSelected: value => root.applyProfile(value)
+                    currentValue: root.selectedExperiencePreset
+                    options: root.experiencePresets.map(preset => ({
+                        displayName: preset.name,
+                        icon: preset.icon,
+                        value: preset.id
+                    }))
+                    onSelected: value => root.applyExperiencePreset(value)
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: profileSummaryColumn.implicitHeight + 20
                     radius: Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.small
-                    color: root.profileCustomized
+                    color: root.experienceCustomized
                         ? Appearance.colors.colLayer2
                         : Appearance.colors.colPrimaryContainer
                     border.width: 1
-                    border.color: root.profileCustomized
+                    border.color: root.experienceCustomized
                         ? Appearance.colors.colOutlineVariant
                         : Appearance.colors.colPrimary
 
@@ -1982,9 +2277,9 @@ Scope {
                         spacing: 10
 
                         MaterialSymbol {
-                            text: root.profileCustomized ? "tune" : "check_circle"
+                            text: root.experienceCustomized ? "tune" : "check_circle"
                             iconSize: 20
-                            color: root.profileCustomized
+                            color: root.experienceCustomized
                                 ? Appearance.colors.colPrimary
                                 : Appearance.colors.colOnPrimaryContainer
                         }
@@ -1996,33 +2291,31 @@ Scope {
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: root.profileCustomized
+                                text: root.experienceCustomized
                                     ? Translation.tr("Custom setup")
-                                    : root.selectedProfileTitle
+                                    : root.currentExperiencePreset.name
                                 font.pixelSize: Appearance.font.pixelSize.small
                                 font.weight: Font.Medium
-                                color: root.profileCustomized
+                                color: root.experienceCustomized
                                     ? Appearance.colors.colOnSurface
                                     : Appearance.colors.colOnPrimaryContainer
                             }
                             StyledText {
                                 Layout.fillWidth: true
-                                text: root.profileCustomized
-                                    ? Translation.tr("Your individual choices are now in control.")
-                                    : root.selectedProfileDescription
+                                text: root.currentExperienceDescription
                                 font.pixelSize: Appearance.font.pixelSize.smaller
-                                color: root.profileCustomized
+                                color: root.experienceCustomized
                                     ? Appearance.colors.colSubtext
                                     : Appearance.colors.colOnPrimaryContainer
                                 wrapMode: Text.WordWrap
                             }
                             StyledText {
                                 Layout.fillWidth: true
-                                text: root.profileCustomized
-                                    ? Translation.tr("You can still choose a starting point above to reset these essentials.")
-                                    : root.selectedProfileAudience
+                                text: root.experienceCustomized
+                                    ? Translation.tr("Choose an experience above again to restore its complete composition.")
+                                    : Translation.tr("This preset configures the bar, dock, sidebars, their content, dashboard/control surfaces and desktop widgets together.")
                                 font.pixelSize: Appearance.font.pixelSize.smallest
-                                color: root.profileCustomized
+                                color: root.experienceCustomized
                                     ? Appearance.colors.colSubtext
                                     : Appearance.colors.colOnPrimaryContainer
                                 opacity: 0.8
@@ -2095,21 +2388,21 @@ Scope {
                         text: Translation.tr("Notification sounds")
                         description: Translation.tr("Keep the desktop silent, or add subtle feedback for notifications.")
                         checked: Config.options?.sounds?.notifications ?? false
-                        onToggledByUser: checked => root.setProfileFeature("sounds.notifications", checked)
+                        onToggledByUser: checked => root.setExperienceFeature("sounds.notifications", checked)
                     }
                     ConfigSwitch {
                         buttonIcon: "sports_esports"
                         text: Translation.tr("Automatic game mode")
                         description: Translation.tr("Pauses expensive effects while a fullscreen game is active.")
                         checked: Config.options?.gameMode?.autoDetect ?? true
-                        onToggledByUser: checked => root.setProfileFeature("gameMode.autoDetect", checked)
+                        onToggledByUser: checked => root.setExperienceFeature("gameMode.autoDetect", checked)
                     }
                     ConfigSwitch {
                         buttonIcon: "schedule"
                         text: Translation.tr("Desktop clock")
                         description: Translation.tr("Adds a quiet clock to the wallpaper. The bar clock remains available either way.")
                         checked: Config.getNestedValue("background.widgets.clock.enable", false)
-                        onToggledByUser: checked => root.setProfileFeature("background.widgets.clock.enable", checked)
+                        onToggledByUser: checked => root.setExperienceFeature("background.widgets.clock.enable", checked)
                     }
                 }
 
@@ -2123,7 +2416,7 @@ Scope {
                         checked: (Config.options?.bar?.weather?.enable ?? false)
                             && (Config.options?.bar?.modules?.weather ?? false)
                         onToggledByUser: checked => {
-                            root.profileCustomized = true
+                            root.experienceCustomized = true
                             Config.setNestedValues({
                                 "bar.weather.enable": checked,
                                 "bar.modules.weather": checked
@@ -2142,7 +2435,7 @@ Scope {
                         text: Translation.tr("Volume protection")
                         description: Translation.tr("Prevents sudden output jumps without changing normal volume control.")
                         checked: Config.options?.audio?.protection?.enable ?? true
-                        onToggledByUser: checked => root.setProfileFeature("audio.protection.enable", checked)
+                        onToggledByUser: checked => root.setExperienceFeature("audio.protection.enable", checked)
                     }
                 }
             }
@@ -2157,7 +2450,7 @@ Scope {
                     text: Translation.tr("Kira, the desktop companion")
                     description: Translation.tr("iNiR's mascot peeks in from the screen edges and reacts to what you do. Purely decorative, and she never takes focus.")
                     checked: Config.options?.mascot?.enable ?? false
-                    onToggledByUser: checked => root.setProfileFeature("mascot.enable", checked)
+                    onToggledByUser: checked => root.setExperienceFeature("mascot.enable", checked)
                 }
             }
 
