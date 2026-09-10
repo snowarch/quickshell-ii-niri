@@ -84,6 +84,14 @@ Loader {
         property bool closing: false
         property bool popupWasHovered: false
 
+        // Keep the Loader's logical state in sync when the compositor dismisses
+        // the xdg-popup because its grab/focus was lost. Without this, Niri can
+        // close the backing popup while the ContextMenu remains logically active.
+        onClosed: {
+            if (root.active)
+                root.active = false
+        }
+
         // Keep the Niri click surface below the popup content, matching the
         // SysTrayMenu stacking order so outside clicks close without blocking buttons.
         PanelWindow {

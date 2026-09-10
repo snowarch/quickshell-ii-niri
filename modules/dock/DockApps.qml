@@ -1033,6 +1033,7 @@ Item {
     DockContextMenu {
         id: dockContextMenu
         anchorItem: contextMenuAnchor
+        anchorHovered: root.contextMenuSourceButton?.buttonHovered ?? false
         onActiveChanged: {
             if (!active && !root.contextMenuPending) {
                 root.pendingContextMenuModel = []

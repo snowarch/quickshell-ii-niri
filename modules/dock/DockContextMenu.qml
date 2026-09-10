@@ -7,11 +7,13 @@ ContextMenu {
     readonly property string dockPosition: Config.options?.dock?.position ?? "bottom"
     readonly property bool isVertical: dockPosition === "left" || dockPosition === "right"
 
-    // The dock button and popup are separate Wayland surfaces. Losing hover on
-    // the anchor while crossing that boundary must not dismiss the menu; outside
-    // click/focus handling and Escape already own dismissal. This matches the M3
-    // dock path and prevents hover previews from racing a closing context menu.
-    closeOnHoverLost: false
+    // Do not arm hover dismissal until the pointer has actually entered the
+    // popup. That preserves the button -> popup handoff while still letting the
+    // menu retire itself after the user moves away from the interaction.
+    closeOnFocusLost: true
+    closeOnHoverLost: true
+    closeOnHoverLostAfterEntered: true
+    closeOnHoverLostDelay: 650
     scaleContent: false
     fadeContent: true
     revealDistance: 8

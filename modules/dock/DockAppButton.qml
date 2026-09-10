@@ -312,6 +312,10 @@ DockButton {
     onButtonHoveredChanged: {
         if (toplevels.length > 0) {
             if (buttonHovered) {
+                if (appListRoot?.contextMenuOpen
+                        && appListRoot.contextMenuSourceButton !== root) {
+                    appListRoot.closeContextMenu(false)
+                }
                 appListRoot.lastHoveredButton = root
                 appListRoot.buttonHovered = true
                 // Start hover timer for preview
@@ -391,6 +395,9 @@ DockButton {
     }
 
     onClicked: {
+        if (appListRoot?.contextMenuOpen)
+            appListRoot.closeContextMenu(true)
+
         // A dock click is navigation, not a request to refresh screenshots. Stop
         // the pending hover preview before focus changes so screenshot-window can
         // never race the first Ctrl+V in the destination app.
@@ -427,6 +434,8 @@ DockButton {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         property real _accumulated: 0
         onWheel: event => {
+            if (root.appListRoot?.contextMenuOpen)
+                root.appListRoot.closeContextMenu(true)
             // Touchpads emit many small deltas; one notch is 120 units.
             _accumulated += event.angleDelta.y
             while (Math.abs(_accumulated) >= 120) {
@@ -439,6 +448,8 @@ DockButton {
     }
 
     middleClickAction: () => {
+        if (root.appListRoot?.contextMenuOpen)
+            root.appListRoot.closeContextMenu(true)
         launchFromDesktopEntry();
     }
 
