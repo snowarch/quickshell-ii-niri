@@ -11,6 +11,7 @@ ColumnLayout {
     property string title: ""
     property string description: ""
     property string summary: ""
+    property bool showSummary: root.options.length === 0
     // The page header already shows name/description; the intro card is only
     // worth drawing on pages that need the extra onboarding copy.
     property bool showIntro: true
@@ -86,7 +87,7 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: visible ? introColumn.implicitHeight + (root.title.length > 0 ? 24 : 20) : 0
         radius: Appearance.rounding.normal
-        color: Appearance.editorialEverywhere ? Appearance.editorial.ink : Appearance.colors.colPrimaryContainer
+        color: Appearance.editorialEverywhere ? Appearance.editorial.ink : Appearance.colors.colLayer1
         border.width: Appearance.editorialEverywhere ? 1 : 0
         border.color: Appearance.editorialEverywhere ? Appearance.editorial.rule : Appearance.colors.colOutlineVariant
 
@@ -106,20 +107,32 @@ ColumnLayout {
                 spacing: 10
 
                 Item {
-                    Layout.preferredWidth: 40
-                    Layout.preferredHeight: 40
+                    Layout.preferredWidth: Appearance.cookieEverywhere ? 40 : 24
+                    Layout.preferredHeight: Appearance.cookieEverywhere ? 40 : 24
+                    Layout.alignment: Qt.AlignTop
+                    visible: root.icon.length > 0
 
                     MaterialShape {
                         anchors.centerIn: parent
-                        visible: Appearance.editorialEverywhere
-                        implicitSize: Appearance.editorialEverywhere ? 22 : 38
+                        visible: Appearance.editorialEverywhere && Appearance.editorial.ornaments
+                        implicitSize: 22
                         shape: MaterialShape.Shape.Flower
                         color: Appearance.editorial.paperOnInk
                     }
 
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        visible: !Appearance.cookieEverywhere
+                            && !(Appearance.editorialEverywhere && Appearance.editorial.ornaments)
+                        text: root.icon
+                        iconSize: 22
+                        color: Appearance.editorialEverywhere
+                            ? Appearance.editorial.paperOnInk : Appearance.colors.colOnLayer1
+                    }
+
                     MaterialCookie {
                         anchors.centerIn: parent
-                        visible: !Appearance.editorialEverywhere
+                        visible: Appearance.cookieEverywhere
                         implicitSize: 40
                         sides: 9
                         color: Appearance.colors.colPrimary
@@ -140,19 +153,21 @@ ColumnLayout {
                         text: root.title
                         font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
                         font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.hugeass : Appearance.font.pixelSize.normal
-                        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Font.DemiBold
+                        readonly property int titleWeight: Appearance.editorialEverywhere
+                            ? Appearance.editorial.titleWeight : Font.DemiBold
+                        font.weight: titleWeight
+                        font.variableAxes: Object.assign({}, Appearance.font.variableAxes.main, { "wght": titleWeight })
                         font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
-                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
-                        wrapMode: Text.WordWrap
+                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnLayer1
+                        wrapMode: Text.Wrap
                     }
                     StyledText {
                         Layout.fillWidth: true
                         visible: root.description.length > 0
                         text: root.description
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
-                        opacity: 0.82
-                        wrapMode: Text.WordWrap
+                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                        wrapMode: Text.Wrap
                     }
                 }
             }
@@ -163,22 +178,20 @@ ColumnLayout {
                 text: root.description
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: Font.Medium
-                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
-                opacity: 0.92
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.Wrap
             }
 
             StyledText {
                 Layout.fillWidth: true
-                visible: root.summary.length > 0
+                visible: root.showSummary && root.summary.length > 0
                 text: root.summary
                 font.pixelSize: Appearance.font.pixelSize.smallest
                 font.weight: Font.Medium
-                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnPrimaryContainer
-                opacity: 0.7
-                horizontalAlignment: root.title.length > 0 ? Text.AlignLeft : Text.AlignHCenter
-                wrapMode: Text.WordWrap
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.Wrap
             }
         }
     }

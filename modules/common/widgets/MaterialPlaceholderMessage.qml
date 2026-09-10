@@ -21,7 +21,9 @@ Item {
 
     opacity: shown ? 1 : 0
     visible: opacity > 0
-    implicitWidth: placeholderColumn.implicitWidth
+    // Include the inset consumed below; otherwise an implicitly sized host
+    // gives even short headings less width than their natural text width.
+    implicitWidth: Math.min(root.maximumWidth, placeholderColumn.implicitWidth) + 24
     implicitHeight: placeholderColumn.implicitHeight
     y: shown ? 0 : 10
 
@@ -50,8 +52,8 @@ Item {
         Item {
             visible: root.icon !== ""
             Layout.alignment: Qt.AlignHCenter
-            implicitWidth: Appearance.inirEverywhere ? 72 : materialShape.implicitWidth
-            implicitHeight: Appearance.inirEverywhere ? 72 : materialShape.implicitHeight
+            implicitWidth: Appearance.inirEverywhere ? (root.compact ? 48 : 72) : materialShape.implicitWidth
+            implicitHeight: Appearance.inirEverywhere ? (root.compact ? 48 : 72) : materialShape.implicitHeight
 
             Rectangle {
                 anchors.fill: parent
@@ -66,7 +68,7 @@ Item {
                 anchors.centerIn: parent
                 visible: Appearance.inirEverywhere || (Appearance.editorialEverywhere && !Appearance.editorial.ornaments)
                 text: root.icon
-                iconSize: 32
+                iconSize: root.compact ? 24 : 32
                 color: Appearance.editorialEverywhere ? Appearance.editorial.secondaryFieldInk : Appearance.inir.colTextSecondary
             }
 
@@ -76,8 +78,8 @@ Item {
                 visible: !Appearance.inirEverywhere && (!Appearance.editorialEverywhere || Appearance.editorial.ornaments)
                 text: root.icon
                 shape: root.shape
-                padding: 12
-                iconSize: Appearance.editorialEverywhere ? (root.compact ? 28 : 36) : 56
+                padding: root.compact ? 8 : 12
+                iconSize: Appearance.editorialEverywhere ? (root.compact ? 28 : 36) : root.compact ? 32 : 56
             }
         }
 

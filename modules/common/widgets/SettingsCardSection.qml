@@ -37,7 +37,10 @@ Item {
 
     function focusFromSettingsSearch() {
         root.expanded = true;
-        root.forceActiveFocus();
+        if (root.collapsible)
+            headerBackground.forceActiveFocus(Qt.TabFocusReason);
+        else
+            root.forceActiveFocus();
     }
 
     Component.onCompleted: {
@@ -112,40 +115,6 @@ Item {
         strokeWidth: Appearance.zzz.hairlineThick
         chamfer: Appearance.zzz.cutCorner
         z: -0.5
-    }
-
-    // Non-ZZZ, non-angel: subtle left accent bar when expanded
-    Rectangle {
-        id: accentBar
-        visible: !SettingsMaterialPreset.unified
-            && !Appearance.angelEverywhere && !Appearance.regaliaEverywhere
-            && !Appearance.zzzEverywhere && !Appearance.cookieEverywhere && !Appearance.editorialEverywhere
-        anchors {
-            left: card.left
-            top: card.top
-            bottom: card.bottom
-            leftMargin: 0
-            topMargin: SettingsMaterialPreset.cardRadius
-            bottomMargin: SettingsMaterialPreset.cardRadius
-        }
-        width: 2
-        radius: 1
-        color: SettingsMaterialPreset.accentColor
-        opacity: root.expanded
-            ? 0.6
-            : (headerMouseArea.containsMouse ? 0.3 : 0)
-        z: 1
-        Behavior on opacity {
-            animation: NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
-        }
-        Behavior on width {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementResize.duration; easing.type: Appearance.animation.elementResize.type; easing.bezierCurve: Appearance.animation.elementResize.bezierCurve }
-        }
-        Behavior on color {
-            enabled: Appearance.animationsEnabled
-            ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
-        }
     }
 
     Loader {
@@ -224,6 +193,21 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: headerRow.implicitHeight + SettingsMaterialPreset.headerPaddingY * 2
                 radius: SettingsMaterialPreset.headerRadius
+                activeFocusOnTab: root.collapsible
+                Accessible.role: root.collapsible ? Accessible.Button : Accessible.Heading
+                Accessible.name: root.title
+                Accessible.focusable: root.collapsible
+                Accessible.onPressAction: toggleExpanded()
+
+                function toggleExpanded() {
+                    if (root.collapsible)
+                        root.expanded = !root.expanded;
+                }
+
+                Keys.onSpacePressed: toggleExpanded()
+                Keys.onReturnPressed: toggleExpanded()
+                Keys.onEnterPressed: toggleExpanded()
+
                 color: Appearance.regaliaEverywhere ? "transparent"
                     : headerMouseArea.containsMouse && root.collapsible
                         ? SettingsMaterialPreset.headerHoverColor
@@ -231,6 +215,16 @@ Item {
 
                 Behavior on color {
                     animation: ColorAnimation { duration: Appearance.animation.stateChange.duration; easing.type: Appearance.animation.stateChange.type; easing.bezierCurve: Appearance.animation.stateChange.bezierCurve }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: headerBackground.radius
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Appearance.editorialEverywhere
+                        ? Appearance.editorial.focusRing : Appearance.colors.colPrimary
+                    visible: headerBackground.activeFocus && root.collapsible
                 }
 
                 EditorialRule {
@@ -336,9 +330,13 @@ Item {
 
                     StyledText {
                         text: Appearance.zzzEverywhere ? root.title.toUpperCase() : root.title
+                        wrapMode: Text.Wrap
                         font.family: Appearance.editorialEverywhere ? Appearance.font.family.title : Appearance.font.family.main
                         font.pixelSize: Appearance.editorialEverywhere ? Appearance.font.pixelSize.huge * Appearance.editorial.titleScale : Appearance.font.pixelSize.normal
-                        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Appearance.zzzEverywhere ? Font.ExtraBold : Font.DemiBold
+                        readonly property int titleWeight: Appearance.editorialEverywhere
+                            ? Appearance.editorial.titleWeight : Appearance.zzzEverywhere ? Font.ExtraBold : Font.DemiBold
+                        font.weight: titleWeight
+                        font.variableAxes: Object.assign({}, Appearance.font.variableAxes.main, { "wght": titleWeight })
                         font.letterSpacing: Appearance.editorialEverywhere ? Appearance.editorial.titleTracking : 0
                         color: root.expanded
                             ? SettingsMaterialPreset.titleExpandedColor
@@ -376,7 +374,8 @@ Item {
                     cursorShape: root.collapsible ? Qt.PointingHandCursor : Qt.ArrowCursor
                     onClicked: {
                         if (root.collapsible) {
-                            root.expanded = !root.expanded;
+                            headerBackground.forceActiveFocus(Qt.MouseFocusReason);
+                            headerBackground.toggleExpanded();
                         }
                     }
                 }
