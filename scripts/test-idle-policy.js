@@ -30,4 +30,14 @@ assert(!idleQml.includes("power-off-monitors"), "Idle.qml must not invoke niri p
 assert(!idleQml.includes("power-on-monitors"), "Idle.qml must not invoke niri power-on-monitors")
 assert(idleQml.includes("IdlePolicy.niriOffCommand"), "Idle.qml uses idlePolicy for niri off")
 
+const lockQml = fs.readFileSync(path.resolve(__dirname, "../modules/lock/Lock.qml"), "utf8")
+assert(lockQml.includes("Brightness.sleepBegin"), "lock activate blanks without drm power-off")
+assert(!/power-off-monitors/.test(lockQml), "Lock.qml must not invoke niri power-off-monitors")
+
+for (const rel of ["../modules/lock/LockSurface.qml", "../modules/waffle/lock/WaffleLockSurface.qml"]) {
+    const src = fs.readFileSync(path.resolve(__dirname, rel), "utf8")
+    assert(src.includes("Brightness.asleep"), `${rel} covers the lock while asleep`)
+    assert(src.includes("Brightness.restoreAfterWake"), `${rel} unblanks on input`)
+}
+
 console.log("ok")
