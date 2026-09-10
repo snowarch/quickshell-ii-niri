@@ -41,7 +41,16 @@ Scope {
         readonly property string outputName: cornerPanelWindow.screen?.name ?? ""
         readonly property bool orbitConflictsWithNiriOverview: CompositorService.isNiri
             && NiriService.isOverviewHotCornerActive(outputName, cornerName)
-        readonly property bool orbitInteractionSuppressed: fullscreen || GameMode.manuallyActivated
+        function orbitHotCornerBlocked(): bool {
+            // Fullscreen follows the same compositor contract as the normal
+            // dock/bar: this surface is on Top, so the fullscreen window owns
+            // the edge and receives the pointer. Manual Game Mode remains the
+            // fallback for games that do not enter compositor fullscreen.
+            if (CompositorService.isNiri && NiriService.inOverview)
+                return false
+            return GameMode.manuallyActivated
+        }
+        readonly property bool orbitInteractionSuppressed: orbitHotCornerBlocked()
         readonly property bool shouldShowOrbitHotCorner: CompositorService.isNiri
             && (Config.options?.panelFamily ?? "ii") !== "waffle"
             && (Config.options?.orbit?.enable ?? true)
@@ -60,7 +69,10 @@ Scope {
                 : (sidebarCornerOpenInteractionLoader.active ? sidebarCornerOpenInteractionLoader : null)
         }
         WlrLayershell.namespace: "quickshell:screenCorners"
-        WlrLayershell.layer: WlrLayer.Overlay
+        // Match the known-good dock/bar behavior. A compositor fullscreen
+        // window naturally covers Top-layer shell input, while Niri Overview
+        // exposes Top-layer UI again for navigation and interaction.
+        WlrLayershell.layer: WlrLayer.Top
         color: "transparent"
 
         anchors {
@@ -128,7 +140,10 @@ Scope {
                     property bool atCorner: false
 
                     function triggerOrbit(): void {
-                        if (!armed || !atCorner || cornerPanelWindow.orbitInteractionSuppressed)
+                        // Recompute at activation time as well as through the
+                        // Loader binding so a fullscreen transition cannot win
+                        // the event-order race against the pointer event.
+                        if (!armed || !atCorner || cornerPanelWindow.orbitHotCornerBlocked())
                             return
                         armed = false
                         orbitDwellTimer.stop()
@@ -266,7 +281,8 @@ Scope {
                 // or change the exclusive zone, so they can safely follow
                 // automatic fullscreen detection.
                 if (CompositorService.isNiri)
-                    return GameMode.hasFullscreenOnOutput(modelData?.name ?? "")
+                    return !NiriService.inOverview
+                        && GameMode.hasFullscreenOnOutput(modelData?.name ?? "")
                 return false;
             }
 

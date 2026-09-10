@@ -204,7 +204,11 @@ Item {
         return GameMode.hasFullscreenOnOutput(screenName);
     }
     readonly property bool gameHide: Appearance.gameModeMinimal
-    readonly property bool fsHide: (fsCovered || gameHide)
+    // Match the normal dock/bar interaction model: fullscreen owns the screen
+    // during play, but once Niri Overview is open the shell must become
+    // available again for workspace/navigation interaction.
+    readonly property bool compositorOverviewOpen: CompositorService.isNiri && NiriService.inOverview
+    readonly property bool fsHide: (fsCovered || gameHide) && !compositorOverviewOpen
         && (mode === "rest" || mode === "hover" || mode === "game")
 
     opacity: fsHide ? 0 : 1
