@@ -29,67 +29,38 @@ Item {
         ? centerMaterialPill.implicitWidth : middleRow.implicitWidth
     readonly property real rightHostDemand: root.isMaterial
         ? rightMaterialPill.implicitWidth : rightRow.implicitWidth
-    readonly property real symmetricSideDemand: Math.max(root.leftHostDemand, root.rightHostDemand)
     readonly property real availableHostWidth: Math.max(0, root.width - root.sectionOuterMargin * 2)
-    readonly property real naturalHostWidth: root.centerHostDemand + root.symmetricSideDemand * 2
-    readonly property real hostScale: root.naturalHostWidth > 0
-        ? Math.min(1, root.availableHostWidth / root.naturalHostWidth) : 1
+    readonly property real hostGap: 6 * Appearance.fontSizeScale
+    readonly property bool hasLeftHost: root.leftHostDemand > 0.5
+    readonly property bool hasCenterHost: root.centerHostDemand > 0.5
+    readonly property bool hasRightHost: root.rightHostDemand > 0.5
+    readonly property real leftCenterGap: root.hasLeftHost && root.hasCenterHost ? root.hostGap : 0
+    readonly property real centerRightGap: root.hasCenterHost && root.hasRightHost ? root.hostGap : 0
+    readonly property real sideOnlyGap: !root.hasCenterHost && root.hasLeftHost && root.hasRightHost ? root.hostGap : 0
+    readonly property real totalHostGap: root.leftCenterGap + root.centerRightGap + root.sideOnlyGap
+    readonly property real naturalHostWidth: root.leftHostDemand + root.centerHostDemand
+        + root.rightHostDemand + root.totalHostGap
+    readonly property real hostScale: root.naturalHostWidth > root.totalHostGap
+        ? Math.min(1, Math.max(0, root.availableHostWidth - root.totalHostGap)
+            / Math.max(1, root.naturalHostWidth - root.totalHostGap))
+        : 1
     readonly property bool layoutCompressionActive: root.hostScale < 0.999
+    readonly property real leftHostWidth: root.leftHostDemand * root.hostScale
+    readonly property real centerHostWidth: root.centerHostDemand * root.hostScale
+    readonly property real rightHostWidth: root.rightHostDemand * root.hostScale
+    readonly property real preferredCenterX: (root.width - root.centerHostWidth) / 2
+    readonly property real minimumCenterX: root.sectionOuterMargin + root.leftHostWidth + root.leftCenterGap
+    readonly property real maximumCenterX: root.width - root.sectionOuterMargin - root.rightHostWidth
+        - root.centerRightGap - root.centerHostWidth
+    readonly property real centerHostX: root.layoutCompressionActive
+        ? root.minimumCenterX
+        : Math.max(root.minimumCenterX, Math.min(root.preferredCenterX, root.maximumCenterX))
 
     readonly property bool trayHasItems: SystemTray.items.values.length > 0
     readonly property bool spectrumOutputEnabled:
         (Config.options?.bar?.visualizer?.multiMonitorMode ?? "primary") === "all"
         || Quickshell.screens.length <= 1
         || String(root.screen?.name ?? "") === String(GlobalStates.primaryScreen?.name ?? "")
-    function _moduleBudget(id, level) {
-        if (level >= 1 && root.compactHiddenWidgets.includes(id)) return 0
-        if (level >= 2 && root.minimalHiddenWidgets.includes(id)) return 0
-        if (level >= 3 && root.overflowHiddenWidgets.includes(id)) return 0
-        const scale = Appearance.fontSizeScale
-        const widths = {
-            "powerButton": 40, "leftSidebarButton": 44,
-            "activeWindow": 260, "media": 190, "workspaces": 120,
-            "resources": 185, "clockWidget": 145, "utilButtons": 155,
-            "docktoPanel": 320, "notificationUnreadCount": 44,
-            "systemIcons": 150, "weatherBar": 130, "sysTray": 180,
-            "updatesCount": 44, "networkSpeed": 110,
-            "batteryIndicator": 80, "visualizer": 130, "divisor": 12,
-        }
-        return (widths[id] ?? 64) * scale
-    }
-    function _layoutBudget(layout, level) {
-        let total = 0
-        const items = Array.from(layout ?? [])
-        for (let i = 0; i < items.length; ++i)
-            total += root._moduleBudget(items[i], level)
-        return total
-    }
-    function _hostBudget(level) {
-        const left = root._layoutBudget(Config.options?.bar?.m3?.layouts?.leftLayout, level)
-        const center = root._layoutBudget(Config.options?.bar?.m3?.layouts?.middleLayout, level)
-        const right = root._layoutBudget(Config.options?.bar?.m3?.layouts?.rightLayout, level)
-        return center + Math.max(left, right) * 2 + root.sectionOuterMargin * 2
-    }
-    readonly property real compactWidthThreshold: Math.max(
-        Appearance.sizes.barShortenScreenWidthThreshold, root._hostBudget(0))
-    readonly property real minimalWidthThreshold: Math.max(
-        Appearance.sizes.barHellaShortenScreenWidthThreshold, root._hostBudget(1))
-    readonly property real overflowWidthThreshold: root._hostBudget(2)
-    readonly property int useShortenedForm:
-        (root.screen?.width ?? 1920) <= root.overflowWidthThreshold ? 3
-        : (root.screen?.width ?? 1920) <= root.minimalWidthThreshold ? 2
-        : (root.screen?.width ?? 1920) <= root.compactWidthThreshold ? 1 : 0
-    readonly property var compactHiddenWidgets: [
-        "visualizer", "activeWindow", "resources", "networkSpeed",
-        "weatherBar", "updatesCount"
-    ]
-    readonly property var minimalHiddenWidgets: [
-        ...root.compactHiddenWidgets, "media", "sysTray", "utilButtons",
-        "batteryIndicator", "divisor"
-    ]
-    readonly property var overflowHiddenWidgets: [
-        ...root.minimalHiddenWidgets, "docktoPanel", "systemIcons"
-    ]
 
     function filterLayout(layout) {
         let filtered = Array.from(layout ?? [])
@@ -99,12 +70,6 @@ Item {
             filtered = filtered.filter(name => name !== "batteryIndicator")
         if (!root.spectrumSignalActive)
             filtered = filtered.filter(name => name !== "visualizer")
-        if (root.useShortenedForm >= 3)
-            return filtered.filter(name => !root.overflowHiddenWidgets.includes(name))
-        if (root.useShortenedForm === 2)
-            return filtered.filter(name => !root.minimalHiddenWidgets.includes(name))
-        if (root.useShortenedForm === 1)
-            return filtered.filter(name => !root.compactHiddenWidgets.includes(name))
         return filtered
     }
 
@@ -127,7 +92,6 @@ Item {
     // on each side of the centre, and a per-widget process would have spawned
     // one subprocess per instance for the exact same spectrum.
     readonly property bool wantsVisualizer: root.spectrumOutputEnabled
-        && root.useShortenedForm === 0
         && ((Config.options?.bar?.m3?.layouts?.leftLayout ?? []).includes("visualizer")
             || (Config.options?.bar?.m3?.layouts?.middleLayout ?? []).includes("visualizer")
             || (Config.options?.bar?.m3?.layouts?.rightLayout ?? []).includes("visualizer"))
@@ -460,8 +424,7 @@ Item {
             anchors.leftMargin: root.sectionOuterMargin
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.layoutCompressionActive
-                ? root.leftHostDemand * root.hostScale : root.leftHostDemand
+            width: root.leftHostWidth
             clip: root.layoutCompressionActive
 
             // Material pill wrapper
@@ -498,6 +461,8 @@ Item {
                     id: leftMaterialRow
                     anchors.centerIn: parent
                     spacing: 3
+                    scale: implicitWidth > 0 ? Math.min(1, root.leftHostWidth / (implicitWidth + 10)) : 1
+                    transformOrigin: Item.Center
 
                     Repeater {
                         id: leftMaterialRepeater
@@ -574,10 +539,10 @@ Item {
         // Center
         Item {
             id: absoluteCenter
-            anchors.centerIn: parent
-            width: root.layoutCompressionActive
-                ? root.centerHostDemand * root.hostScale : root.centerHostDemand
-            height: parent.height
+            x: root.centerHostX
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: root.centerHostWidth
             clip: root.layoutCompressionActive
 
             // Material pill wrapper
@@ -614,6 +579,8 @@ Item {
                     id: centerMaterialRow
                     anchors.centerIn: parent
                     spacing: 3
+                    scale: implicitWidth > 0 ? Math.min(1, root.centerHostWidth / (implicitWidth + 10)) : 1
+                    transformOrigin: Item.Center
 
                     Repeater {
                         id: centerMaterialRepeater
@@ -693,8 +660,7 @@ Item {
             anchors.rightMargin: root.sectionOuterMargin
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.layoutCompressionActive
-                ? root.rightHostDemand * root.hostScale : root.rightHostDemand
+            width: root.rightHostWidth
             clip: root.layoutCompressionActive
 
             // Material pill wrapper
@@ -731,6 +697,8 @@ Item {
                     id: rightMaterialRow
                     anchors.centerIn: parent
                     spacing: 3
+                    scale: implicitWidth > 0 ? Math.min(1, root.rightHostWidth / (implicitWidth + 10)) : 1
+                    transformOrigin: Item.Center
 
                     Repeater {
                         id: rightMaterialRepeater

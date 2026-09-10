@@ -290,6 +290,37 @@ ContentPage {
         }
     }
 
+    function moveM3Widget(sourceSection, sourceIndex, id, targetSection, targetIndex): bool {
+        const layouts = root.currentM3Layouts()
+        if (!layouts[sourceSection] || !layouts[targetSection])
+            return false
+
+        const source = layouts[sourceSection].slice()
+        if (sourceIndex < 0 || sourceIndex >= source.length)
+            return false
+        const moved = source.splice(sourceIndex, 1)[0]
+        const target = sourceSection === targetSection ? source : layouts[targetSection].slice()
+        let insertAt = targetIndex
+        if (sourceSection === targetSection && insertAt > sourceIndex)
+            insertAt--
+        insertAt = Math.max(0, Math.min(insertAt, target.length))
+        target.splice(insertAt, 0, moved)
+        layouts[sourceSection] = sourceSection === targetSection ? target : source
+        layouts[targetSection] = target
+
+        root.setM3Values({
+            "bar.m3.layoutMode": "custom",
+            "bar.m3.customLayoutSaved": true,
+            "bar.m3.layouts.leftLayout": layouts.left,
+            "bar.m3.layouts.middleLayout": layouts.middle,
+            "bar.m3.layouts.rightLayout": layouts.right,
+            "bar.m3.customLayouts.leftLayout": layouts.left,
+            "bar.m3.customLayouts.middleLayout": layouts.middle,
+            "bar.m3.customLayouts.rightLayout": layouts.right
+        })
+        return true
+    }
+
     function updateM3CustomLayout(side, list): void {
         if (!root.m3ControlsReady) return
         const next = Array.from(list ?? [])
@@ -355,7 +386,7 @@ ContentPage {
 
     readonly property var m3Widgets: [
         { id: "leftSidebarButton", name: Translation.tr("Left Sidebar Button"), icon: "left_panel_open",
-            description: Translation.tr("Opens the sidebar assigned to the left edge.") },
+            description: Translation.tr("Click: Left Sidebar") },
         { id: "workspaces", name: Translation.tr("Workspaces"), icon: "steppers" },
         { id: "weatherBar", name: Translation.tr("Weather"), icon: "flare" },
         { id: "media", name: Translation.tr("Media"), icon: "music_note" },
@@ -374,7 +405,7 @@ ContentPage {
         { id: "hyprlandXkbIndicator", name: Translation.tr("Keyboard Layout"), icon: "keyboard" },
         { id: "divisor", name: Translation.tr("Divider"), icon: "horizontal_distribute" },
         { id: "notificationUnreadCount", name: Translation.tr("Unread Notifications"), icon: "notifications",
-            description: Translation.tr("Shows unread notifications and opens the right sidebar when clicked.") }
+            description: Translation.tr("Click: Right Sidebar") }
     ]
 
     function m3WidgetName(id): string {
@@ -383,6 +414,10 @@ ContentPage {
 
     function m3WidgetDescription(id): string {
         return root.m3Widgets.find(widget => widget.id === id)?.description ?? ""
+    }
+
+    function m3WidgetIcon(id): string {
+        return root.m3Widgets.find(widget => widget.id === id)?.icon ?? "widgets"
     }
 
     function m3WidgetHint(id): string {
@@ -633,36 +668,78 @@ ContentPage {
                     }
                 }
 
-                M3LayoutSection {
-                    sectionTitle: Translation.tr("Left")
-                    layout: Config.options?.bar?.m3?.layouts?.leftLayout ?? []
-                    availableWidgets: root.availableM3Widgets()
-                    getWidgetName: root.m3WidgetName
-                    getWidgetDescription: root.m3WidgetDescription
-                    onUpdate: list => root.updateM3CustomLayout("left", list)
-                }
+                Item {
+                    id: m3LayoutEditor
+                    Layout.fillWidth: true
+                    implicitHeight: m3LayoutGrid.implicitHeight
 
-                M3LayoutSection {
-                    sectionTitle: Translation.tr("Center")
-                    layout: Config.options?.bar?.m3?.layouts?.middleLayout ?? []
-                    availableWidgets: root.availableM3Widgets()
-                    getWidgetName: root.m3WidgetName
-                    getWidgetDescription: root.m3WidgetDescription
-                    onUpdate: list => root.updateM3CustomLayout("middle", list)
-                }
+                    GridLayout {
+                        id: m3LayoutGrid
+                        width: parent.width
+                        columns: width >= 720 ? 3 : width >= 480 ? 2 : 1
+                        columnSpacing: 8
+                        rowSpacing: 8
 
-                M3LayoutSection {
-                    sectionTitle: Translation.tr("Right")
-                    layout: Config.options?.bar?.m3?.layouts?.rightLayout ?? []
-                    availableWidgets: root.availableM3Widgets()
-                    getWidgetName: root.m3WidgetName
-                    getWidgetDescription: root.m3WidgetDescription
-                    onUpdate: list => root.updateM3CustomLayout("right", list)
+                        M3LayoutSection {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            sectionTitle: Translation.tr("Left")
+                            sectionKey: "left"
+                            orderHint: Translation.tr("Top to bottom")
+                            layout: Config.options?.bar?.m3?.layouts?.leftLayout ?? []
+                            availableWidgets: root.availableM3Widgets()
+                            getWidgetName: root.m3WidgetName
+                            getWidgetDescription: root.m3WidgetDescription
+                            getWidgetIcon: root.m3WidgetIcon
+                            onUpdate: list => root.updateM3CustomLayout("left", list)
+                            onMove: root.moveM3Widget
+                            dragOverlay: m3DragOverlay
+                        }
+
+                        M3LayoutSection {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            sectionTitle: Translation.tr("Center")
+                            sectionKey: "middle"
+                            orderHint: Translation.tr("Top to bottom")
+                            layout: Config.options?.bar?.m3?.layouts?.middleLayout ?? []
+                            availableWidgets: root.availableM3Widgets()
+                            getWidgetName: root.m3WidgetName
+                            getWidgetDescription: root.m3WidgetDescription
+                            getWidgetIcon: root.m3WidgetIcon
+                            onUpdate: list => root.updateM3CustomLayout("middle", list)
+                            onMove: root.moveM3Widget
+                            dragOverlay: m3DragOverlay
+                        }
+
+                        M3LayoutSection {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            sectionTitle: Translation.tr("Right")
+                            sectionKey: "right"
+                            orderHint: Translation.tr("Top to bottom")
+                            layout: Config.options?.bar?.m3?.layouts?.rightLayout ?? []
+                            availableWidgets: root.availableM3Widgets()
+                            getWidgetName: root.m3WidgetName
+                            getWidgetDescription: root.m3WidgetDescription
+                            getWidgetIcon: root.m3WidgetIcon
+                            onUpdate: list => root.updateM3CustomLayout("right", list)
+                            onMove: root.moveM3Widget
+                            dragOverlay: m3DragOverlay
+                        }
+                    }
+
+                    Item {
+                        id: m3DragOverlay
+                        anchors.fill: parent
+                        z: 1000
+                        clip: false
+                    }
                 }
 
                 SettingsNote {
                     icon: "drag_indicator"
-                    text: Translation.tr("Drag widgets within Left, Center or Right to reorder them. Use + to add a widget; click a widget chip to remove it.")
+                    text: Translation.tr("Drag by the handle to reorder or move widgets between zones. The insertion line marks the exact drop position. Each list renders top to bottom as left to right in the bar.")
                 }
 
                 SettingsNote {
