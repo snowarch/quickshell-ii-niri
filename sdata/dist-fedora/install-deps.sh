@@ -28,6 +28,32 @@ dnf_pkg_available() {
   dnf -q list --available "$pkg" &>/dev/null || dnf -q list --installed "$pkg" &>/dev/null
 }
 
+# Batch check which packages are available from configured repos.
+# Populates the arrays passed as $1 (available) and $2 (missing).
+dnf_pkgs_available_batch() {
+  local -n _avail=$1 _miss=$2
+  shift 2
+  local -a pkgs=("$@")
+  local available_file
+  available_file="$(mktemp)"
+
+  # Use repoquery to get just package names — handles missing packages gracefully.
+  # --qf '%{name}' outputs only the bare name, no arch or repo prefix.
+  dnf -q repoquery --qf '%{name}' --available "${pkgs[@]}" 2>/dev/null | sort -u > "$available_file" || true
+  # Also include already-installed packages (they're definitely "available").
+  dnf -q repoquery --qf '%{name}' --installed "${pkgs[@]}" 2>/dev/null | sort -u >> "$available_file" || true
+  sort -u -o "$available_file" "$available_file"
+
+  for pkg in "${pkgs[@]}"; do
+    if grep -qx "$pkg" "$available_file"; then
+      _avail+=("$pkg")
+    else
+      _miss+=("$pkg")
+    fi
+  done
+  rm -f "$available_file"
+}
+
 version_at_least() {
   local have="$1"
   local need="$2"
@@ -537,19 +563,29 @@ ${INSTALL_SCREENCAPTURE:-true} && FEDORA_REPO_PKGS+=("${FEDORA_SCREENCAPTURE_PKG
 ${INSTALL_FONTS:-true} && FEDORA_REPO_PKGS+=("${FEDORA_FONT_PKGS[@]}")
 
 mapfile -t FEDORA_REPO_PKGS < <(printf '%s\n' "${FEDORA_REPO_PKGS[@]}" | awk 'NF' | sort -u)
+
+# Pre-flight: ensure metadata cache is fresh so availability checks are fast.
+tui_info "Refreshing package metadata..."
+sudo dnf makecache --timer >/dev/null 2>&1 || sudo dnf makecache >/dev/null 2>&1 || true
+
+# Batch-check availability instead of per-package dnf calls (much faster).
 FEDORA_INSTALLABLE_PKGS=()
 FEDORA_REPO_FALLBACK_PKGS=()
+
+# Separate quickshell if it needs special handling
+_quickshell_pkgs=()
+_regular_pkgs=()
 for pkg in "${FEDORA_REPO_PKGS[@]}"; do
   if [[ "$pkg" == "quickshell" ]] && ! fedora_quickshell_compatible; then
     FEDORA_REPO_FALLBACK_PKGS+=("$pkg")
-    continue
-  fi
-  if dnf_pkg_available "$pkg"; then
-    FEDORA_INSTALLABLE_PKGS+=("$pkg")
+  elif [[ "$pkg" == "quickshell" ]]; then
+    _quickshell_pkgs+=("$pkg")
   else
-    FEDORA_REPO_FALLBACK_PKGS+=("$pkg")
+    _regular_pkgs+=("$pkg")
   fi
 done
+
+dnf_pkgs_available_batch FEDORA_INSTALLABLE_PKGS FEDORA_REPO_FALLBACK_PKGS "${_regular_pkgs[@]}" "${_quickshell_pkgs[@]}"
 
 if [[ ${#FEDORA_INSTALLABLE_PKGS[@]} -gt 0 ]]; then
   log_info "Installing ${#FEDORA_INSTALLABLE_PKGS[@]} packages from Fedora/RPM Fusion repositories..."
@@ -600,7 +636,7 @@ install_github_binary() {
   log_info "Installing $name from GitHub..."
   
   local download_url
-  download_url=$(curl -s "https://api.github.com/repos/${repo}/releases/latest" | \
+  download_url=$(curl -s --connect-timeout 10 --max-time 30 "https://api.github.com/repos/${repo}/releases/latest" | \
     jq -r ".assets[] | select(.name | test(\"${asset_pattern}\")) | .browser_download_url" | head -1)
   
   if [[ -z "$download_url" || "$download_url" == "null" ]]; then
@@ -612,7 +648,7 @@ install_github_binary() {
   mkdir -p "$temp_dir"
   
   local filename=$(basename "$download_url")
-  if curl -fsSL -o "$temp_dir/$filename" "$download_url"; then
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$temp_dir/$filename" "$download_url"; then
     case "$filename" in
       *.tar.gz|*.tgz)
         tar -xzf "$temp_dir/$filename" -C "$temp_dir"
@@ -710,12 +746,12 @@ fi
 if ${INSTALL_FONTS:-true}; then
   if ! rpm -q darkly &>/dev/null; then
     log_info "Installing darkly theme from GitHub..."
-    DARKLY_RPM_URL=$(curl -s "https://api.github.com/repos/Bali10050/darkly/releases/latest" | \
+    DARKLY_RPM_URL=$(curl -s --connect-timeout 10 --max-time 30 "https://api.github.com/repos/Bali10050/darkly/releases/latest" | \
       jq -r ".assets[] | select(.name | test(\"fc${FEDORA_VERSION}.*x86_64.rpm$\")) | .browser_download_url" | head -1)
     
     # Fallback to any Fedora RPM if exact version not found
     if [[ -z "$DARKLY_RPM_URL" || "$DARKLY_RPM_URL" == "null" ]]; then
-      DARKLY_RPM_URL=$(curl -s "https://api.github.com/repos/Bali10050/darkly/releases/latest" | \
+      DARKLY_RPM_URL=$(curl -s --connect-timeout 10 --max-time 30 "https://api.github.com/repos/Bali10050/darkly/releases/latest" | \
         jq -r '.assets[] | select(.name | test("fc[0-9]+.*x86_64.rpm$")) | .browser_download_url' | head -1)
     fi
     
@@ -732,7 +768,7 @@ fi
 #####################################################################################
 if ! command -v uv &>/dev/null; then
   tui_info "Installing uv fallback..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null || {
+  curl -LsSf --connect-timeout 10 --max-time 60 https://astral.sh/uv/install.sh | sh 2>/dev/null || {
     if command -v cargo &>/dev/null; then
       cargo install uv
     else
@@ -756,7 +792,7 @@ if ! fc-list | grep -qi "Material Symbols Rounded"; then
   # Direct download from raw.githubusercontent
   MATERIAL_URL="https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsRounded%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf"
   
-  if curl -fsSL -o "$FONT_DIR/MaterialSymbolsRounded.ttf" "$MATERIAL_URL"; then
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$FONT_DIR/MaterialSymbolsRounded.ttf" "$MATERIAL_URL"; then
     fc-cache -fv "$FONT_DIR" 2>/dev/null
     log_success "Material Symbols Rounded font installed"
   else
@@ -771,7 +807,7 @@ if ! fc-list | grep -qi "Material Symbols Outlined"; then
   
   MATERIAL_URL="https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf"
   
-  if curl -fsSL -o "$FONT_DIR/MaterialSymbolsOutlined.ttf" "$MATERIAL_URL"; then
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$FONT_DIR/MaterialSymbolsOutlined.ttf" "$MATERIAL_URL"; then
     fc-cache -fv "$FONT_DIR" 2>/dev/null
     log_success "Material Symbols Outlined font installed"
   else
@@ -787,7 +823,7 @@ if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
   TEMP_DIR="/tmp/nerdfonts-$$"
   mkdir -p "$TEMP_DIR"
   
-  if curl -fsSL -o "$TEMP_DIR/JetBrainsMono.zip" "$NERD_FONTS_URL"; then
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$TEMP_DIR/JetBrainsMono.zip" "$NERD_FONTS_URL"; then
     unzip -o "$TEMP_DIR/JetBrainsMono.zip" -d "$FONT_DIR" >/dev/null 2>&1
     fc-cache -f "$FONT_DIR"
     log_success "JetBrains Mono Nerd Font installed"
@@ -813,7 +849,7 @@ if [[ ! -d "$ICON_DIR/WhiteSur-dark" ]]; then
   TEMP_DIR="/tmp/whitesur-icons-$$"
   mkdir -p "$TEMP_DIR"
   
-  if curl -fsSL -o "$TEMP_DIR/whitesur.tar.gz" \
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$TEMP_DIR/whitesur.tar.gz" \
     "https://github.com/vinceliuice/WhiteSur-icon-theme/archive/refs/heads/master.tar.gz"; then
     tar -xzf "$TEMP_DIR/whitesur.tar.gz" -C "$TEMP_DIR"
     cd "$TEMP_DIR/WhiteSur-icon-theme-master"
@@ -839,7 +875,7 @@ if [[ ! -d "$ICON_DIR/MacTahoe" ]]; then
   TEMP_DIR="/tmp/mactahoe-icons-$$"
   mkdir -p "$TEMP_DIR"
   
-  if curl -fsSL -o "$TEMP_DIR/mactahoe.tar.gz" \
+  if curl -fsSL --connect-timeout 10 --max-time 120 -o "$TEMP_DIR/mactahoe.tar.gz" \
     "https://github.com/vinceliuice/MacTahoe-icon-theme/archive/refs/heads/master.tar.gz"; then
     tar -xzf "$TEMP_DIR/mactahoe.tar.gz" -C "$TEMP_DIR"
     cd "$TEMP_DIR/MacTahoe-icon-theme-master" 2>/dev/null || cd "$TEMP_DIR/MacTahoe-icon-theme-main"
@@ -866,14 +902,14 @@ if [[ ! -d "$ICON_DIR/Bibata-Modern-Classic" ]]; then
   mkdir -p "$TEMP_DIR"
   
   # Download Bibata Modern Classic (dark)
-  if curl -fsSL -o "$TEMP_DIR/bibata-classic.tar.xz" \
+  if curl -fsSL --connect-timeout 10 --max-time 60 -o "$TEMP_DIR/bibata-classic.tar.xz" \
     "https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Modern-Classic.tar.xz"; then
     tar -xf "$TEMP_DIR/bibata-classic.tar.xz" -C "$ICON_DIR"
     log_success "Bibata Modern Classic cursor installed"
   fi
   
   # Download Bibata Modern Ice (light)
-  if curl -fsSL -o "$TEMP_DIR/bibata-ice.tar.xz" \
+  if curl -fsSL --connect-timeout 10 --max-time 60 -o "$TEMP_DIR/bibata-ice.tar.xz" \
     "https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Modern-Ice.tar.xz"; then
     tar -xf "$TEMP_DIR/bibata-ice.tar.xz" -C "$ICON_DIR"
     log_success "Bibata Modern Ice cursor installed"
@@ -890,7 +926,7 @@ tui_info "Installing optional fonts..."
 # Space Grotesk
 if ! fc-list | grep -qi "Space Grotesk"; then
   log_info "Downloading Space Grotesk font..."
-  curl -fsSL -o "$FONT_DIR/SpaceGrotesk.ttf" \
+  curl -fsSL --connect-timeout 10 --max-time 60 -o "$FONT_DIR/SpaceGrotesk.ttf" \
     "https://github.com/floriankarsten/space-grotesk/raw/master/fonts/ttf/SpaceGrotesk%5Bwght%5D.ttf" 2>/dev/null && \
     log_success "Space Grotesk installed"
 fi
@@ -898,7 +934,7 @@ fi
 # Rubik
 if ! fc-list | grep -qi "Rubik"; then
   log_info "Downloading Rubik font..."
-  curl -fsSL -o "$FONT_DIR/Rubik.ttf" \
+  curl -fsSL --connect-timeout 10 --max-time 60 -o "$FONT_DIR/Rubik.ttf" \
     "https://github.com/googlefonts/rubik/raw/main/fonts/variable/Rubik%5Bwght%5D.ttf" 2>/dev/null && \
     log_success "Rubik installed"
 fi
@@ -908,7 +944,7 @@ if ! fc-list | grep -qi "Geist"; then
   log_info "Downloading Geist font..."
   TEMP_DIR="/tmp/geist-font-$$"
   mkdir -p "$TEMP_DIR"
-  if curl -fsSL -o "$TEMP_DIR/geist.zip" \
+  if curl -fsSL --connect-timeout 10 --max-time 60 -o "$TEMP_DIR/geist.zip" \
     "https://github.com/vercel/geist-font/releases/latest/download/Geist.zip"; then
     unzip -o "$TEMP_DIR/geist.zip" -d "$TEMP_DIR" >/dev/null 2>&1
     find "$TEMP_DIR" -name "*.ttf" -exec cp {} "$FONT_DIR/" \;
@@ -929,7 +965,7 @@ tui_info "Installing CLI tools..."
 if ! command -v starship &>/dev/null; then
   log_info "Installing Starship prompt..."
   mkdir -p ~/.local/bin
-  curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin 2>/dev/null || \
+  curl -sS --connect-timeout 10 --max-time 60 https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin 2>/dev/null || \
     log_warning "Could not install Starship"
 fi
 
@@ -938,7 +974,7 @@ fi
 if ! command -v eza &>/dev/null; then
   log_info "Installing Eza..."
   mkdir -p ~/.local/bin
-  if curl -fsSL -o /tmp/eza.tar.gz \
+  if curl -fsSL --connect-timeout 10 --max-time 60 -o /tmp/eza.tar.gz \
     'https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz'; then
     tar -xzf /tmp/eza.tar.gz -C ~/.local/bin
     chmod +x ~/.local/bin/eza

@@ -36,6 +36,20 @@ is_arch_like() {
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+# -- Verbosity ----------------------------------------------------------------
+# 0 = quiet  (errors + notifications only)
+# 1 = normal (default — progress, done, fail)
+# 2 = verbose (extra detail lines)
+SETUP_VERBOSITY="${SETUP_VERBOSITY:-1}"
+
+setup_set_verbosity() {
+    SETUP_VERBOSITY="${1:-1}"
+}
+
+setup_is_quiet() { (( SETUP_VERBOSITY == 0 )); }
+setup_is_normal() { (( SETUP_VERBOSITY >= 1 )); }
+setup_is_verbose() { (( SETUP_VERBOSITY >= 2 )); }
+
 # -- Notifications ------------------------------------------------------------
 SETUP_TAG=""
 SETUP_TITLE=""
@@ -53,8 +67,20 @@ setup_notify() {
 
 setup_progress() {
     local step="$1" total="$2" msg="$3"
-    printf '\n\033[1;36m[%s/%s]\033[0m %s\n' "$step" "$total" "$msg"
+    if setup_is_normal; then
+        printf '\n\033[1;36m[%s/%s]\033[0m %s\n' "$step" "$total" "$msg"
+    fi
     setup_notify "[$step/$total] $msg" "download"
+}
+
+setup_log() {
+    local msg="$1"
+    setup_is_normal && printf '%s\n' "$msg"
+}
+
+setup_verbose() {
+    local msg="$1"
+    setup_is_verbose && printf '  · %s\n' "$msg"
 }
 
 setup_done() {
