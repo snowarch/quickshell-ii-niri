@@ -16,7 +16,7 @@ import qs.modules.common.widgets
  *  - `reserve` is a zero-content strip that only claims an exclusive zone the
  *    height of the rest pill, so tiled windows always sit below the pill even
  *    while it is expanded or a surface is open.
- *  - `overlay` is a full-screen transparent Overlay layer hosting the single
+ *  - `overlay` is a full-screen transparent layer surface hosting the single
  *    morphing pill anchored at top-centre. The pill never moves and is never
  *    re-parented; it just grows in place, so every surface grows out of the rest
  *    pill instead of popping up as a separate panel.
@@ -368,18 +368,24 @@ Scope {
             screen: modelData
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
-            WlrLayershell.layer: WlrLayer.Overlay
+            // Match Dock, classic and M3 stacking for the persistent/resting
+            // bar. Explicit surfaces and transient feedback still need Overlay
+            // semantics so they can intentionally appear over fullscreen.
+            readonly property bool overlayPresentation: modal
+                || pill.mode === "osd" || pill.mode === "toast"
+            WlrLayershell.layer: overlayPresentation ? WlrLayer.Overlay : WlrLayer.Top
             WlrLayershell.keyboardFocus: surfaceOpen || pill.held
                 ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             WlrLayershell.namespace: "inir-pill"
 
             anchors { top: true; left: true; right: true; bottom: true }
 
-            // This is a screen-sized surface on the Overlay layer — it has to be,
-            // so the pill can morph and drop its surfaces anywhere on screen. But
-            // a mapped fullscreen overlay forces the compositor to composite every
-            // frame, which costs a fullscreen game its direct-scanout path (games
-            // dropped to ~20 FPS under the pill bar and only under the pill bar).
+            // This is a screen-sized surface so the pill can morph and drop its
+            // surfaces anywhere on screen. When fullscreen ownership is known,
+            // unmapping still avoids keeping an unnecessary layer surface mapped
+            // under the game. The resting/persistent face uses Top-layer stacking,
+            // so fullscreen remains correct even when a client does not expose
+            // enough state for fsHide.
             // Hiding the pill ITEM was not enough: the surface stayed mapped and
             // kept the compositor composing. Unmap the window itself whenever a
             // fullscreen window covers this monitor — toasts and OSD clear fsHide
