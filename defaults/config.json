@@ -2198,7 +2198,6 @@
         "disableReloadToasts": true,
         "disableDiscoverOverlay": true,
         "suppressNotifications": true,
-        "checkInterval": 2000,
         "minimalMode": false,
         "niriWindowListUpdateIntervalMs": 100,
         "niriWindowListUpdateIntervalMsGameMode": 500

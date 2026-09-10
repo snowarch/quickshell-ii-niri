@@ -593,6 +593,12 @@ Singleton {
     property bool _windowOrderDirty: false
     property var _latestFocusedWindowId
 
+    // WindowLayoutsChanged is applied to _pendingWindows immediately, while the
+    // public sorted list is intentionally batched for UI consumers. Behavioural
+    // gates such as fullscreen detection must not wait for that presentation
+    // batching or an edge interaction can observe the previous geometry.
+    readonly property var liveWindows: _windowsDirty ? _pendingWindows : windows
+
     Timer {
         id: windowsUpdateTimer
         interval: root.windowListUpdateIntervalMs

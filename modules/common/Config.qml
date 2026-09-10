@@ -1215,7 +1215,6 @@ Singleton {
                 // Lower values increase CPU usage with diminishing returns on perceived smoothness
                 property int niriWindowListUpdateIntervalMs: 100
                 property int niriWindowListUpdateIntervalMsGameMode: 500 // 2 FPS during gaming - minimal overhead
-                property int checkInterval: 5000 // ms - fallback only, events are primary
             }
 
             property JsonObject reloadToasts: JsonObject {
