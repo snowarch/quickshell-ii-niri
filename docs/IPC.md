@@ -593,6 +593,8 @@ Display brightness control.
 |----------|-------------|
 | `increment` | Increase brightness |
 | `decrement` | Decrease brightness |
+| `sleepBegin` | Mark monitors asleep and blank them without DRM power-off |
+| `restoreAfterWake` | Unblank monitors and restore the last good brightness |
 
 ---
 

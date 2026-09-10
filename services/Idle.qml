@@ -4,9 +4,11 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import qs.modules.common
 import qs.modules.common.functions
 import qs.services
+import "idlePolicy.js" as IdlePolicy
 
 Singleton {
     id: root
@@ -69,9 +71,7 @@ Singleton {
 
         if (screenOffTimeout > 0 && CompositorService.isNiri) {
             const inir = StringUtils.shellSingleQuoteEscape(root.launcherPath);
-            const offCmd = `'${inir}' brightness sleepBegin; /usr/bin/niri msg action power-off-monitors`;
-            const resumeCmd = `/usr/bin/niri msg action power-on-monitors && /usr/bin/sleep 0.5 && '${inir}' brightness restoreAfterWake`;
-            cmd.push("timeout", screenOffTimeout.toString(), offCmd, "resume", resumeCmd)
+            cmd.push("timeout", screenOffTimeout.toString(), IdlePolicy.niriOffCommand(inir), "resume", IdlePolicy.niriResumeCommand(inir))
         }
 
         // Determine effective lock timeout
@@ -109,6 +109,30 @@ Singleton {
 
     Process {
         id: swayidleProcess
+    }
+
+    Loader {
+        active: Brightness.asleep
+        sourceComponent: Variants {
+            model: Quickshell.screens
+            delegate: PanelWindow {
+                required property var modelData
+                screen: modelData
+                visible: true
+                color: Qt.rgba(0, 0, 0, 1)
+                exclusionMode: ExclusionMode.Ignore
+                exclusiveZone: 0
+                WlrLayershell.namespace: "quickshell:idle-blank"
+                WlrLayershell.layer: WlrLayer.Overlay
+                WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+                anchors {
+                    left: true
+                    right: true
+                    top: true
+                    bottom: true
+                }
+            }
+        }
     }
 
     Timer {
