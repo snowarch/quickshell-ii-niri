@@ -1452,8 +1452,12 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'property real _effectiveMotionSpeed' "$organic_motion" \
         || ! grep -Fq 'root._effectiveMotionSpeed = follow' "$organic_motion" \
         || ! grep -Fq 'property vector4d topology:' "$organic_edge_qml" \
+        || ! grep -Fq 'property real cornerBlend: 0.55' "$organic_edge_qml" \
+        || ! grep -Fq 'property real flowDirection: 1' "$organic_edge_qml" \
         || ! grep -Fq 'shapeMode:' "$organic_edge_host" \
         || ! grep -Fq 'joinConnected:' "$organic_edge_host" \
+        || ! grep -Fq 'restPresence:' "$organic_edge_host" \
+        || ! grep -Fq 'audioPresence:' "$organic_edge_host" \
         || ! grep -Fq 'AdaptedMaterialScheme {' "$organic_edge_host" \
         || ! grep -Fq 'Appearance.wallpaperDominantColor' "$organic_edge_host" \
         || ! grep -Fq 'name: "Wallpaper Tide"' "$organic_edge_config" \
@@ -1468,6 +1472,8 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'if (dot(reachable, vec4(1)) < 0.5)' "$organic_edge_shader" \
         || ! grep -Fq 'float bassEnergy = max(max(u.bandsA.x, u.bandsA.y), u.bandsA.z)' "$organic_edge_shader" \
         || ! grep -Fq 'bool nearHorizontalCorner = p.x < radius || p.x > size.x - radius' "$organic_edge_shader" \
+        || ! grep -Fq 'float flowDirection = u.topology.y < 0.0 ? -1.0 : 1.0' "$organic_edge_shader" \
+        || ! grep -Fq 'float cornerBlend = clamp(u.topology.z, 0.0, 1.0)' "$organic_edge_shader" \
         || ! grep -Fq 'float connectedFieldRatio = 1e9' "$organic_edge_shader" \
         || ! grep -Fq 'vec2 connectedPhase = vec2(0.0)' "$organic_edge_shader" \
         || ! grep -Fq 'connectedFieldRatio = smoothMinField(' "$organic_edge_shader" \
@@ -1492,7 +1498,11 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'entries: EdgeConfig.audioDynamics' "$organic_edge_settings" \
         || ! grep -Fq 'entries: EdgeConfig.audioTone' "$organic_edge_settings" \
         || ! grep -Fq 'onMoved: root.setValue(metric.modelData.key' "$organic_edge_settings" \
-        || ! grep -Fq 'model: EdgeConfig.presets' "$organic_edge_settings" \
+        || ! grep -Fq 'model: EdgeConfig.scenePresets' "$organic_edge_settings" \
+        || ! grep -Fq 'model: EdgeConfig.compositionPresets' "$organic_edge_settings" \
+        || ! grep -Fq 'model: EdgeConfig.materialPresets' "$organic_edge_settings" \
+        || ! grep -Fq 'component ResetButton:' "$organic_edge_settings" \
+        || ! grep -Fq 'component SelectionBlock:' "$organic_edge_settings" \
         || ! grep -Fq 'check_circle' "$organic_edge_settings" \
         || ! grep -Fq 'EdgeConfig.colorModes' "$organic_edge_settings" \
         || ! grep -Fq 'EdgeConfig.effects' "$organic_edge_settings" \
@@ -1503,7 +1513,10 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'albumColorCount:' "$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml" \
         || ! grep -Fq 'palette === "album"' "$runtime_root/modules/background/widgets/OrganicEdgeWidget.qml" \
         || ! grep -Fq 'name: "Album Aura"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js" \
-        || ! grep -Fq 'name: "Club Pulse"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js"; then
+        || ! grep -Fq 'name: "Club Pulse"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js" \
+        || ! grep -Fq 'name: "Quiet Horizon"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js" \
+        || ! grep -Fq 'var presets = legacyPresets.concat(scenePresets.filter' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js" \
+        || ! grep -Fq 'name: "Full Frame"' "$runtime_root/modules/background/widgets/OrganicEdgeConfig.js"; then
     printf 'FAIL: Organic edge renderer/settings contract is incomplete\n' >&2
     exit 1
 fi
@@ -1528,8 +1541,8 @@ module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 
-def node(name, app_name, app_id, binary):
-    return module.SinkInput(1, "", name, "1", "", "", app_name, app_id, binary, False)
+def node(name, app_name, app_id, binary, sink_id="58"):
+    return module.SinkInput(1, "", name, "", "", app_name, app_id, binary, False, sink_id)
 
 checks = [
     ("firefox blocks firefox", node("Firefox", "Firefox", "org.mozilla.firefox", "firefox"), ["firefox"], True),
@@ -1543,6 +1556,60 @@ failed = [name for name, stream, blocked, expected in checks
           if module._matches_blocked(stream, blocked) is not expected]
 if failed:
     raise SystemExit("visualizer blocklist matcher failed: " + ", ".join(failed))
+
+sink_inputs = module._parse_sink_inputs("""Sink Input #23
+\tClient: 7
+\tSink: 58
+\tCorked: no
+\tProperties:
+\t\tnode.name = \"Firefox\"
+\t\tapplication.name = \"Firefox\"
+\t\tapplication.process.binary = \"firefox\"
+\t\tobject.serial = \"28174\"
+""", {})
+sink_monitors = module._parse_sink_monitors("""Sink #58
+\tName: alsa_output.test
+\tMonitor Source: alsa_output.test.monitor
+""")
+if len(sink_inputs) != 1 or sink_inputs[0].sink_id != "58":
+    raise SystemExit("visualizer source resolver lost the playback sink id")
+if module._stream_monitor(sink_inputs[0], sink_monitors) != "alsa_output.test.monitor":
+    raise SystemExit("visualizer source resolver does not route through the playback sink monitor")
+if module._stream_monitor(sink_inputs[0], sink_monitors) == "28174":
+    raise SystemExit("visualizer source resolver can regress to a playback stream serial and capture the microphone")
+
+def fake_run(command):
+    if command == ["pactl", "info"]:
+        return "Server Name: PulseAudio (on PipeWire 1.6.8)"
+    if command == ["pactl", "list", "clients"]:
+        return ""
+    if command == ["pactl", "list", "sink-inputs"]:
+        return """Sink Input #23
+\tSink: 58
+\tCorked: no
+\tProperties:
+\t\tnode.name = \"Firefox\"
+\t\tapplication.name = \"Firefox\"
+\t\tapplication.process.binary = \"firefox\"
+\t\tobject.serial = \"28174\"
+"""
+    if command == ["pactl", "list", "sinks"]:
+        return """Sink #58
+\tName: alsa_output.test
+\tMonitor Source: alsa_output.test.monitor
+"""
+    if command == ["pactl", "get-default-sink"]:
+        return "alsa_output.test"
+    return ""
+
+real_run = module._run
+module._run = fake_run
+try:
+    resolved = module.resolve_source("firefox", [])
+finally:
+    module._run = real_run
+if resolved != "alsa_output.test.monitor":
+    raise SystemExit("visualizer source resolver must target the playback monitor, got: " + resolved)
 PY
 
 step "launcher resolution"
