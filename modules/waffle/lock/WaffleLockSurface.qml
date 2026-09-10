@@ -1944,11 +1944,4 @@ MouseArea {
             onClicked: mediaBtn.clicked()
         }
     }
-
-    Rectangle {
-        anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 1)
-        visible: Brightness.asleep
-        z: 9999
-    }
 }

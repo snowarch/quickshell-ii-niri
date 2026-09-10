@@ -593,8 +593,8 @@ Display brightness control.
 |----------|-------------|
 | `increment` | Increase brightness |
 | `decrement` | Decrease brightness |
-| `sleepBegin` | Mark monitors asleep and blank them without DRM power-off |
-| `restoreAfterWake` | Unblank monitors and restore the last good brightness |
+| `sleepBegin` | HDMI luminance 0 via DDC and eDP backlight 0; do not call niri DPMS |
+| `restoreAfterWake` | Restore the last good brightness on each monitor |
 
 ---
 

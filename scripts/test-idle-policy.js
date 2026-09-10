@@ -36,8 +36,8 @@ assert(!/power-off-monitors/.test(lockQml), "Lock.qml must not invoke niri power
 
 for (const rel of ["../modules/lock/LockSurface.qml", "../modules/waffle/lock/WaffleLockSurface.qml"]) {
     const src = fs.readFileSync(path.resolve(__dirname, rel), "utf8")
-    assert(src.includes("Brightness.asleep"), `${rel} covers the lock while asleep`)
-    assert(src.includes("Brightness.restoreAfterWake"), `${rel} unblanks on input`)
+    assert(!src.includes("z: 9999"), `${rel} must not paint a fake lock overlay`)
+    assert(src.includes("Brightness.restoreAfterWake"), `${rel} restores power on input`)
 }
 
 console.log("ok")

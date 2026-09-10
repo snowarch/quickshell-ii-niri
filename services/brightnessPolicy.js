@@ -33,3 +33,11 @@ function pickRestoreValue(lastGood, currentBrightness) {
         return currentBrightness
     return Number.NaN
 }
+
+function ddcPowerOffArgs(busNum) {
+    return ["ddcutil", "-b", String(busNum), "setvcp", "10", "0", "--noverify"]
+}
+
+function backlightOffArgs(device) {
+    return ["brightnessctl", "-d", device, "s", "0", "--quiet"]
+}

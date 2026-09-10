@@ -65,12 +65,14 @@ Singleton {
 
     function sleepBegin(): void {
         root.asleep = true
+        for (let i = 0; i < root.monitors.length; ++i)
+            root.monitors[i].sleepPowerOff()
     }
 
     function restoreAfterWake(): void {
         root.asleep = false
         for (let i = 0; i < root.monitors.length; ++i)
-            root.monitors[i].restoreLastGood();
+            root.monitors[i].restoreLastGood()
     }
 
     Component.onCompleted: {
@@ -221,6 +223,13 @@ Singleton {
             monitor.writePending = true
             if (!setTimer.running)
                 setTimer.start()
+        }
+
+        function sleepPowerOff(): void {
+            if (monitor.isDdc && monitor.busNum)
+                Quickshell.execDetached(BrightnessPolicy.ddcPowerOffArgs(monitor.busNum))
+            else if (root.backlightDevice.length > 0)
+                Quickshell.execDetached(BrightnessPolicy.backlightOffArgs(root.backlightDevice))
         }
 
         function restoreLastGood(): void {
