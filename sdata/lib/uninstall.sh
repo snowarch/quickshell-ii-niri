@@ -860,6 +860,17 @@ uninstall_clean() {
     echo -e "${STY_YELLOW}Themes to remove:${STY_RST} ${#INIR_THEME_DIRS[@]} icon/cursor themes"
     echo ""
 
+    # Check for critical conditions
+    local warnings=()
+    
+    if is_running_niri_session; then
+        warnings+=("You are currently running a Niri session")
+    fi
+    
+    if has_other_quickshell_configs; then
+        warnings+=("Other Quickshell configurations detected")
+    fi
+
     if [[ ${#warnings[@]} -gt 0 ]]; then
         echo -e "${STY_YELLOW}Important notices:${STY_RST}"
         for warn in "${warnings[@]}"; do
