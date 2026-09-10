@@ -1440,7 +1440,9 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'float edgeEndpointMask(' "$organic_edge_shader" \
         || ! grep -Fq 'float centeredLevel = level - u.activity.x * 0.62' "$organic_edge_shader" \
         || ! grep -Fq 'float bassEnergy =' "$organic_edge_shader" \
-        || ! grep -Fq 'float haloDecay = mix(54.0, 14.0, u.appearance.z)' "$organic_edge_shader" \
+        || ! grep -Fq 'float haloDecay = unifiedPath' "$organic_edge_shader" \
+        || ! grep -Fq '? mix(12.0, 3.5, u.appearance.z)' "$organic_edge_shader" \
+        || ! grep -Fq ': mix(54.0, 14.0, u.appearance.z) * max(reach, 0.025)' "$organic_edge_shader" \
         || ! grep -Fq 'property vector4d appearance:' "$organic_edge_qml" \
         || ! grep -Fq 'property vector4d response:' "$organic_edge_qml" \
         || ! grep -Fq 'property real beatGlow: 0.65' "$organic_edge_qml" \
@@ -1461,7 +1463,11 @@ if [[ ! -s "$organic_edge_qsb" || ! -f "$organic_edge_shader" \
         || ! grep -Fq 'value: "afterglow"' "$organic_edge_config" \
         || ! grep -Fq 'float contourReach(' "$organic_edge_shader" \
         || ! grep -Fq 'bool unifiedPath = joinTR || joinBR || joinBL || joinTL' "$organic_edge_shader" \
-        || ! grep -Fq 'if (!unifiedPath && dot(reachable, vec4(1)) < 0.5)' "$organic_edge_shader" \
+        || ! grep -Fq 'if (!unifiedPath) {' "$organic_edge_shader" \
+        || ! grep -Fq 'if (edgeT < intervalStart || edgeT > intervalEnd)' "$organic_edge_shader" \
+        || ! grep -Fq 'if (dot(reachable, vec4(1)) < 0.5)' "$organic_edge_shader" \
+        || ! grep -Fq 'float bassEnergy = max(max(u.bandsA.x, u.bandsA.y), u.bandsA.z)' "$organic_edge_shader" \
+        || ! grep -Fq 'bool nearHorizontalCorner = p.x < radius || p.x > size.x - radius' "$organic_edge_shader" \
         || ! grep -Fq 'float connectedFieldRatio = 1e9' "$organic_edge_shader" \
         || ! grep -Fq 'vec2 connectedPhase = vec2(0.0)' "$organic_edge_shader" \
         || ! grep -Fq 'connectedFieldRatio = smoothMinField(' "$organic_edge_shader" \

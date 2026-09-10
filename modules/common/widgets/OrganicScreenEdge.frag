@@ -164,26 +164,43 @@ void main() {
     vec2 size = max(u.resolution, vec2(1.0));
     vec2 p = qt_TexCoord0 * size;
     vec4 distances = vec4(p.y, size.x - p.x, size.y - p.y, p.x);
-    float radius = min(u.geometry.w, min(size.x, size.y) * 0.5);
-    vec2 q = abs(p - size * 0.5) - (size * 0.5 - radius);
-    float sd = length(max(q, vec2(0))) + min(max(q.x, q.y), 0.0) - radius;
-    float mask = 1.0 - smoothstep(-1.0, 0.5, sd);
     vec4 along = vec4(p.x, p.y, size.x - p.x, size.y - p.y);
     vec4 extents = vec4(size.x, size.y, size.x, size.y);
-    float t = u.motion.x * TAU;
-    vec2 orbit = vec2(cos(t), sin(t));
-    float bassEnergy = max(max(liveBand(0), liveBand(1)), liveBand(2));
-    float midEnergy = max(max(liveBand(4), liveBand(5)), max(liveBand(6), liveBand(7)));
-    float trebleEnergy = max(max(liveBand(9), liveBand(10)), liveBand(11));
     bool joinTR = cornerJoined(0, 1);
     bool joinBR = cornerJoined(1, 2);
     bool joinBL = cornerJoined(2, 3);
     bool joinTL = cornerJoined(3, 0);
     bool unifiedPath = joinTR || joinBR || joinBL || joinTL;
     vec4 reachable = step(distances, u.depths) * u.edges;
-    if (!unifiedPath && dot(reachable, vec4(1)) < 0.5) {
-        fragColor = vec4(0); return;
+    if (!unifiedPath) {
+        for (int side = 0; side < 4; ++side) {
+            if (reachable[side] < 0.5)
+                continue;
+            float intervalStart = 0.0;
+            float intervalEnd = 0.0;
+            edgeInterval(side, intervalStart, intervalEnd);
+            float edgeT = along[side] / max(1.0, extents[side]);
+            if (edgeT < intervalStart || edgeT > intervalEnd)
+                reachable[side] = 0.0;
+        }
+        if (dot(reachable, vec4(1)) < 0.5) {
+            fragColor = vec4(0); return;
+        }
     }
+    float radius = min(u.geometry.w, min(size.x, size.y) * 0.5);
+    float mask = 1.0;
+    bool nearHorizontalCorner = p.x < radius || p.x > size.x - radius;
+    bool nearVerticalCorner = p.y < radius || p.y > size.y - radius;
+    if (radius > 0.0 && nearHorizontalCorner && nearVerticalCorner) {
+        vec2 q = abs(p - size * 0.5) - (size * 0.5 - radius);
+        float sd = length(max(q, vec2(0))) + min(max(q.x, q.y), 0.0) - radius;
+        mask = 1.0 - smoothstep(-1.0, 0.5, sd);
+    }
+    float t = u.motion.x * TAU;
+    vec2 orbit = vec2(cos(t), sin(t));
+    float bassEnergy = max(max(u.bandsA.x, u.bandsA.y), u.bandsA.z);
+    float midEnergy = max(max(u.bandsB.x, u.bandsB.y), max(u.bandsB.z, u.bandsB.w));
+    float trebleEnergy = max(max(u.bandsC.y, u.bandsC.z), u.bandsC.w);
     float connectedFieldRatio = 1e9;
     float connectedDepth = 1.0;
     float connectedLocal = 0.0;
@@ -306,7 +323,16 @@ void main() {
             breath = filament * (0.004 + trebleEnergy * 0.012 + u.motion.y * 0.006);
             contour = contour * 0.46 + filament * (0.008 + localTransient * 0.024);
         }
-        float reach = contourReach(local, t, orbit, bassEnergy, midEnergy, trebleEnergy);
+        float baseReach = mix(0.040, 0.165, clamp(u.material.x, 0.0, 1.0));
+        float bassPush = bassEnergy * u.response.x * u.activity.y
+            * (0.018 + liveLevel * 0.024);
+        float groovePush = level * (u.activity.y * 0.026 + localTransient * 0.034)
+            + midEnergy * level * 0.010;
+        float spectrumPush = activity + bassPush;
+        float transientPush = (u.activity.y * 0.030 + u.activity.z * u.motion.w * 0.024)
+            * u.response.z;
+        float reach = clamp(baseReach + breath + contour + spectrumPush
+            + groovePush + transientPush, 0.025, 0.72);
         reach *= mix(0.08, 1.0, smoothstep(0.0, 1.0, ends));
         float effectiveDepth = unifiedPath ? connectedDepth : u.depths[side];
         float d = unifiedPath ? connectedFieldRatio * max(reach, 0.025)
