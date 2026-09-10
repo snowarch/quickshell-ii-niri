@@ -83,6 +83,11 @@ QtObject {
     property int minTagIntervalMs: 1200
     property real _nextSearchAllowedMs: 0
 
+    function _curlGetArgs(maxTime: int): var {
+        return ["/usr/bin/curl", "-s", "--max-time", String(maxTime),
+            "--retry", "2", "--retry-delay", "1", "--retry-max-time", "8"]
+    }
+
     property Timer _pendingSearchTimer: Timer {
         interval: Math.max(0, root._nextSearchAllowedMs - root.nowMs)
         onTriggered: root._processPendingSearch()
@@ -326,7 +331,8 @@ QtObject {
 
         const url = root.apiSearchEndpoint + "?q=" + encodeURIComponent("id:" + id) + "&page=1&per_page=1&categories=111&purity=100&sorting=date_added&order=desc" + ((apiKey && apiKey.length > 0) ? ("&apikey=" + encodeURIComponent(apiKey)) : "")
         _log("[Wallhaven] Fetching tag count for", id)
-        root.tagCountProcess.command = ["/usr/bin/curl", "-s", "--max-time", "15", "-H", "User-Agent: " + defaultUserAgent, url]
+        root.tagCountProcess.command = root._curlGetArgs(15).concat([
+            "-H", "User-Agent: " + defaultUserAgent, url])
         root.tagCountProcess.running = true
     }
 
@@ -410,7 +416,8 @@ QtObject {
         root._tagSuggestionPreferQuoted = preferQuoted
 
         _log("[Wallhaven] Fetching", requestedProvider, "tag suggestions for", q)
-        const command = ["/usr/bin/curl", "-s", "--globoff", "--max-time", "15"]
+        const command = root._curlGetArgs(15)
+        command.push("--globoff")
         if (requestedProvider === "wallhaven")
             command.push("-H", "User-Agent: " + defaultUserAgent)
         else if (requestedProvider === "waifu.im")
@@ -535,7 +542,8 @@ QtObject {
 
         const url = _detailUrl(id)
         _log("[Wallhaven] Fetching wallpaper tags for", id)
-        root.tagDetailProcess.command = ["/usr/bin/curl", "-s", "--max-time", "15", "-H", "User-Agent: " + defaultUserAgent, url]
+        root.tagDetailProcess.command = root._curlGetArgs(15).concat([
+            "-H", "User-Agent: " + defaultUserAgent, url])
         root.tagDetailProcess.running = true
     }
 
@@ -747,7 +755,8 @@ QtObject {
         root._currentSearchGeneration = requestedGeneration
         runningRequests += 1
 
-        const command = ["/usr/bin/curl", "-s", "--max-time", "20", "-w", "\n__HTTP__%{http_code}"]
+        const command = root._curlGetArgs(20)
+        command.push("-w", "\n__HTTP__%{http_code}")
         if (requestedProvider === "wallhaven")
             command.push("-H", "User-Agent: " + defaultUserAgent)
         else if (requestedProvider === "waifu.im")
@@ -834,6 +843,9 @@ QtObject {
             _log("[Wallhaven] HTTP", httpStatus)
             if (httpStatus === 401)
                 newResponse.message = Translation.tr("Wallhaven rejected your API key. Check the key in settings and that your account allows NSFW.")
+            else if ([502, 503, 504].includes(httpStatus))
+                newResponse.message = Translation.tr("%1 is temporarily unavailable (HTTP %2).")
+                    .arg("Wallhaven").arg(httpStatus)
             else
                 newResponse.message = Translation.tr("Wallhaven request failed (HTTP %1).").arg(httpStatus)
             root._appendResponse(newResponse)
