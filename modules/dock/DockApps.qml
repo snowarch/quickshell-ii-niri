@@ -918,6 +918,26 @@ Item {
                     })
                     dockDelegate._longPressTriggered = false
                 }
+                _hasPressPos = false
+            }
+
+            // A layer-surface/input-region update can cancel the MouseArea grab
+            // without the pointer ever leaving this icon. Treat that as the
+            // click the user made, but never recover a real drag or a pointer
+            // that already left the button.
+            cancelAction: () => {
+                _dockPrimeTimer.stop()
+                _dragPrimed = false
+                const recoverClick = _hasPressPos
+                    && !_longPressTriggered
+                    && !root.dragActive
+                    && dockDelegate.buttonHovered
+                if (_longPressTriggered && root.dragActive && root.dragIndex === dockDelegate.index)
+                    root.endDrag()
+                _longPressTriggered = false
+                _hasPressPos = false
+                if (recoverClick)
+                    dockDelegate.click()
             }
 
             Timer {
