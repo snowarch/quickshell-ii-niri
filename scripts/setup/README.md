@@ -76,14 +76,44 @@ short-circuits past that for performance). The line format is exact:
 Source it once at the top of every recipe; everything below is then
 available.
 
+### Verbosity Levels
+
+Set `SETUP_VERBOSITY` environment variable before sourcing `_lib.sh` or calling
+`setup_set_verbosity`:
+
+| Level | Name | Behavior |
+|-------|------|----------|
+| `0` | Quiet | Only errors (`setup_fail`) and notifications; no progress output |
+| `1` | Normal | Default — progress, done, fail messages (current behavior) |
+| `2` | Verbose | Extra detail via `setup_verbose` helper |
+
+```bash
+# Run a recipe quietly (no terminal output, notifications only)
+SETUP_VERBOSITY=0 bash scripts/setup/spotify.sh
+
+# Run a recipe verbosely
+SETUP_VERBOSITY=2 bash scripts/setup/spotify.sh
+
+# Or set programmatically after sourcing
+setup_set_verbosity 0
+```
+
+### Helpers
+
 | Helper | Purpose |
 |--------|---------|
 | `setup_init <slug> <title>` | Required first call. Sets the notification tag, installs an `ERR` trap, prints the recipe banner and emits the initial "Starting..." bubble. |
-| `setup_progress <step> <total> <msg>` | Print a `[step/total] msg` line and replace the notification bubble. |
-| `setup_done [msg]` | Print a green check and emit the success bubble (`emblem-ok-symbolic`). |
-| `setup_fail [msg]` | Print a red cross and emit the failure bubble (`dialog-error`). The `ERR` trap calls this automatically on uncaught errors. |
-| `setup_notify <body> [icon]` | Low-level: emits/replaces the bubble with arbitrary text. Use the wrappers above whenever possible. |
+| `setup_progress <step> <total> <msg>` | Print a `[step/total] msg` line and replace the notification bubble. Respects verbosity (only prints at level ≥ 1). |
+| `setup_log <msg>` | Print a plain message. Respects verbosity (only prints at level ≥ 1). |
+| `setup_verbose <msg>` | Print a detail message with `·` prefix. Only prints at verbosity ≥ 2. |
+| `setup_done [msg]` | Print a green check and emit the success bubble (`emblem-ok-symbolic`). Always prints. |
+| `setup_fail [msg]` | Print a red cross and emit the failure bubble (`dialog-error`). The `ERR` trap calls this automatically on uncaught errors. Always prints. |
+| `setup_notify <body> [icon]` | Low-level: emits/replaces the bubble with arbitrary text. Use the wrappers above whenever possible. Always fires. |
 | `setup_finish_pause` | Prompts the user to press Enter so the terminal stays open after `set -e` would otherwise close it. Always call this last. |
+| `setup_set_verbosity <level>` | Set verbosity level (0/1/2). |
+| `setup_is_quiet` | True if verbosity == 0. |
+| `setup_is_normal` | True if verbosity ≥ 1. |
+| `setup_is_verbose` | True if verbosity ≥ 2. |
 | `is_arch_like` | True for `arch`, `endeavouros`, `cachyos`, `manjaro`, `garuda`, `artix` (matches both `ID` and `ID_LIKE`). |
 | `have_cmd <name>` | True if the binary is on `PATH`. |
 | `ensure_aur_helper` | Echoes `yay` or `paru` if present; otherwise bootstraps `yay-bin` from the AUR. Used internally by `install_arch`. |
@@ -91,7 +121,7 @@ available.
 | `install_flatpak <ref...>` | Adds Flathub (user-scope) on demand and installs the given refs. Fails loudly if `flatpak` is missing. |
 
 Constants exposed after sourcing: `DISTRO_ID`, `DISTRO_LIKE`, `SETUP_TAG`,
-`SETUP_TITLE`.
+`SETUP_TITLE`, `SETUP_VERBOSITY`.
 
 ## Conventions
 
