@@ -22,9 +22,9 @@ animations {
     // Uncomment to disable all animations globally.
     // off
 
-    // Slow down every animation by this factor (useful for debugging).
-    // Values below 1.0 speed them up. Default: 1.0
-    // slowdown 3.0
+    // Slow down every animation by this factor.
+    // Values below 1.0 speed them up. iNiR default: 1.50
+    slowdown 1.50
 
     // ── Workspace transitions ───────────────────────────────────────────────
     workspace-switch {
