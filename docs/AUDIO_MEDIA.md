@@ -26,7 +26,7 @@ The right sidebar (ii) and action center (waffle) include a per-app volume mixer
 
 ### Visualizer source filters
 
-Visualizer app filters are exclusions, not an allowlist. In **Settings → Quick → Filters**, enabling a filter for an audio app prevents that app from feeding Cava/visualizers. With no visualizer filters enabled, iNiR follows the active player automatically. The list is populated from live PipeWire applications, and manual desktop-entry filters can be added when an app is not currently producing audio.
+Visualizer app filters are exclusions, not an allowlist. In **Settings → Quick → Filters**, enabling a filter for an audio app prevents that app from being selected to drive Cava/visualizers. With no visualizer filters enabled, iNiR follows the active player automatically. Cava captures the monitor of the selected playback sink rather than a recording source, so source resolution never falls through to the system microphone. The list is populated from live PipeWire applications, and manual desktop-entry filters can be added when an app is not currently producing audio.
 
 ### Organic visualizer
 
