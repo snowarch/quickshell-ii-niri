@@ -136,7 +136,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("Card"), icon: "crop_landscape", value: "card" },
                         { label: Translation.tr("Detail"), icon: "dashboard", value: "detail" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true
@@ -196,7 +196,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("Icon"), icon: "cloud", key: "showIcon", active: root.showIcon },
                         { label: Translation.tr("Text"), icon: "text_fields", key: "showCondition", active: root.showCondition }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true

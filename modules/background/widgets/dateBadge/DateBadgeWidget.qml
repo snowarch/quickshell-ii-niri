@@ -53,46 +53,66 @@ AbstractBackgroundWidget {
         strokeWidth: root.borderWidth
     }
 
-    GridLayout {
-        anchors.centerIn: parent
-        width: root.badgeStyle === "seal" ? Math.min(root.width, root.height) * 0.72 : root.width - 28 * root.scaleFactor
-        columns: root.horizontal ? 2 : 1
-        columnSpacing: 14 * root.scaleFactor
-        rowSpacing: 0
+    Rectangle {
+        visible: root.badgeStyle === "ticket" && root.horizontal
+        x: 10 * root.scaleFactor
+        y: 10 * root.scaleFactor
+        width: root.width * 0.36
+        height: root.height - 20 * root.scaleFactor
+        radius: Math.min(root.widgetCardRadius, width / 2)
+        color: root.widgetSemanticContainer(root.widgetPrimaryRole)
+    }
 
-        StyledText {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.rowSpan: root.horizontal ? 3 : 1
-            text: Qt.locale().toString(root.today, "d")
-            color: root.widgetAccentVisible
-            font.family: Appearance.font.family.numbers
-            font.pixelSize: Math.min(root.height * 0.36, 64 * root.scaleFactor)
-            font.weight: Font.DemiBold
-        }
+    Rectangle {
+        visible: root.badgeStyle === "stacked" && root.showBackground
+        x: 16 * root.scaleFactor
+        y: 12 * root.scaleFactor
+        width: root.width - 32 * root.scaleFactor
+        height: 4 * root.scaleFactor
+        radius: height / 2
+        color: root.widgetAccentVisible
+    }
+
+    StyledText {
+        id: dayNumber
+        x: root.horizontal ? 10 * root.scaleFactor : 0
+        y: root.horizontal ? (root.height - height) / 2 : root.height * 0.14
+        width: root.horizontal ? root.width * 0.36 : root.width
+        height: root.height * 0.45
+        text: Qt.locale().toString(root.today, "d")
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: root.horizontal ? root.widgetSemanticOnContainer(root.widgetPrimaryRole)
+            : root.widgetAccentVisible
+        font.family: Appearance.font.family.numbers
+        font.pixelSize: Math.min(height, 80 * root.scaleFactor)
+        font.weight: root.widgetTitleWeight
+        fontSizeMode: Text.Fit
+        minimumPixelSize: 16
+    }
+
+    ColumnLayout {
+        x: root.horizontal ? root.width * 0.36 + 24 * root.scaleFactor : root.width * 0.14
+        y: root.horizontal ? (root.height - implicitHeight) / 2 : root.height * 0.59
+        width: root.horizontal ? root.width - x - 14 * root.scaleFactor : root.width * 0.72
+        spacing: 2 * root.scaleFactor
+
         StyledText {
             Layout.fillWidth: true
             text: Qt.locale().toString(root.today, "dddd")
             horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter
             color: root.widgetInk
             font.pixelSize: Appearance.font.pixelSize.small * root.scaleFactor
-            font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Medium
+            font.weight: root.widgetLabelWeight
             elide: Text.ElideRight
         }
         StyledText {
             Layout.fillWidth: true
-            text: Qt.locale().toString(root.today, "MMMM")
-            horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter
-            color: root.widgetInkMuted
-            font.pixelSize: Appearance.font.pixelSize.small * root.scaleFactor
-            elide: Text.ElideRight
-        }
-        StyledText {
-            Layout.fillWidth: true
-            visible: root.showYear
-            text: Qt.locale().toString(root.today, "yyyy")
+            text: Qt.locale().toString(root.today, root.showYear ? "MMM yyyy" : "MMMM")
             horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter
             color: root.widgetInkMuted
             font.pixelSize: Appearance.font.pixelSize.smallest * root.scaleFactor
+            elide: Text.ElideRight
         }
     }
 
@@ -106,7 +126,7 @@ AbstractBackgroundWidget {
                         { value: "stacked", label: Translation.tr("Stacked") },
                         { value: "seal", label: Translation.tr("Seal") }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         buttonText: modelData.label
@@ -115,7 +135,7 @@ AbstractBackgroundWidget {
                     }
                 }
             }
-            SelectionGroupButton {
+            WidgetChoiceButton {
                 Layout.fillWidth: true
                 buttonText: Translation.tr("Show year")
                 toggled: root.showYear

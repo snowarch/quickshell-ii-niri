@@ -122,7 +122,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("Sans"), value: "sans" },
                         { label: Translation.tr("Mono"), value: "mono" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         leftmost: true; rightmost: true
                         buttonText: modelData.label
@@ -162,7 +162,7 @@ AbstractBackgroundWidget {
                         { icon: "format_align_center", value: "center" },
                         { icon: "format_align_right", value: "right" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         leftmost: true; rightmost: true
                         buttonIcon: modelData.icon
@@ -221,10 +221,39 @@ AbstractBackgroundWidget {
         focus: false
     }
 
+    RowLayout {
+        id: noteHeading
+        x: 14 * root.scaleFactor
+        y: 10 * root.scaleFactor
+        width: root.width - 28 * root.scaleFactor
+        visible: root.height >= 120 * root.scaleFactor
+        spacing: 6 * root.scaleFactor
+        MaterialSymbol {
+            text: "edit_note"
+            iconSize: 18 * root.scaleFactor
+            color: root.widgetAccentVisible
+        }
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Notes")
+            color: root.widgetInkMuted
+            font.pixelSize: Appearance.font.pixelSize.smallest * root.scaleFactor
+            font.weight: root.widgetLabelWeight
+            elide: Text.ElideRight
+        }
+        Rectangle {
+            Layout.preferredWidth: 24 * root.scaleFactor
+            Layout.preferredHeight: 3 * root.scaleFactor
+            radius: height / 2
+            color: root.widgetAccentVisible
+        }
+    }
+
     Flickable {
         id: editorFlick
         anchors.fill: parent
-        anchors.margins: Math.round(13 * root.scaleFactor)
+        anchors.margins: Math.round(14 * root.scaleFactor)
+        anchors.topMargin: noteHeading.visible ? noteHeading.y + noteHeading.height + 10 * root.scaleFactor : anchors.margins
         clip: true
         contentWidth: width
         contentHeight: Math.max(height, textEdit.contentHeight)

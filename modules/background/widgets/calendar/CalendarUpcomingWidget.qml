@@ -128,7 +128,7 @@ AbstractBackgroundWidget {
                 }
                 Repeater {
                     model: [3, 5, 8, 12]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         leftmost: true; rightmost: true
                         buttonText: String(modelData)
@@ -142,28 +142,28 @@ AbstractBackgroundWidget {
             Row {
                 spacing: 4
                 Layout.alignment: Qt.AlignHCenter
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     leftmost: true; rightmost: true
                     buttonIcon: "schedule"
                     buttonText: Translation.tr("Time")
                     toggled: root.showTime
                     onClicked: Config.setNestedValue("background.widgets.calendarUpcoming.showTime", !root.showTime)
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     leftmost: true; rightmost: true
                     buttonIcon: "today"
                     buttonText: Translation.tr("Date")
                     toggled: root.showDate
                     onClicked: Config.setNestedValue("background.widgets.calendarUpcoming.showDate", !root.showDate)
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     leftmost: true; rightmost: true
                     buttonIcon: "place"
                     buttonText: Translation.tr("Location")
                     toggled: root.showLocation
                     onClicked: Config.setNestedValue("background.widgets.calendarUpcoming.showLocation", !root.showLocation)
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     leftmost: true; rightmost: true
                     buttonIcon: "view_day"
                     buttonText: Translation.tr("Group")

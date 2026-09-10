@@ -57,7 +57,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("Text"), icon: "text_fields", value: "text" },
                         { label: Translation.tr("Tiles"), icon: "grid_view", value: "tiles" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true
@@ -82,7 +82,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("GPU temp"), icon: "device_thermostat", key: "showGpuTemp", active: root.showGpuTemp },
                         { label: Translation.tr("Disk"), icon: "hard_drive", key: "showDisk", active: root.showDisk }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true

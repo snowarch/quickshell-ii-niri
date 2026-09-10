@@ -69,6 +69,7 @@ AbstractWidget {
     // Disable base class x/y behaviors — we define our own with _autoPosition gating
     animateXPos: false
     animateYPos: false
+    dragAboveContent: GlobalStates.widgetEditMode
 
     // ── Per-widget lock (prevent accidental drag/resize) ──
     readonly property bool locked: Boolean(root._readConfigKey("locked") ?? false)
@@ -197,6 +198,13 @@ AbstractWidget {
             case "bottomRight":  return Qt.point(right, bottom)
             default:               return Qt.point(cx, cy)
         }
+    }
+
+    function nudge(dx: real, dy: real): void {
+        if (root.locked) return
+        root._setOutputValues({placementStrategy: "free",
+            x: root._snapToPixel(root._clampX(root.x + dx)),
+            y: root._snapToPixel(root._clampY(root.y + dy))})
     }
 
     function _cycleSnapZone(): void {
@@ -517,11 +525,14 @@ AbstractWidget {
     readonly property bool _isZonePlacement: root._snapZones.indexOf(root.placementStrategy) >= 0
     draggable: (placementStrategy === "free" || GlobalStates.widgetEditMode) && !GlobalStates.screenLocked && !root.locked
     function syncFreePositionFromConfig(): void {
-        if (!Config.ready) return;
+        if (!Config.ready || root.containsPress || root._isResizing) return;
         if (root.placementStrategy !== "free") return;
         root.x = root.targetX;
         root.y = root.targetY;
     }
+
+    onTargetXChanged: root.syncFreePositionFromConfig()
+    onTargetYChanged: root.syncFreePositionFromConfig()
 
     function applyPlacementFromConfig(): void {
         if (!Config.ready) return;
@@ -644,9 +655,20 @@ AbstractWidget {
         root.x, root.y, editPopoverPanel.open)
     readonly property bool _editControlsBelow: root._editControlsGeometry.below
 
-    // Loader containment masks consume this exact union instead of a huge
-    // per-widget rectangle. Overlapping widgets therefore follow visual z
-    // order, while the selected widget still owns its toolbar and popover.
+    function containsEditPoint(point: point): bool {
+        const inRect = (x, y, width, height) => point.x >= x && point.y >= y
+            && point.x < x + width && point.y < y + height
+        if (inRect(-12, -12, root.width + 24, root.height + 24))
+            return true
+        if (!root._editControlsShown)
+            return false
+        const geometry = root._editControlsGeometry
+        return inRect(geometry.toolbarX - root.x, geometry.toolbarY - root.y,
+                editToolbar.width, editToolbar.height)
+            || (editPopoverPanel.open && inRect(geometry.popoverX - root.x,
+                geometry.popoverY - root.y, editPopoverPanel.width, editPopoverPanel.height))
+    }
+
     readonly property real editInputX: {
         if (!GlobalStates.widgetEditMode || !root._editControlsShown)
             return -8
@@ -829,7 +851,7 @@ AbstractWidget {
     property real _snapPreviewY: _snapEnabled ? root._snapEditY(root.y) : root.y
     Rectangle {
         id: snapGhost
-        visible: root.containsPress && root._snapEnabled && root.draggable
+        visible: root.isDragging && root._snapEnabled && root.draggable
         x: root._snapPreviewX - root.x
         y: root._snapPreviewY - root.y
         width: root.width
@@ -873,8 +895,25 @@ AbstractWidget {
     }
 
     onPressed: {
-        if (GlobalStates.widgetEditMode)
+        if (GlobalStates.widgetEditMode) {
             GlobalStates.selectDesktopWidget(root.editInstanceKey)
+            root.forceActiveFocus()
+        }
+    }
+
+    Keys.onPressed: event => {
+        if (!root.editSelected || event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+            return
+        const step = event.modifiers & Qt.ShiftModifier ? 10 : 1
+        if (event.key === Qt.Key_Escape) {
+            if (editPopoverPanel.open) editPopoverPanel.open = false
+            else GlobalStates.clearDesktopWidgetSelection()
+        } else if (event.key === Qt.Key_Left) root.nudge(-step, 0)
+        else if (event.key === Qt.Key_Right) root.nudge(step, 0)
+        else if (event.key === Qt.Key_Up) root.nudge(0, -step)
+        else if (event.key === Qt.Key_Down) root.nudge(0, step)
+        else return
+        event.accepted = true
     }
 
     // Locked widgets intentionally disable AbstractWidget's drag MouseArea.
@@ -883,7 +922,10 @@ AbstractWidget {
     TapHandler {
         enabled: GlobalStates.widgetEditMode && root.locked
         acceptedButtons: Qt.LeftButton
-        onTapped: GlobalStates.selectDesktopWidget(root.editInstanceKey)
+        onTapped: {
+            GlobalStates.selectDesktopWidget(root.editInstanceKey)
+            root.forceActiveFocus()
+        }
     }
 
     TapHandler {
@@ -963,8 +1005,8 @@ AbstractWidget {
         }
         x: root._editControlsGeometry.toolbarX - root.x
         y: root._editControlsGeometry.toolbarY - root.y
-        width: toolbarRow.implicitWidth + 16
-        height: 40
+        width: Math.min(root.quickControlsAvailableWidth, toolbarRow.naturalWidth + 16)
+        height: toolbarRow.implicitHeight + 16
 
         Behavior on x {
             enabled: Appearance.animationsEnabled
@@ -1008,179 +1050,54 @@ AbstractWidget {
             screenY: root.y + editToolbar.y
         }
 
-        Row {
+        Flow {
             id: toolbarRow
             anchors.centerIn: parent
-            spacing: 2
+            readonly property real naturalWidth: lockAction.implicitWidth + moreAction.implicitWidth + 4
+                + (root.locked ? 0 : layoutAction.implicitWidth + styleAction.implicitWidth + 8)
+            width: Math.min(root.quickControlsAvailableWidth - 16, naturalWidth)
+            spacing: 4
 
-            RippleButton {
-                id: lockBtn
-                width: 32; height: 32
-                buttonRadius: Appearance.rounding.full
+            WidgetEditAction {
+                id: lockAction
+                iconName: root.locked ? "lock" : "lock_open"
+                label: root.locked ? Translation.tr("Unlock") : Translation.tr("Lock")
+                compact: true
                 toggled: root.locked
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colBackgroundToggled: ColorUtils.applyAlpha(Appearance.colors.colError, 0.14)
-                colBackgroundToggledHover: ColorUtils.applyAlpha(Appearance.colors.colError, 0.22)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                downAction: () => root._setOutputValue("locked", !root.locked)
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: root.locked ? "lock" : "lock_open"
-                    iconSize: 18
-                    color: root.locked ? Appearance.colors.colError : Appearance.colors.colOnLayer2
-                }
-                StyledToolTip { text: root.locked ? Translation.tr("Unlock position") : Translation.tr("Lock position") }
+                onClicked: root._setOutputValue("locked", !root.locked)
             }
-
-            RippleButton {
-                visible: root.overlappingLayerCount > 1
-                width: 32; height: 32
-                buttonRadius: Appearance.rounding.full
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                // Switch only after a completed click. `releaseAction` also runs
-                // on pointer cancellation, which previously changed layers when
-                // the press was dragged away from the button.
-                onClicked: Qt.callLater(() => root._cycleOverlappingWidget())
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "layers"
-                    iconSize: 18
-                    color: Appearance.colors.colOnLayer2
-                }
-                StyledToolTip {
-                    text: Translation.tr("Bring next overlapping widget forward (%1)")
-                        .arg(root.overlappingLayerCount)
-                }
-            }
-
-            RippleButton {
-                id: snapZoneBtn
+            WidgetEditAction {
+                id: layoutAction
                 visible: !root.locked
-                width: placementStateRow.implicitWidth + 16; height: 32
-                buttonRadius: Appearance.rounding.full
-                toggled: root._isZonePlacement
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colBackgroundToggled: ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                colBackgroundToggledHover: ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                colRippleToggled: ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                downAction: () => { root._toggleZonePlacement() }
-                altAction: () => { root._cycleSnapZone() }
-                contentItem: Row {
-                    id: placementStateRow
-                    anchors.centerIn: parent
-                    spacing: 4
-                    MaterialSymbol {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root._isZonePlacement ? "grid_on" : "open_with"
-                        iconSize: 16
-                        color: root._isZonePlacement ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                    }
-                    StyledText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root._isZonePlacement ? Translation.tr("Zone") : Translation.tr("Free")
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        font.weight: root.widgetLabelWeight
-                        color: root._isZonePlacement ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                    }
+                iconName: "open_with"
+                label: Translation.tr("Layout")
+                compact: root.quickControlsAvailableWidth < 380
+                toggled: editPopoverPanel.open && root._quickTab === "layout"
+                onClicked: {
+                    const closing = toggled
+                    root._quickTab = "layout"
+                    editPopoverPanel.open = !closing
                 }
-                StyledToolTip { text: root._isZonePlacement ? Translation.tr("Zone placement active — click for free placement, right-click to cycle") : Translation.tr("Attach this widget to the nearest screen zone") }
             }
-
-            RippleButton {
-                id: resetBtn
-                property bool armed: false
+            WidgetEditAction {
+                id: styleAction
                 visible: !root.locked
-                width: 32; height: 32
-                buttonRadius: Appearance.rounding.full
-                toggled: armed
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colBackgroundToggled: ColorUtils.applyAlpha(root.widgetSignal, 0.16)
-                colBackgroundToggledHover: ColorUtils.applyAlpha(root.widgetSignal, 0.24)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                downAction: () => {
-                    if (resetBtn.armed) {
-                        resetBtn.armed = false
-                        resetConfirmTimer.stop()
-                        root.resetToDefaults()
-                    } else {
-                        resetBtn.armed = true
-                        resetConfirmTimer.restart()
-                    }
-                }
-                Timer {
-                    id: resetConfirmTimer
-                    interval: 2500
-                    onTriggered: resetBtn.armed = false
-                }
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: resetBtn.armed ? "warning" : "restart_alt"
-                    iconSize: 18
-                    color: resetBtn.armed ? root.widgetSignal : Appearance.colors.colOnLayer2
-                }
-                StyledToolTip {
-                    text: resetBtn.armed
-                        ? Translation.tr("Click again to reset this widget")
-                        : Translation.tr("Reset to defaults")
+                iconName: "tune"
+                label: Translation.tr("Style")
+                compact: root.quickControlsAvailableWidth < 380
+                toggled: editPopoverPanel.open && root._quickTab !== "layout"
+                onClicked: {
+                    const closing = toggled
+                    root._quickTab = root._widgetSpecificPopover !== null ? "widget" : "colors"
+                    editPopoverPanel.open = !closing
                 }
             }
-
-            Rectangle {
-                visible: !root.locked
-                width: 1; height: 20
-                anchors.verticalCenter: parent.verticalCenter
-                color: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.15)
-            }
-
-            RippleButton {
-                id: popoverBtn
-                visible: root._effectivePopover !== null && !root.locked
-                width: 32; height: 32
-                buttonRadius: Appearance.rounding.full
-                toggled: editPopoverPanel.open
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colBackgroundToggled: ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                colBackgroundToggledHover: ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                downAction: () => { editPopoverPanel.open = !editPopoverPanel.open }
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "tune"
-                    iconSize: 18
-                    color: popoverBtn.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                }
-                StyledToolTip { text: Translation.tr("Quick controls") }
-            }
-
-            RippleButton {
-                id: settingsBtn
-                width: 32; height: 32
-                buttonRadius: Appearance.rounding.full
-                colBackground: "transparent"
-                colBackgroundHover: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                colRipple: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                downAction: () => {
-                    if (Config.options?.settingsUi?.overlayMode !== false) {
-                        GlobalStates.settingsOverlayRequestedPage = 14
-                        GlobalStates.settingsOverlayOpen = true
-                    } else {
-                        Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14", Quickshell.shellPath("scripts/inir"), "settings-window"])
-                    }
-                }
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "settings"
-                    iconSize: 18
-                    color: Appearance.colors.colOnLayer2
-                }
-                StyledToolTip { text: Translation.tr("Widget settings") }
+            WidgetEditAction {
+                id: moreAction
+                iconName: "more_horiz"
+                label: Translation.tr("More actions")
+                compact: true
+                onClicked: widgetEditContextMenu.requestOpen()
             }
         }
 
@@ -1198,8 +1115,8 @@ AbstractWidget {
             x: root._editControlsGeometry.popoverX - root._editControlsGeometry.toolbarX
             y: root._editControlsGeometry.popoverY - root._editControlsGeometry.toolbarY
             width: Math.min(root.quickControlsAvailableWidth,
-                popoverLoader.item ? popoverLoader.item.implicitWidth + 16 : 200)
-            height: popoverLoader.item ? popoverLoader.item.implicitHeight + 16 : 0
+                popoverLoader.item ? (popoverLoader.item.resolvedWidth ?? popoverLoader.item.implicitWidth) + 24 : 344)
+            height: popoverLoader.item ? popoverLoader.item.implicitHeight + 24 : 0
 
             Behavior on opacity {
                 enabled: Appearance.animationsEnabled
@@ -1258,6 +1175,7 @@ AbstractWidget {
             Loader {
                 id: popoverLoader
                 anchors.centerIn: parent
+                width: editPopoverPanel.width - 24
                 sourceComponent: root._effectivePopover
                 // `visible` is effective visibility and inherits the parent chain;
                 // using it as Loader state can latch this popover unloaded forever.
@@ -1269,9 +1187,8 @@ AbstractWidget {
     // ── Edit mode widget name label ─────────────────────────
     Row {
         z: 200
-        visible: GlobalStates.widgetEditMode
-        // Calm-state identity: selection is explicit; hover is only a preview.
-        opacity: root.editSelected ? 1 : widgetEditHover.hovered ? 0.78 : 0.46
+        visible: GlobalStates.widgetEditMode && (root.editSelected || widgetEditHover.hovered)
+        opacity: root.editSelected ? 1 : 0.78
         x: Math.round((root.width - width) / 2)
         y: root._editControlsBelow ? -height - 6 : root.height + 6
         spacing: 4
@@ -1316,9 +1233,10 @@ AbstractWidget {
 
         StyledText {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.configEntryName.split(".").pop()
+            text: root.configEntryName.split(".").pop().replace(/([A-Z])/g, " $1")
             font.pixelSize: Appearance.font.pixelSize.smaller
-            color: ColorUtils.applyAlpha(Appearance.colors.colOnLayer0, 0.5)
+            font.capitalization: Font.Capitalize
+            color: Appearance.colors.colOnLayer0
         }
     }
 
@@ -1327,7 +1245,7 @@ AbstractWidget {
         z: 199
         anchors.fill: parent
         anchors.margins: -4
-        visible: GlobalStates.widgetEditMode
+        visible: GlobalStates.widgetEditMode && (root.editSelected || widgetEditHover.hovered)
         color: "transparent"
         radius: Appearance.rounding.small + 4
         border {
@@ -1484,11 +1402,13 @@ AbstractWidget {
 
                 const preview = {}
                 if (isUniform) {
-                    const startSize = Math.max(rh._startWidth, rh._startHeight)
-                    const newSize = Math.max(newW, newH)
-                    const ratio = startSize > 0 ? newSize / startSize : 1
-                    preview[axes.uniform] = Math.round(
-                        rh._startConfigVals.uniform * ratio)
+                    const widthRatio = rh._startWidth > 0 ? newW / rh._startWidth : 1
+                    const heightRatio = rh._startHeight > 0 ? newH / rh._startHeight : 1
+                    const ratio = Math.abs(widthRatio - 1) >= Math.abs(heightRatio - 1)
+                        ? widthRatio : heightRatio
+                    const value = Math.round(rh._startConfigVals.uniform * ratio)
+                    preview[axes.uniform] = axes.uniform === "widgetScale"
+                        ? Math.max(50, Math.min(200, value)) : value
                 } else {
                     if (axes.width && (rh.resizeLeft || rh.resizeRight)) {
                         const ratio = rh._startWidth > 0 ? newW / rh._startWidth : 1
@@ -1503,9 +1423,9 @@ AbstractWidget {
                 }
                 root._resizePreviewValues = preview
                 if (rh.resizeLeft)
-                    root.x = root._clampX(newX)
+                    root.x = root._clampX(rh._startX + rh._startWidth - root.width)
                 if (rh.resizeTop)
-                    root.y = root._clampY(newY)
+                    root.y = root._clampY(rh._startY + rh._startHeight - root.height)
             }
 
             onReleased: {
@@ -1588,21 +1508,13 @@ AbstractWidget {
     }
 
     onReleased: {
-        if (GlobalStates.screenLocked) return;
+        if (GlobalStates.screenLocked || !root.dragMoved) return;
         // Suppress _autoPosition Binding for a frame so it doesn't snap back
         root._releaseGuard = true;
         _releaseGuardTimer.restart();
 
         let newX = root.x;
         let newY = root.y;
-
-        // In edit mode: zone-placed widgets re-snap to nearest zone
-        if (GlobalStates.widgetEditMode && root._isZonePlacement) {
-            const nearest = root._nearestZone(newX, newY);
-            root.snapToZone(nearest);
-            if (root.needsColText) _placementDebounce.restart();
-            return;
-        }
 
         if (root._snapEnabled) {
             newX = root._snapEditX(newX)
@@ -1634,9 +1546,8 @@ AbstractWidget {
     property Component _autoPopoverComponent: _manifestKeyList.length > 0 ? _autoPopoverRef : null
     readonly property Component _widgetSpecificPopover: root.editPopoverContent
         ?? (root._manifestKeyList.length > 0 ? root._autoPopoverComponent : null)
-    readonly property Component _effectivePopover:
-        root._widgetSpecificPopover !== null || root.semanticPaletteControls
-            ? root._semanticPalettePopover : null
+    property string _quickTab: "widget"
+    readonly property Component _effectivePopover: root._semanticPalettePopover
 
     Component {
         id: _autoPopoverRef
@@ -1650,14 +1561,44 @@ AbstractWidget {
     property Component _semanticPalettePopover: Component {
         WidgetQuickControlsLayout {
             id: semanticQuickRoot
-            availableWidth: root.quickControlsAvailableWidth - 16
-            availableHeight: root.quickControlsAvailableHeight - 16
-            regularWidth: Math.max(244,
+            availableWidth: root.quickControlsAvailableWidth - 24
+            availableHeight: root.quickControlsAvailableHeight - 24
+            title: root.configEntryName.split(".").pop().replace(/([A-Z])/g, " $1")
+            regularWidth: Math.max(360,
                 specificQuickLoader.item?.implicitWidth ?? 0)
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
+                Repeater {
+                    model: [
+                        {key: "widget", icon: "widgets", label: Translation.tr("Widget"), available: root._widgetSpecificPopover !== null},
+                        {key: "layout", icon: "open_with", label: Translation.tr("Layout"), available: true},
+                        {key: "colors", icon: "palette", label: Translation.tr("Colors"), available: root.semanticPaletteQuickControls}
+                    ]
+                    WidgetEditAction {
+                        required property var modelData
+                        visible: modelData.available
+                        Layout.fillWidth: true
+                        compact: semanticQuickRoot.resolvedWidth < 300
+                        iconName: modelData.icon
+                        label: modelData.label
+                        toggled: root._quickTab === modelData.key
+                        onClicked: root._quickTab = modelData.key
+                    }
+                }
+            }
+
+            WidgetPlacementControls {
+                Layout.fillWidth: true
+                visible: root._quickTab === "layout" || (root._quickTab === "widget" && root._widgetSpecificPopover === null)
+                widget: root
+                wide: semanticQuickRoot.wideDense
+            }
 
             Loader {
                 id: specificQuickLoader
-                active: root._widgetSpecificPopover !== null
+                active: root._widgetSpecificPopover !== null && root._quickTab === "widget"
                 visible: active
                 sourceComponent: root._widgetSpecificPopover
                 Layout.fillWidth: true
@@ -1665,7 +1606,7 @@ AbstractWidget {
             }
 
             Rectangle {
-                visible: root._widgetSpecificPopover !== null && root.semanticPaletteQuickControls
+                visible: false
                 Layout.fillWidth: true
                 implicitHeight: visible ? 1 : 0
                 color: ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.10)
@@ -1673,7 +1614,7 @@ AbstractWidget {
 
             ColumnLayout {
                 id: paletteQuickSection
-                visible: root.semanticPaletteQuickControls
+                visible: root.semanticPaletteQuickControls && root._quickTab === "colors"
                 Layout.fillWidth: true
                 spacing: 6
 
@@ -2184,7 +2125,10 @@ AbstractWidget {
     Timer {
         id: _zoneResnapDebounce
         interval: 100; repeat: false
-        onTriggered: root.snapToZone(root.placementStrategy)
+        onTriggered: {
+            if (root._isZonePlacement && !root.containsPress && !root._isResizing)
+                root.snapToZone(root.placementStrategy)
+        }
     }
     Timer {
         id: _geometryPlacementDebounce

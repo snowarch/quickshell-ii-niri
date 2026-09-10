@@ -142,7 +142,7 @@ AbstractBackgroundWidget {
                             { label: "Minimal", icon: "view_agenda", value: "minimal" },
                             { label: "Traditional", icon: "history_edu", value: "traditional" }
                         ]
-                        SelectionGroupButton {
+                        WidgetChoiceButton {
                             required property var modelData
                             Layout.fillWidth: true
                             leftmost: true; rightmost: true
@@ -174,7 +174,7 @@ AbstractBackgroundWidget {
                             { label: "Mixed", icon: "format_shapes", value: "mixed" },
                             { label: "Gothic", icon: "text_fields", value: "gothic" }
                         ]
-                        SelectionGroupButton {
+                        WidgetChoiceButton {
                             required property var modelData
                             Layout.fillWidth: true
                             leftmost: true; rightmost: true
@@ -213,7 +213,7 @@ AbstractBackgroundWidget {
                             { label: "Sunset", icon: "wb_twilight", value: "sunset" },
                             { label: "Cinema", icon: "movie", value: "cinema" }
                         ]
-                        SelectionGroupButton {
+                        WidgetChoiceButton {
                             required property var modelData
                             Layout.fillWidth: true
                             leftmost: true; rightmost: true
@@ -246,7 +246,7 @@ AbstractBackgroundWidget {
                             { key: "showFooter", label: "Footer", icon: "subtitles", value: root.showFooter },
                             { key: "mirrorLayout", label: "Mirror", icon: "swap_horiz", value: root.mirrorLayout }
                         ]
-                        SelectionGroupButton {
+                        WidgetChoiceButton {
                             required property var modelData
                             Layout.fillWidth: true
                             leftmost: true; rightmost: true

@@ -121,7 +121,7 @@ AbstractBackgroundWidget {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 2
 
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 34; height: 32
                     horizontalPadding: 7
                     verticalPadding: 5
@@ -131,7 +131,7 @@ AbstractBackgroundWidget {
                     onClicked: root._moveHeadline(-1)
                     StyledToolTip { text: Translation.tr("Previous") }
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     height: 32
                     horizontalPadding: 9
                     verticalPadding: 5
@@ -142,7 +142,7 @@ AbstractBackgroundWidget {
                         ? Translation.tr("Resume") : Translation.tr("Pause")
                     onClicked: root.rotationPaused = !root.rotationPaused
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 34; height: 32
                     horizontalPadding: 7
                     verticalPadding: 5
@@ -152,7 +152,7 @@ AbstractBackgroundWidget {
                     onClicked: root._moveHeadline(1)
                     StyledToolTip { text: Translation.tr("Next") }
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 34; height: 32
                     horizontalPadding: 7
                     verticalPadding: 5
@@ -162,7 +162,7 @@ AbstractBackgroundWidget {
                     onClicked: root._fetch(true)
                     StyledToolTip { text: Translation.tr("Refresh") }
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 34; height: 32
                     horizontalPadding: 7
                     verticalPadding: 5

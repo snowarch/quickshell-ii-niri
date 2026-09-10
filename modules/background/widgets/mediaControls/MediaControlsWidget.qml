@@ -30,6 +30,8 @@ AbstractBackgroundWidget {
         organicReach: 35, organicRange: 20, organicCompression: 0,
         lyricsExpanded: false,
         widgetScale: 100, widgetOpacity: 100, colorMode: "auto", dim: 0,
+        showBackground: true, useBlur: false, showBorder: true,
+        backgroundOpacity: 0.16, borderWidth: 1, borderOpacity: 0.2, cornerRadius: -1,
         x: 240, y: 240
     })
 
@@ -202,7 +204,7 @@ AbstractBackgroundWidget {
                         { label: Translation.tr("Lyrics wide"), icon: "subtitles", value: "lyricsSplit" },
                         { label: Translation.tr("Cover"), icon: "art_track", value: "expandingLyrics" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         required property int index
                         Layout.fillWidth: true
@@ -242,7 +244,7 @@ AbstractBackgroundWidget {
                             font.pixelSize: Appearance.font.pixelSize.small
                             font.weight: Font.DemiBold
                         }
-                        SelectionGroupButton {
+                        WidgetChoiceButton {
                             leftmost: true; rightmost: true
                             buttonIcon: root.vizPosition === "none" ? "visibility_off" : "visibility"
                             buttonText: root.vizPosition === "none" ? Translation.tr("Off") : Translation.tr("On")
@@ -262,7 +264,7 @@ AbstractBackgroundWidget {
                                 { label: Translation.tr("Bars"), icon: "equalizer", value: "bars" },
                                 { label: Translation.tr("Organic"), icon: "bubble_chart", value: "organic" }
                             ]
-                            SelectionGroupButton {
+                            WidgetChoiceButton {
                                 required property var modelData
                                 required property int index
                                 Layout.fillWidth: true
@@ -291,7 +293,7 @@ AbstractBackgroundWidget {
                                 { label: Translation.tr("Accent"), icon: "colors", value: "accent" },
                                 { label: Translation.tr("Album"), icon: "album", value: "player" }
                             ]
-                            SelectionGroupButton {
+                            WidgetChoiceButton {
                                 required property var modelData
                                 required property int index
                                 Layout.fillWidth: true
@@ -362,7 +364,7 @@ AbstractBackgroundWidget {
                                 { label: Translation.tr("Fill"), icon: "fullscreen", value: "fill" },
                                 { label: Translation.tr("Off"), icon: "visibility_off", value: "none" }
                             ]
-                            SelectionGroupButton {
+                            WidgetChoiceButton {
                                 required property var modelData
                                 required property int index
                                 Layout.fillWidth: true
@@ -423,7 +425,7 @@ AbstractBackgroundWidget {
                                 { label: Translation.tr("Treble"), icon: "trending_up", value: "treble" },
                                 { label: Translation.tr("Smile"), icon: "waves", value: "smile" }
                             ]
-                            SelectionGroupButton {
+                            WidgetChoiceButton {
                                 required property var modelData
                                 required property int index
                                 Layout.fillWidth: true

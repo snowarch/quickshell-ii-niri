@@ -128,7 +128,7 @@ AbstractBackgroundWidget {
                     model: [ { value: "poster", label: Translation.tr("Poster") },
                         { value: "quote", label: Translation.tr("Quote") },
                         { value: "label", label: Translation.tr("Label") } ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         buttonText: modelData.label
@@ -155,7 +155,7 @@ AbstractBackgroundWidget {
                 text: String(root._readConfigKey("footer") ?? "YOUR OWN PERSPECTIVE")
                 onEditingFinished: root._setOutputValue("footer", text)
             }
-            SelectionGroupButton {
+            WidgetChoiceButton {
                 Layout.fillWidth: true
                 buttonText: Translation.tr("Decorative accents")
                 toggled: root.showAccent

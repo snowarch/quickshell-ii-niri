@@ -29,7 +29,8 @@ ColumnLayout {
     default property alias contentData: contentColumn.data
 
     implicitWidth: resolvedWidth
-    spacing: dense ? 6 : 8
+    width: resolvedWidth
+    spacing: dense ? 8 : 12
 
     RowLayout {
         Layout.fillWidth: true
@@ -37,14 +38,17 @@ ColumnLayout {
 
         MaterialSymbol {
             text: "tune"
-            iconSize: 14
+            iconSize: 18
             color: Appearance.colors.colSubtext
         }
         StyledText {
             text: root.title
             color: Appearance.colors.colOnLayer2
-            font.pixelSize: Appearance.font.pixelSize.smaller
-            font.weight: Font.Medium
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+            font.pixelSize: Appearance.font.pixelSize.normal
+            font.weight: Font.DemiBold
+            font.capitalization: Font.Capitalize
         }
         Item { Layout.fillWidth: true }
     }

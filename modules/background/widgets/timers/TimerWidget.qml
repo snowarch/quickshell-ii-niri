@@ -57,7 +57,7 @@ AbstractBackgroundWidget {
                     { label: "Horizontal", icon: "view_week", value: false },
                     { label: "Vertical", icon: "view_agenda", value: true }
                 ]
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     required property var modelData
                     leftmost: true
                     rightmost: true

@@ -114,7 +114,7 @@ AbstractBackgroundWidget {
                         { label: "Monday", value: 1 },
                         { label: "Sunday", value: 0 }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         leftmost: true; rightmost: true
                         buttonText: Translation.tr(modelData.label)
@@ -123,7 +123,7 @@ AbstractBackgroundWidget {
                     }
                 }
             }
-            SelectionGroupButton {
+            WidgetChoiceButton {
                 Layout.alignment: Qt.AlignHCenter
                 leftmost: true; rightmost: true
                 buttonIcon: "date_range"

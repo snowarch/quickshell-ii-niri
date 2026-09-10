@@ -48,7 +48,7 @@ AbstractBackgroundWidget {
                         { label: "Bars", icon: "bar_chart", value: "bars" },
                         { label: "Pill", icon: "horizontal_rule", value: "pill" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true
@@ -59,7 +59,7 @@ AbstractBackgroundWidget {
                     }
                 }
             }
-            SelectionGroupButton {
+            WidgetChoiceButton {
                 Layout.alignment: Qt.AlignHCenter
                 leftmost: true; rightmost: true
                 buttonIcon: "timer"

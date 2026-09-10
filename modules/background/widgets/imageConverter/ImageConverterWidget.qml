@@ -347,7 +347,7 @@ AbstractBackgroundWidget {
                 font.pixelSize: Math.round(Appearance.font.pixelSize.small * root.scaleFactor)
             }
 
-            SelectionGroupButton {
+            WidgetChoiceButton {
                 Layout.fillWidth: true
                 leftmost: true
                 rightmost: true

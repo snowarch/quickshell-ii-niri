@@ -13,11 +13,14 @@ Item {
     property alias animateYPos: yBehavior.enabled
     property bool draggable: true
     property real dragThreshold: 6
+    property bool dragAboveContent: false
+    property bool dragMoved: false
     readonly property bool containsPress: _dragArea.pressed
     readonly property bool isDragging: _dragArea.drag.active
 
     signal pressed()
     signal released()
+    signal canceled()
 
     function center() {
         root.x = (root.parent.width - root.width) / 2
@@ -27,6 +30,9 @@ Item {
     MouseArea {
         id: _dragArea
         anchors.fill: parent
+        z: root.dragAboveContent ? 100 : 0
+        property real startX: 0
+        property real startY: 0
         // When the widget isn't draggable (NotesWidget out of edit mode, locked widgets,
         // etc.), keep this MouseArea passive so children like TextEdit can receive
         // clicks and keyboard focus. Otherwise the drag MouseArea swallows the press and
@@ -35,8 +41,20 @@ Item {
         drag.target: root.draggable ? root : undefined
         drag.threshold: root.dragThreshold
         cursorShape: (root.draggable && pressed) ? Qt.ClosedHandCursor : root.draggable ? Qt.OpenHandCursor : Qt.ArrowCursor
-        onPressed: root.pressed()
+        onPressed: {
+            startX = root.x
+            startY = root.y
+            root.dragMoved = false
+            root.pressed()
+        }
+        drag.onActiveChanged: if (drag.active) root.dragMoved = true
         onReleased: root.released()
+        onCanceled: {
+            root.x = startX
+            root.y = startY
+            root.dragMoved = false
+            root.canceled()
+        }
     }
 
     Behavior on x {

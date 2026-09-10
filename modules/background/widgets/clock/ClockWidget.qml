@@ -75,7 +75,7 @@ AbstractBackgroundWidget {
                         { label: "Cookie", icon: "circle", value: "cookie" },
                         { label: "Pixel", icon: "view_comfy_alt", value: "pixel" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true
@@ -95,7 +95,7 @@ AbstractBackgroundWidget {
                         { label: "Horizontal", icon: "view_week", value: "horizontal" },
                         { label: "Vertical", icon: "view_agenda", value: "vertical" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         leftmost: true; rightmost: true
                         buttonIcon: modelData.icon
@@ -117,7 +117,7 @@ AbstractBackgroundWidget {
                         { label: "24h", icon: "schedule", value: "24h" },
                         { label: "12h", icon: "nest_clock_farsight_analog", value: "12h" }
                     ]
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         Layout.fillWidth: true
                         leftmost: true; rightmost: true

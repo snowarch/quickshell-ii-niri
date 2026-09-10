@@ -336,7 +336,7 @@ AbstractBackgroundWidget {
 
                 Row {
                     spacing: 2
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         width: 32; height: 32
                         horizontalPadding: 6
                         verticalPadding: 5
@@ -345,7 +345,7 @@ AbstractBackgroundWidget {
                         onClicked: root._cyclePose(-1)
                         StyledToolTip { text: Translation.tr("Previous") }
                     }
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         width: 32; height: 32
                         horizontalPadding: 6
                         verticalPadding: 5
@@ -354,7 +354,7 @@ AbstractBackgroundWidget {
                         onClicked: root._shufflePose()
                         StyledToolTip { text: Translation.tr("Shuffle") }
                     }
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         width: 32; height: 32
                         horizontalPadding: 6
                         verticalPadding: 5
@@ -373,7 +373,7 @@ AbstractBackgroundWidget {
 
                 Repeater {
                     model: root._poseGroups
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         required property var modelData
                         height: 30
                         horizontalPadding: 8
@@ -387,7 +387,7 @@ AbstractBackgroundWidget {
                     }
                 }
 
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 34; height: 30
                     horizontalPadding: 6
                     verticalPadding: 4
@@ -418,7 +418,7 @@ AbstractBackgroundWidget {
                     font.pixelSize: Appearance.font.pixelSize.smaller
                 }
 
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 32; height: 28
                     horizontalPadding: 6
                     verticalPadding: 3
@@ -428,7 +428,7 @@ AbstractBackgroundWidget {
                     onClicked: root._setPosePickerMode("buttons")
                     StyledToolTip { text: Translation.tr("Buttons") }
                 }
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 32; height: 28
                     horizontalPadding: 6
                     verticalPadding: 3
@@ -637,7 +637,7 @@ AbstractBackgroundWidget {
                     visible: root._anchorCandidates.length > 0
                     spacing: 2
 
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         width: 30; height: 30
                         horizontalPadding: 5
                         verticalPadding: 4
@@ -646,7 +646,7 @@ AbstractBackgroundWidget {
                         buttonIcon: "chevron_left"
                         onClicked: root._cycleAnchor(-1)
                     }
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         height: 30
                         horizontalPadding: 8
                         verticalPadding: 4
@@ -657,7 +657,7 @@ AbstractBackgroundWidget {
                             ? Translation.tr("Seated") : Translation.tr("Free")
                         onClicked: root._toggleSeat()
                     }
-                    SelectionGroupButton {
+                    WidgetChoiceButton {
                         width: 30; height: 30
                         horizontalPadding: 5
                         verticalPadding: 4
@@ -681,7 +681,7 @@ AbstractBackgroundWidget {
                     color: Appearance.colors.colSubtext
                 }
 
-                SelectionGroupButton {
+                WidgetChoiceButton {
                     width: 32; height: 30
                     horizontalPadding: 6
                     verticalPadding: 4
