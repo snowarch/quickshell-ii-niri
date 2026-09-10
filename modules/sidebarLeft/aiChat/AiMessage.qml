@@ -103,7 +103,7 @@ Rectangle {
                         ? Ai.models[messageData?.model].icon 
                         : ""
                     colorize: true
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colSecondaryActionIcon
                 }
 
                 MaterialSymbol {
@@ -111,7 +111,7 @@ Rectangle {
                     anchors.centerIn: parent
                     visible: !modelIcon.visible
                     iconSize: 16
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colSecondaryActionIcon
                     text: messageData?.role == 'user' ? 'person' : 
                         messageData?.role == 'interface' ? 'settings' : 
                         messageData?.role == 'assistant' ? 'neurology' : 
@@ -128,7 +128,7 @@ Rectangle {
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: root.editorial ? Font.DemiBold : Font.Normal
                 font.letterSpacing: root.editorial ? 0.3 : 0
-                color: root.editorial ? (root.userMessage ? Appearance.editorial.secondaryFieldInk : Appearance.editorial.accent) : Appearance.colors.colSubtext
+                color: root.editorial ? (root.userMessage ? Appearance.editorial.secondaryFieldInk : Appearance.editorial.accent) : Appearance.colMetadataText
                 text: (messageData?.role == 'assistant' && Ai.models[messageData?.model]) 
                     ? Ai.models[messageData?.model].name 
                     : (messageData?.role == 'user' && SystemInfo.username) 
@@ -142,7 +142,7 @@ Rectangle {
                 visible: messageData?.role == 'interface'
                 Layout.alignment: Qt.AlignVCenter
                 iconSize: 12
-                color: Appearance.colors.colSubtext
+                color: Appearance.colSecondaryActionIcon
                 text: "visibility_off"
                 
                 MouseArea {

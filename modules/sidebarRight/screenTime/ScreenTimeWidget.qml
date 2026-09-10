@@ -396,7 +396,7 @@ Item {
                                 implicitHeight: 22
                                 buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                                 colBackground: "transparent"
-                                colBackgroundHover: Appearance.colors.colLayer1Hover
+                                colBackgroundHover: Appearance.colLayer1Hover
                                 onClicked: root._clearHour()
                                 contentItem: MaterialSymbol {
                                     anchors.centerIn: parent

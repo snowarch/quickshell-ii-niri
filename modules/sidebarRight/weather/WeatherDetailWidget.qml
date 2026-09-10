@@ -28,7 +28,7 @@ Item {
         : zzz ? Appearance.zzz.ink : Appearance.colors.colOnSurface
     readonly property color colSub: angel ? Appearance.angel.colTextSecondary
         : inir ? Appearance.inir.colTextSecondary
-        : zzz ? Appearance.zzz.inkMuted : Appearance.colors.colOnSurfaceVariant
+        : zzz ? Appearance.zzz.inkMuted : Appearance.colMetadataText
     readonly property color colPrimary: angel ? Appearance.angel.colPrimary
         : inir ? Appearance.inir.colPrimary
         : zzz ? Appearance.zzz.accent : Appearance.colors.colPrimary

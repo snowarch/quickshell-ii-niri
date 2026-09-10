@@ -113,7 +113,7 @@ Rectangle {
                     text: "close"
                     horizontalAlignment: Text.AlignHCenter
                     iconSize: Appearance.font.pixelSize.larger
-                    color: Appearance.inirEverywhere ? Appearance.inir.colTextSecondary : Appearance.colors.colOnSurfaceVariant
+                    color: Appearance.inirEverywhere ? Appearance.inir.colTextSecondary : Appearance.colSecondaryActionIcon
                 }
 
                 onClicked: root.remove()

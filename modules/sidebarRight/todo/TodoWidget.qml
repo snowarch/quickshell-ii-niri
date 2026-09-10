@@ -88,7 +88,7 @@ Item {
                 implicitHeight: 32
                 buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 colBackground: "transparent"
-                colBackgroundHover: Appearance.colors.colLayer2Hover
+                colBackgroundHover: Appearance.colLayer2Hover
                 onClicked: root.requestExpand()
                 contentItem: MaterialSymbol {
                     anchors.centerIn: parent
@@ -296,7 +296,7 @@ Item {
                     Layout.leftMargin: 16
                     Layout.rightMargin: 16
                     padding: 10
-                    color: activeFocus ? Appearance.colors.colOnSurface : Appearance.colors.colOnSurfaceVariant
+                    color: activeFocus ? Appearance.colors.colOnSurface : Appearance.colMetadataText
                     renderType: Text.NativeRendering
                     selectedTextColor: Appearance.colors.colOnSecondaryContainer
                     selectionColor: Appearance.colors.colSecondaryContainer

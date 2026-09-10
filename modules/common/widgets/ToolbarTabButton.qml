@@ -38,18 +38,8 @@ RippleButton {
         : Appearance.colors.colPrimaryContainer
 
     colBackground: "transparent"
-    colBackgroundHover: current ? "transparent"
-        : Appearance.regaliaEverywhere ? Appearance.regalia.controlPlateHover
-        : Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.contrastPlate, 0.14)
-        : Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
-        : Appearance.inirEverywhere ? ColorUtils.transparentize(Appearance.inir.colText, 0.92)
-        : Appearance.editorialEverywhere ? Appearance.editorial.controlHover
-        : ColorUtils.transparentize(Appearance.colors.colOnSurface, 0.95)
-    colRipple: current ? "transparent" 
-        : Appearance.zzzEverywhere ? ColorUtils.applyAlpha(Appearance.zzz.accent, 0.16)
-        : Appearance.angelEverywhere ? Appearance.angel.colGlassCardActive
-        : Appearance.inirEverywhere ? ColorUtils.transparentize(Appearance.inir.colText, 0.85)
-        : ColorUtils.transparentize(Appearance.colors.colOnSurface, 0.95)
+    colBackgroundHover: current ? "transparent" : Appearance.colLayer1Hover
+    colRipple: current ? "transparent" : Appearance.colLayer1Active
 
     contentItem: Row {
         id: contentRow
@@ -67,19 +57,15 @@ RippleButton {
             iconSize: 22
             text: root.materialSymbol
 
-            color: Appearance.regaliaEverywhere
-                ? (root.current ? Appearance.regalia.primaryPlateInk : Appearance.regalia.onMuted)
-                : Appearance.zzzEverywhere
-                ? (root.current ? Appearance.zzz.accent : Appearance.zzz.inkMuted)
-                : Appearance.cookieEverywhere && root.current
-                ? Appearance.colors.colOnPrimaryContainer
-                : Appearance.editorialEverywhere
-                ? (root.current ? Appearance.editorial.accent : Appearance.editorial.ink)
-                : Appearance.angelEverywhere
-                ? (root.current ? Appearance.angel.colOnPrimary : Appearance.angel.colText)
-                : Appearance.inirEverywhere
-                ? (root.current ? Appearance.inir.colOnPrimary : Appearance.inir.colText)
-                : Appearance.colors.colOnSurface
+            color: root.current
+                ? (Appearance.regaliaEverywhere ? Appearance.regalia.primaryPlateInk
+                    : Appearance.zzzEverywhere ? Appearance.zzz.accent
+                    : Appearance.cookieEverywhere ? Appearance.colors.colOnPrimaryContainer
+                    : Appearance.editorialEverywhere ? Appearance.editorial.accent
+                    : Appearance.angelEverywhere ? Appearance.angel.colOnPrimary
+                    : Appearance.inirEverywhere ? Appearance.inir.colOnPrimary
+                    : Appearance.colors.colOnSurface)
+                : Appearance.colSecondaryActionIcon
         }
         Item {
             id: labelReveal

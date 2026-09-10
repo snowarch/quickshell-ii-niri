@@ -62,12 +62,12 @@ Item {
             : Appearance.inirEverywhere ? Appearance.inir.roundingSmall
             : Appearance.rounding.small
         color: {
-            if (Appearance.editorialEverywhere) return editMA.containsMouse && !root.isExternal ? Appearance.colors.colLayer2Hover : Appearance.editorial.layer(1)
+            if (Appearance.editorialEverywhere) return editMA.containsMouse && !root.isExternal ? Appearance.colLayer2Hover : Appearance.editorial.layer(1)
             if (editMA.containsMouse && !root.isExternal) {
                 if (Appearance.angelEverywhere) return Appearance.angel.colGlassCardHover
                 if (Appearance.inirEverywhere) return Appearance.inir.colLayer2Hover
-                if (Appearance.auroraEverywhere) return Appearance.aurora?.colSubSurface ?? Appearance.colors.colLayer2Hover
-                return Appearance.colors.colLayer2Hover
+                if (Appearance.auroraEverywhere) return Appearance.aurora?.colSubSurface ?? Appearance.colLayer2Hover
+                return Appearance.colLayer2Hover
             }
             if (Appearance.angelEverywhere) return Appearance.angel.colGlassCard
             if (Appearance.inirEverywhere) return Appearance.inir.colLayer2
@@ -229,7 +229,7 @@ Item {
                 colBackground: "transparent"
                 colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
-                    : Appearance.colors.colLayer1Hover
+                    : Appearance.colLayer1Hover
                 onClicked: root.removeClicked()
                 
                 contentItem: MaterialSymbol {

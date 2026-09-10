@@ -127,14 +127,14 @@ QtObject {
         : Appearance.zzzEverywhere ? Appearance.zzz.onColor
         : Appearance.inirEverywhere ? Appearance.inir.colText
         : Appearance.colors.colOnSecondaryContainer
-    readonly property color titleCollapsedColor: unified ? Appearance.colors.colOnSurfaceVariant
+    readonly property color titleCollapsedColor: unified ? Appearance.colors.colOnSurface
         : Appearance.angelEverywhere
-        ? Appearance.angel.colTextSecondary
-        : Appearance.regaliaEverywhere ? Appearance.regalia.onMuted
-        : Appearance.editorialEverywhere ? Appearance.editorial.muted
+        ? Appearance.angel.colText
+        : Appearance.regaliaEverywhere ? Appearance.regalia.onColor
+        : Appearance.editorialEverywhere ? Appearance.editorial.ink
         : Appearance.zzzEverywhere ? Appearance.colors.colOnLayer1
-        : Appearance.inirEverywhere ? Appearance.inir.colTextSecondary
-        : Appearance.colors.colOnSurfaceVariant
+        : Appearance.inirEverywhere ? Appearance.inir.colText
+        : Appearance.colors.colOnSurface
 
     // ── Icon colors ──
     // ZZZ: the card header icon rides a ZzzGlyphBadge plate (sticker when

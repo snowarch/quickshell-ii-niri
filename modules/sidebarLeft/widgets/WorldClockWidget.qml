@@ -52,7 +52,7 @@ Item {
     readonly property color colSurfaceHover: Appearance.zzzEverywhere ? Appearance.zzz.chrome
         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceHover
-        : Appearance.colors.colLayer2Hover
+        : Appearance.colLayer2Hover
     readonly property real radiusCard: Appearance.zzzEverywhere ? Appearance.zzz.cardRadius
         : Appearance.inirEverywhere ? Appearance.inir.roundingNormal : Appearance.rounding.normal
     readonly property real radiusInner: Appearance.zzzEverywhere ? Appearance.zzz.controlRadius

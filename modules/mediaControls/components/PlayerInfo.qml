@@ -23,7 +23,7 @@ ColumnLayout {
     property color artistColor: Appearance.zzzEverywhere ? Appearance.zzz.inkMuted
         : Appearance.inirEverywhere
         ? Appearance.inir.colTextSecondary 
-        : Appearance.colors.colSubtext
+        : Appearance.colMetadataText
     property int titleSize: Appearance.font.pixelSize.large
     property int artistSize: Appearance.font.pixelSize.small
     property int titleWeight: Font.Medium
@@ -37,6 +37,8 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.cleanTitle ? StringUtils.cleanMusicTitle(root.title) || "—" : (root.title || "—")
+        font.family: (Appearance.editorialEverywhere || Appearance.zzzEverywhere)
+            ? Appearance.font.family.title : Appearance.font.family.main
         font.pixelSize: root.titleSize
         font.weight: Appearance.editorialEverywhere ? Appearance.editorial.titleWeight : Appearance.zzzEverywhere ? Font.Black : root.titleWeight
         font.italic: Appearance.zzzEverywhere
@@ -51,7 +53,9 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.artist || ""
+        font.family: Appearance.font.family.main
         font.pixelSize: root.artistSize
+        font.weight: Appearance.editorialEverywhere ? Appearance.editorial.labelWeight : Font.Medium
         color: root.artistColor
         elide: Text.ElideRight
         visible: text !== ""

@@ -58,7 +58,7 @@ StyledFlickable {
                     Layout.alignment: Qt.AlignHCenter
                     text: InnerTube.available ? "refresh" : "extension_off"
                     iconSize: 40
-                    color: Appearance.colors.colOnSurfaceVariant
+                    color: Appearance.colSecondaryActionIcon
                 }
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
@@ -66,7 +66,7 @@ StyledFlickable {
                     text: InnerTube.available
                         ? Translation.tr("Tap to load home")
                         : Translation.tr("YT Music runtime unavailable. Run inir doctor, then tap to retry.")
-                    color: Appearance.colors.colOnSurfaceVariant
+                    color: Appearance.colMetadataText
                 }
             }
             // Tap-to-retry covers the placeholder (kept out of the layout to avoid anchor conflicts).

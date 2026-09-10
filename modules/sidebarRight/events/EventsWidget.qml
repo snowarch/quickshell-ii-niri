@@ -153,7 +153,7 @@ Item {
                 implicitHeight: 32
                 buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                 colBackground: "transparent"
-                colBackgroundHover: Appearance.colors.colLayer2Hover
+                colBackgroundHover: Appearance.colLayer2Hover
                 onClicked: root.requestExpand()
                 contentItem: MaterialSymbol {
                     anchors.centerIn: parent

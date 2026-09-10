@@ -537,6 +537,8 @@ Item {
                     Layout.preferredWidth: 38
                     visible: root.tabButtonList.length > 1
                     toggled: root.tabEditMode
+                    colBackgroundHover: Appearance.colLayer1Hover
+                    colRipple: Appearance.colLayer1Active
                     downAction: () => root.tabEditMode = !root.tabEditMode
                     contentItem: MaterialSymbol {
                         anchors.centerIn: parent
@@ -544,7 +546,7 @@ Item {
                         iconSize: 19
                         color: tabEditButton.toggled
                             ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colOnLayer2
+                            : Appearance.colActionIcon
                     }
                     StyledToolTip {
                         text: root.tabEditMode

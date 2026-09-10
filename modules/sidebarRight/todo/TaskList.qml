@@ -199,7 +199,7 @@ Item {
                 wrapMode: Text.Wrap
                 text: root.emptyPlaceholderText
                 font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.colors.colSubtext
+                color: Appearance.colMetadataText
             }
         }
     }

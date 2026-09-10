@@ -95,7 +95,7 @@ Item {
                         colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                             : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                            : Appearance.colors.colLayer1Hover
+                            : Appearance.colLayer1Hover
                         colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                             : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
@@ -149,7 +149,7 @@ Item {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: Translation.tr("Loading...")
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colMetadataText
                 }
             }
 
@@ -207,7 +207,7 @@ Item {
                     colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                        : Appearance.colors.colLayer1Hover
+                        : Appearance.colLayer1Hover
 
                     onClicked: NewsService.openArticle(modelData)
 
@@ -235,7 +235,7 @@ Item {
                             elide: Text.ElideRight
                             wrapMode: Text.NoWrap
                             font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
+                            color: Appearance.colMetadataText
                         }
                     }
                 }
@@ -270,7 +270,7 @@ Item {
                     ? NewsService.localCity
                     : root.boards[root.currentBoardIndex].label
                 font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.colors.colSubtext
+                color: Appearance.colMetadataText
             }
 
             RippleButton {
@@ -281,7 +281,7 @@ Item {
 
                 colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                    : Appearance.colors.colLayer2Hover
+                    : Appearance.colLayer2Hover
 
                 onClicked: root.refreshCurrent()
 
@@ -290,7 +290,7 @@ Item {
                     anchors.centerIn: parent
                     text: "refresh"
                     iconSize: 18
-                    color: Appearance.colors.colOnLayer1
+                    color: Appearance.colActionIcon
 
                     RotationAnimation on rotation {
                         running: NewsService.loading && GlobalStates.sidebarLeftOpen

@@ -44,20 +44,30 @@ Item {
     readonly property bool angelStyle: Appearance.angelEverywhere
     readonly property bool inirStyle: Appearance.inirEverywhere
     readonly property bool auroraStyle: Appearance.auroraEverywhere
+    readonly property bool regaliaStyle: Appearance.regaliaEverywhere
     readonly property bool zzzStyle: Appearance.zzzEverywhere
     readonly property bool cookieStyle: Appearance.cookieEverywhere
+    readonly property bool editorialStyle: Appearance.editorialEverywhere
     readonly property bool compactNarrow: width > 0 && width < 300
 
-    readonly property color colText: zzzStyle ? Appearance.zzz.ink
+    readonly property color colText: editorialStyle ? Appearance.editorial.ink
+        : regaliaStyle ? Appearance.regalia.onColor
+        : zzzStyle ? Appearance.zzz.ink
         : cookieStyle ? Appearance.cookie.onColor
         : angelStyle ? Appearance.angel.colText
         : inirStyle ? Appearance.inir.colText
         : (effectiveColors?.colOnLayer0 ?? Appearance.colors.colOnLayer0)
-    readonly property color colTextSecondary: zzzStyle ? Appearance.zzz.inkMuted
+    readonly property color colTextSecondary: editorialStyle ? Appearance.editorial.accent
+        : regaliaStyle ? Appearance.regalia.hardwareSecondary
+        : zzzStyle ? Appearance.zzz.secondary
         : cookieStyle ? Appearance.cookie.inkMuted
-        : angelStyle ? Appearance.angel.colTextSecondary
-        : inirStyle ? Appearance.inir.colTextSecondary
-        : (effectiveColors?.colSubtext ?? Appearance.colors.colSubtext)
+        : angelStyle ? Appearance.angel.colSecondary
+        : inirStyle ? Appearance.inir.colSecondary
+        : ColorUtils.ensureReadable(
+            Appearance.colors.colSecondary,
+            effectiveColors?.colLayer0Base ?? Appearance.colors.colLayer0Base,
+            4.5
+        )
     readonly property color colCard: (zzzStyle || cookieStyle) ? "transparent"
         : angelStyle ? Appearance.angel.colGlassCard
         : inirStyle ? Appearance.inir.colLayer1
@@ -75,11 +85,15 @@ Item {
         : cookieStyle ? Appearance.cookie.roundNormal
         : angelStyle ? Appearance.angel.roundingNormal
         : inirStyle ? Appearance.inir.roundingNormal : Appearance.rounding.normal
-    readonly property color colPrimary: zzzStyle ? Appearance.zzz.accent
+    readonly property color colPrimary: editorialStyle ? Appearance.editorial.accent
+        : regaliaStyle ? Appearance.regalia.hardwarePrimary
+        : zzzStyle ? Appearance.zzz.accent
         : cookieStyle ? Appearance.cookie.primaryFace
         : angelStyle ? Appearance.angel.colPrimary
         : inirStyle ? Appearance.inir.colPrimary : Appearance.colors.colPrimary
-    readonly property color colOnPrimary: zzzStyle ? Appearance.zzz.onSticker
+    readonly property color colOnPrimary: editorialStyle ? Appearance.editorial.accentInk
+        : regaliaStyle ? Appearance.regalia.hardwarePrimaryInk
+        : zzzStyle ? Appearance.zzz.onSticker
         : cookieStyle ? Appearance.cookie.onFace
         : angelStyle ? Appearance.angel.colOnPrimary
         : inirStyle ? Appearance.inir.colOnPrimary : Appearance.colors.colOnPrimary
@@ -93,12 +107,12 @@ Item {
         : cookieStyle ? Appearance.cookie.bg4
         : angelStyle ? Appearance.angel.colGlassCardActive
         : inirStyle ? Appearance.inir.colLayer2Active
-        : (effectiveColors?.colLayer1Active ?? Appearance.colors.colLayer1Active)
+        : (effectiveColors?.colLayer1Active ?? Appearance.colLayer1Active)
 
     // Album colors belong to Material and Aurora. Identity-heavy styles keep
     // their own accent ramp so artwork cannot recolor the entire control set.
     readonly property bool useAlbumAccent: playerBase.downloaded
-        && !zzzStyle && !cookieStyle && !inirStyle && !angelStyle
+        && Appearance.globalStyle === "material"
     readonly property color accentColor: useAlbumAccent
         ? (effectiveColors?.colPrimary ?? colPrimary) : colPrimary
     readonly property color onAccentColor: useAlbumAccent
@@ -455,8 +469,8 @@ Item {
                                 anchors.right: parent.right
                                 text: "open_in_full"
                                 iconSize: 12
-                                color: root.colTextSecondary
-                                opacity: playerInfoMA.containsMouse ? 0.72 : 0
+                                color: root.accentColor
+                                opacity: playerInfoMA.containsMouse ? 0.88 : 0
                                 Behavior on opacity {
                                     enabled: Appearance.animationsEnabled
                                     NumberAnimation { duration: Appearance.animation.elementMoveFast.duration }
@@ -494,6 +508,7 @@ Item {
                                         : root.cookieStyle ? Appearance.cookie.bg4
                                         : root.angelStyle ? Appearance.angel.colBorderSubtle
                                         : root.inirStyle ? Appearance.inir.colLayer2
+                                        : root.auroraStyle ? Appearance.colInactiveControlSurface
                                         : (root.effectiveColors?.colSecondaryContainer
                                             ?? Appearance.colors.colSecondaryContainer)
                                     enableWavy: true
@@ -749,7 +764,9 @@ Item {
                 ? (root.cookieStyle ? Appearance.cookie.onFace
                     : root.inirStyle ? Appearance.inir.colOnSecondaryContainer
                     : root.accentColor)
-                : (tBtn.enabled ? root.colText : root.colTextSecondary)
+                : (tBtn.enabled
+                    ? ColorUtils.mix(root.colText, root.accentColor, 0.82)
+                    : root.colTextSecondary)
 
         Behavior on implicitWidth {
             enabled: Appearance.animationsEnabled

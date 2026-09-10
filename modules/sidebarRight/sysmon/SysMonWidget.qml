@@ -55,7 +55,7 @@ Item {
                 colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                    : Appearance.colors.colLayer1Hover
+                    : Appearance.colLayer1Hover
                 onClicked: ResourceUsage.ensureRunning()
                 contentItem: MaterialSymbol { anchors.centerIn: parent; text: "refresh"; iconSize: 16; color: root.colTextSecondary }
                 StyledToolTip { text: Translation.tr("Refresh") }

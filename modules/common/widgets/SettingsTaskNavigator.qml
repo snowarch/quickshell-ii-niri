@@ -166,7 +166,8 @@ ColumnLayout {
                         visible: root.description.length > 0
                         text: root.description
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                        color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnLayer1
+                        opacity: Appearance.editorialEverywhere ? 1 : 0.82
                         wrapMode: Text.Wrap
                     }
                 }
@@ -178,7 +179,8 @@ ColumnLayout {
                 text: root.description
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: Font.Medium
-                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnLayer1
+                opacity: Appearance.editorialEverywhere ? 1 : 0.86
                 horizontalAlignment: Text.AlignLeft
                 wrapMode: Text.Wrap
             }
@@ -189,7 +191,8 @@ ColumnLayout {
                 text: root.summary
                 font.pixelSize: Appearance.font.pixelSize.smallest
                 font.weight: Font.Medium
-                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colSubtext
+                color: Appearance.editorialEverywhere ? Appearance.editorial.paperOnInk : Appearance.colors.colOnLayer1
+                opacity: Appearance.editorialEverywhere ? 1 : 0.72
                 horizontalAlignment: Text.AlignLeft
                 wrapMode: Text.Wrap
             }

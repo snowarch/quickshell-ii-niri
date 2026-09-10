@@ -77,7 +77,7 @@ Item {
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
-                    : Appearance.colors.colLayer1Hover
+                    : Appearance.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
@@ -111,7 +111,7 @@ Item {
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
-                    : Appearance.colors.colLayer1Hover
+                    : Appearance.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
@@ -145,7 +145,7 @@ Item {
                     : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                     : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
-                    : Appearance.colors.colLayer1Hover
+                    : Appearance.colLayer1Hover
                 colBackgroundToggled: Appearance.angelEverywhere ? Appearance.angel.colGlassElevated
                     : Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
@@ -207,7 +207,7 @@ Item {
                         colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                             : Appearance.editorialEverywhere ? Appearance.editorial.layer(2)
-                            : Appearance.colors.colLayer1Hover
+                            : Appearance.colLayer1Hover
                         colBackgroundToggled: Appearance.inirEverywhere ? Appearance.inir.colSecondaryContainer
                             : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
                             : Appearance.zzzEverywhere ? Appearance.zzz.sticker
@@ -256,7 +256,7 @@ Item {
                     colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                        : Appearance.colors.colLayer2Hover
+                        : Appearance.colLayer2Hover
                     
                     onClicked: AnimeService.prevSeason()
                     
@@ -298,7 +298,7 @@ Item {
                     colBackgroundHover: Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                         : Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                         : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                        : Appearance.colors.colLayer2Hover
+                        : Appearance.colLayer2Hover
                     
                     onClicked: AnimeService.nextSeason()
                     
@@ -344,7 +344,7 @@ Item {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: Translation.tr("Loading...")
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colMetadataText
                 }
             }
             
@@ -443,7 +443,7 @@ Item {
                         ? Translation.tr("%1 %2").arg(AnimeService.getSeasonDisplayName(AnimeService.selectedSeason)).arg(AnimeService.selectedYear)
                         : Translation.tr("Top Airing")
                 font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.colors.colSubtext
+                color: Appearance.colMetadataText
             }
             
             RippleButton {
@@ -454,7 +454,7 @@ Item {
                 
                 colBackgroundHover: Appearance.inirEverywhere ? Appearance.inir.colLayer2Hover
                     : Appearance.auroraEverywhere ? Appearance.aurora.colSubSurface
-                    : Appearance.colors.colLayer2Hover
+                    : Appearance.colLayer2Hover
                 
                 onClicked: root.refreshCurrentTab()
                 

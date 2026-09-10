@@ -116,7 +116,7 @@ Rectangle {
                 implicitHeight: Math.max(40, rowContent.implicitHeight + 12)
                 radius: Appearance.rounding.small
                 color: rowMouseArea.containsMouse
-                    ? Appearance.colors.colLayer2Hover
+                    ? Appearance.colLayer2Hover
                     : Appearance.colors.colLayer2
 
                 MouseArea {
@@ -141,7 +141,7 @@ Rectangle {
                     MaterialSymbol {
                         text: chatRow.isLastSession ? "history" : "chat_bubble"
                         iconSize: Appearance.font.pixelSize.large
-                        color: Appearance.colors.colSubtext
+                        color: Appearance.colSecondaryActionIcon
                     }
 
                     StyledText {
@@ -209,7 +209,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             text: Translation.tr("No saved conversations yet")
             font.pixelSize: Appearance.font.pixelSize.small
-            color: Appearance.colors.colSubtext
+            color: Appearance.colMetadataText
         }
     }
 }

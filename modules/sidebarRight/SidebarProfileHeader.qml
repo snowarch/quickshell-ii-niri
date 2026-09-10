@@ -6,6 +6,7 @@ import Quickshell.Widgets
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 
 /**
@@ -46,6 +47,7 @@ Item {
     readonly property bool _regalia: root._dialect === "regalia"
     readonly property bool _inir: root._dialect === "inir"
     readonly property bool _aurora: root._dialect === "aurora" || root._angel
+    readonly property bool _pureAurora: root._dialect === "aurora"
     readonly property bool _cookie: root._dialect === "cookie"
     readonly property bool _island: root._dialect === "island"
     readonly property bool _editorial: root._dialect === "editorial" && !root._island
@@ -56,11 +58,24 @@ Item {
         : root._editorial ? Appearance.editorial.ink
         : root._aurora ? Appearance.colors.colOnSurface
         : Appearance.colors.colOnLayer1
-    readonly property color _colSubtext: root._zzz ? Appearance.zzz.inkMuted
+    readonly property color _colSubtext: root._island
+        ? ColorUtils.mix(Appearance.colors.colOnLayer1, Appearance.colors.colSecondary, 0.84)
+        : root._zzz ? Appearance.zzz.inkMuted
+        : root._regalia ? Appearance.regalia.onMuted
+        : root._cookie ? Appearance.cookie.inkMuted
         : root._angel ? Appearance.angel.colTextSecondary
         : root._inir ? Appearance.inir.colTextSecondary
         : root._editorial ? Appearance.editorial.muted
+        : root._pureAurora ? Appearance.colors.colSecondary
         : Appearance.colors.colSubtext
+    readonly property color _colMetaIcon: root._island ? Appearance.colors.colSecondary
+        : root._zzz ? Appearance.zzz.secondary
+        : root._regalia ? Appearance.regalia.hardwareSecondary
+        : root._cookie ? Appearance.colors.colSecondary
+        : root._angel ? Appearance.angel.colSecondary
+        : root._inir ? Appearance.inir.colSecondary
+        : root._editorial ? Appearance.editorial.accent
+        : Appearance.colors.colSecondary
     readonly property color _colAccent: root._zzz ? Appearance.zzz.accent
         : root._angel ? Appearance.angel.colPrimary
         : root._inir ? Appearance.inir.colPrimary
@@ -78,6 +93,7 @@ Item {
         : root._editorial ? Appearance.editorial.layer(2)
         : root._island ? Appearance.colors.colLayer1
         : Qt.alpha(Appearance.colors.colLayer1, 1)
+    readonly property color _footerSurface: Appearance.colInactiveControlSurface
 
     readonly property var _bannerModes: ["wallpaper", "custom", "solid", "none"]
     readonly property string _bannerMode: {
@@ -178,6 +194,19 @@ Item {
         islandSkin: root._island
         radiusOverride: root._cardRadius
         implicitHeight: root._bannerHeight + root._footerHeight
+
+        Rectangle {
+            visible: root._pureAurora
+            anchors.left: parent.left
+            anchors.right: parent.right
+            y: Math.max(0, root._bannerHeight - root._bannerRadius)
+            height: root._footerHeight + root._bannerRadius
+            color: root._footerSurface
+            topLeftRadius: 0
+            topRightRadius: 0
+            bottomLeftRadius: root._cardRadius
+            bottomRightRadius: root._cardRadius
+        }
 
         Loader {
             id: bannerLoader
@@ -300,7 +329,6 @@ Item {
             anchors.right: parent.right
             y: root._bannerHeight
             height: root._footerHeight
-
         }
 
         Item {
@@ -426,7 +454,7 @@ Item {
                     Layout.preferredHeight: 14
                     source: SystemInfo.distroIcon
                     colorize: true
-                    color: root._colSubtext
+                    color: root._colMetaIcon
                 }
 
                 StyledText {
@@ -451,6 +479,7 @@ Item {
                 visible: root.androidToggles
                 dialect: root._dialect
                 buttonIcon: "edit"
+                iconColor: root._colAccent
                 toggled: root.editMode
                 tooltipText: Translation.tr("Edit quick toggles")
                 onClicked: root.editModeRequested()
@@ -459,6 +488,7 @@ Item {
             HeaderButton {
                 dialect: root._dialect
                 buttonIcon: "settings"
+                iconColor: root._colMetaIcon
                 enabled: root.settingsEnabled
                 opacity: enabled ? 1 : 0.5
                 tooltipText: Translation.tr("Settings")
@@ -477,6 +507,7 @@ Item {
                 id: overflowButton
                 dialect: root._dialect
                 buttonIcon: "more_horiz"
+                iconColor: root._colSubtext
                 toggled: overflowMenu.active
                 tooltipText: Translation.tr("More")
                 onClicked: overflowMenu.active = !overflowMenu.active
@@ -529,11 +560,7 @@ Item {
                 : headerButton._angel ? Appearance.angel.colOnPrimary
                 : headerButton._inir ? Appearance.inir.colOnPrimaryContainer
                 : Appearance.colors.colOnPrimaryContainer)
-            : (headerButton._zzz ? Appearance.zzz.ink
-                : headerButton._angel ? Appearance.angel.colText
-                : headerButton._inir ? Appearance.inir.colText
-                : headerButton._aurora ? Appearance.colors.colOnSurface
-                : Appearance.colors.colOnLayer1)
+            : Appearance.colActionIcon
 
         implicitWidth: 34
         implicitHeight: 34
@@ -543,11 +570,7 @@ Item {
             : root._editorial ? Appearance.rounding.small
             : Appearance.rounding.full
         colBackground: "transparent"
-        colBackgroundHover: headerButton._zzz ? Appearance.zzz.chrome
-            : headerButton._angel ? Appearance.angel.colGlassCardHover
-            : headerButton._inir ? Appearance.inir.colLayer2Hover
-            : headerButton._aurora ? Appearance.aurora.colSubSurfaceHover
-            : Appearance.colors.colLayer2Hover
+        colBackgroundHover: Appearance.colLayer2Hover
         colBackgroundToggled: headerButton._zzz ? Appearance.zzz.chrome
             : headerButton._angel ? Appearance.angel.colPrimary
             : headerButton._inir ? Appearance.inir.colPrimaryContainer

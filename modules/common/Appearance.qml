@@ -251,6 +251,54 @@ Singleton {
         : inirEverywhere ? inir.colLayer1Active
         : auroraEverywhere ? aurora.colSubSurfaceActive
         : colors.colLayer1Active
+    readonly property color colLayer2Active: root.editorialEverywhere ? root.editorial.controlPressed : regaliaEverywhere ? regalia.controlPlateActive
+        : cookieEverywhere ? cookie.bg4
+        : zzzEverywhere ? zzz.bg4
+        : angelEverywhere ? angel.colGlassPopupActive
+        : inirEverywhere ? inir.colLayer2Active
+        : auroraEverywhere ? aurora.colElevatedSurfaceActive
+        : colors.colLayer2Active
+    readonly property color colInactiveControlSurface: root.editorialEverywhere ? colors.colLayer2
+        : regaliaEverywhere ? regalia.controlPlate
+        : cookieEverywhere ? cookie.bg2
+        : zzzEverywhere ? zzz.chrome
+        : angelEverywhere ? ColorUtils.transparentize(angel.colGlassCard, 0.76)
+        : inirEverywhere ? ColorUtils.transparentize(inir.colLayer1, 0.22)
+        : globalStyle === "aurora" ? aurora.colInactiveControlSurface
+        : ColorUtils.transparentize(colors.colLayer2, 0.24)
+    readonly property color colInactiveControlSurfaceHover: root.editorialEverywhere ? colLayer2Hover
+        : regaliaEverywhere ? regalia.controlPlateHover
+        : cookieEverywhere ? cookie.bg3
+        : zzzEverywhere ? zzz.paperAlt
+        : angelEverywhere ? angel.colGlassCardHover
+        : inirEverywhere ? inir.colLayer2Hover
+        : globalStyle === "aurora" ? aurora.colInactiveControlSurfaceHover
+        : ColorUtils.transparentize(colLayer2Hover, 0.20)
+    readonly property color colInactiveControlSurfaceActive: root.editorialEverywhere ? colLayer2Active
+        : regaliaEverywhere ? regalia.controlPlateActive
+        : cookieEverywhere ? cookie.bg4
+        : zzzEverywhere ? zzz.bg3
+        : angelEverywhere ? angel.colGlassCardActive
+        : inirEverywhere ? inir.colLayer2Active
+        : globalStyle === "aurora" ? aurora.colInactiveControlSurfaceActive
+        : ColorUtils.transparentize(colLayer2Active, 0.18)
+    readonly property color colActionIcon: root.editorialEverywhere ? root.editorial.accent
+        : regaliaEverywhere ? regalia.hardwarePrimary
+        : zzzEverywhere ? zzz.accent
+        : angelEverywhere ? angel.colPrimary
+        : inirEverywhere ? inir.colPrimary
+        : colors.colPrimary
+    readonly property color colSecondaryActionIcon: root.editorialEverywhere ? root.editorial.accent
+        : regaliaEverywhere ? regalia.hardwareSecondary
+        : zzzEverywhere ? zzz.secondary
+        : angelEverywhere ? angel.colSecondary
+        : inirEverywhere ? inir.colSecondary
+        : colors.colSecondary
+    readonly property color colMetadataText: ColorUtils.ensureReadable(
+        ColorUtils.mix(colors.colOnLayer1, colSecondaryActionIcon, 0.84),
+        colors.colLayer1Base,
+        4.5
+    )
 
     onEffectsEnabledChanged: if (Qt.application.arguments.indexOf("--debug") !== -1) console.log("[Appearance] effectsEnabled:", effectsEnabled, "gameModeActive:", _gameModeActive)
     onAnimationsEnabledChanged: if (Qt.application.arguments.indexOf("--debug") !== -1) console.log("[Appearance] animationsEnabled:", animationsEnabled)
@@ -433,12 +481,15 @@ Singleton {
         readonly property color _baseOnSurface: m3colors.m3onSurface
         readonly property color _baseOnSurfaceVariant: m3colors.m3onSurfaceVariant
         
-        property color colSubtext: root.editorialEverywhere ? root.editorial.muted : root.regaliaEverywhere ? root.regalia.onMuted : root.cookieEverywhere ? root.cookie.inkMuted : root.zzzEverywhere ? root.zzz.inkMuted : ColorUtils.ensureReadable(
-            ColorUtils.mix(
-                _needsHighContrast ? _baseOnSurface : (root._auroraLightMode ? _inkSecondary : _baseOnSurfaceVariant),
-                colLayer1Base,
-                0.45
-            ),
+        readonly property color _semanticSubtextBase: root.editorialEverywhere ? root.editorial.muted
+            : root.regaliaEverywhere ? root.regalia.onMuted
+            : root.cookieEverywhere ? root.cookie.inkMuted
+            : root.zzzEverywhere ? root.zzz.inkMuted
+            : root.angelEverywhere ? root.angel.colTextSecondary
+            : root.inirEverywhere ? root.inir.colTextSecondary
+            : (_needsHighContrast ? _baseOnSurface : (root._auroraLightMode ? _inkSecondary : _baseOnSurfaceVariant))
+        property color colSubtext: ColorUtils.ensureReadable(
+            ColorUtils.mix(_semanticSubtextBase, root.colSecondaryActionIcon, 0.84),
             colLayer1Base,
             5.5
         )
@@ -980,6 +1031,13 @@ Singleton {
         readonly property real popupTransparentize: (_cfg?.popup ?? 0.32) * _lightFactor
         readonly property real tooltipTransparentize: (_cfg?.tooltip ?? 0.28) * _lightFactor
         readonly property real layerTransparentize: (_cfg?.layer ?? 0.32) * _lightFactor
+
+        readonly property color colInactiveControlSurface: ColorUtils.transparentize(
+            root.colors.colLayer0Base, Math.max(0.12, subSurfaceTransparentize - 0.14))
+        readonly property color colInactiveControlSurfaceHover: ColorUtils.transparentize(
+            root.colors.colLayer1, Math.max(0.16, subSurfaceTransparentize - 0.10))
+        readonly property color colInactiveControlSurfaceActive: ColorUtils.transparentize(
+            root.colors.colLayer1, Math.max(0.12, subSurfaceTransparentize - 0.14))
         
         // === Main Panel Overlay (Layer 0) ===
         readonly property color colOverlay: ColorUtils.transparentize(root.colors.colLayer0Base, overlayTransparentize)
@@ -988,15 +1046,13 @@ Singleton {
         
         // === Sub-Surface (Layer 1 - cards, groups within panels) ===
         readonly property color colSubSurface: ColorUtils.transparentize(root.colors.colLayer1Base, subSurfaceTransparentize)
-        readonly property color colSubSurfaceHover: ColorUtils.transparentize(
-            ColorUtils.mix(root.colors.colLayer1Base, root.colors.colOnLayer1, 0.92), subSurfaceTransparentize)
-        readonly property color colSubSurfaceActive: ColorUtils.transparentize(
-            ColorUtils.mix(root.colors.colLayer1Base, root.colors.colOnLayer1, 0.85), subSurfaceTransparentize)
+        readonly property color colSubSurfaceHover: Qt.rgba(0, 0, 0, root._auroraLightMode ? 0.08 : 0.24)
+        readonly property color colSubSurfaceActive: Qt.rgba(0, 0, 0, root._auroraLightMode ? 0.13 : 0.32)
         
         // === Elevated Surface (Layer 2 - elevated cards) ===
         readonly property color colElevatedSurface: ColorUtils.transparentize(root.colors.colLayer2Base, subSurfaceTransparentize * 0.9)
-        readonly property color colElevatedSurfaceHover: ColorUtils.transparentize(
-            ColorUtils.mix(root.colors.colLayer2Base, root.colors.colOnLayer2, 0.92), subSurfaceTransparentize * 0.9)
+        readonly property color colElevatedSurfaceHover: Qt.rgba(0, 0, 0, root._auroraLightMode ? 0.10 : 0.28)
+        readonly property color colElevatedSurfaceActive: Qt.rgba(0, 0, 0, root._auroraLightMode ? 0.15 : 0.36)
         
         // === Popup Surface (menus, dialogs, floating elements) ===
         readonly property color colPopupSurface: ColorUtils.transparentize(root.colors.colLayer2Base, popupTransparentize)

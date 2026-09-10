@@ -164,7 +164,7 @@ ColumnLayout {
                         Layout.alignment: Qt.AlignRight
                         font.family: Appearance.font.family.monospace
                         font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colSubtext
+                        color: Appearance.colMetadataText
                         horizontalAlignment: Text.AlignRight
                         text: index + 1
                     }
@@ -215,7 +215,7 @@ ColumnLayout {
                         contentItem: Rectangle {
                             implicitHeight: 6
                             radius: Appearance.rounding.small
-                            color: Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceActive : Appearance.colors.colLayer2Active
+                            color: Appearance.auroraEverywhere ? Appearance.aurora.colSubSurfaceActive : Appearance.colLayer2Active
                         }
                     }
 

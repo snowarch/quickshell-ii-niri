@@ -50,6 +50,7 @@ Item {
             configuration: root.enableWavy ? StyledSlider.Configuration.Wavy : StyledSlider.Configuration.S
             trackWidth: root.enableWavy ? 2 : StyledSlider.Configuration.S
             handleHeight: Math.min(14, root.height)
+            stopIndicatorValues: []
             wavy: root.enableWavy && root.isPlaying
             animateWave: root.waveAnimationActive
             highlightColor: root.highlightColor

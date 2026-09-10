@@ -770,7 +770,7 @@ Item {
                         z: 20
                         radius: Appearance.inirEverywhere ? Appearance.inir.roundingSmall : Appearance.rounding.verysmall
                         color: sectionHandleArea.containsMouse || sectionLoader.isBeingDragged
-                            ? (Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover : Appearance.colors.colLayer1Hover)
+                            ? (Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover : Appearance.colLayer1Hover)
                             : (Appearance.inirEverywhere ? Appearance.inir.colLayer1 : Appearance.colors.colLayer1)
                         border.width: Appearance.inirEverywhere ? 1 : 0
                         border.color: Appearance.inirEverywhere ? Appearance.inir.colBorder : "transparent"
@@ -1020,7 +1020,7 @@ Item {
                 MaterialSymbol {
                     text: root.detailMeta[root.expandedWidgetType]?.icon ?? ""
                     iconSize: Appearance.font.pixelSize.larger
-                    color: Appearance.inirEverywhere ? Appearance.inir.colPrimary : Appearance.colors.colPrimary
+                    color: Appearance.colActionIcon
                 }
                 StyledText {
                     Layout.fillWidth: true
@@ -1034,14 +1034,14 @@ Item {
                     implicitHeight: 34
                     buttonRadius: Appearance.editorialEverywhere ? Appearance.rounding.small : Appearance.rounding.full
                     colBackground: "transparent"
-                    colBackgroundHover: Appearance.colors.colLayer2Hover
-                    colRipple: Appearance.colors.colLayer2Active
+                    colBackgroundHover: Appearance.colLayer2Hover
+                    colRipple: Appearance.colLayer2Active
                     onClicked: root.closeWidgetDetail()
                     contentItem: MaterialSymbol {
                         anchors.centerIn: parent
                         text: "close_fullscreen"
                         iconSize: Appearance.font.pixelSize.normal
-                        color: Appearance.inirEverywhere ? Appearance.inir.colText : Appearance.colors.colOnLayer1
+                        color: Appearance.colSecondaryActionIcon
                     }
                     StyledToolTip { text: Translation.tr("Back to sidebar") }
                 }

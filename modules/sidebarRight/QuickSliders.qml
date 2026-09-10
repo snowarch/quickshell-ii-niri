@@ -140,7 +140,7 @@ Rectangle {
         signal moved(real value)
 
         Layout.fillWidth: true
-        implicitHeight: readout.implicitHeight + 4 + slider.implicitHeight
+        implicitHeight: slider.implicitHeight
 
         onModelValueChanged: {
             if (!slider.pressed && !slider._userInteracting
@@ -149,40 +149,13 @@ Rectangle {
             }
         }
 
-        RowLayout {
-            id: readout
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            spacing: 4
-
-            MaterialSymbol {
-                iconSize: 18
-                color: Appearance.angelEverywhere ? Appearance.angel.colText
-                    : Appearance.inirEverywhere ? Appearance.inir.colText
-                    : Appearance.colors.colOnSurface
-                text: quickSlider.materialSymbol
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignRight
-                text: `${Math.round(slider.value * 100)}%`
-                font.family: Appearance.font.family.numbers
-                font.variableAxes: Appearance.font.variableAxes.numbers
-                font.features: ({ "tnum": 1 })
-                font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.inirEverywhere ? Appearance.inir.colTextSecondary
-                    : Appearance.colors.colSubtext
-            }
-        }
-
         StyledSlider {
             id: slider
             anchors {
                 left: parent.left
-                right: parent.right
-                bottom: parent.bottom
+                right: icon.left
+                rightMargin: 8
+                verticalCenter: parent.verticalCenter
             }
             configuration: StyledSlider.Configuration.M
             stopIndicatorValues: []
@@ -191,6 +164,22 @@ Rectangle {
             tooltipContent: `${quickSlider.label} · ${Math.round(value * 100)}%`
             value: quickSlider.modelValue
             onMoved: quickSlider.moved(value)
+        }
+
+        MaterialSymbol {
+            id: icon
+            anchors {
+                verticalCenter: parent.verticalCenter
+                right: parent.right
+            }
+            iconSize: 20
+            color: Appearance.colActionIcon
+            text: quickSlider.materialSymbol
+
+            Behavior on color {
+                enabled: Appearance.animationsEnabled
+                animation: ColorAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+            }
         }
 
         Rectangle {

@@ -405,11 +405,11 @@ Item {
                 if (navBtnMA.containsPress)
                     return Appearance.angelEverywhere ? Appearance.angel.colGlassCardActive
                         : Appearance.inirEverywhere ? Appearance.inir.colLayer1Active
-                        : Appearance.colors.colLayer1Active
+                        : Appearance.colLayer1Active
                 if (navBtnMA.containsMouse)
                     return Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover
                         : Appearance.inirEverywhere ? Appearance.inir.colLayer1Hover
-                        : Appearance.colors.colLayer1Hover
+                        : Appearance.colLayer1Hover
                 return "transparent"
             }
             Behavior on color { enabled: Appearance.animationsEnabled; ColorAnimation { duration: Appearance.animation.elementMoveFast.duration } }
