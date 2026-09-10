@@ -196,7 +196,8 @@ void main() {
         float sd = length(max(q, vec2(0))) + min(max(q.x, q.y), 0.0) - radius;
         mask = 1.0 - smoothstep(-1.0, 0.5, sd);
     }
-    float t = u.motion.x * TAU;
+    float flowDirection = u.topology.y < 0.0 ? -1.0 : 1.0;
+    float t = u.motion.x * TAU * flowDirection;
     vec2 orbit = vec2(cos(t), sin(t));
     float bassEnergy = max(max(u.bandsA.x, u.bandsA.y), u.bandsA.z);
     float midEnergy = max(max(u.bandsB.x, u.bandsB.y), max(u.bandsB.z, u.bandsB.w));
@@ -205,7 +206,8 @@ void main() {
     float connectedDepth = 1.0;
     float connectedLocal = 0.0;
     if (unifiedPath) {
-        float blendRadius = clamp(radius / 300.0, 0.05, 0.28);
+        float cornerBlend = clamp(u.topology.z, 0.0, 1.0);
+        float blendRadius = mix(0.035, 0.28, cornerBlend);
         bool hasConnectedField = false;
         float connectedWeight = 0.0;
         float connectedDepthSum = 0.0;
@@ -230,7 +232,8 @@ void main() {
                 bassEnergy, midEnergy, trebleEnergy);
             sideReach *= mix(0.08, 1.0, endpointMask);
             float effectiveSideDepth = u.depths[side];
-            float transitionPx = max(24.0, radius * 1.35);
+            float transitionPx = clamp(min(size.x, size.y)
+                * mix(0.018, 0.085, cornerBlend), 18.0, 180.0);
             float transitionT = transitionPx / max(1.0, extent);
             if (cornerJoined(previous, side)) {
                 float sharedDepth = min(u.depths[previous], u.depths[side]);
@@ -420,16 +423,21 @@ void main() {
                 * (0.035 + u.activity.y * 0.050 + u.activity.z * 0.030);
         } else if (u.effects.x >= 2.5 && u.effects.x < 3.5) {
             float chroma = sin(theta * 5.0 - t * 0.7 + relativeDepth * 8.0);
-            hue += chroma * effect * (0.08 + u.activity.y * 0.045);
-            fill += rim * effect * (0.016 + trebleEnergy * 0.025);
+            float prismEnergy = clamp(trebleEnergy * u.response.y * 0.72
+                + level * 0.22 + localTransient * 0.42, 0.0, 1.0);
+            hue += chroma * effect * (0.018 + prismEnergy * 0.105
+                + u.activity.z * 0.040);
+            fill += rim * effect * (0.008 + prismEnergy * 0.040);
         } else if (u.effects.x >= 3.5 && u.effects.x < 4.5) {
             float bloomDistance = unifiedPath ? max(0.0, fieldRatio - 1.0)
                 : max(0.0, d - reach);
             float bloomDecay = unifiedPath ? mix(8.0, 2.5, u.appearance.z)
                 : mix(28.0, 8.0, u.appearance.z);
             float bloom = exp(-bloomDistance * bloomDecay) * (1.0 - body);
+            float bloomEnergy = clamp(bassEnergy * u.response.x * 0.82
+                + u.activity.y * 0.34 + u.activity.z * 0.18, 0.0, 1.0);
             halo += bloom * effect * u.material.z
-                * (0.022 + u.activity.y * 0.050 + u.activity.z * 0.040);
+                * (0.012 + bloomEnergy * 0.090);
         } else if (u.effects.x >= 4.5 && u.effects.x < 5.5) {
             float causticWave = 0.5 + 0.5 * sin(relativeDepth * 19.0
                 + theta * 3.0 - t * 1.15 + n * 4.0);

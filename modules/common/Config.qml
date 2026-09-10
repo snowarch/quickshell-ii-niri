@@ -1080,7 +1080,7 @@ Singleton {
                     property int barSpacing: 1
                     property bool stereo: true
                     property int waveOpacity: 30 // 5-100, fill alpha for WaveVisualizer (0.05–1.0)
-                    // Optional allowlist for internal visualizers. Empty keeps automatic
+                    // Internal visualizer source exclusions. Empty keeps automatic
                     // active-player/source selection.
                     property list<string> blockedApps: []
                 }
@@ -2094,6 +2094,7 @@ Singleton {
                         property int bottomScale: 100
                         property int leftScale: 100
                         property int cornerRadius: 24
+                        property int cornerBlend: 55
                         property int taper: 14
                         property int thickness: 22
                         property int detail: 42
@@ -2135,6 +2136,8 @@ Singleton {
                         property int compression: 12
                         property int motionSpeed: 100
                         property int idleMotion: 14
+                        property string flowDirection: "clockwise"
+                        property int restPresence: 58
                         property int glow: 52
                         property list<string> screenList: []
                     }

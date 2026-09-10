@@ -29,6 +29,7 @@ Item {
     readonly property var selectedEdges: EdgeConfig.selectedEdges(root.value("edges"), root.value("edge"))
     readonly property bool audioReactive: Boolean(root.value("audioReactive"))
     readonly property string idleMode: String(root.value("idleMode"))
+    readonly property real restPresence: root.number("restPresence", 0, 100) / 100
     readonly property bool renderAllowed: configuredEnabled && outputAllowed
         && !GlobalStates.screenLocked && !GameMode.visualizersSuppressed
         && !Appearance.gameModeMinimal && WidgetPowerManager.widgetsActiveForOutput(root.screenName)
@@ -37,6 +38,13 @@ Item {
     readonly property real margin: root.number("inset", 0, 160)
     readonly property string palette: EdgeConfig.paletteValue(root.value("palette"))
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
+    readonly property real audioPresence: root.audioReactive
+        ? Math.min(1, (fieldLoader.item?.energy ?? 0) * 1.5)
+        : 1
+    readonly property real idlePresence: root.audioReactive
+        ? (root.idleMode === "hidden" ? root.audioPresence
+            : root.restPresence + (1 - root.restPresence) * root.audioPresence)
+        : 1
     function visualColor(value, fallback, saturationFloor, saturationBoost, hueShift) {
         const source = Qt.color(value)
         const safe = source.valid ? source : Qt.color(fallback)
@@ -166,6 +174,9 @@ Item {
             edges: root.selectedEdges, palette: root.palette,
             shape: String(root.value("shape")), joinMode: String(root.value("joinMode")),
             colorMode: String(root.value("colorMode")), effectMode: String(root.value("effectMode")),
+            flowDirection: String(root.value("flowDirection")),
+            idleMode: root.idleMode, restPresence: root.restPresence,
+            audioPresence: root.audioPresence, idlePresence: root.idlePresence,
             paletteColors: [String(root.primary), String(root.secondary), String(root.tertiary)],
             albumColorCount: root.palette === "album" || root.palette === "adaptive"
                 ? (albumArtworkQuantizer?.colors?.length ?? 0) : 0,
@@ -210,18 +221,16 @@ Item {
         y: (root.insets.top ?? 0) + root.margin
         width: Math.max(0, root.width - x - (root.insets.right ?? 0) - root.margin)
         height: Math.max(0, root.height - y - (root.insets.bottom ?? 0) - root.margin)
-        opacity: root.number("opacity", 0, 100) / 100
-            * (root.audioReactive && root.idleMode === "hidden" && !cava.audioSignalActive ? 0 : 1)
-        active: root.renderAllowed && opacity > 0 && width > 0 && height > 0
-        Behavior on opacity {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementMove.duration }
-        }
+        opacity: root.number("opacity", 0, 100) / 100 * root.idlePresence
+        active: root.renderAllowed && width > 0 && height > 0
+            && (!root.audioReactive || root.idleMode !== "hidden"
+                || cava.audioSignalActive || root.audioPresence > 0.003)
         sourceComponent: OrganicScreenEdge {
             id: edgeField
             active: root.renderAllowed
             animate: Appearance.animationsEnabled
-                && (root.idleMode !== "still" || cava.audioSignalActive || edgeField.energy > 0.005)
+                && (cava.audioSignalActive || edgeField.energy > 0.005
+                    || (root.idleMode === "ambient" && root.number("idleMotion", 0, 100) > 0))
             points: root.audioReactive ? cava.points : []
             normalizationCeiling: cava.normalizationCeiling
             mirroredStereo: false
@@ -238,6 +247,8 @@ Item {
             position: root.number("position", 0, 100) / 100
             taper: root.number("taper", 0, 50) / 100
             cornerRadius: root.number("cornerRadius", 0, 160)
+            cornerBlend: root.number("cornerBlend", 0, 100) / 100
+            flowDirection: String(root.value("flowDirection")) === "counterclockwise" ? -1 : 1
             thickness: root.number("thickness", 5, 70) / 100
             detail: root.number("detail", 0, 100) / 100
             material: Math.max(0, ["silk", "aurora", "contour", "liquid"].indexOf(String(root.value("style"))))

@@ -76,6 +76,16 @@ Scope {
         return order
     }
 
+    function applyOrganicEdgeNamedPreset(presets, name: string, label: string): string {
+        const preset = presets.find(p => p.name.toLowerCase() === name.toLowerCase())
+        if (!preset) return "Unknown Organic edge " + label.toLowerCase()
+        const updates = {}
+        for (const key of Object.keys(preset.values))
+            updates[OrganicEdgeConfig.path + "." + key] = preset.values[key]
+        Config.setNestedValues(updates)
+        return "Organic edge " + label + ": " + preset.name
+    }
+
     IpcHandler {
         target: "background"
         function toggleEditMode(): string {
@@ -112,13 +122,19 @@ Scope {
         }
 
         function applyOrganicEdgePreset(name: string): string {
-            const preset = OrganicEdgeConfig.presets.find(p => p.name.toLowerCase() === name.toLowerCase())
-            if (!preset) return "Unknown Organic edge composition"
-            const updates = {}
-            for (const key of Object.keys(preset.values))
-                updates[OrganicEdgeConfig.path + "." + key] = preset.values[key]
-            Config.setNestedValues(updates)
-            return "Organic edge: " + preset.name
+            return backgroundScope.applyOrganicEdgeNamedPreset(OrganicEdgeConfig.presets, name, "scene")
+        }
+
+        function applyOrganicEdgeComposition(name: string): string {
+            return backgroundScope.applyOrganicEdgeNamedPreset(OrganicEdgeConfig.compositionPresets, name, "composition")
+        }
+
+        function applyOrganicEdgeMaterial(name: string): string {
+            return backgroundScope.applyOrganicEdgeNamedPreset(OrganicEdgeConfig.materialPresets, name, "material")
+        }
+
+        function applyOrganicEdgeResponse(name: string): string {
+            return backgroundScope.applyOrganicEdgeNamedPreset(OrganicEdgeConfig.responsePresets, name, "response")
         }
 
         function organicEdgeState(): string {

@@ -11,6 +11,8 @@ OrganicAudioMotion {
     property real position: 0.5
     property real taper: 0.12
     property real cornerRadius: 24
+    property real cornerBlend: 0.55
+    property real flowDirection: 1
     property real thickness: 0.32
     property real detail: 0.45
     property real sensitivity: 0.75
@@ -50,6 +52,8 @@ OrganicAudioMotion {
     property real _position: position
     property real _taper: taper
     property real _cornerRadius: cornerRadius
+    property real _cornerBlend: cornerBlend
+    property real _flowDirection: flowDirection
     property real _thickness: thickness
     property real _detail: detail
     property real _sensitivity: sensitivity
@@ -87,6 +91,8 @@ OrganicAudioMotion {
     TuneBehavior on _position {}
     TuneBehavior on _taper {}
     TuneBehavior on _cornerRadius {}
+    TuneBehavior on _cornerBlend {}
+    TuneBehavior on _flowDirection {}
     TuneBehavior on _thickness {}
     TuneBehavior on _detail {}
     TuneBehavior on _sensitivity {}
@@ -124,7 +130,8 @@ OrganicAudioMotion {
         property vector4d appearance: Qt.vector4d(root._bodyOpacity, root._crestStrength, root._glowSpread, root._audioRange)
         property vector4d response: Qt.vector4d(root._bassDrive, root._trebleDrive, root._transientStrength, root._beatGlow)
         property vector4d effects: Qt.vector4d(root.effectMode, root._effectStrength, root.colorMode, root.shapeMode)
-        property vector4d topology: Qt.vector4d(root.joinConnected ? 1 : 0, 0, 0, 0)
+        property vector4d topology: Qt.vector4d(root.joinConnected ? 1 : 0,
+            root._flowDirection, root._cornerBlend, 0)
         property vector4d motion: Qt.vector4d(root._phase, root.idleMotion, root._colorSpeed, root._sensitivity)
         property vector4d activity: Qt.vector4d(root._energy, root._pulse * root._pulseStrength, root._onset, root._compression)
         property vector4d bandsA: root._bandsA
