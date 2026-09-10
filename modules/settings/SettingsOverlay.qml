@@ -189,11 +189,18 @@ Scope {
     function trySpotlight() {
         const pageHost = panelLoader.item?.pageHostItem ?? null
         const pageItem = pageHost?.currentItem ?? null
+        let taskActivated = false
         if (pageItem && pageHost.currentIndex === pendingSpotlightPageIndex) {
             const targetTask = pendingSpotlightTask.length > 0
                 ? pendingSpotlightTask : pendingSpotlightSection
             if (targetTask.length > 0)
-                SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+                taskActivated = SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+        }
+
+        if (taskActivated && pendingSpotlightOptionId < 0
+                && pendingSpotlightLabel.length === 0 && pendingSpotlightSection.length === 0) {
+            resetSearchTarget()
+            return
         }
 
         var control = null;
@@ -208,6 +215,7 @@ Scope {
                 pageItem, pendingSpotlightLabel, pendingSpotlightSection, pendingSpotlightIsSection)
 
         if (!control && pageItem && pendingSpotlightSection.length > 0
+                && spotlightRetryCount < spotlightMaxRetries
                 && SettingsSearchRegistry.revealLoadedSection(pageItem, pendingSpotlightSection)) {
             spotlightRetryCount++
             spotlightPageLoadTimer.restart()
@@ -308,15 +316,33 @@ Scope {
         if (root.overlaySearchText.length > 0) root.recomputeOverlaySearchResults();
     }
 
+    function applyRequestedNavigation(): void {
+        if (!root.settingsOpen)
+            return
+
+        const requestedPage = GlobalStates.settingsOverlayRequestedPage ?? -1
+        if (requestedPage >= 0) {
+            root.overlayCurrentPage = requestedPage
+            GlobalStates.settingsOverlayRequestedPage = -1
+        }
+
+        const requestedSection = String(GlobalStates.settingsOverlayRequestedSection ?? "")
+        if (requestedSection.length === 0)
+            return
+
+        root.resetSearchTarget()
+        root.pendingSpotlightTask = requestedSection
+        root.pendingSpotlightPageIndex = root.overlayCurrentPage
+        root.spotlightRetryCount = 0
+        GlobalStates.settingsOverlayRequestedSection = ""
+        spotlightPageLoadTimer.restart()
+    }
+
     Connections {
         target: GlobalStates
         function onSettingsOverlayOpenChanged() {
-            if (GlobalStates.settingsOverlayOpen) {
-                if (GlobalStates.settingsOverlayRequestedPage >= 0) {
-                    root.overlayCurrentPage = GlobalStates.settingsOverlayRequestedPage
-                    GlobalStates.settingsOverlayRequestedPage = -1
-                }
-            }
+            if (GlobalStates.settingsOverlayOpen)
+                root.applyRequestedNavigation()
         }
     }
 
@@ -336,11 +362,10 @@ Scope {
     Connections {
         target: GlobalStates
         function onSettingsOverlayRequestedPageChanged() {
-            const requested = GlobalStates.settingsOverlayRequestedPage ?? -1
-            if (requested < 0 || !root.settingsOpen)
-                return
-            root.overlayCurrentPage = requested
-            GlobalStates.settingsOverlayRequestedPage = -1
+            root.applyRequestedNavigation()
+        }
+        function onSettingsOverlayRequestedSectionChanged() {
+            root.applyRequestedNavigation()
         }
     }
 
@@ -1587,9 +1612,8 @@ Scope {
                                                 : CF.ColorUtils.transparentize(Appearance.colors.colLayer1Hover, 0.5)
 
                                     onClicked: {
-                                        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings-window"])
-                                        Config.setNestedValue("settingsUi.overlayMode", false)
-                                        GlobalStates.settingsOverlayOpen = false
+                                        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                                            "ipc", "settings", "openWindowAt", String(root.overlayCurrentPage)])
                                     }
 
                                     contentItem: RowLayout {

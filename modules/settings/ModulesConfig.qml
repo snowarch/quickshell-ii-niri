@@ -1122,9 +1122,16 @@ ContentPage {
                 buttonIcon: "layers"
                 text: Translation.tr("Overlay mode (live preview)")
                 checked: Config.options?.settingsUi?.overlayMode ?? false
-                onCheckedChanged: Config.setNestedValue("settingsUi.overlayMode", checked)
+                autoToggle: false
+                onToggledByUser: enabled => {
+                    const action = enabled ? "openOverlayAt" : "openWindowAt"
+                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                        "ipc", "settings", action, String(modulesPage.settingsPageIndex)])
+                    if (enabled && !GlobalStates.settingsOverlayOpen)
+                        Qt.quit()
+                }
                 StyledToolTip {
-                    text: Translation.tr("When enabled, Settings opens as a floating overlay inside the shell instead of a separate window. This lets you preview changes instantly.\nRequires a shell restart to take effect.")
+                    text: Translation.tr("When enabled, Settings opens as a floating overlay inside the shell instead of a separate window. Switching modes takes effect immediately and keeps you on this Settings page.")
                 }
             }
 
@@ -1140,7 +1147,8 @@ ContentPage {
                         { displayName: Translation.tr("Unified"), icon: "side_navigation", value: "unified" },
                         { displayName: Translation.tr("Editorial"), icon: "auto_stories", value: "editorial" }
                     ]
-                    onSelected: value => Config.setNestedValue("settingsUi.overlayStyle", value)
+                    onSelected: value => Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                        "ipc", "settings", "setOverlayStyle", value, String(modulesPage.settingsPageIndex)])
                 }
 
                 StyledText {

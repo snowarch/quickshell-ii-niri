@@ -378,14 +378,7 @@ Item {
                     iconName: "settings"
                     compact: true
                     tooltip: Translation.tr("Open full widget settings")
-                    onClicked: {
-                        if (Config.options?.settingsUi?.overlayMode !== false) {
-                            GlobalStates.settingsOverlayRequestedPage = 14
-                            GlobalStates.settingsOverlayOpen = true
-                        } else {
-                            Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14", Quickshell.shellPath("scripts/inir"), "settings-window"])
-                        }
-                    }
+                    onClicked: GlobalStates.openSettingsPage(14)
                 }
 
                 WidgetEditAction {

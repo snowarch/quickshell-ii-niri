@@ -201,7 +201,7 @@ Singleton {
             icon: "settings",
             category: "system",
             keywords: ["settings", "config", "preferences", "configure"],
-            execute: () => { GlobalStates.settingsOverlayOpen = true }
+            execute: () => { GlobalStates.openSettings() }
         },
         {
             id: "toggle-dashboard",

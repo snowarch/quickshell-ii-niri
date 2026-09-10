@@ -287,7 +287,7 @@ AbstractBackgroundWidget {
                     root.widgetSemanticOnContainer(root.widgetSecondaryRole), 0.90)
                 colRipple: ColorUtils.mix(root.widgetSemanticContainer(root.widgetSecondaryRole),
                     root.widgetSemanticOnContainer(root.widgetSecondaryRole), 0.80)
-                onClicked: GlobalStates.settingsOverlayOpen = true
+                onClicked: GlobalStates.openSettings()
                 contentItem: MaterialSymbol {
                     anchors.centerIn: parent
                     text: "settings"

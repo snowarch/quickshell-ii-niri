@@ -487,10 +487,38 @@ ShellRoot {
     IpcHandler {
         target: "settings"
         function open(): void {
-            GlobalStates.toggleSettings()
+            GlobalStates.openSettings()
         }
         function toggle(): void {
             GlobalStates.toggleSettings()
+        }
+        function openOverlay(): void {
+            Config.setNestedValue("settingsUi.overlayMode", true)
+            GlobalStates.settingsOverlayOpen = true
+        }
+        function openOverlayAt(index: int): void {
+            if (index >= 0)
+                GlobalStates.settingsOverlayRequestedPage = index
+            Config.setNestedValue("settingsUi.overlayMode", true)
+            GlobalStates.settingsOverlayOpen = true
+        }
+        function openWindowAt(index: int): void {
+            const args = ["/usr/bin/env"]
+            if (index >= 0)
+                args.push(`QS_SETTINGS_PAGE=${index}`)
+            args.push(Quickshell.shellPath("scripts/inir"), "settings-window")
+            Quickshell.execDetached(args)
+            Config.setNestedValue("settingsUi.overlayMode", false)
+            GlobalStates.settingsOverlayOpen = false
+        }
+        function setOverlayStyle(style: string, index: int): void {
+            if (index >= 0)
+                GlobalStates.settingsOverlayRequestedPage = index
+            Config.setNestedValues({
+                "settingsUi.overlayMode": true,
+                "settingsUi.overlayStyle": style
+            })
+            GlobalStates.settingsOverlayOpen = true
         }
     }
 

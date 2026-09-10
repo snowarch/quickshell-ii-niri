@@ -100,12 +100,14 @@ Singleton {
     property bool windowPreviewCaptureActive: false
     property bool settingsOverlayOpen: false
     property int settingsOverlayRequestedPage: -1 // Set before opening to navigate to a specific page
+    property string settingsOverlayRequestedSection: ""
     property int settingsOverlayCurrentPage: -1 // Published by whichever overlay chrome is loaded
     property var _settingsNativeDialogs: ({})
     readonly property bool settingsNativeDialogOpen:
         Object.keys(root._settingsNativeDialogs).length > 0
 
-    function openSettingsPage(index: int): void {
+    function openSettingsPage(index: int, section): void {
+        const requestedSection = String(section ?? "")
         const isWaffle = Config.options?.panelFamily === "waffle"
             && Config.options?.waffles?.settings?.useMaterialStyle !== true
         if (isWaffle) {
@@ -113,10 +115,28 @@ Singleton {
                 "waffle-settings-window"])
         } else if (Config.options?.settingsUi?.overlayMode ?? false) {
             root.settingsOverlayRequestedPage = index
+            root.settingsOverlayRequestedSection = requestedSection
             root.settingsOverlayOpen = true
         } else {
-            Quickshell.execDetached(["/usr/bin/env", `QS_SETTINGS_PAGE=${index}`,
-                Quickshell.shellPath("scripts/inir"), "settings-window"])
+            const args = ["/usr/bin/env", `QS_SETTINGS_PAGE=${index}`]
+            if (requestedSection.length > 0)
+                args.push(`QS_SETTINGS_SECTION=${requestedSection}`)
+            args.push(Quickshell.shellPath("scripts/inir"), "settings-window")
+            Quickshell.execDetached(args)
+        }
+    }
+
+    function openSettings(): void {
+        const isWaffle = Config.options?.panelFamily === "waffle"
+            && Config.options?.waffles?.settings?.useMaterialStyle !== true
+        if (isWaffle) {
+            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                "waffle-settings-window"])
+        } else if (Config.options?.settingsUi?.overlayMode ?? false) {
+            root.settingsOverlayOpen = true
+        } else {
+            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                "settings-window"])
         }
     }
 

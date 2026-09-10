@@ -61,13 +61,8 @@ Scope {
             _closeAnimRunning = false;
             closeAnimTimer.stop();
             root.clearSearch();
-            const requested = GlobalStates.settingsOverlayRequestedPage ?? -1;
-            if (requested >= 0 && requested < root.pages.length) {
-                root.openPage(requested);
-                GlobalStates.settingsOverlayRequestedPage = -1;
-            } else {
+            if (!root.applyRequestedNavigation())
                 root.level = 0;
-            }
         } else {
             _closeAnimRunning = true;
             closeAnimTimer.restart();
@@ -88,6 +83,34 @@ Scope {
         root.level = 1;
     }
 
+    function applyRequestedNavigation(): bool {
+        if (!root.settingsOpen)
+            return false
+
+        let handled = false
+        const requestedPage = GlobalStates.settingsOverlayRequestedPage ?? -1
+        if (requestedPage >= 0 && requestedPage < root.pages.length) {
+            root.openPage(requestedPage)
+            GlobalStates.settingsOverlayRequestedPage = -1
+            handled = true
+        }
+
+        const requestedSection = String(GlobalStates.settingsOverlayRequestedSection ?? "")
+        if (requestedSection.length > 0 && root.currentPage >= 0) {
+            root._pendingOptionId = -1
+            root._pendingPageIndex = root.currentPage
+            root._pendingLabel = ""
+            root._pendingTask = requestedSection
+            root._pendingSection = ""
+            root._pendingIsSection = false
+            root._spotlightRetries = 0
+            GlobalStates.settingsOverlayRequestedSection = ""
+            spotlightTimer.restart()
+            handled = true
+        }
+        return handled
+    }
+
     function goHome(): void {
         root.level = 0;
     }
@@ -102,15 +125,12 @@ Scope {
     // standalone process, so the panel must close before the window appears.
     function setLayout(mode: string): void {
         if (mode === "window") {
-            Config.setNestedValue("settingsUi.overlayMode", false);
-            GlobalStates.settingsOverlayOpen = false;
-            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings-window"]);
+            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                "ipc", "settings", "openWindowAt", String(root.currentPage)]);
             return;
         }
-        Config.setNestedValues({
-            "settingsUi.overlayMode": true,
-            "settingsUi.overlayStyle": mode
-        });
+        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+            "ipc", "settings", "setOverlayStyle", mode, String(root.currentPage)]);
     }
 
     // ── Home grid model: categories that still have visible pages ──
@@ -268,6 +288,7 @@ Scope {
     property string _pendingLabel: ""
     property string _pendingTask: ""
     property string _pendingSection: ""
+    property bool _pendingIsSection: false
     property int _spotlightRetries: 0
     readonly property int _spotlightMaxRetries: 15
 
@@ -282,6 +303,7 @@ Scope {
             root._pendingLabel = "";
             root._pendingTask = "";
             root._pendingSection = "";
+            root._pendingIsSection = false;
             return;
         }
 
@@ -290,9 +312,11 @@ Scope {
         root._pendingLabel = String(entry.label || "");
         root._pendingTask = String(entry.task || "");
         root._pendingSection = String(entry.section || "");
+        root._pendingIsSection = entry.optionId === undefined && entry.isSection === true;
         root.openPage(entry.pageIndex);
 
-        if (root._pendingOptionId >= 0 || root._pendingLabel.length > 0 || root._pendingSection.length > 0)
+        if (root._pendingOptionId >= 0 || root._pendingLabel.length > 0
+                || root._pendingTask.length > 0 || root._pendingSection.length > 0)
             spotlightTimer.restart();
         else
             root._pendingPageIndex = -1;
@@ -305,21 +329,32 @@ Scope {
     }
 
     function _trySpotlight(): void {
-        if (root._pendingOptionId < 0 && root._pendingLabel.length === 0 && root._pendingSection.length === 0)
+        if (root._pendingOptionId < 0 && root._pendingLabel.length === 0
+                && root._pendingTask.length === 0 && root._pendingSection.length === 0)
             return;
 
         const pageItem = pageHost.currentItem
+        let taskActivated = false
         if (pageItem && pageHost.currentIndex === root._pendingPageIndex) {
             const targetTask = root._pendingTask.length > 0 ? root._pendingTask : root._pendingSection
             if (targetTask.length > 0)
-                SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+                taskActivated = SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+        }
+
+        if (taskActivated && root._pendingOptionId < 0
+                && root._pendingLabel.length === 0 && root._pendingSection.length === 0) {
+            root._pendingPageIndex = -1
+            root._pendingTask = ""
+            root._pendingIsSection = false
+            return
         }
 
         var control = root._pendingOptionId >= 0
             ? SettingsSearchRegistry.getControlById(root._pendingOptionId)
             : (pageItem ? SettingsSearchRegistry.findLoadedTarget(
-                pageItem, root._pendingLabel, root._pendingSection, false) : null);
+                pageItem, root._pendingLabel, root._pendingSection, root._pendingIsSection) : null);
         if (!control && pageItem && root._pendingSection.length > 0
+                && root._spotlightRetries < root._spotlightMaxRetries
                 && SettingsSearchRegistry.revealLoadedSection(pageItem, root._pendingSection)) {
             root._spotlightRetries++;
             spotlightTimer.restart();
@@ -335,6 +370,7 @@ Scope {
                 root._pendingLabel = "";
                 root._pendingTask = "";
                 root._pendingSection = "";
+                root._pendingIsSection = false;
             }
             return;
         }
@@ -355,6 +391,7 @@ Scope {
         root._pendingLabel = "";
         root._pendingTask = "";
         root._pendingSection = "";
+        root._pendingIsSection = false;
     }
 
     function _findParentFlickable(item): var {
@@ -383,11 +420,10 @@ Scope {
         // Also fires while the panel is already open, which is how
         // `settingsNav page` navigates instead of only picking the landing page.
         function onSettingsOverlayRequestedPageChanged() {
-            const requested = GlobalStates.settingsOverlayRequestedPage ?? -1;
-            if (requested < 0 || !root.settingsOpen)
-                return;
-            root.openPage(requested);
-            GlobalStates.settingsOverlayRequestedPage = -1;
+            root.applyRequestedNavigation();
+        }
+        function onSettingsOverlayRequestedSectionChanged() {
+            root.applyRequestedNavigation();
         }
     }
 

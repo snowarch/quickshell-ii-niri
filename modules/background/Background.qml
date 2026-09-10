@@ -1685,15 +1685,7 @@ Scope {
                         } },
                     { type: "separator" },
                     { text: Translation.tr("Widget settings"), iconName: "settings", monochromeIcon: true,
-                        action: () => {
-                            if (Config.options?.settingsUi?.overlayMode !== false) {
-                                GlobalStates.settingsOverlayRequestedPage = 14
-                                GlobalStates.settingsOverlayOpen = true
-                            } else {
-                                Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14",
-                                    Quickshell.shellPath("scripts/inir"), "settings-window"])
-                            }
-                        } },
+                        action: () => GlobalStates.openSettingsPage(14) },
                     { text: Translation.tr("Done editing"), iconName: "check", monochromeIcon: true,
                         action: () => { widgetManagerPanel.shown = false; GlobalStates.setWidgetEditMode(false) } }
                 ] : [
@@ -2375,20 +2367,8 @@ Scope {
                         y: Math.max(editGridOverlay.safeTop,
                             editGridOverlay.safeBottom - height - 12)
                         onLibraryRequested: widgetManagerPanel.shown = !widgetManagerPanel.shown
-                        onEdgeSettingsRequested: {
-                            Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14",
-                                "QS_SETTINGS_SECTION=Organic edge",
-                                Quickshell.shellPath("scripts/inir"), "settings-window"])
-                        }
-                        onSettingsRequested: {
-                            if (Config.options?.settingsUi?.overlayMode !== false) {
-                                GlobalStates.settingsOverlayRequestedPage = 14
-                                GlobalStates.settingsOverlayOpen = true
-                            } else {
-                                Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14",
-                                    Quickshell.shellPath("scripts/inir"), "settings-window"])
-                            }
-                        }
+                        onEdgeSettingsRequested: GlobalStates.openSettingsPage(14, "Organic edge")
+                        onSettingsRequested: GlobalStates.openSettingsPage(14)
                         onDoneRequested: {
                             widgetManagerPanel.shown = false
                             GlobalStates.setWidgetEditMode(false)

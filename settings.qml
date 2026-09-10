@@ -51,7 +51,7 @@ ApplicationWindow {
         root._navigationInitialized = true
         root._persistCurrentPage()
         if (root._requestedStartSection.length > 0) {
-            root.pendingSpotlightSection = root._requestedStartSection
+            root.pendingSpotlightTask = root._requestedStartSection
             root.pendingSpotlightPageIndex = root.currentPage
             root.trySpotlight()
         }
@@ -254,11 +254,18 @@ ApplicationWindow {
 
     function trySpotlight() {
         const pageItem = pagesStack.currentItem
+        let taskActivated = false
         if (pageItem && pagesStack.currentIndex === pendingSpotlightPageIndex) {
             const targetTask = pendingSpotlightTask.length > 0
                 ? pendingSpotlightTask : pendingSpotlightSection
             if (targetTask.length > 0)
-                SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+                taskActivated = SettingsSearchRegistry.activatePageSection(pageItem, targetTask)
+        }
+
+        if (taskActivated && pendingSpotlightOptionId < 0
+                && pendingSpotlightLabel.length === 0 && pendingSpotlightSection.length === 0) {
+            resetSearchTarget()
+            return
         }
 
         var control = null;
@@ -273,6 +280,7 @@ ApplicationWindow {
                 pageItem, pendingSpotlightLabel, pendingSpotlightSection, pendingSpotlightIsSection)
 
         if (!control && pageItem && pendingSpotlightSection.length > 0
+                && spotlightRetryCount < spotlightMaxRetries
                 && SettingsSearchRegistry.revealLoadedSection(pageItem, pendingSpotlightSection)) {
             spotlightRetryCount++
             spotlightPageLoadTimer.restart()
@@ -1400,8 +1408,9 @@ ApplicationWindow {
                         colBackgroundHover: Appearance.colors.colLayer1Hover
 
                         onClicked: {
-                            Config.setNestedValue("settingsUi.overlayMode", true)
-                            settingsRestartTimer.restart()
+                            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
+                                "ipc", "settings", "openOverlayAt", String(root.currentPage)])
+                            Qt.quit()
                         }
 
                         contentItem: RowLayout {
@@ -1435,14 +1444,6 @@ ApplicationWindow {
                     }
                 }
 
-                Timer {
-                    id: settingsRestartTimer
-                    interval: 500
-                    onTriggered: {
-                        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
-                        Qt.quit()
-                    }
-                }
             }
 
             Rectangle { // Content container
