@@ -340,6 +340,24 @@ ContentPage {
         }
     }
 
+    function commandErrorText(stdoutText, stderrText, fallback) {
+        const raw = String(stderrText || stdoutText || "").trim()
+        if (!raw.length)
+            return fallback
+        try {
+            const parsed = JSON.parse(raw)
+            if (parsed?.error)
+                return String(parsed.error)
+            if (Array.isArray(parsed?.results)) {
+                const failed = parsed.results.filter(result => result?.success === false || result?.error)
+                if (failed.length > 0)
+                    return failed.map(result => `${result.key ?? "change"}: ${result.error ?? result.output ?? "failed"}`).join("; ")
+            }
+        } catch (_) {
+        }
+        return raw
+    }
+
     function saveAndRefresh(message) {
         resetBanner(message)
         loadValidation()
@@ -910,11 +928,12 @@ ContentPage {
             } else {
                 if (purpose === "preview" || purpose === "preview-revert" || purpose === "preview-revert-after-failure")
                     root.clearPreviewState()
-                root.lastActionError = text.length > 0 ? text : ((purpose === "preview")
+                root.lastActionError = root.commandErrorText(stdout, stderr, text.length > 0 ? text : ((purpose === "preview")
                     ? Translation.tr("Failed to preview display change.")
                     : ((purpose === "preview-revert" || purpose === "preview-revert-after-failure" || purpose === "apply-and-persist-rollback")
                         ? Translation.tr("Failed to revert display change.")
-                        : Translation.tr("Failed to apply display change.")))
+                        : Translation.tr("Failed to apply display change."))))
+                console.warn(`[NiriConfig] output apply failed (${root.applyOutputTargetName} ${root.applyOutputKey}=${root.applyOutputValue}): ${root.lastActionError}`)
             }
             root.clearApplyOutputState()
         }
@@ -926,7 +945,10 @@ ContentPage {
         stderr: StdioCollector { id: persistOutputErrorCollector }
         onExited: (exitCode) => {
             const purpose = root.persistOutputPurpose
-            const text = (persistOutputErrorCollector.text || persistOutputCollector.text || "").trim()
+            const text = root.commandErrorText(
+                persistOutputCollector.text,
+                persistOutputErrorCollector.text,
+                Translation.tr("Failed to save display settings."))
             if (exitCode === 0) {
                 root.lastActionError = ""
                 if (purpose === "preview-confirm")
@@ -934,7 +956,8 @@ ContentPage {
                 root.saveAndRefresh(Translation.tr("Display settings saved."))
                 root.loadOutputs()
             } else {
-                root.lastActionError = text.length > 0 ? text : Translation.tr("Failed to save display settings.")
+                root.lastActionError = text
+                console.warn(`[NiriConfig] output persist failed (${root.persistOutputTargetName} ${root.persistOutputKey}=${root.persistOutputValue}): ${root.lastActionError}`)
 
                 if (purpose === "preview-confirm" && root.persistRollbackKey.length > 0 && root.persistRollbackValue.length > 0) {
                     root.pendingActionLabel = Translation.tr("Reverting display preview")
@@ -955,7 +978,11 @@ ContentPage {
         stderr: StdioCollector { id: setErrorCollector }
         onExited: (exitCode) => {
             if (exitCode !== 0) {
-                root.lastActionError = (setErrorCollector.text || setCollector.text || Translation.tr("Failed to update Niri configuration.")).trim()
+                root.lastActionError = root.commandErrorText(
+                    setCollector.text,
+                    setErrorCollector.text,
+                    Translation.tr("Failed to update Niri configuration."))
+                console.warn(`[NiriConfig] set failed (${root.pendingActionLabel}): ${root.lastActionError}`)
                 root.pendingSetSection = ""
                 root.pendingActionLabel = ""
                 root.runNextSetRequest()

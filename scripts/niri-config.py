@@ -135,8 +135,8 @@ def read_vrr_modes():
         return {}
 
     modes = {}
-    for match in re.finditer(r'output\s+"([^"]+)"\s*\{(.*?)\}', content, re.DOTALL):
-        name, block = match.group(1), match.group(2)
+    flattened = _strip_kdl_line_comments(content)
+    for name, block in _iter_output_blocks(flattened):
         vrr = re.search(r"^\s*variable-refresh-rate([^\n]*)", block, re.MULTILINE)
         if not vrr:
             modes[name] = "off"
@@ -311,13 +311,11 @@ def cmd_persist_output(args):
 
     existing = outputs_file.read_text() if outputs_file.exists() else ""
 
-    # Find existing output block for this name
-    pattern = rf'(output\s+"{re.escape(output_name)}"\s*\{{)(.*?)(\}})'
-    match = re.search(pattern, existing, re.DOTALL)
+    bounds = _find_output_block_bounds(existing, output_name)
 
-    if match:
-        # Surgical edit within existing block
-        block_content = match.group(2)
+    if bounds:
+        _, inner_start, inner_end, _ = bounds
+        block_content = existing[inner_start:inner_end]
 
         for key, value in changes.items():
             if key == "mode":
@@ -347,13 +345,7 @@ def cmd_persist_output(args):
                         block_content, "position", f"x={parts[0]} y={parts[1]}"
                     )
 
-        result = (
-            existing[: match.start()]
-            + match.group(1)
-            + block_content
-            + match.group(3)
-            + existing[match.end() :]
-        )
+        result = existing[:inner_start] + block_content + existing[inner_end:]
     else:
         # Create new output block
         lines = []
