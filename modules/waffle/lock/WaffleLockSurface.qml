@@ -1741,8 +1741,10 @@ MouseArea {
     }
     
     onPositionChanged: mouse => {
-        if (Brightness.asleep)
+        if (Brightness.asleep) {
+            Brightness.restoreAfterWake()
             return
+        }
         if (root.showLoginView) {
             root.forceFieldFocus()
         }
