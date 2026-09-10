@@ -1668,9 +1668,8 @@ ContentPage {
         title: Translation.tr("Editorial")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "style" && editorialStyleEditorSection.expanded
+            SettingsTaskLoader {
+                requested: root.activeSection === "style" && editorialStyleEditorSection.expanded
                     && Appearance.editorialEverywhere
                 source: "EditorialStyleEditor.qml"
             }
@@ -1690,9 +1689,8 @@ ContentPage {
         title: Translation.tr("Aurora Style Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "style" && auroraStyleEditorSection.expanded
+            SettingsTaskLoader {
+                requested: root.activeSection === "style" && auroraStyleEditorSection.expanded
                     && Appearance.auroraEverywhere && !Appearance.angelEverywhere
                 source: "AuroraStyleEditor.qml"
             }
@@ -1712,9 +1710,8 @@ ContentPage {
         title: Translation.tr("Angel Style Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "style" && angelStyleEditorSection.expanded
+            SettingsTaskLoader {
+                requested: root.activeSection === "style" && angelStyleEditorSection.expanded
                     && Appearance.angelEverywhere
                 source: "AngelStyleEditor.qml"
             }
@@ -1734,9 +1731,8 @@ ContentPage {
         title: Translation.tr("Regalia Style Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "style" && regaliaStyleEditorSection.expanded
+            SettingsTaskLoader {
+                requested: root.activeSection === "style" && regaliaStyleEditorSection.expanded
                     && Appearance.regaliaEverywhere
                 source: "RegaliaStyleEditor.qml"
             }
@@ -1756,9 +1752,8 @@ ContentPage {
         title: Translation.tr("ZZZ Style Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "style" && zzzStyleEditorSection.expanded
+            SettingsTaskLoader {
+                requested: root.activeSection === "style" && zzzStyleEditorSection.expanded
                     && Appearance.zzzEverywhere
                 source: "ZzzStyleEditor.qml"
             }
@@ -1779,9 +1774,8 @@ ContentPage {
         title: Translation.tr("Custom Theme Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "advanced"
+            SettingsTaskLoader {
+                requested: root.activeSection === "advanced"
                     && !(Config.options?.settingsUi?.easyMode ?? false)
                     && customThemeEditorSection.expanded
                 source: "CustomThemeEditor.qml"
@@ -1802,9 +1796,8 @@ ContentPage {
         title: Translation.tr("Gowall Wallpaper Editor")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: root.activeSection === "advanced"
+            SettingsTaskLoader {
+                requested: root.activeSection === "advanced"
                     && !(Config.options?.settingsUi?.easyMode ?? false)
                     && gowallEditorSection.expanded
                 source: "GowallWallpaperEditor.qml"

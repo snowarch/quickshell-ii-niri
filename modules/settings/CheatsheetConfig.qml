@@ -605,11 +605,9 @@ ContentPage {
                     spacing: 0
 
                     // ── Edit form (Loader — instantiate only when active) ────
-                    Loader {
+                    SettingsTaskLoader {
                         id: editFormLoader
-                        active: kbRow.editState === "editing"
-                        visible: active
-                        Layout.fillWidth: true
+                        requested: kbRow.editState === "editing"
 
                         sourceComponent: Component {
                             ColumnLayout {
@@ -719,11 +717,9 @@ ContentPage {
                     }
 
                     // ── Confirm delete ───────────────────────────────────────
-                    Loader {
+                    SettingsTaskLoader {
                         id: confirmDeleteLoader
-                        active: kbRow.editState === "confirmDelete"
-                        visible: active
-                        Layout.fillWidth: true
+                        requested: kbRow.editState === "confirmDelete"
 
                         sourceComponent: Component {
                             RowLayout {

@@ -251,7 +251,7 @@ binds {
     Ctrl+Alt+T { spawn "qs" "-c" "inir" "ipc" "call" "wallpaperSelector" "toggle"; }
     
     // ii Settings
-    Mod+Comma { spawn "qs" "-c" "inir" "ipc" "call" "settings" "open"; }
+    Mod+Comma { spawn "qs" "-c" "inir" "ipc" "call" "settings" "toggle"; }
     
     // ii Cheatsheet
     Mod+Slash { spawn "qs" "-c" "inir" "ipc" "call" "cheatsheet" "toggle"; }

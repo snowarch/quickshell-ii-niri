@@ -37,10 +37,8 @@ ContentPage {
                 }
             }
 
-            Loader {
-                Layout.fillWidth: true
-                active: root.pillActive
-                asynchronous: false
+            SettingsTaskLoader {
+                requested: root.pillActive
                 sourceComponent: Component {
                     PillOptionsEditor {
                         width: parent?.width ?? implicitWidth
@@ -63,10 +61,8 @@ ContentPage {
         title: Translation.tr("Island surfaces")
 
         SettingsGroup {
-            Loader {
-                Layout.fillWidth: true
-                active: islandSurfacesSection.expanded
-                asynchronous: false
+            SettingsTaskLoader {
+                requested: islandSurfacesSection.expanded
                 sourceComponent: Component {
                     RicelinIslandEditor {
                         width: parent?.width ?? implicitWidth

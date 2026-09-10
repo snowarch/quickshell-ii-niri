@@ -229,7 +229,7 @@ Useful when you want to see what you've changed or restore defaults after custom
 | `inir stop`          | Stop the active runtime                                     |
 | `inir run`           | Launch iNiR from the active runtime                         |
 | `inir restart`       | Restart the active runtime                                  |
-| `inir settings`      | Open settings via IPC                                       |
+| `inir settings`      | Toggle settings via IPC                                     |
 | `inir terminal`      | Launch the configured terminal from `apps.terminal`         |
 | `inir browser`       | Launch the configured browser from `apps.browser`           |
 | `inir doctor`        | Wrapper around `./setup doctor`                             |

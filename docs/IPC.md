@@ -330,7 +330,7 @@ Open or toggle the settings window. GUI config so you don't have to edit JSON by
 | Function | Description |
 |----------|-------------|
 | `open` | Open the settings window |
-| `toggle` | Toggle settings (overlay mode toggles, window mode opens) |
+| `toggle` | Toggle settings in the active host (overlay or window) |
 
 ```kdl
 bind "Super+Comma" { spawn "inir" "settings"; }
@@ -340,7 +340,7 @@ bind "Super+Comma" { spawn "inir" "settings"; }
 
 ### settingsNav
 
-Navigate the settings overlay to a specific page (same as clicking the nav rail). Opening the window itself is the `inir settings` CLI command (target `settings` above).
+Navigate the settings overlay to a specific page (same as clicking the nav rail). `inir settings` toggles the current Settings host; use the `settings` IPC target above when you need explicit open/toggle semantics.
 
 | Function | Description |
 |----------|-------------|

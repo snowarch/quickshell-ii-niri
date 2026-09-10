@@ -560,10 +560,8 @@ ContentPage {
                         onClicked: eventRow.poseExpanded = !eventRow.poseExpanded
                     }
 
-                    Loader {
-                        active: eventRow.poseExpanded
-                        visible: active
-                        Layout.fillWidth: true
+                    SettingsTaskLoader {
+                        requested: eventRow.poseExpanded
                         Layout.leftMargin: 12
                         sourceComponent: Component {
                             MascotPoseGallery {
@@ -734,10 +732,8 @@ ContentPage {
                 wrapMode: Text.Wrap
             }
 
-            Loader {
-                Layout.fillWidth: true
-                active: kiraCollectionSection.expanded
-                asynchronous: false
+            SettingsTaskLoader {
+                requested: kiraCollectionSection.expanded
                 sourceComponent: Component {
                     MascotCollection {
                         width: parent?.width ?? 0

@@ -145,12 +145,12 @@ Singleton {
             && Config.options?.waffles?.settings?.useMaterialStyle !== true
         if (isWaffle) {
             Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
-                "waffle-settings-window"])
+                "waffle-settings-window", "--toggle"])
         } else if (Config.options?.settingsUi?.overlayMode ?? false) {
             root.settingsOverlayOpen = !root.settingsOverlayOpen
         } else {
             Quickshell.execDetached([Quickshell.shellPath("scripts/inir"),
-                "settings-window"])
+                "settings-window", "--toggle"])
         }
     }
 

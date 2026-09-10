@@ -95,7 +95,7 @@ Usage: inir <command> [options]
 
 Quick start:
   inir run               Start the shell
-  inir settings          Open settings
+  inir settings          Toggle settings
   inir welcome           Re-open the welcome wizard (first-run tour)
   inir restart           Restart the shell
   inir logs              View runtime logs (--full: all categories, --debug: foreground debug, -f: follow)
@@ -1895,6 +1895,33 @@ has_instances() {
     [[ -n "$output" && "$output" != No\ running\ instances* ]]
 }
 
+qml_window_pids() {
+    local qml_path="$1"
+    "$qs_bin" list --all 2>/dev/null | awk -v target="$qml_path" '
+        /^[[:space:]]*Process ID:/ { pid=$3 }
+        /^[[:space:]]*Config path:/ {
+            path=$0
+            sub(/^[[:space:]]*Config path:[[:space:]]*/, "", path)
+            if (path == target && pid != "") print pid
+            pid=""
+        }
+    '
+}
+
+has_qml_window_instance() {
+    [[ -n "$(qml_window_pids "$1")" ]]
+}
+
+terminate_qml_window() {
+    local qml_path="$1"
+    local signal="${2:-TERM}"
+    local pid
+    while IFS= read -r pid; do
+        [[ -n "$pid" ]] || continue
+        kill -s "$signal" "$pid" >/dev/null 2>&1 || true
+    done < <(qml_window_pids "$qml_path")
+}
+
 ensure_running_instance() {
     local dir="$1"
 
@@ -1946,6 +1973,18 @@ wait_for_stop() {
         local output
         output="$(list_instances "$dir")"
         if [[ "$output" == No\ running\ instances* ]]; then
+            return 0
+        fi
+        sleep "$poll_delay"
+    done
+    return 1
+}
+
+wait_for_qml_window_stop() {
+    local qml_path="$1"
+    local poll
+    for ((poll = 0; poll < max_polls; poll++)); do
+        if ! has_qml_window_instance "$qml_path"; then
             return 0
         fi
         sleep "$poll_delay"
@@ -2158,23 +2197,6 @@ kill_shell() {
     fi
 }
 
-force_kill_qml_window() {
-    local qml_path="$1"
-    local pids
-
-    pids="$(pgrep -f "${qs_bin} -n -p ${qml_path}" || true)"
-    if [[ -z "$pids" ]]; then
-        pids="$(pgrep -f "${qs_bin} .* -p ${qml_path}" || true)"
-    fi
-
-    if [[ -n "$pids" ]]; then
-        while IFS= read -r pid; do
-            [[ -n "$pid" ]] || continue
-            kill "$pid" >/dev/null 2>&1 || true
-        done <<< "$pids"
-    fi
-}
-
 restart_shell() {
     local dir="$1"
     local quiet="${2:-}"
@@ -2227,9 +2249,21 @@ open_settings() {
     exec "$qs_bin" -p "$dir" ipc call settings open
 }
 
+toggle_settings() {
+    local dir="$1"
+
+    if ! ensure_running_instance "$dir"; then
+        echo "Timed out waiting for iNiR to start" >&2
+        exit 1
+    fi
+
+    exec "$qs_bin" -p "$dir" ipc call settings toggle
+}
+
 open_detached_qml_window() {
     local dir="$1"
     local entry="$2"
+    local mode="${3:-open}"
     local qml_path="$dir/$entry"
 
     if [[ ! -f "$qml_path" ]]; then
@@ -2249,15 +2283,22 @@ open_detached_qml_window() {
         exit 0
     fi
 
-    if has_instances "$qml_path"; then
-        kill_shell "$qml_path"
-        if ! wait_for_stop "$qml_path"; then
-            force_kill_qml_window "$qml_path"
-            if ! wait_for_stop "$qml_path"; then
+    if has_qml_window_instance "$qml_path"; then
+        if [[ "$mode" != "toggle" ]]; then
+            exec 9>&-
+            return 0
+        fi
+
+        terminate_qml_window "$qml_path"
+        if ! wait_for_qml_window_stop "$qml_path"; then
+            terminate_qml_window "$qml_path" KILL
+            if ! wait_for_qml_window_stop "$qml_path"; then
                 echo "Timed out waiting for $entry to stop" >&2
                 exit 1
             fi
         fi
+        exec 9>&-
+        return 0
     fi
 
     apply_qt_runtime_env
@@ -3862,7 +3903,28 @@ case "$command_name" in
             run_ipc_target_command dev "$@"
         fi
         ;;
-    settings|open)
+    settings)
+        require_qs
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                -c|--config)
+                    parse_config_flag "$@"
+                    shift 2
+                    ;;
+                -h|--help)
+                    usage
+                    exit 0
+                    ;;
+                *)
+                    echo "Unknown option: $1" >&2
+                    exit 1
+                    ;;
+            esac
+        done
+        resolve_config_dir
+        toggle_settings "$config_dir"
+        ;;
+    open)
         require_qs
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -3885,8 +3947,13 @@ case "$command_name" in
         ;;
     settings-window)
         require_qs
+        window_mode="open"
         while [[ $# -gt 0 ]]; do
             case "$1" in
+                --toggle)
+                    window_mode="toggle"
+                    shift
+                    ;;
                 -c|--config)
                     parse_config_flag "$@"
                     shift 2
@@ -3902,12 +3969,17 @@ case "$command_name" in
             esac
         done
         resolve_config_dir
-        open_detached_qml_window "$config_dir" "settings.qml"
+        open_detached_qml_window "$config_dir" "settings.qml" "$window_mode"
         ;;
     waffle-settings-window)
         require_qs
+        window_mode="open"
         while [[ $# -gt 0 ]]; do
             case "$1" in
+                --toggle)
+                    window_mode="toggle"
+                    shift
+                    ;;
                 -c|--config)
                     parse_config_flag "$@"
                     shift 2
@@ -3923,7 +3995,7 @@ case "$command_name" in
             esac
         done
         resolve_config_dir
-        open_detached_qml_window "$config_dir" "waffleSettings.qml"
+        open_detached_qml_window "$config_dir" "waffleSettings.qml" "$window_mode"
         ;;
     welcome)
         require_qs
