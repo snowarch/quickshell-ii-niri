@@ -2,7 +2,7 @@
 # Auto-generated from QML IpcHandler declarations + docs/IPC.md metadata.
 # Do not edit manually.
 # Regenerate: python3 scripts/lib/generate-ipc-registry.py
-# IPC.md hash: 7571b4b1971b1907
+# IPC.md hash: a8fc33975732bfff
 # Targets: 62
 
 declare -gA IPC_TARGET_DESC=(
@@ -49,7 +49,7 @@ declare -gA IPC_TARGET_DESC=(
   [search]="Waffle start menu / search."
   [session]="Power menu. Logout, suspend, reboot, shutdown. The \"I'm done for today\" buttons."
   [settings]="Open or toggle the settings window. GUI config so you don't have to edit JSON by hand."
-  [settingsNav]="Navigate the settings overlay to a specific page (same as clicking the nav rail). Opening the window itself is the \`inir settings\` CLI command (target \`settings\` above)."
+  [settingsNav]="Navigate the settings overlay to a specific page (same as clicking the nav rail). \`inir settings\` toggles the current Settings host; use the \`settings\` IPC target above when you need explicit open/toggle semantics."
   [shellLayout]="Dedicated persistent-shell layout editing and diagnostics. It is independent from desktop widget edit mode. It moves the ii bar and dock, swaps semantic ii sidebars between physical edges, resizes sidebar roles, and moves the Waffle taskbar through validated operations over canonical Config keys."
   [shellUpdate]="Shell update checker. Monitors the git repo for new commits and shows an update overlay."
   [sidebarLeft]="Left sidebar (AI chat, apps)."
@@ -141,7 +141,7 @@ declare -gA IPC_TARGET_FUNCTIONS=(
   [appCatalog]="refresh search install list"
   [audio]="volumeUp volumeDown mute playEvent micMute"
   [autostart]="status addCommand addApp removeLast reload"
-  [background]="toggleEditMode setEditMode editState applyOrganicEdgePreset organicEdgeState setOrganicEdgeEnabled desktopItemsState focusWidget promoteWidget resetLayerOrder setWidgetEnabled clockDebugState clockDebugSetMode clockDebugSetRegion clockDebugSetLayout clockDebugRestore"
+  [background]="toggleEditMode setEditMode editState applyOrganicEdgePreset applyOrganicEdgeComposition applyOrganicEdgeMaterial applyOrganicEdgeResponse organicEdgeState setOrganicEdgeEnabled desktopItemsState focusWidget promoteWidget resetLayerOrder setWidgetEnabled clockDebugState clockDebugSetMode clockDebugSetRegion clockDebugSetLayout clockDebugRestore"
   [bar]="toggle close open"
   [brightness]="increment decrement sleepBegin restoreAfterWake"
   [cheatsheet]="toggle close open"
@@ -178,7 +178,7 @@ declare -gA IPC_TARGET_FUNCTIONS=(
   [region]="screenshot search googleLens ocr record recordWithSound menu dismiss current"
   [search]="toggle close open"
   [session]="toggle close open"
-  [settings]="open toggle"
+  [settings]="open toggle openOverlay openOverlayAt openWindowAt setOverlayStyle"
   [settingsNav]="page count current"
   [shellLayout]="toggle open openOn close select lift preview place cancel dragStart dragUpdate dragEnd reset setProperty handleEscape status validate"
   [shellUpdate]="toggle open close check performUpdate dismiss undismiss diagnose"
@@ -231,6 +231,9 @@ declare -gA IPC_FUNCTION_DESC=(
   ["background:setEditMode"]="Set widget edit mode explicitly"
   ["background:editState"]="Report the active selection, physical panel insets, full desktop work area and panel-aware zone work area for each output"
   ["background:applyOrganicEdgePreset"]="Apply an Organic Edge scene by name without changing enabled displays"
+  ["background:applyOrganicEdgeComposition"]="Apply only an Organic Edge topology/geometry preset"
+  ["background:applyOrganicEdgeMaterial"]="Apply only an Organic Edge material/light preset"
+  ["background:applyOrganicEdgeResponse"]="Apply only an Organic Edge music-response preset"
   ["background:organicEdgeState"]="Report each Organic Edge output, selected edges, frame, audio subscription and shader status"
   ["background:setOrganicEdgeEnabled"]="Enable or disable the independent Organic Edge screen field"
   ["background:desktopItemsState"]="Report desktop-item persistence, availability, item count, validation errors and undo state"
@@ -390,7 +393,11 @@ declare -gA IPC_FUNCTION_DESC=(
   ["session:close"]="Hide session screen"
   ["session:open"]="Show session screen"
   ["settings:open"]="Open the settings window"
-  ["settings:toggle"]="Toggle settings (overlay mode toggles, window mode opens)"
+  ["settings:toggle"]="Toggle settings in the active host (overlay or window)"
+  ["settings:openOverlay"]="Switch to overlay mode and open Settings"
+  ["settings:openOverlayAt"]="Switch to overlay mode, open Settings and preserve/jump to page \`index\`"
+  ["settings:openWindowAt"]="Switch to standalone Window mode and open page \`index\`"
+  ["settings:setOverlayStyle"]="Switch overlay chrome while preserving page \`index\`"
   ["settingsNav:page"]=""
   ["settingsNav:count"]="Number of settings pages"
   ["settingsNav:current"]="Current page index, or \`-1\` when no page is open"
@@ -496,6 +503,9 @@ declare -gA IPC_FUNCTION_ARGS=(
   ["autostart:addApp"]="<desktopId>"
   ["background:setEditMode"]="<enabled>"
   ["background:applyOrganicEdgePreset"]="<name>"
+  ["background:applyOrganicEdgeComposition"]="<name>"
+  ["background:applyOrganicEdgeMaterial"]="<name>"
+  ["background:applyOrganicEdgeResponse"]="<name>"
   ["background:setOrganicEdgeEnabled"]="<enabled>"
   ["background:focusWidget"]="<widgetName> <openControls>"
   ["background:promoteWidget"]="<widgetName>"
@@ -527,6 +537,9 @@ declare -gA IPC_FUNCTION_ARGS=(
   ["panelFamily:set"]="<family>"
   ["pill:open"]="<surface>"
   ["pill:toggle"]="<surface>"
+  ["settings:openOverlayAt"]="<index>"
+  ["settings:openWindowAt"]="<index>"
+  ["settings:setOverlayStyle"]="<style> <index>"
   ["settingsNav:page"]="<index>"
   ["shellLayout:openOn"]="<outputName>"
   ["shellLayout:select"]="<surfaceId>"

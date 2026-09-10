@@ -331,6 +331,10 @@ Open or toggle the settings window. GUI config so you don't have to edit JSON by
 |----------|-------------|
 | `open` | Open the settings window |
 | `toggle` | Toggle settings in the active host (overlay or window) |
+| `openOverlay` | Switch to overlay mode and open Settings |
+| `openOverlayAt index` | Switch to overlay mode, open Settings and preserve/jump to page `index` |
+| `openWindowAt index` | Switch to standalone Window mode and open page `index` |
+| `setOverlayStyle style index` | Switch overlay chrome while preserving page `index` |
 
 ```kdl
 bind "Super+Comma" { spawn "inir" "settings"; }
@@ -958,6 +962,9 @@ Desktop background and widget controls.
 | `resetLayerOrder` | Reset desktop widgets to their built-in stacking order |
 | `setWidgetEnabled widgetName enabled` | Enable or disable a built-in desktop widget |
 | `applyOrganicEdgePreset name` | Apply an Organic Edge scene by name without changing enabled displays |
+| `applyOrganicEdgeComposition name` | Apply only an Organic Edge topology/geometry preset |
+| `applyOrganicEdgeMaterial name` | Apply only an Organic Edge material/light preset |
+| `applyOrganicEdgeResponse name` | Apply only an Organic Edge music-response preset |
 | `organicEdgeState` | Report each Organic Edge output, selected edges, frame, audio subscription and shader status |
 | `setOrganicEdgeEnabled enabled` | Enable or disable the independent Organic Edge screen field |
 | `clockDebugState` | Report clock palette, renderer and quick-control geometry diagnostics |
