@@ -29,6 +29,7 @@ Singleton {
     property var lastValidBrightness: ({})
     property bool asleep: false
     property var _sleepDisabledOutputs: []
+    property int _wakeRetryAttempt: 0
 
     // Reconcile against the live screen list rather than binding to
     // Quickshell.screens: createObject() parents each monitor to root, so a
@@ -67,6 +68,8 @@ Singleton {
     function sleepBegin(): void {
         if (!CompositorService.isNiri)
             return
+        wakeRetryTimer.stop()
+        root._wakeRetryAttempt = 0
         root.asleep = true
         const disabled = []
         for (let i = 0; i < Quickshell.screens.length; ++i) {
@@ -80,17 +83,23 @@ Singleton {
         Quickshell.execDetached(BrightnessPolicy.niriPowerOffMonitorsArgs())
     }
 
+    function _tryWakeOutputs(): void {
+        const names = root._sleepDisabledOutputs
+        for (let i = 0; i < names.length; ++i)
+            Quickshell.execDetached(BrightnessPolicy.niriOutputOnArgs(names[i]))
+    }
+
     function restoreAfterWake(): void {
         if (!CompositorService.isNiri) {
             root.asleep = false
             return
         }
-        const disabled = root._sleepDisabledOutputs
-        root._sleepDisabledOutputs = []
-        for (let i = 0; i < disabled.length; ++i)
-            Quickshell.execDetached(BrightnessPolicy.niriOutputOnArgs(disabled[i]))
         Quickshell.execDetached(BrightnessPolicy.niriPowerOnMonitorsArgs())
         root.asleep = false
+        root._wakeRetryAttempt = 0
+        root._tryWakeOutputs()
+        if (root._sleepDisabledOutputs.length > 0)
+            wakeRetryTimer.restart()
         root._syncMonitors()
         for (let i = 0; i < root.monitors.length; ++i)
             root.monitors[i].restoreLastGood()
@@ -99,6 +108,22 @@ Singleton {
     Component.onCompleted: {
         root._syncMonitors()
         root._detectBacklight()
+    }
+
+    Timer {
+        id: wakeRetryTimer
+        interval: 400
+        repeat: true
+        onTriggered: {
+            root._wakeRetryAttempt++
+            if (!BrightnessPolicy.shouldRetryWakeOutput(root._wakeRetryAttempt, BrightnessPolicy.wakeOutputRetryLimit())) {
+                stop()
+                root._sleepDisabledOutputs = []
+                root._wakeRetryAttempt = 0
+                return
+            }
+            root._tryWakeOutputs()
+        }
     }
 
     Connections {

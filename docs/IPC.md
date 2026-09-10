@@ -594,7 +594,7 @@ Display brightness control.
 | `increment` | Increase brightness |
 | `decrement` | Decrease brightness |
 | `sleepBegin` | DPMS off, then disable external outputs so HDMI HPD cannot reconnect |
-| `restoreAfterWake` | Re-enable those outputs, power monitors on, restore brightness |
+| `restoreAfterWake` | Power on, then retry `output on` until HDMI is connected or retries run out |
 
 ---
 

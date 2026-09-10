@@ -58,3 +58,16 @@ function niriOutputOffArgs(name) {
 function niriOutputOnArgs(name) {
     return ["niri", "msg", "output", String(name), "on"]
 }
+
+function wakeOutputRetryLimit() {
+    return 15
+}
+
+function wakeOutputRetryMs() {
+    return 400
+}
+
+function shouldRetryWakeOutput(attempt, limit) {
+    const cap = Number.isFinite(limit) ? limit : wakeOutputRetryLimit()
+    return attempt < cap
+}
