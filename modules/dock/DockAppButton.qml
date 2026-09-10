@@ -116,7 +116,9 @@ DockButton {
         id: hoverDelayTimer
         interval: Config.options?.dock?.hoverPreviewDelay ?? 400
         onTriggered: {
-            if (root.hasWindows && root.buttonHovered) {
+            if (root.hasWindows && root.buttonHovered
+                    && !(root.appListRoot?.contextMenuOpen ?? false)
+                    && !(root.appListRoot?.dragActive ?? false)) {
                 root.hoverPreviewRequested()
             }
         }
@@ -445,15 +447,17 @@ DockButton {
     }
 
     function showContextMenu(): void {
-        root.appListRoot.closeAllContextMenus()
-        root.appListRoot.contextMenuOpen = true
-        root.hoverPreviewDismissed()
         hoverDelayTimer.stop()
         // Snapshot the entries. A live binding on `toplevels` re-evaluates on
         // every window/title event, which resets the menu's Repeater and kills
         // the hover state of the item under the cursor.
-        contextMenu.model = root.buildContextMenuModel()
-        contextMenu.requestOpen()
+        root.appListRoot.requestContextMenu(root, root.buildContextMenuModel())
+    }
+
+    Component.onDestruction: {
+        hoverDelayTimer.stop()
+        if (root.appListRoot && root.appListRoot.contextMenuSourceButton === root)
+            root.appListRoot.closeContextMenu(true)
     }
 
     function desktopActionIcon(action): var {
@@ -587,23 +591,6 @@ DockButton {
                 }
             ] : [])
         ]
-    }
-
-    Connections {
-        target: root.appListRoot
-        function onCloseAllContextMenus() {
-            contextMenu.close()
-        }
-    }
-
-    DockContextMenu {
-        id: contextMenu
-        anchorItem: root
-        anchorHovered: root.buttonHovered
-
-        onActiveChanged: {
-            if (!active && root.appListRoot) root.appListRoot.contextMenuOpen = false
-        }
     }
 
       contentItem: Loader {

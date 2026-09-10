@@ -62,6 +62,11 @@ PopupWindow {
     }
 
     function show(appEntry: var, button: Item): void {
+        // Cache discovery is cheap and must not inherit the delayed screenshot
+        // policy below. The Sep-1 clipboard fix delayed captureForTaskView(),
+        // which also delayed service initialization and caused a fallback frame
+        // before an already-cached preview could be resolved.
+        WindowPreviewService.initialize()
         root.appEntry = appEntry
         root.anchorItem = button
         root.anchor.updateAnchor()
@@ -119,6 +124,7 @@ PopupWindow {
     ///////////////////// Internals ////////////////////
 
     visible: false
+    grabFocus: false
     color: "transparent"
     implicitWidth: contentItem.implicitWidth + ambientShadowWidth + (visualMargin * 2)
     implicitHeight: contentItem.implicitHeight + ambientShadowWidth + (visualMargin * 2)
@@ -162,7 +168,7 @@ PopupWindow {
             id: contentItem
             property real sourceEdgeMargin: root.visible 
                 ? (root.ambientShadowWidth + root.visualMargin) 
-                : (root.isVertical ? -root.implicitWidth : -root.implicitHeight)
+                : (root.ambientShadowWidth + root.visualMargin - 8)
 
             Behavior on sourceEdgeMargin {
                 id: marginBehavior

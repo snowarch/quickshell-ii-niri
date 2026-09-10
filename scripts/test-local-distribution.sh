@@ -1183,6 +1183,11 @@ fi
 step "release polish guards"
 config_qml="$runtime_root/modules/common/Config.qml"
 game_mode_qml="$runtime_root/services/GameMode.qml"
+dock_apps_qml="$runtime_root/modules/dock/DockApps.qml"
+dock_app_button_qml="$runtime_root/modules/dock/DockAppButton.qml"
+dock_context_menu_qml="$runtime_root/modules/dock/DockContextMenu.qml"
+dock_preview_qml="$runtime_root/modules/dock/DockPreview.qml"
+dock_window_preview_qml="$runtime_root/modules/dock/DockWindowPreview.qml"
 cava_wrapper="$runtime_root/modules/common/widgets/CavaProcess.qml"
 visualizer_layer="$runtime_root/modules/common/widgets/AudioVisualizerLayer.qml"
 pill_music_bars="$runtime_root/modules/pill/MusicBars.qml"
@@ -1210,6 +1215,22 @@ if ! grep -Fq 'property bool disableVisualizers: true' "$config_qml" \
         || ! grep -Fq 'gameMode.disableVisualizers' "$quick_config" \
         || ! grep -Fq 'gameMode.disableVisualizers' "$waffle_general"; then
     printf 'FAIL: Game Mode does not suppress shared Cava/render consumers through Settings policy\n' >&2
+    exit 1
+fi
+if ! grep -Fq 'readonly property bool contextMenuOpen: contextMenuPending || dockContextMenu.active' "$dock_apps_qml" \
+        || ! grep -Fq 'hoverPreview === false || contextMenuOpen || dragActive' "$dock_apps_qml" \
+        || ! grep -Fq 'Qt.callLater(() => root._openPendingContextMenu())' "$dock_apps_qml" \
+        || ! grep -Fq 'property Item contextMenuSourceButton: null' "$dock_apps_qml" \
+        || ! grep -Fq 'root.appListRoot.requestContextMenu(root, root.buildContextMenuModel())' "$dock_app_button_qml" \
+        || grep -Fq 'closeAllContextMenus' "$dock_apps_qml" "$dock_app_button_qml" \
+        || ! grep -Fq 'closeOnHoverLost: false' "$dock_context_menu_qml" \
+        || ! grep -Fq 'revealDistance: 8' "$dock_context_menu_qml" \
+        || ! grep -Fq 'grabFocus: false' "$dock_preview_qml" \
+        || grep -Fq 'anchor.window: root.parentWindow' "$dock_apps_qml" \
+        || ! grep -Fq 'WindowPreviewService.initialize()' "$dock_preview_qml" \
+        || ! grep -Fq 'retainWhileLoading: true' "$dock_window_preview_qml" \
+        || grep -Fq 'id: fallbackIcon' "$dock_window_preview_qml"; then
+    printf 'FAIL: dock popup ownership, preview handoff, or thumbnail continuity regressed\n' >&2
     exit 1
 fi
 if grep -RIl 'CavaService\.subscribe' "$runtime_root/modules" \
