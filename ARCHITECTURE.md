@@ -113,7 +113,7 @@ defaults/                     # Shipped defaults
 ├── niri/                     # Niri config templates
 └── [GTK, KDE, fuzzel, etc.]
 
-translations/                 # i18n strings (15 languages)
+translations/                 # i18n strings (16 languages)
 distro/arch/                  # Arch PKGBUILDs (dependency manifests)
 assets/                       # Icons, wallpapers, systemd unit, desktop entry
 docs/                         # User documentation

@@ -69,7 +69,7 @@ inir/
 │   ├── config.json               # Default config
 │   ├── niri/                     # Niri config templates
 │   └── [GTK, KDE, fuzzel, etc.]
-├── translations/                 # i18n strings (15 languages)
+├── translations/                 # i18n strings (16 languages)
 ├── distro/arch/                  # Arch PKGBUILDs (dependency manifests)
 ├── assets/                       # Icons, wallpapers, systemd unit, desktop entry
 ├── docs/                         # User documentation
@@ -130,7 +130,7 @@ inir/
 
 **translations/:**
 - Purpose: i18n string files for all supported languages
-- Contains: JSON translation files (ar_SA, de_DE, en_US, es_AR, fr_FR, he_HE, hi_IN, it_IT, ja_JP, ko_KR, pt_BR, ru_RU, uk_UA, vi_VN, zh_CN)
+- Contains: JSON translation files (ar_SA, de_DE, en_US, es_AR, fr_FR, he_HE, hi_IN, it_IT, ja_JP, kl_GL, ko_KR, pt_BR, ru_RU, uk_UA, vi_VN, zh_CN)
 - Key files: `translations/en_US.json`
 
 **distro/arch/:**

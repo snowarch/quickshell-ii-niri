@@ -185,7 +185,7 @@ Right sidebar:
 - **Lock screen** and **session screen** (logout/reboot/shutdown/suspend)
 - **Polkit agent**, **on-screen keyboard**, **autostart manager** backed by niri's own startup file
 - **Kira**: pixel-art cat girl who wanders the screen edges, reacts to what you do, and has a chaos mode. Opt-in, separate ~32 MiB art pack under `./setup` › Extras
-- **15 languages** with auto-detection
+- **16 languages** with auto-detection, including Kalaallisut (`kl_GL`)
 - **Night light**: scheduled or manual
 - **Weather**: Open-Meteo, supports GPS, manual coordinates, or city name
 - **Battery management**: configurable thresholds, auto-suspend on critical

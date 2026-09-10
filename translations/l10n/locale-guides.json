@@ -7,6 +7,7 @@
   "hi_IN": "Natural standard Hindi suitable for a Linux desktop. Keep common technical product names and commands in Latin script when that is clearer.",
   "it_IT": "Natural informal Italian. Use tu consistently. Prefer established Linux and desktop terms and concise settings descriptions.",
   "ja_JP": "Natural compact Japanese UI language. Avoid unnecessary pronouns and literal English word order. Preserve product names and commands in Latin script.",
+  "kl_GL": "Natural Kalaallisut (West Greenlandic) suitable for a Linux desktop. Prefer concise UI language, preserve established product names, commands, codecs, protocols and technical acronyms, and keep compact labels short enough for gauges, bars and OSD surfaces.",
   "ko_KR": "Natural concise Korean UI language with consistent polite explanatory style. Preserve product names, commands and technical acronyms.",
   "pt_BR": "Natural Brazilian Portuguese with consistent você. Prefer established Linux and desktop terms and concise labels.",
   "ru_RU": "Natural concise Russian UI language. Use established Linux terminology and consistent neutral instructions. Preserve product names and commands.",
