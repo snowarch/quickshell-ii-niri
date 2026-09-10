@@ -23,4 +23,15 @@ for (const [name, src] of [["ii", ii], ["waffle", waffle]]) {
     assert(!/if \(Brightness\.asleep\)\s*\n\s*return/.test(head), `${name} must not ignore asleep pointer`)
 }
 
+const lockQml = fs.readFileSync(path.resolve(__dirname, "../modules/lock/Lock.qml"), "utf8")
+const surface = lockQml.slice(lockQml.indexOf("WlSessionLockSurface"))
+const beforeLoader = surface.slice(0, surface.indexOf("Loader {"))
+assert(beforeLoader.includes("Rectangle"), "lock surface must paint opaque fill before Loader")
+assert(beforeLoader.includes("colLayer0"), "fill uses colLayer0 not niri red")
+assert(!beforeLoader.includes("Timer {"), "no delay timer before first lock paint")
+
+const inirSh = fs.readFileSync(path.resolve(__dirname, "../scripts/inir"), "utf8")
+const chunk = inirSh.slice(inirSh.indexOf("cleanup_orphans()"), inirSh.indexOf("cleanup_orphans()") + 5000)
+assert(chunk.includes("swayidle"), "cleanup_orphans must reap leftover swayidle")
+
 console.log("ok")
