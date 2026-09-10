@@ -3008,7 +3008,20 @@ case "$COMMAND" in
     doctor) run_doctor ;;
     rollback) run_rollback ;;
     my-changes) run_my_changes ;;
-    uninstall) run_uninstall ;;
+    uninstall)
+        for _arg in "${SUBCMD_ARGS[@]}"; do
+            case "$_arg" in
+                -y|--yes) ask=false ;;
+                -q|--quiet) quiet=true ;;
+                --clean) UNINSTALL_CLEAN=true ;;
+            esac
+        done
+        if [[ "${UNINSTALL_CLEAN:-false}" == "true" ]]; then
+            uninstall_clean
+        else
+            run_uninstall
+        fi
+        ;;
     status) show_status ;;
     config) run_config ;;
     theme) run_theme ;;

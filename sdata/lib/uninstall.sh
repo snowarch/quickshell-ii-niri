@@ -670,6 +670,284 @@ uninstall_show_manual_steps() {
     fi
 }
 
+###############################################################################
+# Clean uninstall - Remove all packages, repos, and user-installed files
+###############################################################################
+
+# All packages installed by iNiR on Fedora (mirrors install-deps.sh arrays)
+INIR_FEDORA_PKGS=(
+    # Core
+    quickshell niri sddm
+    # Build tools
+    gcc gcc-c++ make meson ninja-build cmake pkg-config
+    python3-devel dbus-devel cairo-devel cairo-gobject-devel
+    gobject-introspection-devel gtk3-devel glib2-devel
+    # Utilities
+    bc coreutils curl wget ripgrep jq xdg-user-dirs rsync git unzip
+    wl-clipboard libnotify wlsunset dunst gum cliphist uv eza
+    # XDG portals
+    xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+    # Polkit
+    polkit polkit-kde
+    # Network
+    NetworkManager nm-connection-editor gnome-keyring
+    # File manager
+    nautilus
+    # Terminal
+    kitty fish
+    # X11 compat
+    xwayland-satellite
+    # Thumbnails
+    ffmpegthumbnailer tumbler
+    # Translation
+    translate-shell
+    # Qt6
+    qt6-qtbase qt6-qtdeclarative qt6-qtsvg qt6-qtwayland
+    qt6-qt5compat qt6-qtmultimedia qt6-qtimageformats
+    qt6-qtvirtualkeyboard qt6-qtpositioning qt6-qtsensors qt6-qttools
+    qt6ct
+    # System libs
+    jemalloc libxcb libdrm mesa-dri-drivers
+    # KDE integration
+    kf6-kirigami kdialog kf6-syntax-highlighting kf6-kconfig
+    kde-gtk-config breeze-gtk kvantum
+    # Audio
+    pipewire pipewire-pulseaudio pipewire-alsa wireplumber
+    playerctl plasma-browser-integration libdbusmenu-gtk3
+    pavucontrol cava easyeffects lsp-plugins-lv2 mpv yt-dlp socat
+    # Toolkit
+    upower wtype ydotool python3-evdev python3-pillow
+    brightnessctl ddcutil geoclue2 swayidle swaylock grim slurp
+    hyprpicker ImageMagick qalculate blueman fprintd
+    # Screen capture
+    swappy wf-recorder
+    # OCR
+    tesseract tesseract-langpack-eng tesseract-langpack-spa
+    tesseract-langpack-rus tesseract-langpack-jpn tesseract-langpack-jpn_vert
+    tesseract-langpack-chi_sim tesseract-langpack-chi_sim_vert
+    tesseract-langpack-chi_tra tesseract-langpack-chi_tra_vert
+    # Fonts
+    fontconfig dejavu-fonts-all liberation-fonts
+    google-noto-emoji-fonts jetbrains-mono-fonts-all
+    # GTK theme
+    adw-gtk3-theme
+)
+
+# COPRs enabled by iNiR
+INIR_FEDORA_COPRS=(
+    "errornointernet/quickshell"
+    "yalter/niri"
+    "scottames/awww"
+    "achno/gowall"
+)
+
+# Binaries installed to /usr/local/bin by iNiR
+INIR_LOCAL_BINS=(
+    awww awww-daemon gowall hyprpicker missioncenter songrec
+)
+
+# User-installed fonts
+INIR_FONT_NAMES=(
+    MaterialSymbolsRounded MaterialSymbolsOutlined
+    JetBrainsMono Geist SpaceGrotesk Rubik
+)
+
+# User-installed icon/cursor themes
+INIR_THEME_DIRS=(
+    WhiteSur WhiteSur-dark WhiteSur-light
+    MacTahoe
+    Bibata-Modern-Classic Bibata-Modern-Ice
+)
+
+# Remove iNiR-installed packages (Fedora)
+uninstall_remove_packages_fedora() {
+    tui_subtitle "Removing installed packages"
+
+    # Filter to only packages that are actually installed
+    local installed_pkgs=()
+    for pkg in "${INIR_FEDORA_PKGS[@]}"; do
+        if rpm -q "$pkg" &>/dev/null; then
+            installed_pkgs+=("$pkg")
+        fi
+    done
+
+    if [[ ${#installed_pkgs[@]} -eq 0 ]]; then
+        log_info "No iNiR packages to remove"
+        return 0
+    fi
+
+    log_info "Removing ${#installed_pkgs[@]} packages..."
+    if sudo dnf remove -y "${installed_pkgs[@]}" 2>/dev/null; then
+        log_success "Packages removed"
+    else
+        log_warning "Some packages could not be removed (may have dependencies)"
+        log_info "Run 'sudo dnf remove <package>' manually for individual packages"
+    fi
+}
+
+# Disable COPR repos
+uninstall_remove_repos_fedora() {
+    tui_subtitle "Disabling COPR repositories"
+
+    for copr in "${INIR_FEDORA_COPRS[@]}"; do
+        if dnf copr list --enabled 2>/dev/null | grep -q "$copr"; then
+            sudo dnf copr disable -y "$copr" >/dev/null 2>&1 && \
+                log_success "Disabled $copr" || \
+                log_warning "Could not disable $copr"
+        fi
+    done
+}
+
+# Remove binaries installed to /usr/local/bin
+uninstall_remove_local_bins() {
+    tui_subtitle "Removing binaries from /usr/local/bin"
+
+    for bin in "${INIR_LOCAL_BINS[@]}"; do
+        if [[ -f "/usr/local/bin/$bin" ]]; then
+            sudo rm -f "/usr/local/bin/$bin" && \
+                log_success "Removed /usr/local/bin/$bin" || \
+                log_warning "Could not remove /usr/local/bin/$bin"
+        fi
+    done
+}
+
+# Remove user-installed fonts
+uninstall_remove_user_fonts() {
+    tui_subtitle "Removing installed fonts"
+
+    local font_dir="$HOME/.local/share/fonts"
+    for font in "${INIR_FONT_NAMES[@]}"; do
+        # Handle different file extensions
+        for ext in ttf otf zip; do
+            if [[ -f "$font_dir/${font}.${ext}" ]]; then
+                rm -f "$font_dir/${font}.${ext}" && \
+                    log_success "Removed ${font}.${ext}"
+            fi
+        done
+    done
+
+    # Refresh font cache
+    fc-cache -f "$font_dir" 2>/dev/null || true
+}
+
+# Remove user-installed icon/cursor themes
+uninstall_remove_user_themes() {
+    tui_subtitle "Removing installed themes"
+
+    local icon_dir="$HOME/.local/share/icons"
+    for theme in "${INIR_THEME_DIRS[@]}"; do
+        if [[ -d "$icon_dir/$theme" ]]; then
+            rm -rf "$icon_dir/$theme" && \
+                log_success "Removed $theme icon theme"
+        fi
+    done
+}
+
+# Run full clean uninstall
+uninstall_clean() {
+    echo ""
+    tui_title "iNiR Clean Uninstall"
+    echo ""
+
+    echo -e "${STY_RED}${STY_BOLD}⚠ WARNING: CLEAN UNINSTALL${STY_RST}"
+    echo ""
+    echo "This will remove ALL packages, repositories, and files installed by iNiR."
+    echo ""
+    echo -e "${STY_YELLOW}Packages to remove:${STY_RST} ${#INIR_FEDORA_PKGS[@]} packages"
+    echo -e "${STY_YELLOW}COPRs to disable:${STY_RST} ${#INIR_FEDORA_COPRS[@]} repositories"
+    echo -e "${STY_YELLOW}Binaries to remove:${STY_RST} ${#INIR_LOCAL_BINS[@]} from /usr/local/bin"
+    echo -e "${STY_YELLOW}Fonts to remove:${STY_RST} ${#INIR_FONT_NAMES[@]} user fonts"
+    echo -e "${STY_YELLOW}Themes to remove:${STY_RST} ${#INIR_THEME_DIRS[@]} icon/cursor themes"
+    echo ""
+
+    if [[ ${#warnings[@]} -gt 0 ]]; then
+        echo -e "${STY_YELLOW}Important notices:${STY_RST}"
+        for warn in "${warnings[@]}"; do
+            echo -e "  ${STY_YELLOW}•${STY_RST} $warn"
+        done
+        echo ""
+    fi
+
+    if $ask; then
+        if ! tui_confirm "Continue with clean uninstall?" "no"; then
+            echo "Cancelled."
+            return 0
+        fi
+    else
+        echo -e "${STY_CYAN}Non-interactive mode: proceeding with clean uninstall...${STY_RST}"
+    fi
+
+    echo ""
+    tui_divider
+    echo ""
+
+    # Create backup first
+    local backup_dir
+    backup_dir=$(uninstall_create_backup)
+
+    # Stop services
+    uninstall_stop_services
+
+    # Remove iNiR-exclusive files
+    uninstall_remove_inir_only
+    uninstall_reload_user_systemd
+
+    # Handle shared configs
+    uninstall_handle_shared_configs
+
+    # Handle quickshell shared resources
+    uninstall_handle_quickshell_shared
+
+    # Clean uninstall additions
+    local distro="${OS_GROUP_ID:-unknown}"
+    [[ -z "$distro" || "$distro" == "unknown" ]] && detect_distro 2>/dev/null
+
+    case "$distro" in
+        fedora)
+            uninstall_remove_packages_fedora
+            uninstall_remove_repos_fedora
+            ;;
+        arch)
+            log_warning "Arch package removal not yet implemented"
+            log_info "Run 'yay -R <package>' to remove packages manually"
+            ;;
+        *)
+            log_warning "Package removal not supported for $distro"
+            log_info "Remove packages using your package manager"
+            ;;
+    esac
+
+    uninstall_remove_local_bins
+    uninstall_remove_user_fonts
+    uninstall_remove_user_themes
+
+    # Final message
+    echo ""
+    tui_divider
+    echo ""
+
+    printf "${STY_GREEN}${STY_BOLD}"
+    cat << 'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                  ✓ Clean Uninstall Complete                  ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+EOF
+    printf "${STY_RST}"
+    echo ""
+
+    echo -e "${STY_CYAN}Backup saved to:${STY_RST}"
+    echo -e "  $backup_dir"
+    echo ""
+    echo -e "${STY_FAINT}To restore from backup:${STY_RST}"
+    echo -e "  cp -r $backup_dir/quickshell-inir ${XDG_CONFIG_HOME}/quickshell/inir"
+    echo ""
+    echo -e "${STY_FAINT}To reinstall iNiR:${STY_RST}"
+    echo -e "  git clone https://github.com/snowarch/inir.git && cd inir && ./setup install"
+    echo ""
+}
+
 uninstall_show_packages() {
     echo ""
     tui_subtitle "Installed packages"
