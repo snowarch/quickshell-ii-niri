@@ -33,6 +33,9 @@ assert(!beforeLoader.includes("Timer {"), "no delay timer before first lock pain
 const activate = lockQml.slice(lockQml.indexOf("function activate()"), lockQml.indexOf("function prepareSleep()"))
 assert(!activate.includes("sleepBegin"), "lock activate is not screen-off")
 
+const fallback = lockQml.slice(lockQml.indexOf("id: fallbackTimer"), lockQml.indexOf("id: fallbackTimer") + 500)
+assert(fallback.includes("Loader.Loading"), "fallback must not fire while lock qml is still loading")
+
 const inirSh = fs.readFileSync(path.resolve(__dirname, "../scripts/inir"), "utf8")
 const chunk = inirSh.slice(inirSh.indexOf("cleanup_orphans()"), inirSh.indexOf("cleanup_orphans()") + 5000)
 assert(chunk.includes("swayidle"), "cleanup_orphans must reap leftover swayidle")

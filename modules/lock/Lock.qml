@@ -281,7 +281,7 @@ Scope {
             Timer {
                 id: fallbackTimer
                 interval: 2000
-                running: GlobalStates.screenLocked && !lockSurfaceLoader.item
+                running: GlobalStates.screenLocked && !lockSurfaceLoader.item && lockSurfaceLoader.status !== Loader.Loading
                 onTriggered: {
                     console.warn("[Lock] Lock surface failed to load after 2s — status:",
                                  lockSurfaceLoader.status, "active:", lockSurfaceLoader.active,
