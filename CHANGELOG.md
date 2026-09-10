@@ -7,21 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target release: **2.31.0**.
+
 ### Added
 
-- **Fresh-install presets** now combine curated desktop compositions, five coherent visual styles and three explicit graphics budgets. Low-end tiers preserve each style's default material policy instead of leaving glass-heavy themes stuck with blur disabled.
+- **Editorial global style** adds a configurable Material-based visual system across Settings, bars, dock, dashboard, sidebars, media, notifications, wallpaper flows, desktop widgets, lock/session surfaces and shared paper components, with separate paper/accent controls instead of one hard-coded treatment.
+- **Organic Edge** brings the Organic audio renderer to screen edges and desktop backgrounds with layout-aware spectrum behavior, configurable placement/composition and dedicated Settings controls.
+- **Desktop composition tools** add a dashboard focus timer, decorative shape/date-badge widgets, Editorial typography compositions and a substantially expanded widget editor for placement, shape, visibility and per-widget controls.
+- **Optional Kira companion runtime** adds the companion shell integration, Settings/IPC controls, expanded JRPG animation profile, locale coverage and safer optional asset-pack delivery.
+- **Fresh-install experience presets** now combine curated desktop compositions, coherent visual styles and explicit graphics budgets so new installs can choose a complete starting point instead of assembling every subsystem manually.
+- **Kalaallisut (`kl_GL`) localization** is now available as a complete selectable locale.
 
 ### Changed
 
-- **Installed runtime** now uses consistent file selection across installation, updates and packages, keeping development tools out while preserving optional mascot packs.
-- **Runtime localization** now covers current literal UI strings in the canonical catalog, validates source coverage separately from locale parity, and keeps source discovery from acting as deletion authority.
-- **Media From bar** now opens from the actual M3 or Pill bar surface instead of falling back to the shared bottom overlay; Stock, Islands, Scenic, Frame and vertical bars keep their existing anchored path.
+- **Settings architecture and search** now use the rebuilt Material ii host/navigation model, generated search registry, clearer focus/readability states and consistent embedded/window lifecycle behavior.
+- **M3 bar layout editing** has been rebuilt for clearer module placement and better compression on constrained widths while preserving the existing bar ownership model.
+- **Localization tooling and runtime switching** now separate source coverage from locale parity, improve translations across the shipped catalogs and scope locale discovery to actual translation files.
+- **Organic audio behavior** is more layout-aware across bars and screen edges, follows the active playback sink more reliably and uses less fragment work for edge rendering.
+- **Runtime work is more demand-driven**: resource polling is scoped to visible consumers, countdowns share a second-aligned clock, hidden/reduced-motion widget animations stop unnecessary work and Settings search reuses edit-distance state.
+- **Default Niri animation timing** is slower and more deliberate on fresh/default configurations.
 
 ### Fixed
 
-- **Embedded Settings search** now resolves the loaded page host through the overlay window instead of referencing a component-local QML id from the parent scope.
-- **Update recovery** now detects rewritten upstream history, preserves a recovery ref before realigning proven clean published checkouts, refuses local commits or dirty trees, and reports failures back to the in-shell updater immediately.
-- **Doctor allocator cleanup** now removes the retired Quickshell malloc policy from environment.d, the current maintenance process and the systemd user manager while preserving custom allocator values.
+- **Update/crash recovery** now refreshes Niri-owned session environment from the running compositor and limits `cleanup-orphans` to Quickshell processes owned by `inir.service`, fixing the two failure paths reported in [#257](https://github.com/snowarch/iNiR/issues/257). Doctor also surfaces a failed/start-limit shell service with the normal concise `inir logs` path instead of requiring full framework logs.
+- **Uninstall restoration** now restores pre-iNiR Kitty and Foot configuration, removes generated terminal theme links safely, preserves a final uninstall backup and removes only iNiR-owned shell integration ([#256](https://github.com/snowarch/iNiR/issues/256)).
+- **Niri lock recovery** now survives an interrupted Quickshell/session-lock lifecycle without leaving the next shell instance in a broken lock state.
+- **Niri display Settings** no longer write compositor configuration merely by loading the page, persist actual display edits correctly and keep success/error feedback from disrupting the Settings workflow.
+- **Fullscreen/Game Mode behavior** is reactive again: visualizers suspend correctly, Orbit hot corners stay out of fullscreen/game sessions, Overview can reclaim shell navigation, and Ricelin Pill uses the same native Top-layer fullscreen stacking as Dock/Classic/M3 while reserving Overlay only for explicit surfaces, OSD and toasts.
+- **Dock interactions** recover canceled pointer activations and keep previews/context menus stable long enough to interact with them without leaving stale menus behind.
+- **Bar popups** are clamped to their output bounds instead of rendering partially off-screen.
+- **Wallpaper/network content retries** handle booru array responses correctly and retry transient Wallhaven service failures instead of failing permanently on a temporary response.
+- **Sidebar geometry** preserves its bottom navigation rail width and correctly centers the collapsed footer summary.
+- **Audio visualizer source selection** keeps Cava attached to playback sink monitors instead of silently following the wrong PipeWire path.
+- **Locale discovery** no longer treats unrelated JSON files as selectable languages.
+
+### Issues / PRs
+
+- Fixed [#256](https://github.com/snowarch/iNiR/issues/256) and [#257](https://github.com/snowarch/iNiR/issues/257).
+- [#258](https://github.com/snowarch/iNiR/issues/258) remains under review in contributor PR [#259](https://github.com/snowarch/iNiR/pull/259) and is not part of the 2.31.0 candidate yet.
 
 ## [2.30.0] - 2026-09-03
 
