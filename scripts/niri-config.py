@@ -556,7 +556,7 @@ def cmd_get_input():
         print(json.dumps(result))
         return 0
 
-    content = input_file.read_text()
+    content = _strip_kdl_line_comments(input_file.read_text())
 
     # Extract subsections — handle nested braces properly
     input_block = _extract_block(content, "input", top_level=True)
@@ -1021,7 +1021,7 @@ def cmd_get_layout():
         print(json.dumps(result))
         return 0
 
-    content = layout_file.read_text()
+    content = _strip_kdl_line_comments(layout_file.read_text())
     layout_block = _extract_block(content, "layout", top_level=True)
 
     if layout_block:
@@ -1202,7 +1202,7 @@ def cmd_get_animations():
         print(json.dumps(result))
         return 0
 
-    content = anim_file.read_text()
+    content = _strip_kdl_line_comments(anim_file.read_text())
     anim_block = _extract_block(content, "animations", top_level=True)
 
     if anim_block:
@@ -1272,7 +1272,7 @@ def cmd_get_window_rules():
         print(json.dumps(result))
         return 0
 
-    content = rules_file.read_text()
+    content = _strip_kdl_line_comments(rules_file.read_text())
 
     # Find all window-rule blocks
     pos = 0
@@ -2010,34 +2010,21 @@ def _set_animations(config_dir, key, value):
             print(json.dumps({"error": "animations block not found"}))
             return 1
 
-        has_off = _has_top_level_flag(anim_block, "off")
+        has_off = _has_top_level_flag(_strip_kdl_line_comments(anim_block), "off")
 
         if value == "on" and has_off:
-            content = re.sub(
-                r"(animations\s*\{)\s*\n\s*off\s*\n",
-                r"\g<1>\n",
-                content,
-                count=1,
+            content = _remove_key_from_section(
+                content, "animations", "off", top_level=True
             )
         elif value == "off" and not has_off:
-            content = re.sub(
-                r"(animations\s*\{)\s*\n",
-                r"\g<1>\n    off\n",
-                content,
-                count=1,
+            content = _set_value_in_block(
+                content, "animations", "off", "", top_level=True
             )
 
     elif key == "slowdown":
-        anim_block = _extract_block(content, "animations", top_level=True)
-        if anim_block and "slowdown" in anim_block:
-            content = re.sub(r"(slowdown\s+)[\d.]+", rf"\g<1>{value}", content, count=1)
-        else:
-            content = re.sub(
-                r"(animations\s*\{)\s*\n",
-                rf"\g<1>\n    slowdown {value}\n",
-                content,
-                count=1,
-            )
+        content = _set_value_in_block(
+            content, "animations", "slowdown", value, top_level=True
+        )
 
     elif "." in key:
         # Per-type spring param: e.g. "window-open.damping-ratio" "0.98"

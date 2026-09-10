@@ -728,7 +728,7 @@ ContentPage {
                 root.handleJsonResult(outputsCollector.text, "outputs", data => {
                     if (Array.isArray(data))
                         root.outputList = data
-                    root.outputReady = true
+                    Qt.callLater(() => root.outputReady = true)
                 })
             }
         }
@@ -748,7 +748,7 @@ ContentPage {
                 root.inputReady = false
                 root.handleJsonResult(inputCollector.text, "input", data => {
                     root.inputData = data
-                    root.inputReady = true
+                    Qt.callLater(() => root.inputReady = true)
                 })
             }
         }
@@ -768,7 +768,7 @@ ContentPage {
                 root.layoutReady = false
                 root.handleJsonResult(layoutCollector.text, "layout", data => {
                     root.layoutData = data
-                    root.layoutReady = true
+                    Qt.callLater(() => root.layoutReady = true)
                 })
             }
         }
@@ -788,7 +788,7 @@ ContentPage {
                 root.animationsReady = false
                 root.handleJsonResult(animationsCollector.text, "animations", data => {
                     root.animationsData = data
-                    root.animationsReady = true
+                    Qt.callLater(() => root.animationsReady = true)
                 })
             }
         }
@@ -808,7 +808,7 @@ ContentPage {
                 root.windowRulesReady = false
                 root.handleJsonResult(windowRulesCollector.text, "windowRules", data => {
                     root.windowRulesData = data
-                    root.windowRulesReady = true
+                    Qt.callLater(() => root.windowRulesReady = true)
                 })
             }
         }
