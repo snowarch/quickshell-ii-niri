@@ -1183,6 +1183,8 @@ fi
 step "release polish guards"
 config_qml="$runtime_root/modules/common/Config.qml"
 game_mode_qml="$runtime_root/services/GameMode.qml"
+niri_service_qml="$runtime_root/services/NiriService.qml"
+screen_corners_qml="$runtime_root/modules/screenCorners/ScreenCorners.qml"
 dock_apps_qml="$runtime_root/modules/dock/DockApps.qml"
 dock_app_button_qml="$runtime_root/modules/dock/DockAppButton.qml"
 dock_context_menu_qml="$runtime_root/modules/dock/DockContextMenu.qml"
@@ -1217,13 +1219,23 @@ if ! grep -Fq 'property bool disableVisualizers: true' "$config_qml" \
     printf 'FAIL: Game Mode does not suppress shared Cava/render consumers through Settings policy\n' >&2
     exit 1
 fi
+if ! grep -Fq 'readonly property var liveWindows: _windowsDirty ? _pendingWindows : windows' "$niri_service_qml" \
+        || ! grep -Fq 'const windows = NiriService.liveWindows' "$game_mode_qml" \
+        || ! grep -Fq 'WlrLayershell.layer: WlrLayer.Top' "$screen_corners_qml" \
+        || ! grep -Fq 'return GameMode.manuallyActivated' "$screen_corners_qml" \
+        || ! grep -Fq 'cornerPanelWindow.orbitHotCornerBlocked()' "$screen_corners_qml"; then
+    printf 'FAIL: Orbit hot corner can regress above fullscreen or manual Game Mode\n' >&2
+    exit 1
+fi
 if ! grep -Fq 'readonly property bool contextMenuOpen: contextMenuPending || dockContextMenu.active' "$dock_apps_qml" \
         || ! grep -Fq 'hoverPreview === false || contextMenuOpen || dragActive' "$dock_apps_qml" \
         || ! grep -Fq 'Qt.callLater(() => root._openPendingContextMenu())' "$dock_apps_qml" \
         || ! grep -Fq 'property Item contextMenuSourceButton: null' "$dock_apps_qml" \
         || ! grep -Fq 'root.appListRoot.requestContextMenu(root, root.buildContextMenuModel())' "$dock_app_button_qml" \
         || grep -Fq 'closeAllContextMenus' "$dock_apps_qml" "$dock_app_button_qml" \
-        || ! grep -Fq 'closeOnHoverLost: false' "$dock_context_menu_qml" \
+        || ! grep -Fq 'closeOnHoverLost: true' "$dock_context_menu_qml" \
+        || ! grep -Fq 'closeOnHoverLostAfterEntered: true' "$dock_context_menu_qml" \
+        || ! grep -Fq 'closeOnHoverLostDelay: 650' "$dock_context_menu_qml" \
         || ! grep -Fq 'revealDistance: 8' "$dock_context_menu_qml" \
         || ! grep -Fq 'grabFocus: false' "$dock_preview_qml" \
         || grep -Fq 'anchor.window: root.parentWindow' "$dock_apps_qml" \
