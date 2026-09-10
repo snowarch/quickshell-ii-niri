@@ -29,6 +29,7 @@ Singleton {
     property var lastValidBrightness: ({})
     property bool asleep: false
     property var _sleepDisabledOutputs: []
+    property var _knownExternals: []
     property int _wakeRetryAttempt: 0
 
     // Reconcile against the live screen list rather than binding to
@@ -65,28 +66,40 @@ Singleton {
         backlightDetectProc.running = true
     }
 
+    function _rememberExternals(): void {
+        const extra = []
+        for (let i = 0; i < Quickshell.screens.length; ++i) {
+            const name = Quickshell.screens[i].name
+            if (BrightnessPolicy.isExternalOutput(name))
+                extra.push(name)
+        }
+        root._knownExternals = BrightnessPolicy.mergeOutputNames(root._knownExternals, extra)
+    }
+
     function sleepBegin(): void {
         if (!CompositorService.isNiri)
             return
         wakeRetryTimer.stop()
         root._wakeRetryAttempt = 0
         root.asleep = true
-        const disabled = []
-        for (let i = 0; i < Quickshell.screens.length; ++i) {
-            const name = Quickshell.screens[i].name
-            if (!BrightnessPolicy.isExternalOutput(name))
-                continue
-            disabled.push(name)
-            Quickshell.execDetached(BrightnessPolicy.niriOutputOffArgs(name))
-        }
+        root._rememberExternals()
+        const disabled = BrightnessPolicy.mergeOutputNames(root._knownExternals, [])
+        for (let i = 0; i < disabled.length; ++i)
+            Quickshell.execDetached(BrightnessPolicy.niriOutputOffArgs(disabled[i]))
         root._sleepDisabledOutputs = disabled
         Quickshell.execDetached(BrightnessPolicy.niriPowerOffMonitorsArgs())
     }
 
     function _tryWakeOutputs(): void {
-        const names = root._sleepDisabledOutputs
+        const names = BrightnessPolicy.mergeOutputNames(root._sleepDisabledOutputs, root._knownExternals)
+        root._sleepDisabledOutputs = names
         for (let i = 0; i < names.length; ++i)
             Quickshell.execDetached(BrightnessPolicy.niriOutputOnArgs(names[i]))
+    }
+
+    function _pollNiriOutputs(): void {
+        niriOutputsProc.running = false
+        niriOutputsProc.running = true
     }
 
     function restoreAfterWake(): void {
@@ -97,9 +110,10 @@ Singleton {
         Quickshell.execDetached(BrightnessPolicy.niriPowerOnMonitorsArgs())
         root.asleep = false
         root._wakeRetryAttempt = 0
+        root._rememberExternals()
         root._tryWakeOutputs()
-        if (root._sleepDisabledOutputs.length > 0)
-            wakeRetryTimer.restart()
+        root._pollNiriOutputs()
+        wakeRetryTimer.restart()
         root._syncMonitors()
         for (let i = 0; i < root.monitors.length; ++i)
             root.monitors[i].restoreLastGood()
@@ -110,6 +124,20 @@ Singleton {
         root._detectBacklight()
     }
 
+    Process {
+        id: niriOutputsProc
+        command: ["niri", "msg", "-j", "outputs"]
+        stdout: StdioCollector {
+            id: niriOutputsOut
+            onStreamFinished: {
+                const extra = BrightnessPolicy.disabledExternalOutputNames(niriOutputsOut.text)
+                root._sleepDisabledOutputs = BrightnessPolicy.mergeOutputNames(root._sleepDisabledOutputs, extra)
+                root._knownExternals = BrightnessPolicy.mergeOutputNames(root._knownExternals, extra)
+                root._tryWakeOutputs()
+            }
+        }
+    }
+
     Timer {
         id: wakeRetryTimer
         interval: 400
@@ -118,10 +146,10 @@ Singleton {
             root._wakeRetryAttempt++
             if (!BrightnessPolicy.shouldRetryWakeOutput(root._wakeRetryAttempt, BrightnessPolicy.wakeOutputRetryLimit())) {
                 stop()
-                root._sleepDisabledOutputs = []
                 root._wakeRetryAttempt = 0
                 return
             }
+            root._pollNiriOutputs()
             root._tryWakeOutputs()
         }
     }

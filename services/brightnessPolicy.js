@@ -60,7 +60,7 @@ function niriOutputOnArgs(name) {
 }
 
 function wakeOutputRetryLimit() {
-    return 15
+    return 25
 }
 
 function wakeOutputRetryMs() {
@@ -70,4 +70,43 @@ function wakeOutputRetryMs() {
 function shouldRetryWakeOutput(attempt, limit) {
     const cap = Number.isFinite(limit) ? limit : wakeOutputRetryLimit()
     return attempt < cap
+}
+
+function disabledExternalOutputNames(jsonText) {
+    let data
+    try {
+        data = JSON.parse(jsonText)
+    } catch (e) {
+        return []
+    }
+    if (!data || typeof data !== "object")
+        return []
+    const names = []
+    const keys = Object.keys(data)
+    for (let i = 0; i < keys.length; ++i) {
+        const name = keys[i]
+        if (!isExternalOutput(name))
+            continue
+        const info = data[name]
+        if (!info || info.current_mode == null)
+            names.push(name)
+    }
+    return names
+}
+
+function mergeOutputNames(a, b) {
+    const out = []
+    const seen = {}
+    const lists = [a || [], b || []]
+    for (let i = 0; i < lists.length; ++i) {
+        const list = lists[i]
+        for (let j = 0; j < list.length; ++j) {
+            const n = list[j]
+            if (!n || seen[n])
+                continue
+            seen[n] = true
+            out.push(n)
+        }
+    }
+    return out
 }
