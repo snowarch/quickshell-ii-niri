@@ -151,23 +151,10 @@ WSettingsPage {
             currentValue: Config.options?.language?.ui ?? "auto"
             options: [
                 { value: "auto", displayName: Translation.tr("Auto") },
-                { value: "en_US", displayName: "English" },
-                { value: "ar_SA", displayName: "العربية" },
-                { value: "es_AR", displayName: "Español" },
-                { value: "pt_BR", displayName: "Português" },
-                { value: "de_DE", displayName: "Deutsch" },
-                { value: "fr_FR", displayName: "Français" },
-                { value: "he_HE", displayName: "עברית" },
-                { value: "hi_IN", displayName: "हिन्दी" },
-                { value: "it_IT", displayName: "Italiano" },
-                { value: "ja_JP", displayName: "日本語" },
-                { value: "kl_GL", displayName: "Kalaallisut" },
-                { value: "ko_KR", displayName: "한국어" },
-                { value: "ru_RU", displayName: "Русский" },
-                { value: "tr_TR", displayName: "Türkçe" },
-                { value: "uk_UA", displayName: "Українська" },
-                { value: "vi_VN", displayName: "Tiếng Việt" },
-                { value: "zh_CN", displayName: "简体中文" }
+                ...Translation.allAvailableLanguages.map(lang => ({
+                    value: lang,
+                    displayName: Translation.languageDisplayName(lang)
+                }))
             ]
             onSelected: newValue => Config.setNestedValue("language.ui", newValue)
         }

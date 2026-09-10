@@ -160,12 +160,35 @@ Singleton {
         return translation;
     }
 
+    function languageDisplayName(locale) {
+        const names = {
+            "ar_SA": "العربية",
+            "de_DE": "Deutsch",
+            "en_US": "English",
+            "es_AR": "Español",
+            "fr_FR": "Français",
+            "he_HE": "עברית",
+            "hi_IN": "हिन्दी",
+            "it_IT": "Italiano",
+            "ja_JP": "日本語",
+            "kl_GL": "Kalaallisut",
+            "ko_KR": "한국어",
+            "pt_BR": "Português",
+            "ru_RU": "Русский",
+            "tr_TR": "Türkçe",
+            "uk_UA": "Українська",
+            "vi_VN": "Tiếng Việt",
+            "zh_CN": "简体中文"
+        };
+        return names[locale] ?? locale;
+    }
+
     component TranslationScanner: Process {
         id: translationScanner
         required property string translationsDir
         signal languagesScanned(var languages)
 
-        command: ["/usr/bin/find", translationScanner.translationsDir, "-name", "*.json", "-exec", "/usr/bin/basename", "{}", ".json", ";"]
+        command: ["/usr/bin/find", translationScanner.translationsDir, "-maxdepth", "1", "-type", "f", "-name", "*.json", "-exec", "/usr/bin/basename", "{}", ".json", ";"]
         running: false
 
         stdout: StdioCollector {

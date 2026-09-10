@@ -281,7 +281,7 @@ ContentPage {
                         },
                         ...Translation.allAvailableLanguages.map(lang => {
                             return {
-                                displayName: lang,
+                                displayName: Translation.languageDisplayName(lang),
                                 value: lang
                             };
                         })
