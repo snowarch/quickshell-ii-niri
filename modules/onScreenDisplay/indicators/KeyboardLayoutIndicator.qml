@@ -70,11 +70,14 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: KeyboardIndicators.popupText
                 font.pixelSize: Appearance.font.pixelSize.normal
                 color: Appearance.angelEverywhere ? Appearance.angel.colText
                      : Appearance.inirEverywhere ? Appearance.inir.colText
                      : Appearance.colors.colOnLayer0
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
         }
     }

@@ -45,6 +45,9 @@ The apply command refuses unknown or duplicate keys, changed English source text
 
 - Keep product names and commands unchanged.
 - Use natural desktop terminology, not literal machine translation.
-- Keep labels short enough for the UI.
+- Translate for the surface, not for dictionary equivalence. A compact status
+  label may need a standard abbreviation even when the long form is correct.
+- Keep gauges, bar labels, OSD text, pills and chips on one readable line. Do
+  not expand CPU/RAM/GPU or turn a lock/media state into a sentence.
 - Adapt dry jokes instead of translating them word for word.
 - Finish and validate one locale before moving to the next.

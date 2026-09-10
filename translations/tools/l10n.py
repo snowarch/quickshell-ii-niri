@@ -12,6 +12,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,38 @@ SOURCE_TRANSLATION_PATTERNS = [
 SOURCE_IGNORED_DIRS = {
     ".git", ".agents", ".agents-backups", ".cache", "node_modules",
     "build", "dist", "__pycache__",
+}
+
+# These keys are rendered in one-line gauges, OSDs, bar surfaces or similarly
+# constrained controls. A translation can be linguistically correct and still
+# be unusable there, so keep a visual-width budget independent of prose labels.
+COMPACT_LABEL_LIMITS = {
+    "CPU": 6,
+    "RAM": 6,
+    "GPU": 6,
+    "CPU temp": 12,
+    "GPU temp": 12,
+    "Caps Lock on": 20,
+    "Caps Lock off": 20,
+    "Num Lock on": 20,
+    "Num Lock off": 20,
+    "Caps Lock: On": 20,
+    "Num Lock: On": 20,
+    "Media": 16,
+    "No media": 20,
+    "Hotspot": 18,
+    "Task Manager": 24,
+    "Agenda": 18,
+    "No apps found": 20,
+    "No devices found": 20,
+    "No apps playing audio": 32,
+    "Shuffle On": 20,
+    "Shuffle Off": 20,
+    "No coins configured": 22,
+    "Launcher": 18,
+    "Unmute": 18,
+    "On AC": 16,
+    "On AC · Full": 24,
 }
 
 
@@ -147,8 +180,35 @@ def marker_errors(target: str) -> list[str]:
     })
 
 
+def display_width(text: str) -> int:
+    """Approximate terminal/UI columns without counting combining marks."""
+    clean = text.removesuffix(KEEP_MARKER).strip()
+    width = 0
+    for char in clean:
+        if unicodedata.combining(char):
+            continue
+        width += 2 if unicodedata.east_asian_width(char) in {"W", "F"} else 1
+    return width
+
+
+def compact_label_errors(target: dict[str, str]) -> dict[str, dict[str, int]]:
+    errors: dict[str, dict[str, int]] = {}
+    for key, limit in COMPACT_LABEL_LIMITS.items():
+        value = target.get(key)
+        if value is None:
+            continue
+        width = display_width(value)
+        if width > limit:
+            errors[key] = {"width": width, "limit": limit}
+    return errors
+
+
 def semantic_term_errors(locale: str, source: str, target: str) -> list[str]:
     """Reject known technically-wrong literal translations for locale-specific UI terms."""
+    # MaterialShape.ClamShell is a literal shape name, not the desktop-shell
+    # concept covered by the technical `shell` glossary rule below.
+    if source == "Clam Shell":
+        return []
     source_lower = source.casefold()
     target_lower = target.casefold()
     errors: list[str] = []
@@ -162,13 +222,115 @@ def semantic_term_errors(locale: str, source: str, target: str) -> list[str]:
         "de_DE": (
             (r"\bwallpapers?\b", ("tapete", "tapeten"), "wallpaper"),
             (r"\bdashboard\b", ("armaturenbrett",), "dashboard"),
+            (r"\bhotspot\b", ("aktiver bereich",), "hotspot"),
+            (r"\bagenda\b", ("tagesordnung",), "agenda"),
+            (r"\bmatches?\b", ("streichholz", "streichhölzer"), "match"),
+            (r"\brecorder\b", ("blockflöte",), "recorder"),
+            (r"\bapplications?\b", ("bewerbung", "bewerbungen"), "application"),
+            (r"\bshell\b", ("muschel", "schale"), "shell"),
+            (r"\bpills?\b", ("pille", "pillen"), "pill"),
+        ),
+        "fr_FR": (
+            (r"\bdock\b", ("quai",), "dock"),
+            (r"\bshell\b", ("coque",), "shell"),
+            (r"\bpills?\b", ("pilule", "pilules"), "pill"),
+            (r"\bapply\b", ("postuler",), "apply"),
+            (r"\bmarkdown\b", ("démarque",), "markdown"),
+            (r"\bapplications?\b", ("candidature",), "application"),
+            (r"\bmatches?\b", ("matchs",), "match"),
+            (r"\bagenda\b", ("ordre du jour",), "agenda"),
+        ),
+        "pt_BR": (
+            (r"\bdock\b", ("doca",), "dock"),
+            (r"\bshell\b", ("concha", "casca"), "shell"),
+            (r"\bpills?\b", ("pílula", "pílulas", "comprimido", "comprimidos"), "pill"),
+            (r"\baccent\b", ("sotaque",), "accent"),
+            (r"\bmarkdown\b", ("redução",), "markdown"),
+            (r"\bmatches?\b", ("partidas",), "match"),
+            (r"\bapplications?\b", ("candidatura",), "application"),
+        ),
+        "ru_RU": (
+            (r"\bbars?\b", ("бары",), "bar"),
+            (r"\bshell\b", ("ракушка", "корпус"), "shell"),
+            (r"\bpills?\b", ("таблетка", "таблетки"), "pill"),
+            (r"\bscroll\b", ("свиток",), "scroll"),
+            (r"\bmatches?\b", ("спички",), "match"),
+            (r"\bmedia\b", ("сми",), "media"),
+            (r"\bagenda\b", ("повестка дня",), "agenda"),
+        ),
+        "tr_TR": (
+            (r"\bpills?\b", ("hap", "haplar"), "pill"),
+            (r"\bcommits?\b", ("taahhüt", "taahhütler"), "commit"),
         ),
         "ar_SA": (
             (r"\bwallpapers?\b", ("ورق جدران",), "wallpaper"),
             (r"\bdashboard\b", ("لوحة القيادة",), "dashboard"),
+            (r"\bdock\b", ("قفص الاتهام", "الرصيف"), "dock"),
+            (r"\bshell\b", ("الصدفة", "القشرة"), "shell"),
+            (r"\bpills?\b", ("حبوب", "الحبة"), "pill"),
+            (r"\bcommits?\b", ("الالتزام",), "commit"),
+            (r"\bmatches?\b", ("مباريات",), "match"),
+            (r"\bvolume\b", ("الحجم",), "volume"),
+            (r"\bmedia\b", ("وسائل الإعلام",), "media"),
+        ),
+        "he_HE": (
+            (r"\bdock\b", ("מזח",), "dock"),
+            (r"\bpills?\b", ("גלולה", "גלולות"), "pill"),
+            (r"\bcommits?\b", ("התחייבות",), "commit"),
+        ),
+        "hi_IN": (
+            (r"\bpills?\b", ("गोली", "गोलियाँ"), "pill"),
+            (r"\bcommits?\b", ("प्रतिबद्धता",), "commit"),
+            (r"\bmatches?\b", ("मैच",), "match"),
+            (r"\bapplications?\b", ("आवेदन",), "application"),
+            (r"\bvolume\b", ("आयतन",), "volume"),
+            (r"\bdisabled?\b", ("विकलांग",), "disabled"),
+            (r"\baccent\b", ("उच्चारण",), "accent"),
+        ),
+        "it_IT": (
+            (r"\bpills?\b", ("pillola", "pillole"), "pill"),
+            (r"\bapplications?\b", ("domanda",), "application"),
+            (r"\bhotspot\b", ("area sensibile",), "hotspot"),
+        ),
+        "ja_JP": (
+            (r"\bpills?\b", ("錠剤", "丸薬"), "pill"),
+            (r"\bapply\b", ("申し込む",), "apply"),
+            (r"\bwindow(?:s)?\b", ("窓",), "window"),
+            (r"\bdisabled?\b", ("障害者",), "disabled"),
+        ),
+        "ko_KR": (
+            (r"\bpills?\b", ("알약",), "pill"),
+            (r"\bwindow(?:s)?\b", ("창문",), "window"),
+            (r"\bmatches?\b", ("성냥",), "match"),
+            (r"\bdisabled?\b", ("장애인",), "disabled"),
         ),
         "uk_UA": (
             (r"\bdashboard\b", ("приладова панель",), "dashboard"),
+            (r"\bbars?\b", ("бари",), "bar"),
+            (r"\bpills?\b", ("таблетка", "таблетки", "пігулка", "пігулки"), "pill"),
+            (r"\bscroll\b", ("сувій",), "scroll"),
+            (r"\bmatches?\b", ("сірники",), "match"),
+            (r"\bagenda\b", ("порядок денний",), "agenda"),
+        ),
+        "vi_VN": (
+            (r"\bbars?\b", ("quầy bar",), "bar"),
+            (r"\bdock\b", ("bến tàu",), "dock"),
+            (r"\bshell\b", ("vỏ",), "shell"),
+            (r"\bpills?\b", ("thuốc viên", "viên thuốc"), "pill"),
+            (r"\bcommits?\b", ("cam kết",), "commit"),
+            (r"\bmatches?\b", ("trận đấu",), "match"),
+            (r"\baccent\b", ("giọng",), "accent"),
+        ),
+        "zh_CN": (
+            (r"\bbars?\b", ("酒吧",), "bar"),
+            (r"\bdock\b", ("码头", "坞站"), "dock"),
+            (r"\bshell\b", ("外壳",), "shell"),
+            (r"\bpills?\b", ("药丸",), "pill"),
+            (r"\bcommits?\b", ("承诺",), "commit"),
+            (r"\bmatches?\b", ("比赛",), "match"),
+            (r"\baccent\b", ("口音",), "accent"),
+            (r"\bapplications?\b", ("申请",), "application"),
+            (r"\bdisabled?\b", ("残疾人",), "disabled"),
         ),
     }
     checks = checks_by_locale.get(locale, ())
@@ -324,6 +486,7 @@ def build_report(locale: str) -> dict[str, Any]:
         for key in common_keys
         if (errors := semantic_term_errors(locale, source[key], target[key]))
     }
+    compact_errors = compact_label_errors(target)
     suspect = [
         key for key in common_keys
         if suspicious(source[key], target[key], exact, patterns)
@@ -339,6 +502,7 @@ def build_report(locale: str) -> dict[str, Any]:
         "markerErrors": dict(sorted(internal_marker_errors.items())),
         "protectedTermErrors": dict(sorted(protected_errors.items())),
         "semanticTermErrors": dict(sorted(semantic_errors.items())),
+        "compactLabelErrors": dict(sorted(compact_errors.items())),
         "suspectedUntranslated": sorted(suspect),
     }
 
@@ -352,6 +516,7 @@ def report_is_structurally_valid(report: dict[str, Any]) -> bool:
         or report["markerErrors"]
         or report["protectedTermErrors"]
         or report["semanticTermErrors"]
+        or report["compactLabelErrors"]
     )
 
 
@@ -364,6 +529,7 @@ def print_report(report: dict[str, Any]) -> None:
     print(f"  internal marker errors: {len(report['markerErrors'])}")
     print(f"  protected term errors: {len(report['protectedTermErrors'])}")
     print(f"  semantic term errors: {len(report['semanticTermErrors'])}")
+    print(f"  compact label errors: {len(report['compactLabelErrors'])}")
     print(f"  suspected untranslated: {len(report['suspectedUntranslated'])}")
 
 
@@ -434,6 +600,7 @@ def extract(locale: str, output: Path, limit: int) -> int:
             "Preserve placeholders, commands, paths, markup and product names.",
             "Never translate internal /*keep*/ markers; omit the marker from translated prose or keep it exactly as /*keep*/.",
             "Use concise natural desktop UI language, not literal machine translation.",
+            "When compactLimit is set, keep the translated label within that display-width budget.",
         ],
         "entries": [
             {
@@ -441,6 +608,7 @@ def extract(locale: str, output: Path, limit: int) -> int:
                 "source": source[key],
                 "current": target[key],
                 "translated": "",
+                "compactLimit": COMPACT_LABEL_LIMITS.get(key),
                 "locations": source_locations(source[key]),
             }
             for key in keys
@@ -507,6 +675,12 @@ def apply_batch(batch_path: Path) -> int:
         if semantic_errors:
             raise ValueError(
                 f"semantic term mismatch for {key!r}: {', '.join(semantic_errors)}"
+            )
+        compact_limit = COMPACT_LABEL_LIMITS.get(key)
+        if compact_limit is not None and display_width(translated) > compact_limit:
+            raise ValueError(
+                f"compact label too wide for {key!r}: "
+                f"{display_width(translated)} columns (limit {compact_limit})"
             )
         updates[key] = translated
 

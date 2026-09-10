@@ -119,8 +119,8 @@ AbstractBackgroundWidget {
         if (root.showCpu) items.push({ icon: "memory", label: Translation.tr("CPU"), key: "cpu" });
         if (root.showMemory) items.push({ icon: "storage", label: Translation.tr("RAM"), key: "mem" });
         if (root.showGpu) items.push({ icon: "developer_board", label: Translation.tr("GPU"), key: "gpu" });
-        if (root.showTemp) items.push({ icon: "thermostat", label: Translation.tr("CPU temp"), key: "temp" });
-        if (root.showGpuTemp) items.push({ icon: "device_thermostat", label: Translation.tr("GPU temp"), key: "gpuTemp" });
+        if (root.showTemp) items.push({ icon: "thermostat", label: Translation.tr("CPU"), key: "temp" });
+        if (root.showGpuTemp) items.push({ icon: "device_thermostat", label: Translation.tr("GPU"), key: "gpuTemp" });
         if (root.showDisk) items.push({ icon: "hard_drive", label: Translation.tr("Disk"), key: "disk" });
         return items;
     }
@@ -524,6 +524,7 @@ AbstractBackgroundWidget {
                 )
                 readonly property real _liveValue: root._getValue(modelData.key)
                 readonly property color _liveColor: root._getColor(modelData.key)
+                width: _ringSize
 
                 // Smoothly interpolated value for display
                 property real _animatedValue: _liveValue
@@ -572,16 +573,23 @@ AbstractBackgroundWidget {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 2
                     MaterialSymbol {
+                        id: ringLabelIcon
                         text: ringCol.modelData.icon
                         iconSize: Appearance.font.pixelSize.smaller
                         color: root._metricSubtext
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     StyledText {
+                        width: Math.min(
+                            implicitWidth,
+                            Math.max(0, ringCol._ringSize - ringLabelIcon.implicitWidth - parent.spacing)
+                        )
                         text: ringCol.modelData.label
                         color: root._metricSubtext
                         font { pixelSize: Appearance.font.pixelSize.smaller; family: Appearance.font.family.main }
                         anchors.verticalCenter: parent.verticalCenter
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
                     }
                 }
             }
