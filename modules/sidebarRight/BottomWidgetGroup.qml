@@ -196,8 +196,10 @@ Rectangle {
     }
 
     // The thing when collapsed
-    RowLayout {
+    Item {
         id: collapsedBottomWidgetGroupRow
+        anchors.fill: parent
+        implicitHeight: Math.max(collapsedExpandButton.implicitHeight + 20, collapsedSummary.implicitHeight + 20)
         opacity: collapsed ? 1 : 0
         visible: opacity > 0
         Behavior on opacity {
@@ -210,13 +212,11 @@ Rectangle {
             }
         }
 
-        spacing: 15
-
         CalendarHeaderButton {
-            Layout.topMargin: 10
-            Layout.bottomMargin: 10
-            Layout.leftMargin: 25
-            Layout.rightMargin: 0
+            id: collapsedExpandButton
+            anchors.left: parent.left
+            anchors.leftMargin: 25
+            anchors.verticalCenter: parent.verticalCenter
             forceCircle: true
             downAction: () => {
                 root.setCollapsed(false)
@@ -236,9 +236,10 @@ Rectangle {
         }
 
         StyledText {
+            id: collapsedSummary
             property int remainingTasks: Todo.list.filter(task => !task.done).length;
-            Layout.margins: 10
-            Layout.leftMargin: 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
             text: Translation.tr("%1   •   %2 tasks").arg(DateTime.collapsedCalendarFormat).arg(remainingTasks)
             font.pixelSize: Appearance.font.pixelSize.large
             font.family: Appearance.zzzEverywhere ? Appearance.font.family.numbers : Appearance.font.family.main

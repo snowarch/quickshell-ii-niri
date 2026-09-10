@@ -945,7 +945,13 @@ Item {
         Component { id: classicTogglesComponent; ClassicQuickPanel {} }
         Component { id: androidTogglesComponent; AndroidQuickPanel { editMode: root.editMode } }
         Component { id: centerSectionComponent; CenterWidgetGroup { collapsed: root.notifsCollapsed } }
-        Component { id: widgetsSectionComponent; BottomWidgetGroup {} }
+        Component {
+            id: widgetsSectionComponent
+            BottomWidgetGroup {
+                anchors.left: parent.left
+                anchors.right: parent.right
+            }
+        }
 
     }
 
