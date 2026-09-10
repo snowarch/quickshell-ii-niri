@@ -1462,6 +1462,13 @@ Singleton {
                         property int widgetScale: 100
                         property int widgetOpacity: 100
                         property string colorMode: "auto"
+                        property bool showBackground: true
+                        property bool useBlur: false
+                        property bool showBorder: true
+                        property real backgroundOpacity: 0.16
+                        property real borderWidth: 1
+                        property real borderOpacity: 0.20
+                        property real cornerRadius: -1
                         property JsonObject palette: JsonObject {
                             property string primary: "primary"
                             property string secondary: "secondary"
@@ -1857,6 +1864,7 @@ Singleton {
 
                     property JsonObject shape: JsonObject {
                         property bool enable: false
+                        property string treatment: "flat"
                         property string shape: "Flower"
                         property bool outline: false
                         property real angle: 0
@@ -2074,6 +2082,62 @@ Singleton {
 
                     // Custom widget data lives in root.customWidgetData (not here)
                     // to avoid JsonAdapter crash on property var inside JsonObject.
+                }
+                property JsonObject edgeWidgets: JsonObject {
+                    property JsonObject organic: JsonObject {
+                        property bool enable: false
+                        property list<string> edges: []
+                        property int inset: 0
+                        property bool respectPanels: false
+                        property int topScale: 100
+                        property int rightScale: 100
+                        property int bottomScale: 100
+                        property int leftScale: 100
+                        property int cornerRadius: 24
+                        property int taper: 14
+                        property int thickness: 22
+                        property int detail: 42
+                        property string style: "silk"
+                        property string shape: "flow"
+                        property string palette: "theme"
+                        property string colorMode: "flow"
+                        property string effectMode: "clean"
+                        property string joinMode: "auto"
+                        property string primaryColor: "#b5a0ff"
+                        property string secondaryColor: "#64dbcf"
+                        property string tertiaryColor: "#ffb2cf"
+                        property int colorSpeed: 35
+                        property int hueShift: 0
+                        property int colorIntensity: 100
+                        property int effectStrength: 38
+                        property bool audioReactive: true
+                        property string idleMode: "ambient"
+                        property int bodyOpacity: 32
+                        property int crestStrength: 90
+                        property int glowSpread: 48
+                        property int audioRange: 78
+                        property int beatGlow: 64
+                        property int transientStrength: 90
+                        property int bassDrive: 88
+                        property int trebleDrive: 68
+                        property int attack: 105
+                        property int release: 82
+                        property string edge: "bottom" // top | right | bottom | left
+                        property int span: 70 // percent of the selected edge
+                        property int position: 50 // center position along the edge, percent
+                        property int depth: 180 // render field extending inward from the physical edge
+                        property int opacity: 100
+                        property int smoothing: 2
+                        property string frequencyProfile: "flat"
+                        property int accentStrength: 70
+                        property int sensitivity: 72
+                        property int pulse: 90
+                        property int compression: 12
+                        property int motionSpeed: 100
+                        property int idleMotion: 14
+                        property int glow: 52
+                        property list<string> screenList: []
+                    }
                 }
                 property string wallpaperPath: ""
                 property string thumbnailPath: ""
@@ -3170,7 +3234,7 @@ Singleton {
                 property bool keepRightSidebarLoaded: true
                 property bool keepLeftSidebarLoaded: true
                 property bool instantOpen: false
-                property string animationType: "slide" // "slide" | "fade" | "pop" | "reveal"
+                property string animationType: "slide" // "slide" | "fade" | "pop" | "reveal" | "swing" | "drop" | "elastic"
                 property bool collapseEmptyNotifications: false // Shrink right sidebar when there are no notifications (default layout)
                 property bool collapseWidgetsTab: false // Shrink left sidebar to its content on tabs with finite height (Widgets)
                 property JsonObject shellLayout: JsonObject {
@@ -3639,7 +3703,7 @@ Singleton {
                 property bool completed: false
                 property bool skipped: false
                 property string profile: "balanced"
-                property string stylePreset: "material-flow"
+                property string stylePreset: "material"
                 property string performancePreset: "balanced"
             }
 

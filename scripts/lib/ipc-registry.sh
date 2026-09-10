@@ -2,7 +2,7 @@
 # Auto-generated from QML IpcHandler declarations + docs/IPC.md metadata.
 # Do not edit manually.
 # Regenerate: python3 scripts/lib/generate-ipc-registry.py
-# IPC.md hash: 48d4a1ebbeb3201e
+# IPC.md hash: 7571b4b1971b1907
 # Targets: 62
 
 declare -gA IPC_TARGET_DESC=(
@@ -141,7 +141,7 @@ declare -gA IPC_TARGET_FUNCTIONS=(
   [appCatalog]="refresh search install list"
   [audio]="volumeUp volumeDown mute playEvent micMute"
   [autostart]="status addCommand addApp removeLast reload"
-  [background]="toggleEditMode setEditMode editState desktopItemsState focusWidget promoteWidget resetLayerOrder setWidgetEnabled clockDebugState clockDebugSetMode clockDebugSetRegion clockDebugSetLayout clockDebugRestore"
+  [background]="toggleEditMode setEditMode editState applyOrganicEdgePreset organicEdgeState setOrganicEdgeEnabled desktopItemsState focusWidget promoteWidget resetLayerOrder setWidgetEnabled clockDebugState clockDebugSetMode clockDebugSetRegion clockDebugSetLayout clockDebugRestore"
   [bar]="toggle close open"
   [brightness]="increment decrement sleepBegin restoreAfterWake"
   [cheatsheet]="toggle close open"
@@ -230,6 +230,9 @@ declare -gA IPC_FUNCTION_DESC=(
   ["background:toggleEditMode"]="Toggle widget edit mode (drag, resize, configure desktop widgets)"
   ["background:setEditMode"]="Set widget edit mode explicitly"
   ["background:editState"]="Report the active selection, physical panel insets, full desktop work area and panel-aware zone work area for each output"
+  ["background:applyOrganicEdgePreset"]="Apply an Organic Edge scene by name without changing enabled displays"
+  ["background:organicEdgeState"]="Report each Organic Edge output, selected edges, frame, audio subscription and shader status"
+  ["background:setOrganicEdgeEnabled"]="Enable or disable the independent Organic Edge screen field"
   ["background:desktopItemsState"]="Report desktop-item persistence, availability, item count, validation errors and undo state"
   ["background:focusWidget"]="Select a desktop widget and optionally open its quick controls"
   ["background:promoteWidget"]="Move a desktop widget to the top of the persistent layer order"
@@ -492,6 +495,8 @@ declare -gA IPC_FUNCTION_ARGS=(
   ["autostart:addCommand"]="<cmd>"
   ["autostart:addApp"]="<desktopId>"
   ["background:setEditMode"]="<enabled>"
+  ["background:applyOrganicEdgePreset"]="<name>"
+  ["background:setOrganicEdgeEnabled"]="<enabled>"
   ["background:focusWidget"]="<widgetName> <openControls>"
   ["background:promoteWidget"]="<widgetName>"
   ["background:setWidgetEnabled"]="<widgetName> <enabled>"

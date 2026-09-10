@@ -37,9 +37,11 @@ import qs.modules.background.widgets.mascot
 import qs.modules.background.widgets.japaneseTypography
 import qs.modules.background.desktopItems
 import "root:modules/common/functions/parallax.js" as ParallaxMath
+import "widgets/OrganicEdgeConfig.js" as OrganicEdgeConfig
 
 Scope {
     id: backgroundScope
+    property var organicEdgeHosts: ({})
 
     // Bounded diagnostics for the desktop clock. They are inert unless the
     // supervised shell is loaded with INIR_REGION_DEBUG=1.
@@ -107,6 +109,26 @@ Scope {
                         screen?.height ?? 0)
                 }))
             })
+        }
+
+        function applyOrganicEdgePreset(name: string): string {
+            const preset = OrganicEdgeConfig.presets.find(p => p.name.toLowerCase() === name.toLowerCase())
+            if (!preset) return "Unknown Organic edge composition"
+            const updates = {}
+            for (const key of Object.keys(preset.values))
+                updates[OrganicEdgeConfig.path + "." + key] = preset.values[key]
+            Config.setNestedValues(updates)
+            return "Organic edge: " + preset.name
+        }
+
+        function organicEdgeState(): string {
+            return JSON.stringify(Object.values(backgroundScope.organicEdgeHosts)
+                .map(host => host.diagnostics()))
+        }
+
+        function setOrganicEdgeEnabled(enabled: bool): string {
+            Config.setNestedValue("background.edgeWidgets.organic.enable", enabled)
+            return enabled ? "Organic edge enabled" : "Organic edge disabled"
         }
 
         function desktopItemsState(): string {
@@ -497,7 +519,8 @@ Scope {
         // Desktop items remain pointer-driven until their focus contract is
         // owned by the background surface; do not make a stale global selection
         // turn the Bottom layer keyboard-focusable during reload.
-        readonly property bool _needsKeyboardFocus: bgRoot._widgetEnabled("notes", false)
+        readonly property bool _needsKeyboardFocus: GlobalStates.widgetEditMode
+            || bgRoot._widgetEnabled("notes", false)
             || bgRoot._widgetEnabled("todo", false)
 
         // Zone occupancy: map zone name → array of widget names
@@ -1703,6 +1726,15 @@ Scope {
                 closeOnHoverLostDelay: 700
             }
 
+            OrganicEdgeWidget {
+                id: organicEdge
+                Component.onCompleted: backgroundScope.organicEdgeHosts[screenName] = organicEdge
+                Component.onDestruction: delete backgroundScope.organicEdgeHosts[screenName]
+                anchors.fill: parent
+                z: 19
+                screenName: modelData?.name ?? ""
+            }
+
             WidgetCanvas {
                 id: widgetCanvas
                 z: 20
@@ -1746,7 +1778,7 @@ Scope {
                 width: parent.width
                 height: parent.height
                 // Disable parallax transform when locked/safe/backdrop
-                readonly property bool _parallaxActive: useParallax
+                readonly property bool _parallaxActive: useParallax && !GlobalStates.widgetEditMode
                     && !GlobalStates.screenLocked && !bgRoot.wallpaperSafetyTriggered && !bgRoot.backdropActive
 
                 // Managed desktop items are a separate, lightweight canvas model.
@@ -2110,6 +2142,11 @@ Scope {
                     readonly property real zoneHeight: zoneWorkArea.height ?? safeHeight
                     readonly property bool hasSelection: GlobalStates.selectedDesktopWidget
                         .startsWith((bgRoot.screen?.name ?? "") + "::")
+                    readonly property bool manipulating: {
+                        if (!hasSelection) return false
+                        const widget = bgRoot._loadedWidget(GlobalStates.selectedDesktopWidget.split("::")[1])
+                        return widget !== null && (widget.isDragging || widget._isResizing)
+                    }
 
                     // Grid dots at intersections. The lattice uses the same
                     // panel-aware bounds as drag snapping, so moving the bar or
@@ -2246,7 +2283,8 @@ Scope {
                             width: zw - 8
                             height: zh - 8
                             radius: Appearance.rounding.small
-                            opacity: editGridOverlay.hasSelection ? 1 : 0.32
+                            visible: editGridOverlay.manipulating
+                            opacity: 0.65
                             color: occupied
                                 ? CF.ColorUtils.applyAlpha(hasLocked ? Appearance.colors.colError : editGridOverlay.gridColor, 0.04)
                                 : "transparent"
@@ -2317,382 +2355,43 @@ Scope {
                     anchors.fill: parent
                     visible: opacity > 0
                     opacity: GlobalStates.widgetEditMode ? 1 : 0
-                    z: 200
+                    z: 20000
+                    enabled: GlobalStates.widgetEditMode
 
                     Behavior on opacity {
                         enabled: Appearance.animationsEnabled
                         NumberAnimation { duration: Appearance.animation.elementMoveEnter.duration; easing.type: Appearance.animation.elementMoveEnter.type; easing.bezierCurve: Appearance.animation.elementMoveEnter.bezierCurve }
                     }
 
-                    // ── Floating Edit Controls Bar ────────────────────
-                    Item {
+                    DesktopEditToolbar {
                         id: editControlsBar
+                        availableWidth: Math.max(0, editGridOverlay.safeWidth - 16)
+                        availableHeight: editGridOverlay.safeHeight
+                        outputName: bgRoot.screenName
+                        hasSelection: editGridOverlay.hasSelection
+                        libraryOpen: widgetManagerPanel.shown
                         x: Math.round(editGridOverlay.safeLeft
                             + (editGridOverlay.safeWidth - width) / 2)
-                        y: Math.round(Math.max(editGridOverlay.safeTop,
-                            editGridOverlay.safeBottom - height - 12))
-                        width: Math.min(editGridOverlay.safeWidth,
-                            editBarRow.implicitWidth + 24)
-                        height: 52
-
-                        Toolbar {
-                            anchors.fill: parent
-                            padding: 6
-                            spacing: 4
-                            screenX: editControlsBar.x
-                            screenY: editControlsBar.y
+                        y: Math.max(editGridOverlay.safeTop,
+                            editGridOverlay.safeBottom - height - 12)
+                        onLibraryRequested: widgetManagerPanel.shown = !widgetManagerPanel.shown
+                        onEdgeSettingsRequested: {
+                            Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14",
+                                "QS_SETTINGS_SECTION=Organic edge",
+                                Quickshell.shellPath("scripts/inir"), "settings-window"])
                         }
-
-                        // Prevent clicks from falling through
-                        MouseArea {
-                            anchors.fill: parent
-                            z: -1
-                            acceptedButtons: Qt.AllButtons
+                        onSettingsRequested: {
+                            if (Config.options?.settingsUi?.overlayMode !== false) {
+                                GlobalStates.settingsOverlayRequestedPage = 14
+                                GlobalStates.settingsOverlayOpen = true
+                            } else {
+                                Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14",
+                                    Quickshell.shellPath("scripts/inir"), "settings-window"])
+                            }
                         }
-
-                        Row {
-                            id: editBarRow
-                            anchors.centerIn: parent
-                            spacing: 4
-
-                            // Grid snap toggle
-                            RippleButton {
-                                id: gridSnapBtn
-                                width: 36; height: 36
-                                buttonRadius: Appearance.rounding.full
-                                toggled: Config.getNestedValue("background.widgets.editGrid.snap", true)
-                                colBackground: "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colBackgroundToggled: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                                colBackgroundToggledHover: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                downAction: () => {
-                                    const current = Config.getNestedValue("background.widgets.editGrid.snap", true);
-                                    Config.setNestedValue("background.widgets.editGrid.snap", !current);
-                                }
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "grid_3x3"
-                                    iconSize: 20
-                                    color: gridSnapBtn.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                                }
-                                StyledToolTip { text: Translation.tr("Snap to grid") }
-                            }
-
-                            // Grid size cycle
-                            RippleButton {
-                                id: gridSizeBtn
-                                readonly property int _gridSize: Config.getNestedValue("background.widgets.editGrid.size", 32)
-                                readonly property bool _isCustom: _gridSize !== 32
-                                width: gridSizeBtnRow.implicitWidth + 12; height: 36
-                                buttonRadius: Appearance.rounding.full
-                                colBackground: _isCustom ? CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.10) : "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                downAction: () => {
-                                    const sizes = [16, 32, 48, 64];
-                                    const current = gridSizeBtn._gridSize;
-                                    const idx = sizes.indexOf(current);
-                                    const next = sizes[(idx + 1) % sizes.length];
-                                    Config.setNestedValue("background.widgets.editGrid.size", next);
-                                }
-                                contentItem: Row {
-                                    id: gridSizeBtnRow
-                                    anchors.centerIn: parent
-                                    spacing: 2
-                                    MaterialSymbol {
-                                        text: "grid_4x4"
-                                        iconSize: 14
-                                        color: gridSizeBtn._isCustom ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    StyledText {
-                                        text: gridSizeBtn._gridSize + ""
-                                        font.pixelSize: Appearance.font.pixelSize.smaller
-                                        font.family: Appearance.font.family.numbers
-                                        font.weight: Font.Medium
-                                        color: gridSizeBtn._isCustom ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-                                StyledToolTip { text: Translation.tr("Grid size: %1px — click to cycle").arg(gridSizeBtn._gridSize) }
-                            }
-
-                            // Separator
-                            Rectangle {
-                                width: 1; height: 24
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                            }
-
-                            MaterialSymbol {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "widgets"
-                                iconSize: 16
-                                color: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.62)
-                            }
-
-                            StyledText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                visible: editGridOverlay.safeWidth >= 900
-                                text: Translation.tr("Widgets")
-                                font.pixelSize: Appearance.font.pixelSize.smaller
-                                font.weight: Font.Medium
-                                color: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.72)
-                            }
-
-                            RippleButton {
-                                width: 26; height: 36
-                                enabled: widgetToggleRail.contentX > 1
-                                opacity: enabled ? 1 : 0.28
-                                buttonRadius: Appearance.rounding.full
-                                colBackground: "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                releaseAction: () => widgetToggleRail.scrollBy(-144)
-                                cancelAction: () => {}
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "chevron_left"
-                                    iconSize: 18
-                                    color: Appearance.colors.colOnLayer2
-                                }
-                                StyledToolTip { text: Translation.tr("Previous widgets") }
-                            }
-
-                            Flickable {
-                                id: widgetToggleRail
-                                width: Math.max(72, Math.min(420,
-                                    editGridOverlay.safeWidth - 530,
-                                    widgetToggleRow.implicitWidth))
-                                height: 36
-                                contentWidth: widgetToggleRow.implicitWidth
-                                contentHeight: height
-                                clip: true
-                                interactive: contentWidth > width
-                                boundsBehavior: Flickable.StopAtBounds
-                                flickableDirection: Flickable.HorizontalFlick
-
-                                function scrollBy(delta: real): void {
-                                    const maxX = Math.max(0, contentWidth - width)
-                                    contentX = Math.max(0, Math.min(maxX, contentX + delta))
-                                }
-
-                                WheelHandler {
-                                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                                    onWheel: event => {
-                                        const horizontal = event.angleDelta.x
-                                        const vertical = event.angleDelta.y
-                                        const delta = Math.abs(horizontal) > Math.abs(vertical)
-                                            ? -horizontal : -vertical
-                                        widgetToggleRail.scrollBy(delta === 0 ? 0
-                                            : (delta > 0 ? 120 : -120))
-                                        event.accepted = true
-                                    }
-                                }
-
-                                Row {
-                                    id: widgetToggleRow
-                                    spacing: 2
-
-                                    Repeater {
-                                model: [
-                                    { key: "weather", icon: "cloud", label: "Weather", defaultOn: false },
-                                    { key: "customImage", icon: "add_photo_alternate", label: "Custom Image", defaultOn: false },
-                                    { key: "imageConverter", icon: "transform", label: "Image Converter", defaultOn: false },
-                                    { key: "clock", icon: "schedule", label: "Clock", defaultOn: true },
-                                    { key: "mediaControls", icon: "album", label: "Media", defaultOn: false },
-                                    { key: "japaneseTypography", icon: "translate", label: "Japanese Typography", defaultOn: false },
-                                    { key: "visualizer", icon: "graphic_eq", label: "Visualizer", defaultOn: false },
-                                    { key: "systemMonitor", icon: "monitor_heart", label: "System Monitor", defaultOn: false },
-                                    { key: "battery", icon: "battery_full", label: "Battery", defaultOn: false },
-                                    { key: "notes", icon: "sticky_note_2", label: "Notes", defaultOn: false },
-                                    { key: "calendarUpcoming", icon: "event", label: "Upcoming Events", defaultOn: false },
-                                    { key: "monthCalendar", icon: "calendar_month", label: "Month Calendar", defaultOn: false },
-                                    { key: "todo", icon: "checklist", label: "Todo", defaultOn: false },
-                                    { key: "timers", icon: "timer", label: "Timers", defaultOn: false },
-                                    { key: "uptime", icon: "avg_pace", label: "System Uptime", defaultOn: false },
-                                    { key: "shape", icon: "category", label: "Decorative shape", defaultOn: false },
-                                    { key: "dateBadge", icon: "today", label: "Date badge", defaultOn: false },
-                                    { key: "editorial", icon: "text_fields", label: "Editorial", defaultOn: false },
-                                    { key: "mascot", icon: "pets", label: "Mascot", defaultOn: false },
-                                    { key: "newsTicker", icon: "newspaper", label: "News Ticker", defaultOn: false },
-                                    { key: "worldClock", icon: "public", label: "World Clock", defaultOn: false },
-                                    { key: "userCard", icon: "account_circle", label: "User Card", defaultOn: false }
-                                ]
-                                RippleButton {
-                                    id: quickWidgetButton
-                                    required property var modelData
-                                    readonly property bool widgetEnabled: bgRoot._widgetEnabled(modelData.key, modelData.defaultOn)
-                                    width: 36; height: 36
-                                    buttonRadius: Appearance.rounding.full
-                                    toggled: widgetEnabled
-                                    colBackground: "transparent"
-                                    colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                    colBackgroundToggled: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                                    colBackgroundToggledHover: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                                    colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                    releaseAction: () => DesktopWidgetLayout.setGloballyEnabled(
-                                        quickWidgetButton.modelData.key,
-                                        !quickWidgetButton.widgetEnabled)
-                                    cancelAction: () => {}
-                                    contentItem: MaterialSymbol {
-                                        anchors.centerIn: parent
-                                        text: quickWidgetButton.modelData.icon
-                                        iconSize: 18
-                                        color: quickWidgetButton.toggled ? Appearance.colors.colPrimary : CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.5)
-                                    }
-                                    StyledToolTip { text: quickWidgetButton.modelData.label }
-                                }
-                            }
-
-                            // Custom widget toggles
-                            Repeater {
-                                model: CustomWidgets.ready ? CustomWidgets.widgets : []
-                                RippleButton {
-                                    id: customWidgetButton
-                                    required property var modelData
-                                    readonly property bool widgetEnabled: DesktopWidgetLayout.enabled(
-                                        bgRoot.screenName, "custom." + modelData.id,
-                                        Config.getNestedValue("background.widgets.custom." + modelData.id + ".enable", false))
-                                    width: 36; height: 36
-                                    buttonRadius: Appearance.rounding.full
-                                    toggled: widgetEnabled
-                                    colBackground: "transparent"
-                                    colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                    colBackgroundToggled: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                                    colBackgroundToggledHover: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                                    colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                    releaseAction: () => DesktopWidgetLayout.setGloballyEnabled(
-                                        "custom." + customWidgetButton.modelData.id,
-                                        !customWidgetButton.widgetEnabled)
-                                    cancelAction: () => {}
-                                    contentItem: MaterialSymbol {
-                                        anchors.centerIn: parent
-                                        text: customWidgetButton.modelData.icon || "widgets"
-                                        iconSize: 18
-                                        color: customWidgetButton.toggled ? Appearance.colors.colPrimary : CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.5)
-                                    }
-                                    StyledToolTip { text: customWidgetButton.modelData.name }
-                                }
-                            }
-                                }
-                            }
-
-                            RippleButton {
-                                width: 26; height: 36
-                                enabled: widgetToggleRail.contentX
-                                    < Math.max(0, widgetToggleRail.contentWidth - widgetToggleRail.width) - 1
-                                opacity: enabled ? 1 : 0.28
-                                buttonRadius: Appearance.rounding.full
-                                colBackground: "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                releaseAction: () => widgetToggleRail.scrollBy(144)
-                                cancelAction: () => {}
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "chevron_right"
-                                    iconSize: 18
-                                    color: Appearance.colors.colOnLayer2
-                                }
-                                StyledToolTip { text: Translation.tr("More widgets") }
-                            }
-
-                            // Separator
-                            Rectangle {
-                                width: 1; height: 24
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                            }
-
-                            // Toggle the richer widget manager. Keep a visible
-                            // label here: this is the primary navigation path,
-                            // not an ambiguous add button.
-                            RippleButton {
-                                id: manageWidgetsButton
-                                width: manageWidgetsContent.implicitWidth + 16
-                                height: 36
-                                buttonRadius: Appearance.rounding.full
-                                toggled: widgetManagerPanel.shown
-                                colBackground: "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colBackgroundToggled: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.16)
-                                colBackgroundToggledHover: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                releaseAction: () => { widgetManagerPanel.shown = !widgetManagerPanel.shown }
-                                cancelAction: () => {}
-                                contentItem: Row {
-                                    id: manageWidgetsContent
-                                    anchors.centerIn: parent
-                                    spacing: 4
-                                    MaterialSymbol {
-                                        text: "tune"
-                                        iconSize: 17
-                                        color: manageWidgetsButton.toggled
-                                            ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    StyledText {
-                                        visible: editGridOverlay.safeWidth >= 1000
-                                        text: Translation.tr("Manage widgets")
-                                        font.pixelSize: Appearance.font.pixelSize.smaller
-                                        font.weight: Font.Medium
-                                        color: manageWidgetsButton.toggled
-                                            ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-                                StyledToolTip { text: Translation.tr("Search, filter, lock and configure widgets") }
-                            }
-
-                            // Open full settings
-                            RippleButton {
-                                width: 36; height: 36
-                                buttonRadius: Appearance.rounding.full
-                                colBackground: "transparent"
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.08)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                                downAction: () => {
-                                    if (Config.options?.settingsUi?.overlayMode !== false) {
-                                        GlobalStates.settingsOverlayRequestedPage = 14
-                                        GlobalStates.settingsOverlayOpen = true
-                                    } else {
-                                        Quickshell.execDetached(["/usr/bin/env", "QS_SETTINGS_PAGE=14", Quickshell.shellPath("scripts/inir"), "settings-window"])
-                                    }
-                                }
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "settings"
-                                    iconSize: 18
-                                    color: Appearance.colors.colOnLayer2
-                                }
-                                StyledToolTip { text: Translation.tr("Widget settings") }
-                            }
-
-                            // Separator
-                            Rectangle {
-                                width: 1; height: 24
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: CF.ColorUtils.applyAlpha(Appearance.colors.colOnLayer2, 0.12)
-                            }
-
-                            // Exit edit mode
-                            RippleButton {
-                                width: 36; height: 36
-                                buttonRadius: Appearance.rounding.full
-                                colBackground: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.12)
-                                colBackgroundHover: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.20)
-                                colRipple: CF.ColorUtils.applyAlpha(Appearance.colors.colPrimary, 0.24)
-                                downAction: () => { widgetManagerPanel.shown = false; GlobalStates.setWidgetEditMode(false) }
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "check"
-                                    iconSize: 20
-                                    color: Appearance.colors.colPrimary
-                                }
-                                StyledToolTip { text: Translation.tr("Done editing") }
-                            }
+                        onDoneRequested: {
+                            widgetManagerPanel.shown = false
+                            GlobalStates.setWidgetEditMode(false)
                         }
                     }
 
@@ -2713,20 +2412,29 @@ Scope {
                                 const panel = widgetManagerPanel.item
                                 if (!panel)
                                     return
-                                const maxX = Math.max(0,
-                                    (widgetManagerPanel.parent?.width ?? 0) - panel.width)
-                                const maxY = Math.max(0,
-                                    (widgetManagerPanel.parent?.height ?? 0) - panel.height)
+                                const inset = 12
+                                const canvasWidth = widgetManagerPanel.parent?.width ?? 0
+                                const canvasHeight = widgetManagerPanel.parent?.height ?? 0
+                                const spanX = Math.max(0, canvasWidth - panel.width - inset * 2)
+                                const spanY = Math.max(0, canvasHeight - panel.height - inset * 2)
                                 const rx = Math.max(0, Math.min(1,
-                                    Number(Persistent.states?.desktopWidgets?.managerXRatio ?? 0.76)))
+                                    Number(Persistent.states?.desktopWidgets?.managerXRatio ?? 0.68)))
                                 const ry = Math.max(0, Math.min(1,
-                                    Number(Persistent.states?.desktopWidgets?.managerYRatio ?? 0.42)))
-                                widgetManagerPanel.x = Math.round(maxX * rx)
-                                widgetManagerPanel.y = Math.round(maxY * ry)
+                                    Number(Persistent.states?.desktopWidgets?.managerYRatio ?? 0.48)))
+                                widgetManagerPanel.x = inset + Math.round(spanX * rx)
+                                widgetManagerPanel.y = inset + Math.round(spanY * ry)
                             })
                         }
 
-                        onShownChanged: if (shown) restoreGeometry()
+                        Timer {
+                            id: managerGeometryRestore
+                            interval: 80
+                            repeat: false
+                            onTriggered: widgetManagerPanel.restoreGeometry()
+                        }
+
+                        onShownChanged: if (shown) managerGeometryRestore.restart()
+                        onLoaded: managerGeometryRestore.restart()
 
                         sourceComponent: WidgetManagerPanel {
                             outputName: bgRoot.screen?.name ?? ""
@@ -2739,7 +2447,7 @@ Scope {
                                 GlobalStates.selectDesktopWidget(
                                     bgRoot.screenName + "::" + layoutKey)
                             }
-                            Component.onCompleted: widgetManagerPanel.restoreGeometry()
+                            Component.onCompleted: managerGeometryRestore.restart()
                         }
                     }
                 }
@@ -2748,7 +2456,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("weather", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask : null
-                    Item { id: _hitMask; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask; loader: parent }
                     sourceComponent: WeatherWidget {
                         widgetIndex: 0
                         outputName: bgRoot.screen?.name ?? ""
@@ -2764,7 +2472,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("customImage", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskCustomImage : null
-                    Item { id: _hitMaskCustomImage; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskCustomImage; loader: parent }
                     sourceComponent: CustomImageWidget {
                         widgetIndex: 16
                         outputName: bgRoot.screen?.name ?? ""
@@ -2780,7 +2488,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("imageConverter", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskImageConverter : null
-                    Item { id: _hitMaskImageConverter; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskImageConverter; loader: parent }
                     sourceComponent: ImageConverterWidget {
                         widgetIndex: 17
                         outputName: bgRoot.screen?.name ?? ""
@@ -2796,7 +2504,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("clock", true)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask2 : null
-                    Item { id: _hitMask2; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask2; loader: parent }
                     sourceComponent: ClockWidget {
                         widgetIndex: 1
                         outputName: bgRoot.screen?.name ?? ""
@@ -2823,7 +2531,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("mediaControls", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask3 : null
-                    Item { id: _hitMask3; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask3; loader: parent }
                     sourceComponent: MediaControlsWidget {
                         widgetIndex: 2
                         outputName: bgRoot.screen?.name ?? ""
@@ -2839,7 +2547,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("visualizer", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask4 : null
-                    Item { id: _hitMask4; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask4; loader: parent }
                     sourceComponent: VisualizerWidget {
                         widgetIndex: 3
                         outputName: bgRoot.screen?.name ?? ""
@@ -2855,7 +2563,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("systemMonitor", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask5 : null
-                    Item { id: _hitMask5; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask5; loader: parent }
                     sourceComponent: SystemMonitorWidget {
                         widgetIndex: 4
                         outputName: bgRoot.screen?.name ?? ""
@@ -2871,7 +2579,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("battery", false) && Battery.available
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask6 : null
-                    Item { id: _hitMask6; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask6; loader: parent }
                     sourceComponent: BatteryWidget {
                         widgetIndex: 5
                         outputName: bgRoot.screen?.name ?? ""
@@ -2887,7 +2595,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("notes", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask7 : null
-                    Item { id: _hitMask7; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask7; loader: parent }
                     sourceComponent: NotesWidget {
                         widgetIndex: 6
                         outputName: bgRoot.screen?.name ?? ""
@@ -2903,7 +2611,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("calendarUpcoming", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask8 : null
-                    Item { id: _hitMask8; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask8; loader: parent }
                     sourceComponent: CalendarUpcomingWidget {
                         widgetIndex: 7
                         outputName: bgRoot.screen?.name ?? ""
@@ -2919,7 +2627,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("monthCalendar", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskMonthCalendar : null
-                    Item { id: _hitMaskMonthCalendar; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskMonthCalendar; loader: parent }
                     sourceComponent: MonthCalendarWidget {
                         widgetIndex: 8
                         outputName: bgRoot.screen?.name ?? ""
@@ -2935,7 +2643,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("todo", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskTodo : null
-                    Item { id: _hitMaskTodo; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskTodo; loader: parent }
                     sourceComponent: TodoWidget {
                         widgetIndex: 10
                         outputName: bgRoot.screen?.name ?? ""
@@ -2951,7 +2659,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("timers", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskTimers : null
-                    Item { id: _hitMaskTimers; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskTimers; loader: parent }
                     sourceComponent: TimerWidget {
                         widgetIndex: 18
                         outputName: bgRoot.screen?.name ?? ""
@@ -2967,7 +2675,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("uptime", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask10 : null
-                    Item { id: _hitMask10; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask10; loader: parent }
                     sourceComponent: UptimeWidget {
                         widgetIndex: 9
                         outputName: bgRoot.screen?.name ?? ""
@@ -2983,7 +2691,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("editorial", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? editorialHitMask : null
-                    Item { id: editorialHitMask; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: editorialHitMask; loader: parent }
                     sourceComponent: EditorialWidget {
                         widgetIndex: 22
                         outputName: bgRoot.screen?.name ?? ""
@@ -2999,7 +2707,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("shape", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskshape : null
-                    Item { id: _hitMaskshape; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskshape; loader: parent }
                     sourceComponent: ShapeWidget {
                         widgetIndex: 20
                         outputName: bgRoot.screen?.name ?? ""
@@ -3015,7 +2723,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("dateBadge", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMaskdateBadge : null
-                    Item { id: _hitMaskdateBadge; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMaskdateBadge; loader: parent }
                     sourceComponent: DateBadgeWidget {
                         widgetIndex: 21
                         outputName: bgRoot.screen?.name ?? ""
@@ -3032,7 +2740,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("worldClock", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask15 : null
-                    Item { id: _hitMask15; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask15; loader: parent }
                     sourceComponent: WorldClockWidget {
                         widgetIndex: 14
                         outputName: bgRoot.screen?.name ?? ""
@@ -3048,7 +2756,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("userCard", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask16 : null
-                    Item { id: _hitMask16; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask16; loader: parent }
                     sourceComponent: UserCardWidget {
                         widgetIndex: 15
                         outputName: bgRoot.screen?.name ?? ""
@@ -3064,7 +2772,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("newsTicker", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask12 : null
-                    Item { id: _hitMask12; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask12; loader: parent }
                     sourceComponent: NewsTickerWidget {
                         widgetIndex: 11
                         outputName: bgRoot.screen?.name ?? ""
@@ -3080,7 +2788,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("mascot", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask13 : null
-                    Item { id: _hitMask13; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask13; loader: parent }
                     sourceComponent: MascotWidget {
                         widgetIndex: 12
                         outputName: bgRoot.screen?.name ?? ""
@@ -3096,7 +2804,7 @@ Scope {
                     shown: bgRoot._widgetEnabled("japaneseTypography", false)
                     z: item?.desktopStackZ ?? 0
                     containmentMask: GlobalStates.widgetEditMode ? _hitMask14 : null
-                    Item { id: _hitMask14; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                    WidgetInputMask { id: _hitMask14; loader: parent }
                     sourceComponent: JapaneseTypographyWidget {
                         widgetIndex: 13
                         outputName: bgRoot.screen?.name ?? ""
@@ -3123,7 +2831,7 @@ Scope {
                         required property int index
                         z: item?.desktopStackZ ?? 0
                         containmentMask: GlobalStates.widgetEditMode ? _hitMaskInst : null
-                        Item { id: _hitMaskInst; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                        WidgetInputMask { id: _hitMaskInst; loader: parent }
 
                         active: false
 
@@ -3187,7 +2895,7 @@ Scope {
                         id: customWidgetLoader
                         z: item?.desktopStackZ ?? 0
                         containmentMask: GlobalStates.widgetEditMode ? _customHitMask : null
-                        Item { id: _customHitMask; x: parent?.item?.editInputX ?? -8; y: parent?.item?.editInputY ?? -8; width: parent?.item?.editInputWidth ?? ((parent?.width ?? 0) + 16); height: parent?.item?.editInputHeight ?? ((parent?.height ?? 0) + 16) }
+                        WidgetInputMask { id: _customHitMask; loader: parent }
                         required property var modelData
                         required property int index
 

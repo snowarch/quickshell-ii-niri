@@ -42,6 +42,11 @@ ContentPage {
             "image converter": "media",
             "media controls": "media",
             "visualizer": "media",
+            "organic edge": "edges",
+            "screen edges": "edges",
+            "screen composition": "edges",
+            "material and palette": "edges",
+            "motion and sound": "edges",
             "system monitor": "system",
             "battery": "system",
             "japanese typography": "personal",
@@ -1515,8 +1520,8 @@ ContentPage {
     SettingsTaskNavigator {
         icon: "dashboard_customize"
         title: Translation.tr("Desktop Widgets")
-        description: Translation.tr("Configure your desktop widgets in focused views: layout management, clocks, weather, media and personal widgets.")
-        summary: Translation.tr("Manage \u00b7 Time \u00b7 Weather \u00b7 Media \u00b7 Personal \u00b7 System")
+        description: Translation.tr("Configure your desktop widgets in focused views: layout management, clocks, weather, media, screen edges and personal widgets.")
+        summary: Translation.tr("Manage \u00b7 Time \u00b7 Weather \u00b7 Media \u00b7 Screen edges \u00b7 Personal \u00b7 System")
         currentValue: root.activeSection
         onSelected: value => root.activeSection = value
         options: [
@@ -1524,6 +1529,7 @@ ContentPage {
             { displayName: Translation.tr("Time"), icon: "schedule", value: "time" },
             { displayName: Translation.tr("Weather"), icon: "cloud", value: "weather" },
             { displayName: Translation.tr("Media"), icon: "album", value: "media" },
+            { displayName: Translation.tr("Screen edges"), icon: "border_outer", value: "edges" },
             { displayName: Translation.tr("Personal"), icon: "person", value: "personal" },
             { displayName: Translation.tr("System"), icon: "monitor_heart", value: "system" }
         ]
@@ -4007,6 +4013,11 @@ ContentPage {
 
     // ── Visualizer ───────────────────────────────────────────
     LazySection {
+        requested: root.isIiActive && root.activeSection === "edges"
+        sourceComponent: OrganicEdgeSettings {}
+    }
+
+    LazySection {
         requested: root.isIiActive && root.activeSection === "media"
         sourceComponent: Component {
             SettingsCardSection {
@@ -5365,6 +5376,14 @@ ContentPage {
                 onSelected: newValue => Config.setNestedValue("background.widgets.shape.outline", newValue)
                 options: [{ displayName: Translation.tr("Filled"), value: false }, { displayName: Translation.tr("Outline"), value: true }]
             }
+            ConfigSelectionArray {
+                enabled: !Config.getNestedValue("background.widgets.shape.outline", false)
+                currentValue: Config.getNestedValue("background.widgets.shape.treatment", "flat")
+                onSelected: newValue => Config.setNestedValue("background.widgets.shape.treatment", newValue)
+                options: [{ displayName: Translation.tr("Solid"), value: "flat" },
+                    { displayName: Translation.tr("Inset"), value: "inset" },
+                    { displayName: Translation.tr("Duotone"), value: "duotone" }]
+            }
             WidgetAppearanceControls {
                 configPath: "background.widgets.shape"
                 configEntry: Config.getNestedValue("background.widgets.shape", ({}))
@@ -5377,7 +5396,7 @@ ContentPage {
                 configPath: "background.widgets.shape"
                 defaults: ({
                     placementStrategy: "free", contentWidth: 160, contentHeight: 160,
-                    dim: 0, widgetScale: 100, widgetOpacity: 100, shape: "Flower", outline: false, angle: 0, strokeWidth: 3, showBackground: false,
+                    dim: 0, widgetScale: 100, widgetOpacity: 100, shape: "Flower", treatment: "flat", outline: false, angle: 0, strokeWidth: 3, showBackground: false,
                     useBlur: false, showBorder: false, backgroundOpacity: 0,
                     borderWidth: 0, borderOpacity: 0.20, cornerRadius: -1,
                     colorMode: "auto", locked: false, x: 80, y: 240

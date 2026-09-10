@@ -22,6 +22,7 @@ layout(std140, binding = 0) uniform buf {
     float baseRadius;
     float hollowAmount;
     float presentationMode;
+    float screenEdge;
     float aspectRatio;
     float edgeBaseRadius;
     vec2 edgeCardHalf;
@@ -98,13 +99,15 @@ void main() {
     vec2 uv = qt_TexCoord0;
     vec2 p = (uv - 0.5) * 2.0;
     float t = ubuf.phase * TAU;
-    bool edgeMode = ubuf.presentationMode > 1.5;
+    bool cardEdgeMode = ubuf.presentationMode > 1.5 && ubuf.presentationMode < 2.5;
+    bool screenEdgeMode = ubuf.presentationMode >= 2.5;
+    bool edgeMode = cardEdgeMode || screenEdgeMode;
     float radialDistance = length(p);
     float edgeDistanceNormalized = 0.0;
     float presentationMask = 1.0;
     vec2 dir = radialDistance > 0.0001 ? p / radialDistance : vec2(1.0, 0.0);
 
-    if (edgeMode) {
+    if (cardEdgeMode) {
         vec2 halfCard = clamp(ubuf.edgeCardHalf, vec2(0.08), vec2(0.96));
         vec2 shapedP = vec2(p.x * ubuf.aspectRatio, p.y);
         vec2 shapedHalf = vec2(halfCard.x * ubuf.aspectRatio, halfCard.y);
@@ -136,6 +139,29 @@ void main() {
         float perimeterLength = length(perimeterDirection);
         dir = perimeterLength > 0.0001
             ? perimeterDirection / perimeterLength : vec2(1.0, 0.0);
+    } else if (screenEdgeMode) {
+        float edge = clamp(ubuf.screenEdge, 0.0, 3.0);
+        float inward;
+        float along;
+        if (edge < 0.5) {
+            inward = uv.y;
+            along = uv.x;
+        } else if (edge < 1.5) {
+            inward = 1.0 - uv.x;
+            along = uv.y;
+        } else if (edge < 2.5) {
+            inward = 1.0 - uv.y;
+            along = 1.0 - uv.x;
+        } else {
+            inward = uv.x;
+            along = 1.0 - uv.y;
+        }
+        edgeDistanceNormalized = clamp(inward, 0.0, 1.0);
+        float endpointFade = smoothstep(0.0, 0.055, along)
+            * smoothstep(0.0, 0.055, 1.0 - along);
+        presentationMask = endpointFade;
+        float edgeAngle = (along - 0.5) * TAU;
+        dir = vec2(cos(edgeAngle), sin(edgeAngle));
     }
 
     float cs = cos(ubuf.spin);
@@ -214,7 +240,7 @@ void main() {
 
     float depth = clamp(1.0 - r / max(blobRadius, 0.001), 0.0, 1.0);
     float chroma = clamp(0.22 + depth * 0.64 + organic * 0.18, 0.0, 1.0);
-    float huePhase = fract(angle / TAU + 0.5 + ubuf.phase * 0.035);
+    float huePhase = fract(angle / TAU + 0.5 + ubuf.spin / TAU);
     vec3 paletteColor;
     if (huePhase < 0.3333333) {
         paletteColor = mix(ubuf.primaryColor.rgb, ubuf.secondaryColor.rgb,

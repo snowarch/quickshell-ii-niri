@@ -71,6 +71,7 @@ Item {
     property real organicPresentationScale: 1.0
     property real organicBaseRadius: 0.510
     property real organicPresentationMode: 0.0
+    property int organicScreenEdge: 2
     property real organicHollowAmount: 1.0
     property bool organicStretchToHost: false
     property real organicEdgeBaseRadius: 0.39
@@ -258,6 +259,7 @@ Item {
         presentationScale: root.organicPresentationScale
         baseRadius: root.organicBaseRadius
         presentationMode: root.organicPresentationMode
+        screenEdge: root.organicScreenEdge
         stretchToHost: root.organicStretchToHost
         hollowAmount: root.organicHollowAmount
         edgeBaseRadius: root.organicEdgeBaseRadius

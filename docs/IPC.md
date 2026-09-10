@@ -957,6 +957,9 @@ Desktop background and widget controls.
 | `promoteWidget widgetName` | Move a desktop widget to the top of the persistent layer order |
 | `resetLayerOrder` | Reset desktop widgets to their built-in stacking order |
 | `setWidgetEnabled widgetName enabled` | Enable or disable a built-in desktop widget |
+| `applyOrganicEdgePreset name` | Apply an Organic Edge scene by name without changing enabled displays |
+| `organicEdgeState` | Report each Organic Edge output, selected edges, frame, audio subscription and shader status |
+| `setOrganicEdgeEnabled enabled` | Enable or disable the independent Organic Edge screen field |
 | `clockDebugState` | Report clock palette, renderer and quick-control geometry diagnostics |
 | `clockDebugSetMode digital\|cookie adaptToWallpaper` | Temporarily select a diagnostic clock mode |
 | `clockDebugSetRegion color brightness spread` | Inject a temporary wallpaper-region sample |
